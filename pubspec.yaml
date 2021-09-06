@@ -8,13 +8,12 @@ environment:
 
 dependencies:
   args: ^2.2.0
+  path: ^1.8.0
 
 dev_dependencies:
   test: ^1.17.12
   very_good_analysis: ^2.3.0
 
 executables:
-  # Generic commands
   x:
-  # Coverage-related commands
   cov:
