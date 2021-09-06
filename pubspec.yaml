@@ -16,3 +16,5 @@ dev_dependencies:
 executables:
   # Generic commands
   x:
+  # Coverage-related commands
+  cov:
