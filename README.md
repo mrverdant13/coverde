@@ -35,6 +35,21 @@ Available commands:
 Run "x help <command>" for more information about a command.
 ```
 
+<details><summary><code>x rm</code></summary>
+<p>
+
+```
+Remove a set of files and folders.
+
+Usage: x remove [arguments]
+-h, --help    Print this usage information.
+
+Run "x help" to see global options.
+```
+
+</p>
+</details>
+
 ## `$ cov`
 
 Coverage info actions.
