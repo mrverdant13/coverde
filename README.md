@@ -35,6 +35,8 @@ Available commands:
 Run "x help <command>" for more information about a command.
 ```
 
+### `x` sub-commands
+
 <details><summary><code>x rm</code></summary>
 <p>
 
@@ -49,6 +51,8 @@ Run "x help" to see global options.
 
 </p>
 </details>
+
+---
 
 ## `$ cov`
 
@@ -69,26 +73,7 @@ Available commands:
 Run "cov help <command>" for more information about a command.
 ```
 
-<details><summary><code>cov value</code></summary>
-<p>
-
-```
-Compute the coverage value (%) of an info file.
-
-Compute the coverage value of the LCOV_FILE info file.
-
-Usage: cov value [arguments]
--h, --help                Print this usage information.
--f, --file=<LCOV_FILE>    Coverage info file to be used for the coverage value computation.
-                          (defaults to "coverage/lcov.info")
--p, --[no-]print-files    Print coverage value for each source file listed in the LCOV_FILE info file.
-                          (defaults to on)
-
-Run "cov help" to see global options.
-```
-
-</p>
-</details>
+### `cov` sub-commands
 
 <details><summary><code>cov filter</code></summary>
 <p>
@@ -108,6 +93,27 @@ Each bloc starts with `SF:` and ends with `end_of_record`.
 (defaults to "coverage/lcov.info")
 -d, --destination=<DESTINATION_LCOV_FILE> Destination coverage info file to dump the resulting coverage data into.
 (defaults to "coverage/wiped.lcov.info")
+
+Run "cov help" to see global options.
+```
+
+</p>
+</details>
+
+<details><summary><code>cov value</code></summary>
+<p>
+
+```
+Compute the coverage value (%) of an info file.
+
+Compute the coverage value of the LCOV_FILE info file.
+
+Usage: cov value [arguments]
+-h, --help                Print this usage information.
+-f, --file=<LCOV_FILE>    Coverage info file to be used for the coverage value computation.
+                          (defaults to "coverage/lcov.info")
+-p, --[no-]print-files    Print coverage value for each source file listed in the LCOV_FILE info file.
+                          (defaults to on)
 
 Run "cov help" to see global options.
 ```
