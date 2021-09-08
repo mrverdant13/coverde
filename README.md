@@ -85,14 +85,15 @@ Filter the coverage info by ignoring data related to files with paths that match
 The coverage data is taken from the ORIGIN_LCOV_FILE file and the result is appended to the DESTINATION_LCOV_FILE file.
 
 Usage: cov filter [arguments]
--h, --help Print this usage information.
--i, --ignore-patterns=<PATTERNS> Set of comma-separated path patterns of the files to be ignored.
-Consider that the coverage info of each file is checked as a multiline block.
-Each bloc starts with `SF:` and ends with `end_of_record`.
--o, --origin=<ORIGIN_LCOV_FILE> Origin coverage info file to pick coverage data from.
-(defaults to "coverage/lcov.info")
--d, --destination=<DESTINATION_LCOV_FILE> Destination coverage info file to dump the resulting coverage data into.
-(defaults to "coverage/wiped.lcov.info")
+-h, --help                                   Print this usage information.
+-i, --ignore-patterns=<PATTERNS>             Set of comma-separated path patterns of the files to be ignored.
+                                             Consider that the coverage info of each file is checked as a multiline block.
+                                             Each bloc starts with `SF:` and ends with `end_of_record`.
+-o, --origin=<ORIGIN_LCOV_FILE>              Origin coverage info file to pick coverage data from.
+                                             (defaults to "coverage/lcov.info")
+-d, --destination=<DESTINATION_LCOV_FILE>    Destination coverage info file to dump
+the resulting coverage data into.
+                                             (defaults to "coverage/wiped.lcov.info")
 
 Run "cov help" to see global options.
 ```
