@@ -49,6 +49,7 @@ Global options:
 
 Available commands:
   filter   Filter a coverage info file.
+  value    Compute the coverage value (%) of an info file.
 
 Run "cov help <command>" for more information about a command.
 ```
