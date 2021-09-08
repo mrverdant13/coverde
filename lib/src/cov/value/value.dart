@@ -87,7 +87,12 @@ Compute the coverage value of the $_fileHelpValue info file.''';
         stdout
           ..writeln(fileCoverage.sourceFile)
           ..write(fileCoverage.coveragePercentage.toStringAsFixed(2))
-          ..writeln(' %');
+          ..write(' % (')
+          ..write(fileCoverage.linesHit)
+          ..write(' of ')
+          ..write(fileCoverage.linesFound)
+          ..writeln(' lines)')
+          ..writeln();
       }
     }
 
@@ -96,6 +101,10 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     stdout
       ..write('Global: ')
       ..write(resultingCoveragePercentage.toStringAsFixed(2))
-      ..write(' %');
+      ..write(' % (')
+      ..write(totalLinesHit)
+      ..write(' of ')
+      ..write(totalLinesFound)
+      ..write(' lines)');
   }
 }
