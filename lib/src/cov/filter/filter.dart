@@ -13,7 +13,7 @@ class FilterCommand extends Command<void> {
     argParser
       ..addMultiOption(
         _ignorePatternsOption,
-        abbr: 'i',
+        abbr: _ignorePatternsOption[0],
         help: '''
 Set of comma-separated path patterns of the files to be ignored.
 Consider that the coverage info of each file is checked as a multiline block.
@@ -23,14 +23,14 @@ Each bloc starts with `${Prefix.sourceFile}` and ends with `${Prefix.endOfRecord
       )
       ..addOption(
         _originOption,
-        abbr: 'o',
+        abbr: _originOption[0],
         help: 'Origin coverage info file to pick coverage data from.',
         defaultsTo: 'coverage/lcov.info',
         valueHelp: _originHelpValue,
       )
       ..addOption(
         _destinationOption,
-        abbr: 'd',
+        abbr: _destinationOption[0],
         help: '''
 Destination coverage info file to dump the resulting coverage data into.''',
         defaultsTo: 'coverage/wiped.lcov.info',
@@ -57,7 +57,7 @@ The coverage data is taken from the $_originHelpValue file and the result is app
   String get name => 'filter';
 
   @override
-  List<String> get aliases => ['f'];
+  List<String> get aliases => [name[0]];
 
   @override
   Future<void> run() async {

@@ -7,4 +7,10 @@ abstract class Prefix {
 
   /// A source file path.
   static const sourceFile = 'SF:';
+
+  /// The quantity of testable lines in the file.
+  static const linesFound = 'LF:';
+
+  /// The quantity of tested lines in the file.
+  static const linesHit = 'LH:';
 }
