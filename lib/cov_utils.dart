@@ -1,4 +1,4 @@
 library cov_utils;
 
-export 'src/cov/cov.dart';
-export 'src/x/x.dart';
+export 'src/commands/cov/cov.dart';
+export 'src/commands/x/x.dart';

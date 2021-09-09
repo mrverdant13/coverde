@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/cov/prefix.dart';
 import 'package:cov_utils/src/entities/file_coverage.dart';
+import 'package:cov_utils/src/entities/prefix.dart';
 
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
