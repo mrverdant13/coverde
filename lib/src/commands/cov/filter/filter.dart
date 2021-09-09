@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/cov/prefix.dart';
+import 'package:cov_utils/src/entities/prefix.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template filter_cmd}

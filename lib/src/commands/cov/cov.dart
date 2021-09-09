@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/cov/filter/filter.dart';
-import 'package:cov_utils/src/cov/value/value.dart';
+import 'package:cov_utils/src/commands/cov/filter/filter.dart';
+import 'package:cov_utils/src/commands/cov/value/value.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.

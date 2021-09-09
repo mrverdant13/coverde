@@ -1,4 +1,4 @@
-import 'package:cov_utils/src/cov/prefix.dart';
+import 'package:cov_utils/src/entities/prefix.dart';
 
 /// {@template file_coverage}
 /// A file coverage data abstraction.
