@@ -7,10 +7,23 @@ import 'package:args/command_runner.dart';
 /// {@endtemplate}
 class RmCommand extends Command<void> {
   /// {@macro rm_cmd}
-  RmCommand();
+  RmCommand() {
+    argParser.addFlag(
+      _acceptAbsenceFlag,
+      help: '''
+Accept absence of a file or folder.
+When an element is not present:
+- If enabled, the command will continue.
+- If disabled, the command will fail.''',
+      defaultsTo: true,
+    );
+  }
+
+  static const _acceptAbsenceFlag = 'accept-absence';
 
   @override // coverage:ignore-line
-  String get description => 'Remove a set of files and folders.';
+  String get description => '''
+Remove a set of files and folders.''';
 
   @override
   String get name => 'remove';
@@ -21,13 +34,18 @@ class RmCommand extends Command<void> {
   @override
   Future<void> run() async {
     final _argResults = ArgumentError.checkNotNull(argResults);
-    final args = _argResults.arguments;
-    if (args.isEmpty) {
+
+    final shouldAcceptAbsence = ArgumentError.checkNotNull(
+      _argResults[_acceptAbsenceFlag],
+    ) as bool;
+
+    final paths = _argResults.rest;
+    if (paths.isEmpty) {
       throw ArgumentError(
         'A set of file and/or directory paths should be provided.',
       );
     }
-    for (final elementPath in args) {
+    for (final elementPath in paths) {
       final elementType = FileSystemEntity.typeSync(elementPath);
 
       // The element can only be a folder or a file.
@@ -42,7 +60,12 @@ class RmCommand extends Command<void> {
           file.deleteSync(recursive: true);
           break;
         case FileSystemEntityType.notFound:
-          throw StateError('The element <$elementPath> does not exist.');
+          final message = 'The <$elementPath> element does not exist.';
+          if (shouldAcceptAbsence) {
+            stdout.writeln(message);
+          } else {
+            throw StateError(message);
+          }
       }
     }
   }
