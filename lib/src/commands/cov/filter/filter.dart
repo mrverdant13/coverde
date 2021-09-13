@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/entities/prefix.dart';
+import 'package:cov_utils/src/entities/source_file_cov_data.dart';
+import 'package:cov_utils/src/entities/tracefile.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template filter_cmd}
@@ -17,7 +18,7 @@ class FilterCommand extends Command<void> {
         help: '''
 Set of comma-separated path patterns of the files to be ignored.
 Consider that the coverage info of each file is checked as a multiline block.
-Each bloc starts with `${Prefix.sourceFile}` and ends with `${Prefix.endOfRecord}`.''',
+Each bloc starts with `${SourceFileCovData.sourceFileTag}` and ends with `${SourceFileCovData.endOfRecordTag}`.''',
         defaultsTo: [],
         valueHelp: _ignorePatternsHelpValue,
       )
@@ -84,51 +85,43 @@ The coverage data is taken from the $_originHelpValue file and the result is app
 
     // Get initial package coverage data.
     final initialContent = origin.readAsStringSync().trim();
-    final finalContentBuf = StringBuffer();
 
-    // Split coverage data by the end of record prefix, which indirectly splits
-    // the info by file.
-    final filesCovData = initialContent //
-        .split(Prefix.endOfRecord) //
-        .map((s) => s.trim()) //
-        .where((s) => s.isNotEmpty);
+    // Parse tracefile.
+    final tracefile = Tracefile.parse(initialContent);
+    final acceptedSrcFilesCovData = <SourceFileCovData>{};
 
     // For each file coverage data.
-    for (final fileCovData in filesCovData) {
+    for (final fileCovData in tracefile.sourceFilesCovData) {
       // Check if file should be ignored according to matching patterns.
-      var shouldBeIgnored = false;
-      for (final ignorePattern in ignorePatterns) {
-        final regexp = RegExp(ignorePattern);
-        shouldBeIgnored |= regexp.hasMatch(fileCovData);
-      }
+      final shouldBeIgnored = ignorePatterns.any(
+        (ignorePattern) {
+          final regexp = RegExp(ignorePattern);
+          return regexp.hasMatch(fileCovData.sourceFile);
+        },
+      );
 
       // Conditionaly include file coverage data.
       if (shouldBeIgnored) {
-        const dartExtension = '.dart';
-        final fileStartIdx =
-            fileCovData.indexOf(Prefix.sourceFile) + Prefix.sourceFile.length;
-        final fileEndIdx = fileCovData.indexOf(dartExtension);
-
-        final ignoredFile = fileCovData.substring(fileStartIdx, fileEndIdx);
-
-        stdout.writeln('<$ignoredFile$dartExtension> coverage data ignored.');
+        stdout.writeln('<${fileCovData.sourceFile}> coverage data ignored.');
       } else {
-        finalContentBuf
-          ..writeln(
-            fileCovData.replaceAll(
-              RegExp(Prefix.sourceFile),
-              '${Prefix.sourceFile}${pwd.path}${path.separator}',
-            ),
-          )
-          ..writeln(Prefix.endOfRecord);
+        acceptedSrcFilesCovData.add(fileCovData);
       }
     }
+
+    // Use absolute path.
+    final finalContent = acceptedSrcFilesCovData
+        .map((srcFileCovData) => srcFileCovData.raw)
+        .join('\n')
+        .replaceAll(
+          RegExp(SourceFileCovData.sourceFileTag),
+          '${SourceFileCovData.sourceFileTag}${pwd.path}${path.separator}',
+        );
 
     // Generate destination file and its content.
     destination
       ..createSync(recursive: true)
       ..writeAsStringSync(
-        finalContentBuf.toString(),
+        '$finalContent\n',
         mode: FileMode.append,
         flush: true,
       );
