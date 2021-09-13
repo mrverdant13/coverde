@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/entities/file_coverage.dart';
-import 'package:cov_utils/src/entities/prefix.dart';
+import 'package:cov_utils/src/entities/tracefile.dart';
 
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
@@ -68,43 +67,48 @@ Compute the coverage value of the $_fileHelpValue info file.''';
 
     // Split coverage data by the end of record prefix, which indirectly splits
     // the info by file.
-    final filesCovData = fileContent //
-        .split(Prefix.endOfRecord) //
-        .map((s) => s.trim()) //
-        .where((s) => s.isNotEmpty);
+    final tracefileData = Tracefile.parse(fileContent);
 
-    // Set initial values.
-    var totalLinesFound = 0;
-    var totalLinesHit = 0;
-
-    // For each file coverage data.
-    for (final fileCovData in filesCovData) {
-      // Parse file coverage data.
-      final fileCoverage = FileCoverage.parse(fileCovData);
-      totalLinesFound += fileCoverage.linesFound;
-      totalLinesHit += fileCoverage.linesHit;
-      if (shouldPrintFiles) {
+    if (shouldPrintFiles) {
+      // For each file coverage data.
+      for (final fileCovData in tracefileData.sourceFilesCovData) {
         stdout
-          ..writeln(fileCoverage.sourceFile)
-          ..write(fileCoverage.coveragePercentage.toStringAsFixed(2))
-          ..write(' % (')
-          ..write(fileCoverage.linesHit)
-          ..write(' of ')
-          ..write(fileCoverage.linesFound)
-          ..writeln(' lines)')
-          ..writeln();
+          ..writeln(fileCovData.sourceFile)
+          ..writeCovValue(
+            covValue: fileCovData.coveragePercentage,
+            linesHit: fileCovData.linesHit,
+            linesFound: fileCovData.linesFound,
+            addLine: true,
+          );
       }
     }
 
     // Show resulting coverage.
-    final resultingCoveragePercentage = (totalLinesHit * 100) / totalLinesFound;
     stdout
-      ..write('Global: ')
-      ..write(resultingCoveragePercentage.toStringAsFixed(2))
+      ..writeln('GLOBAL:')
+      ..writeCovValue(
+        covValue: tracefileData.coveragePercentage,
+        linesHit: tracefileData.linesHit,
+        linesFound: tracefileData.linesFound,
+        addLine: false,
+      );
+  }
+}
+
+extension _Stdout on Stdout {
+  void writeCovValue({
+    required double covValue,
+    required int linesHit,
+    required int linesFound,
+    required bool addLine,
+  }) {
+    this
+      ..write(covValue.toStringAsFixed(2))
       ..write(' % (')
-      ..write(totalLinesHit)
+      ..write(linesHit)
       ..write(' of ')
-      ..write(totalLinesFound)
-      ..write(' lines)');
+      ..write(linesFound)
+      ..writeln(' lines)');
+    if (addLine) writeln();
   }
 }
