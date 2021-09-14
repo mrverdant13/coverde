@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:meta/meta.dart';
 
 /// {@template source_file_cov_data}
@@ -140,7 +142,7 @@ class SourceFileCovData {
 
     return SourceFileCovData(
       raw: fileCovDataContent,
-      sourceFile: sourceFile,
+      sourceFile: File(sourceFile),
       linesFound: linesFound,
       linesHit: linesHit,
     );
@@ -149,8 +151,8 @@ class SourceFileCovData {
   /// Raw string representation of the [sourceFile] coverage data.
   final String raw;
 
-  /// Source file path.
-  final String sourceFile;
+  /// Source file.
+  final File sourceFile;
 
   /// Number of testable lines in the [sourceFile].
   final int linesFound;
