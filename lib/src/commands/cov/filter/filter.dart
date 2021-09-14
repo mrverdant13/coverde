@@ -96,7 +96,7 @@ The coverage data is taken from the $_originHelpValue file and the result is app
       final shouldBeIgnored = ignorePatterns.any(
         (ignorePattern) {
           final regexp = RegExp(ignorePattern);
-          return regexp.hasMatch(fileCovData.sourceFile);
+          return regexp.hasMatch(fileCovData.sourceFile.path);
         },
       );
 

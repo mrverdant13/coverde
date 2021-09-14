@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cov_utils/src/entities/source_file_cov_data.dart';
 import 'package:test/test.dart';
 
@@ -27,7 +29,7 @@ ${SourceFileCovData.endOfRecordTag}''';
   );
   final sourceFileCovData = SourceFileCovData(
     raw: rawSourceFileCovData,
-    sourceFile: sourceFile,
+    sourceFile: File(sourceFile),
     linesFound: linesFound,
     linesHit: linesHit,
   );
@@ -44,7 +46,7 @@ THEN a positive result should be returned
       // ARRANGE
       final sameSourceFileCovData = SourceFileCovData(
         raw: rawSourceFileCovData,
-        sourceFile: sourceFile,
+        sourceFile: File(sourceFile),
         linesFound: linesFound,
         linesHit: linesHit,
       );
