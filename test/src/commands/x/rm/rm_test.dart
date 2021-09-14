@@ -26,7 +26,7 @@ GIVEN a filesystem element remover command''',
         '''
 
 AND an existing file to remove
-WHEN it the command is invoqued
+WHEN the command is invoqued
 THEN the file should be removed
 ''',
         () async {
@@ -51,7 +51,7 @@ THEN the file should be removed
         '''
 
 AND a non-existing file to remove
-WHEN it the command is invoqued
+WHEN the command is invoqued
 THEN an error indicating the issue should be thrown
 AND the file should remain inexistent
 ''',
@@ -77,7 +77,7 @@ AND the file should remain inexistent
         '''
 
 AND an existing directory to remove
-WHEN it the command is invoqued
+WHEN the command is invoqued
 THEN the directory should be removed
 ''',
         () async {
@@ -102,7 +102,7 @@ THEN the directory should be removed
         '''
 
 AND a non-existing directory to remove
-WHEN it the command is invoqued
+WHEN the command is invoqued
 THEN an error indicating the issue should be thrown
 AND the directory should remain inexistent
 ''',
@@ -128,7 +128,7 @@ AND the directory should remain inexistent
         '''
 
 AND no element to remove
-WHEN it the command is invoqued
+WHEN the command is invoqued
 THEN an error indicating the issue should be thrown
 ''',
         () {
