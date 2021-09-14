@@ -1,8 +1,8 @@
 import 'dart:collection';
-import 'package:meta/meta.dart';
 
 import 'package:collection/collection.dart';
 import 'package:cov_utils/src/entities/source_file_cov_data.dart';
+import 'package:meta/meta.dart';
 
 /// {@template tracefile}
 /// # Tracefile Data
@@ -31,9 +31,9 @@ class Tracefile {
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .map((s) => '$s\n${SourceFileCovData.endOfRecordTag}');
-    final sourceFilesCovData = filesCovDataStr.map(
-      (d) => SourceFileCovData.parse(d),
-    );
+    final sourceFilesCovData = filesCovDataStr
+        .map((d) => SourceFileCovData.parse(d))
+        .where((fileCovData) => fileCovData.linesFound > 0);
     return Tracefile(
       sourceFilesCovData: sourceFilesCovData,
     );
