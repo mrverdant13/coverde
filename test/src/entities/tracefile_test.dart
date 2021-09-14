@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:cov_utils/src/entities/source_file_cov_data.dart';
@@ -18,7 +19,7 @@ ${SourceFileCovData.endOfRecordTag}''';
         sourceFilesCount,
         (idx) => SourceFileCovData(
           raw: buildSourceFilesCovDataString(idx),
-          sourceFile: buildSourceFile(idx),
+          sourceFile: File(buildSourceFile(idx)),
           linesFound: idx + 1,
           linesHit: idx,
         ),
