@@ -58,8 +58,10 @@ class CovLine {
   /// Whether the line of code has been executed in tests.
   late final hasBeenHit = hitsNumber > 0;
 
+  /// {@template cov_line.tag}
   /// The tag or prefix that identifies a line in a tracefile that contains
   /// coverage data for a line of code from a source file.
+  /// {@endtemplate}
   static const tag = 'DA:';
 
   @override

@@ -38,9 +38,9 @@ class CovFile extends CovElement {
         )
         .replaceAll(key, '');
 
-    final sourceFile = valueByTag(_sourceFileTag);
+    final sourceFile = valueByTag(sourceFileTag);
     final covLines = dataLines
-        .where((l) => l.startsWith(_lineDataTag))
+        .where((l) => l.startsWith(lineDataTag))
         .map((covLineData) => CovLine.parse(covLineData));
 
     return CovFile(
@@ -68,9 +68,13 @@ class CovFile extends CovElement {
   @override
   late final linesHit = _covLines.where((l) => l.hasBeenHit).length;
 
-  static const _lineDataTag = CovLine.tag;
+  /// {@macro cov_line.tag}
+  @visibleForTesting
+  static const lineDataTag = CovLine.tag;
 
-  static const _sourceFileTag = 'SF:';
+  /// The beginning of the line of a trace bloc that contains the [raw] coverage
+  /// data about a [source] file.
+  static const sourceFileTag = 'SF:';
 
   /// The ending line of a trace bloc that contains the [raw] coverage data
   /// about a [source] file.
