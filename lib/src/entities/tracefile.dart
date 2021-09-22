@@ -1,7 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:cov_utils/src/entities/source_file_cov_data.dart';
+import 'package:cov_utils/src/entities/cov_file.dart';
 import 'package:meta/meta.dart';
 
 /// {@template tracefile}
@@ -18,7 +18,7 @@ class Tracefile {
   /// {@macro tracefile}
   @visibleForTesting
   Tracefile({
-    required Iterable<SourceFileCovData> sourceFilesCovData,
+    required Iterable<CovFile> sourceFilesCovData,
   }) : _sourceFilesCovData = Iterable.castFrom(sourceFilesCovData);
 
   /// Create a source file coverage data instance from the content string of a
@@ -27,23 +27,23 @@ class Tracefile {
   /// {@macro tracefile}
   factory Tracefile.parse(String tracefileContent) {
     final filesCovDataStr = tracefileContent
-        .split(SourceFileCovData.endOfRecordTag)
+        .split(CovFile.endOfRecordTag)
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
-        .map((s) => '$s\n${SourceFileCovData.endOfRecordTag}');
+        .map((s) => '$s\n${CovFile.endOfRecordTag}');
     final sourceFilesCovData = filesCovDataStr
-        .map((d) => SourceFileCovData.parse(d))
+        .map((d) => CovFile.parse(d))
         .where((fileCovData) => fileCovData.linesFound > 0);
     return Tracefile(
       sourceFilesCovData: sourceFilesCovData,
     );
   }
 
-  final Iterable<SourceFileCovData> _sourceFilesCovData;
+  final Iterable<CovFile> _sourceFilesCovData;
 
   /// The coverage data related to the referenced source files.
-  UnmodifiableListView<SourceFileCovData> get sourceFilesCovData =>
-      UnmodifiableListView<SourceFileCovData>(_sourceFilesCovData);
+  UnmodifiableListView<CovFile> get sourceFilesCovData =>
+      UnmodifiableListView<CovFile>(_sourceFilesCovData);
 
   /// Number of hit lines from all referenced source files.
   int get linesHit => _sourceFilesCovData.fold(
@@ -70,8 +70,7 @@ class Tracefile {
     return (linesHit * 100) / linesFound;
   }
 
-  static const _sourceFilesCovDataEquality =
-      IterableEquality<SourceFileCovData>();
+  static const _sourceFilesCovDataEquality = IterableEquality<CovFile>();
 
   @override
   bool operator ==(Object other) {

@@ -73,9 +73,9 @@ Compute the coverage value of the $_fileHelpValue info file.''';
       // For each file coverage data.
       for (final fileCovData in tracefileData.sourceFilesCovData) {
         stdout
-          ..writeln(fileCovData.sourceFile)
+          ..writeln(fileCovData.source)
           ..writeCovValue(
-            covValue: fileCovData.coveragePercentage,
+            covValue: fileCovData.coverage,
             linesHit: fileCovData.linesHit,
             linesFound: fileCovData.linesFound,
             addLine: true,

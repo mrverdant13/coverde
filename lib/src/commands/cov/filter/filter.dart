@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/entities/source_file_cov_data.dart';
+import 'package:cov_utils/src/entities/cov_file.dart';
 import 'package:cov_utils/src/entities/tracefile.dart';
 import 'package:path/path.dart' as path;
 
@@ -18,7 +18,7 @@ class FilterCommand extends Command<void> {
         help: '''
 Set of comma-separated path patterns of the files to be ignored.
 Consider that the coverage info of each file is checked as a multiline block.
-Each bloc starts with `${SourceFileCovData.sourceFileTag}` and ends with `${SourceFileCovData.endOfRecordTag}`.''',
+Each bloc starts with `${CovFile.sourceFileTag}` and ends with `${CovFile.endOfRecordTag}`.''',
         defaultsTo: [],
         valueHelp: _ignorePatternsHelpValue,
       )
@@ -88,7 +88,7 @@ The coverage data is taken from the $_originHelpValue file and the result is app
 
     // Parse tracefile.
     final tracefile = Tracefile.parse(initialContent);
-    final acceptedSrcFilesCovData = <SourceFileCovData>{};
+    final acceptedSrcFilesCovData = <CovFile>{};
 
     // For each file coverage data.
     for (final fileCovData in tracefile.sourceFilesCovData) {
@@ -96,13 +96,13 @@ The coverage data is taken from the $_originHelpValue file and the result is app
       final shouldBeIgnored = ignorePatterns.any(
         (ignorePattern) {
           final regexp = RegExp(ignorePattern);
-          return regexp.hasMatch(fileCovData.sourceFile.path);
+          return regexp.hasMatch(fileCovData.source.path);
         },
       );
 
       // Conditionaly include file coverage data.
       if (shouldBeIgnored) {
-        stdout.writeln('<${fileCovData.sourceFile}> coverage data ignored.');
+        stdout.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
         acceptedSrcFilesCovData.add(fileCovData);
       }
@@ -113,8 +113,8 @@ The coverage data is taken from the $_originHelpValue file and the result is app
         .map((srcFileCovData) => srcFileCovData.raw)
         .join('\n')
         .replaceAll(
-          RegExp(SourceFileCovData.sourceFileTag),
-          '${SourceFileCovData.sourceFileTag}${pwd.path}${path.separator}',
+          RegExp(CovFile.sourceFileTag),
+          '${CovFile.sourceFileTag}${pwd.path}${path.separator}',
         );
 
     // Generate destination file and its content.
