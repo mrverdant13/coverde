@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:meta/meta.dart';
 
 /// {@template rm_cmd}
 /// A generic subcommand to remove a set of files and/or folders.
@@ -9,7 +10,7 @@ class RmCommand extends Command<void> {
   /// {@macro rm_cmd}
   RmCommand() {
     argParser.addFlag(
-      _acceptAbsenceFlag,
+      acceptAbsenceFlag,
       help: '''
 Accept absence of a file or folder.
 When an element is not present:
@@ -19,7 +20,9 @@ When an element is not present:
     );
   }
 
-  static const _acceptAbsenceFlag = 'accept-absence';
+  /// Flag to define whether filesystem entity absence should be accepted.
+  @visibleForTesting
+  static const acceptAbsenceFlag = 'accept-absence';
 
   @override // coverage:ignore-line
   String get description => '''
@@ -36,7 +39,7 @@ Remove a set of files and folders.''';
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final shouldAcceptAbsence = ArgumentError.checkNotNull(
-      _argResults[_acceptAbsenceFlag],
+      _argResults[acceptAbsenceFlag],
     ) as bool;
 
     final paths = _argResults.rest;
