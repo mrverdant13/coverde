@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
+import 'package:cov_utils/src/entities/cov_base.dart';
 import 'package:cov_utils/src/entities/cov_file.dart';
 import 'package:meta/meta.dart';
 
@@ -12,7 +13,7 @@ import 'package:meta/meta.dart';
 /// source files.
 /// {@endtemplate}
 @immutable
-class Tracefile {
+class Tracefile extends CovComputable {
   /// Create a tracefile instance.
   ///
   /// {@macro tracefile}
@@ -56,19 +57,6 @@ class Tracefile {
         0,
         (linesFound, element) => linesFound += element.linesFound,
       );
-
-  /// Coverage percentage for all referenced source files.
-  ///
-  /// From **0.00** to **100.00**.
-  double get coveragePercentage {
-    var linesHit = 0;
-    var linesFound = 0;
-    for (final sourceFileCovData in _sourceFilesCovData) {
-      linesHit += sourceFileCovData.linesHit;
-      linesFound += sourceFileCovData.linesFound;
-    }
-    return (linesHit * 100) / linesFound;
-  }
 
   static const _sourceFilesCovDataEquality = IterableEquality<CovFile>();
 

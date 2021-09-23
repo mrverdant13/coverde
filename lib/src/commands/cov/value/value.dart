@@ -87,7 +87,7 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     stdout
       ..writeln('GLOBAL:')
       ..writeCovValue(
-        covValue: tracefileData.coveragePercentage,
+        covValue: tracefileData.coverage,
         linesHit: tracefileData.linesHit,
         linesFound: tracefileData.linesFound,
         addLine: false,
