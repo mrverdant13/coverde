@@ -58,12 +58,13 @@ class CovDir extends CovElement {
     if (identical(this, other)) return true;
 
     return other is CovDir &&
-        other.source.path == source.path &&
+        p.equals(other.source.path, source.path) &&
         _equality.equals(other._elements, _elements);
   }
 
   @override
-  int get hashCode => source.path.hashCode ^ _equality.hash(_elements);
+  int get hashCode =>
+      p.canonicalize(source.path).hashCode ^ _equality.hash(_elements);
 
   @override
   String toString() {

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:cov_utils/src/entities/cov_base.dart';
 import 'package:cov_utils/src/entities/cov_line.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 /// {@template cov_file}
 /// # Covered File Data
@@ -87,10 +88,11 @@ class CovFile extends CovElement {
     if (identical(this, other)) return true;
 
     return other is CovFile &&
-        other.source.path == source.path &&
+        p.equals(other.source.path, source.path) &&
         _equality.equals(other._covLines, _covLines);
   }
 
   @override
-  int get hashCode => source.path.hashCode ^ _equality.hash(_covLines);
+  int get hashCode =>
+      p.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
 }
