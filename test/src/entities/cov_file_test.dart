@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 void main() {
   // ARRANGE
   const sourcePath = 'path/to/source.file';
-  final covLinesEntries = List.generate(
+  final covLinesEntries = Iterable.generate(
     32,
     (idx) => MapEntry(idx + 1, idx + 1),
   );
