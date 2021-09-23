@@ -46,17 +46,11 @@ class Tracefile extends CovComputable {
   UnmodifiableListView<CovFile> get sourceFilesCovData =>
       UnmodifiableListView<CovFile>(_sourceFilesCovData);
 
-  /// Number of hit lines from all referenced source files.
-  int get linesHit => _sourceFilesCovData.fold(
-        0,
-        (linesHit, element) => linesHit += element.linesHit,
-      );
+  @override
+  int get linesHit => _sourceFilesCovData.map((e) => e.linesHit).sum;
 
-  /// Number of found lines from all referenced source files.
-  int get linesFound => _sourceFilesCovData.fold(
-        0,
-        (linesFound, element) => linesFound += element.linesFound,
-      );
+  @override
+  int get linesFound => _sourceFilesCovData.map((e) => e.linesFound).sum;
 
   static const _sourceFilesCovDataEquality = IterableEquality<CovFile>();
 
