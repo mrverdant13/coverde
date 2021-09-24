@@ -44,7 +44,12 @@ Run "x help <command>" for more information about a command.
 Remove a set of files and folders.
 
 Usage: x remove [arguments]
--h, --help    Print this usage information.
+-h, --help                   Print this usage information.
+    --[no-]accept-absence    Accept absence of a file or folder.
+                             When an element is not present:
+                             - If enabled, the command will continue.
+                             - If disabled, the command will fail.
+                             (defaults to on)
 
 Run "x help" to see global options.
 ```
@@ -91,8 +96,7 @@ Usage: cov filter [arguments]
                                              Each bloc starts with `SF:` and ends with `end_of_record`.
 -o, --origin=<ORIGIN_LCOV_FILE>              Origin coverage info file to pick coverage data from.
                                              (defaults to "coverage/lcov.info")
--d, --destination=<DESTINATION_LCOV_FILE>    Destination coverage info file to dump
-the resulting coverage data into.
+-d, --destination=<DESTINATION_LCOV_FILE>    Destination coverage info file to dump the resulting coverage data into.
                                              (defaults to "coverage/wiped.lcov.info")
 
 Run "cov help" to see global options.
