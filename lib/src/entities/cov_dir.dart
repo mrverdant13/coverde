@@ -30,10 +30,96 @@ class CovDir extends CovElement {
   factory CovDir.tree({
     required Iterable<CovFile> covFiles,
   }) =>
-      _CovTree._subtree(
+      subtree(
         baseDirPath: null,
         coveredFiles: covFiles,
       );
+
+  /// Create a coverage data tree structure that replicates filesystem tree
+  /// organization with the given [coveredFiles] and [baseDirPath].
+  @visibleForTesting
+  static CovDir subtree({
+    required String? baseDirPath,
+    required Iterable<CovFile> coveredFiles,
+  }) {
+    // Filter files directly or indirectly within this directory.
+    final covFiles = baseDirPath == null
+        ? coveredFiles
+        : coveredFiles.where(
+            (covFile) => p.isWithin(
+              baseDirPath,
+              covFile.source.path,
+            ),
+          );
+
+    // If no covered files within this folder, return the covered directory.
+    if (covFiles.isEmpty) {
+      stdout.writeln('No covered files in the <$baseDirPath> folder.');
+      return CovDir(
+        source: Directory(baseDirPath ?? ''),
+        elements: const [],
+      );
+    }
+
+    // Folders directly or indirectly within this directory.
+    final dirPaths =
+        covFiles.map((covFile) => covFile.source.parent.path).toSet();
+
+    // Get folders segments.
+    final dirsSegments = dirPaths.map(p.split).toList();
+
+    // Pick path with fewest number of segments.
+    final fewestSegments = minBy<Iterable<String>, int>(
+      dirsSegments,
+      (dirSegments) => dirSegments.length,
+    )!;
+
+    final commonSegments =
+        baseDirPath == null ? <String>[] : p.split(baseDirPath);
+    late final Iterable<String> nextSegments;
+
+    {
+      var segmentIdx = commonSegments.length;
+
+      bool shortestPathChecked() => segmentIdx >= fewestSegments.length;
+
+      Iterable<String> nextSegmentsGroup() => dirsSegments
+          .where((s) => s.length > segmentIdx)
+          .map((s) => s[segmentIdx])
+          .toSet();
+
+      while (!shortestPathChecked() && nextSegmentsGroup().length <= 1) {
+        commonSegments.addAll(nextSegmentsGroup());
+        segmentIdx++;
+      }
+
+      nextSegments = nextSegmentsGroup();
+    }
+
+    // Build actual base path.
+    final actualBasePath = commonSegments.reduce(p.join);
+
+    // Build nested folders data from next segments.
+    final allDirs = nextSegments.map(
+      (nextSegment) => subtree(
+        baseDirPath: p.join(actualBasePath, nextSegment),
+        coveredFiles: covFiles,
+      ),
+    );
+    final validDirs = allDirs.where((dir) => dir.linesFound > 0);
+
+    final files = covFiles.where(
+      (covFile) => p.equals(covFile.source.parent.path, actualBasePath),
+    );
+
+    return CovDir(
+      source: Directory(actualBasePath),
+      elements: [
+        ...validDirs,
+        ...files,
+      ],
+    );
+  }
 
   @override
   final Directory source;
@@ -86,90 +172,5 @@ class CovDir extends CovElement {
     ).forEach(buf.write);
     buf.writeln();
     return buf.toString();
-  }
-}
-
-extension _CovTree on CovDir {
-  static CovDir _subtree({
-    required String? baseDirPath,
-    required Iterable<CovFile> coveredFiles,
-  }) {
-    // Filter files directly or indirectly within this directory.
-    final covFiles = baseDirPath == null
-        ? coveredFiles
-        : coveredFiles.where(
-            (covFile) => p.isWithin(
-              baseDirPath,
-              covFile.source.path,
-            ),
-          );
-
-    // If no covered files within this folder, return the covered directory.
-    if (covFiles.isEmpty) {
-      stdout.writeln('No covered files in the <$baseDirPath> folder.');
-      return CovDir(
-        source: Directory(''),
-        elements: const [],
-      );
-    }
-
-    // Folders directly or indirectly within this directory.
-    final dirPaths =
-        covFiles.map((covFile) => covFile.source.parent.path).toSet();
-
-    // Get folders segments.
-    final dirsSegments = dirPaths.map(p.split).toList();
-
-    // Pick path with fewest number of segments.
-    final fewestSegments = minBy<Iterable<String>, int>(
-      dirsSegments,
-      (dirSegments) => dirSegments.length,
-    )!;
-
-    final commonSegments =
-        baseDirPath == null ? <String>[] : p.split(baseDirPath);
-    late final Iterable<String> nextSegments;
-
-    {
-      var segmentIdx = commonSegments.length;
-
-      bool shortestPathChecked() => segmentIdx >= fewestSegments.length;
-
-      Iterable<String> nextSegmentsGroup() => dirsSegments
-          .where((s) => s.length > segmentIdx)
-          .map((s) => s[segmentIdx])
-          .toSet();
-
-      while (!shortestPathChecked() && nextSegmentsGroup().length <= 1) {
-        commonSegments.addAll(nextSegmentsGroup());
-        segmentIdx++;
-      }
-
-      nextSegments = nextSegmentsGroup();
-    }
-
-    // Build actual base path.
-    final actualBasePath = commonSegments.reduce(p.join);
-
-    // Build nested folders data from next segments.
-    final allDirs = nextSegments.map(
-      (nextSegment) => _CovTree._subtree(
-        baseDirPath: p.join(actualBasePath, nextSegment),
-        coveredFiles: covFiles,
-      ),
-    );
-    final validDirs = allDirs.where((dir) => dir.linesFound > 0);
-
-    final files = covFiles.where(
-      (covFile) => p.equals(covFile.source.parent.path, actualBasePath),
-    );
-
-    return CovDir(
-      source: Directory(actualBasePath),
-      elements: [
-        ...validDirs,
-        ...files,
-      ],
-    );
   }
 }
