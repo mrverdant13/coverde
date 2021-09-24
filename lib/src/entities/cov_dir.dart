@@ -152,14 +152,13 @@ extension _CovTree on CovDir {
     final actualBasePath = commonSegments.reduce(p.join);
 
     // Build nested folders data from next segments.
-    final dirs = nextSegments
-        .map(
-          (nextSegment) => _CovTree._subtree(
-            baseDirPath: p.join(actualBasePath, nextSegment),
-            coveredFiles: covFiles,
-          ),
-        )
-        .where((dir) => dir.linesFound > 0);
+    final allDirs = nextSegments.map(
+      (nextSegment) => _CovTree._subtree(
+        baseDirPath: p.join(actualBasePath, nextSegment),
+        coveredFiles: covFiles,
+      ),
+    );
+    final validDirs = allDirs.where((dir) => dir.linesFound > 0);
 
     final files = covFiles.where(
       (covFile) => p.equals(covFile.source.parent.path, actualBasePath),
@@ -168,7 +167,7 @@ extension _CovTree on CovDir {
     return CovDir(
       source: Directory(actualBasePath),
       elements: [
-        ...dirs,
+        ...validDirs,
         ...files,
       ],
     );
