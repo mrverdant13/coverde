@@ -50,123 +50,205 @@ THEN a positive result should be returned
     },
   );
 
-  test(
-    '''
+  {
+    // ARRANGE
+    final covFiles = [
+      CovFile(
+        source: File(
+          'test/dir_1/file_1.1.ext',
+        ),
+        raw: '',
+        covLines: [
+          CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+        ],
+      ),
+      CovFile(
+        source: File(
+          'test/dir_1/file_1.2.ext',
+        ),
+        raw: '',
+        covLines: [
+          CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+        ],
+      ),
+      CovFile(
+        source: File(
+          'test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext',
+        ),
+        raw: '',
+        covLines: [
+          CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+        ],
+      ),
+      CovFile(
+        source: File(
+          'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
+        ),
+        raw: '',
+        covLines: [
+          CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+        ],
+      ),
+    ];
+    final tree = CovDir(
+      source: Directory('test/'),
+      elements: [
+        CovDir(
+          source: Directory('test/dir_1/'),
+          elements: [
+            CovFile(
+              source: File('test/dir_1/file_1.1.ext'),
+              raw: '',
+              covLines: [
+                CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+              ],
+            ),
+            CovFile(
+              source: File('test/dir_1/file_1.2.ext'),
+              raw: '',
+              covLines: [
+                CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+              ],
+            ),
+          ],
+        ),
+        CovDir(
+          source: Directory('test/dir_2/dir_2_1/dir_2_1_1'),
+          elements: [
+            CovDir(
+              source: Directory(
+                'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/',
+              ),
+              elements: [
+                CovFile(
+                  source: File(
+                    'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
+                  ),
+                  raw: '',
+                  covLines: [
+                    CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+                  ],
+                ),
+              ],
+            ),
+            CovFile(
+              source: File('test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext'),
+              raw: '',
+              covLines: [
+                CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
 
+    group(
+      '''
+    
 GIVEN a collection of coverage file data
-THAT are organized this way:
-  test/ (dir)
-  ├─ dir_1/ (dir)
-  │  ├─ file_1.1.ext (file)
-  │  ├─ file_1.2.ext (file)
-  ├─ dir_2/ (dir)
-  │  ├─ dir_2_1/ (dir)
-  │  │  ├─ dir_2_1_1/ (dir)
-  │  │  │  ├─ file_2_1_1.1.ext (file)
-  │  │  │  ├─ dir_2_1_1_1/ (dir)
-  │  │  │  │  ├─ dir_2_1_1_1_1/ (dir)
-  │  │  │  │  │  ├─ file_2_1_1_1_1.1.ext (file)
+├─ THAT is organized as follows:
+│   test/ (dir)
+│   ├─ dir_1/ (dir)
+│   │  ├─ file_1.1.ext (file)
+│   │  ├─ file_1.2.ext (file)
+│   ├─ dir_2/ (dir)
+│   │  ├─ dir_2_1/ (dir)
+│   │  │  ├─ dir_2_1_1/ (dir)
+│   │  │  │  ├─ file_2_1_1.1.ext (file)
+│   │  │  │  ├─ dir_2_1_1_1/ (dir)
+│   │  │  │  │  ├─ dir_2_1_1_1_1/ (dir)
+│   │  │  │  │  │  ├─ file_2_1_1_1_1.1.ext (file)''',
+      () {
+        test(
+          '''
+
 WHEN they are dispatched to be arranged according to their source paths
 THEN a tree sctructure of coverage data elements is returned
 ''',
-    () {
-      // ARRANGE
-      final covFiles = [
-        CovFile(
-          source: File(
-            'test/dir_1/file_1.1.ext',
-          ),
-          raw: '',
-          covLines: [
-            CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-          ],
-        ),
-        CovFile(
-          source: File(
-            'test/dir_1/file_1.2.ext',
-          ),
-          raw: '',
-          covLines: [
-            CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-          ],
-        ),
-        CovFile(
-          source: File(
-            'test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext',
-          ),
-          raw: '',
-          covLines: [
-            CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-          ],
-        ),
-        CovFile(
-          source: File(
-            'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
-          ),
-          raw: '',
-          covLines: [
-            CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-          ],
-        ),
-      ];
-      final expectedTree = CovDir(
-        source: Directory('test/'),
-        elements: [
-          CovDir(
-            source: Directory('test/dir_1/'),
-            elements: [
-              CovFile(
-                source: File('test/dir_1/file_1.1.ext'),
-                raw: '',
-                covLines: [
-                  CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-                ],
-              ),
-              CovFile(
-                source: File('test/dir_1/file_1.2.ext'),
-                raw: '',
-                covLines: [
-                  CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-                ],
-              ),
-            ],
-          ),
-          CovDir(
-            source: Directory('test/dir_2/dir_2_1/dir_2_1_1'),
-            elements: [
-              CovDir(
-                source: Directory(
-                  'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/',
-                ),
-                elements: [
-                  CovFile(
-                    source: File(
-                      'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
-                    ),
-                    raw: '',
-                    covLines: [
-                      CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-                    ],
-                  ),
-                ],
-              ),
-              CovFile(
-                source: File('test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext'),
-                raw: '',
-                covLines: [
-                  CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+          () {
+            // ACT
+            final result = CovDir.tree(covFiles: covFiles);
 
-      // ACT
-      final result = CovDir.tree(covFiles: covFiles);
+            // ASSERT
+            expect(result, tree);
+          },
+        );
 
-      // ASSERT
-      expect(result, expectedTree);
-    },
-  );
+        test(
+          '''
+
+AND a base folder path
+├─ THAT does not contains any of the coverage file data
+│   other/dir/
+WHEN they are dispatched to be arranged according to their source paths
+THEN an empty coverage folder should be returned
+''',
+          () {
+            // ARRANGE
+            const baseDirPath = 'other/dir/';
+            final expectedSubtree = CovDir(
+              source: Directory(baseDirPath),
+              elements: const [],
+            );
+
+            // ACT
+            final result = CovDir.subtree(
+              baseDirPath: baseDirPath,
+              coveredFiles: covFiles,
+            );
+
+            // ASSERT
+            expect(result, expectedSubtree);
+          },
+        );
+
+        test(
+          '''
+
+WHEN they are dispatched to be arranged according to their source paths
+THEN a tree sctructure of coverage data elements is returned
+''',
+          () {
+            // ACT
+            final result = CovDir.tree(covFiles: covFiles);
+
+            // ASSERT
+            expect(result, tree);
+          },
+        );
+      },
+    );
+
+    test(
+      '''
+
+GIVEN a tree structure of covered elements
+WHEN its string representation is requested
+THEN a formatted string should be returned
+''',
+      () {
+        // ARRANGE
+        const expectedTreeString = '''
+Node: test/ (100.0% - 4/4)
+├─ Node: test/dir_1/ (100.0% - 2/2)
+│  ├─ SF: test/dir_1/file_1.1.ext (100.00% - 1/1)
+│  ├─ SF: test/dir_1/file_1.2.ext (100.00% - 1/1)
+│  
+├─ Node: test/dir_2/dir_2_1/dir_2_1_1 (100.0% - 2/2)
+│  ├─ Node: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/ (100.0% - 1/1)
+│  │  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext (100.00% - 1/1)
+│  │  
+│  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext (100.00% - 1/1)
+│  
+''';
+
+        // ACT
+        final result = tree.toString();
+
+        // ASSERT
+        expect(result, expectedTreeString);
+      },
+    );
+  }
 }
