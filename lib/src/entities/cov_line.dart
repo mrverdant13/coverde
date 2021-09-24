@@ -27,14 +27,9 @@ class CovLine {
   ///
   /// {@macro cov_line}
   factory CovLine.parse(String data) {
-    late final String covLineValuesString;
-
     // Trim tag if it is present.
-    if (data.startsWith(tag)) {
-      covLineValuesString = data.substring(tag.length);
-    } else {
-      covLineValuesString = data;
-    }
+    final covLineValuesString =
+        data.startsWith(tag) ? data.substring(tag.length) : data;
 
     // Create and return the resulting coverage line data.
     final valueStrings = covLineValuesString.split(',');
