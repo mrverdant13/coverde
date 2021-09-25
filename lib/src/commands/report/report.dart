@@ -114,8 +114,6 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
         tracefileName: path.basename(tracefileAbsPath),
         tracefileModificationDate: tracefile.lastModifiedSync(),
         parentReportDirAbsPath: reportDirAbsPath,
-        reportDirRelPath: '',
-        reportRelDepth: 0,
       );
 
     // Copy static files.

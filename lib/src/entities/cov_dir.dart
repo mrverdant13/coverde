@@ -191,8 +191,22 @@ class CovDir extends CovElement {
     folderReportTemplateFile.readAsStringSync(),
   );
 
-  @override
+  /// Generate HTML report for this directory and its children.
   void generateReport({
+    required String tracefileName,
+    required String parentReportDirAbsPath,
+    required DateTime tracefileModificationDate,
+  }) =>
+      generateSubReport(
+        tracefileName: tracefileName,
+        parentReportDirAbsPath: parentReportDirAbsPath,
+        reportDirRelPath: '',
+        reportRelDepth: 0,
+        tracefileModificationDate: tracefileModificationDate,
+      );
+
+  @override
+  void generateSubReport({
     required String tracefileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
@@ -247,7 +261,7 @@ class CovDir extends CovElement {
         final relPath = p.relative(element.source.path, from: source.path);
         final row = element.getFolderReportRow(relativePath: relPath);
         table?.append(row);
-        element.generateReport(
+        element.generateSubReport(
           tracefileName: tracefileName,
           parentReportDirAbsPath: reportDirAbsPath,
           reportDirRelPath: relPath,

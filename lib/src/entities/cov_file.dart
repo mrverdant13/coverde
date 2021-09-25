@@ -129,7 +129,7 @@ class CovFile extends CovElement {
   );
 
   @override
-  void generateReport({
+  void generateSubReport({
     required String tracefileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,

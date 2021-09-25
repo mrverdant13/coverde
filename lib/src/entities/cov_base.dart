@@ -34,7 +34,7 @@ abstract class CovElement extends CovComputable {
   FileSystemEntity get source;
 
   /// Generate HTML coverage report for this element.
-  void generateReport({
+  void generateSubReport({
     required String tracefileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
