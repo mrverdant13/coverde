@@ -8,7 +8,7 @@ import 'package:coverde/src/commands/value/value.dart';
 /// functionalities.
 Future<void> coverde(List<String> args) async {
   final runner = CommandRunner<void>(
-    'cov',
+    'coverde',
     'A set of commands that encapsulate coverage-related functionalities.',
   ) //
     ..addCommand(FilterCommand())
