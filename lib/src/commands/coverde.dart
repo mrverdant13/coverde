@@ -5,7 +5,7 @@ import 'package:coverde/src/commands/value/value.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
-Future<void> cov(List<String> args) async {
+Future<void> coverde(List<String> args) async {
   final runner = CommandRunner<void>(
     'cov',
     'A set of commands that encapsulate coverage-related functionalities.',
