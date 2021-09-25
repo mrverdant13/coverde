@@ -182,14 +182,23 @@ class CovFile extends CovElement {
       final sourceLines = source.readAsLinesSync();
       final indexedSourceLines = sourceLines.asMap();
       for (final sourceLine in indexedSourceLines.entries) {
-        final lineNumber = sourceLine.key;
+        final lineNumber = sourceLine.key + 1;
         final lineContent = sourceLine.value;
         final fileReportLine = fileReportLineTemplate.clone(true);
-        fileReportLine.querySelector('.lineNum')?.text =
-            '${lineNumber + 1} '.padLeft(9);
-        // TODO: Include hit number.
-        fileReportLine.querySelector('.sourceLine')?.text = ' $lineContent';
-        src?.append(fileReportLine);
+        final lineNumberText = '$lineNumber '.padLeft(9);
+        fileReportLine.querySelector('.lineNum')?.text = lineNumberText;
+        {
+          final covLine = _covLines.singleWhereOrNull(
+            (e) => e.lineNumber == lineNumber,
+          );
+          final lineHitsText = '${covLine?.hitsNumber ?? ''}'.padLeft(11);
+          final srcLine = fileReportLine.querySelector('.sourceLine');
+          srcLine?.text = '$lineHitsText : $lineContent';
+          if (covLine != null) {
+            srcLine?.classes.add(covLine.hasBeenHit ? 'lineCov' : 'lineNoCov');
+          }
+          src?.append(fileReportLine);
+        }
       }
     }
 
