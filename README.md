@@ -32,6 +32,7 @@ Global options:
 Available commands:
   filter   Filter a coverage info file.
   remove   Remove a set of files and folders.
+  report   Generate the coverage report from a tracefile.
   value    Compute the coverage value (%) of an info file.
 
 Run "cov help <command>" for more information about a command.
@@ -77,6 +78,39 @@ Usage: cov remove [arguments]
                              - If enabled, the command will continue.
                              - If disabled, the command will fail.
                              (defaults to on)
+
+Run "cov help" to see global options.
+```
+
+</p>
+</details>
+
+<details><summary><code>coverde report</code></summary>
+<p>
+
+```
+Generate the coverage report from a tracefile.
+
+Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
+
+Usage: cov report [arguments]
+-h, --help                              Print this usage information.
+-i, --input-tracefile=<TRACEFILE>       Coverage tracefile to be used for the coverage report generation.
+                                        (defaults to "coverage/lcov.info")
+-o, --output-report-dir=<REPORT_DIR>    Destination directory where the generated coverage report will be stored.
+                                        (defaults to "coverage/html/")
+
+Threshold values (%):
+These options provide reference coverage values for the HTML report styling.
+
+High: HIGH_VAL <= coverage <= 100
+Medium: MEDIUM_VAL <= coverge < HIGH_VAL
+Low: 0 <= coverage < MEDIUM_VAL
+
+    --medium=<MEDIUM_VAL>               Medium threshold.
+                                        (defaults to "75")
+    --high=<HIGH_VAL>                   High threshold.
+                                        (defaults to "90")
 
 Run "cov help" to see global options.
 ```
