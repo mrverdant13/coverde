@@ -36,7 +36,7 @@ THEN a positive result should be returned
       );
 
       final sameCovDir = CovDir(
-        source: Directory(sourcePath.replaceAll('/', r'\')),
+        source: Directory(sourcePath),
         elements: nestedCovElements,
       );
 
