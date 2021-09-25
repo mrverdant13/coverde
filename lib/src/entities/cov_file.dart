@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:coverde/src/common/assets.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
+import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
@@ -95,4 +97,102 @@ class CovFile extends CovElement {
   @override
   int get hashCode =>
       p.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
+
+  /// File report line HTML template file.
+  @visibleForTesting
+  static final fileReportLineTemplateFile = File(
+    p.join(
+      assetsPath,
+      'file-report-line-template.html',
+    ),
+  );
+
+  /// File report HTML template file.
+  @visibleForTesting
+  static final fileReportTemplateFile = File(
+    p.join(
+      assetsPath,
+      'file-report-template.html',
+    ),
+  );
+
+  /// File report HTML element template.
+  @visibleForTesting
+  static final fileReportTemplate = Document.html(
+    fileReportTemplateFile.readAsStringSync(),
+  );
+
+  /// File report line HTML element template.
+  @visibleForTesting
+  static final fileReportLineTemplate = Element.html(
+    fileReportLineTemplateFile.readAsStringSync(),
+  );
+
+  @override
+  void generateReport({
+    required String tracefileName,
+    required String parentReportDirAbsPath,
+    required String reportDirRelPath,
+    required int reportRelDepth,
+    required DateTime tracefileModificationDate,
+  }) {
+    final fileReport = fileReportTemplate.clone(true);
+
+    final topLevelDirRelPath =
+        List.filled(reportRelDepth - 1, '..').reduce(p.join);
+    final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = p.join(
+      topLevelDirRelPath,
+      'report-style.css',
+    );
+
+    final reportFileAbsPath = p.join(
+      parentReportDirAbsPath,
+      '$reportDirRelPath.html',
+    );
+
+    {
+      final title = 'Coverage Report - $tracefileName';
+      final currentDirPath = source.parent.path;
+      final fileName = p.basename(source.path);
+
+      fileReport.head
+        ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
+        ..querySelector('.headTitle')?.text = title;
+
+      fileReport.querySelector('.topLevelAnchor')?.attributes['href'] =
+          topLevelReportRelPath;
+      fileReport.querySelector('.currentDirPath')?.text = currentDirPath;
+      fileReport.querySelector('.currentFileName')?.nodes.last.text =
+          ' - $fileName';
+      fileReport.querySelector('.tracefileName')?.text = tracefileName;
+      fileReport.querySelector('.linesHit')?.text = '$linesHit';
+      fileReport.querySelector('.linesFound')?.text = '$linesFound';
+      fileReport.querySelector('.covValue')?.text =
+          '${coverage.toStringAsFixed(2)} %';
+    }
+
+    fileReport.querySelector('.lastTracefileModificationDate')?.text =
+        tracefileModificationDate.toString();
+
+    {
+      final src = fileReport.querySelector('.source');
+      final sourceLines = source.readAsLinesSync();
+      final indexedSourceLines = sourceLines.asMap();
+      for (final sourceLine in indexedSourceLines.entries) {
+        final lineNumber = sourceLine.key;
+        final lineContent = sourceLine.value;
+        final fileReportLine = fileReportLineTemplate.clone(true);
+        fileReportLine.querySelector('.lineNum')?.text =
+            '${lineNumber + 1} '.padLeft(9);
+        // TODO: Include hit number.
+        fileReportLine.querySelector('.sourceLine')?.text = ' $lineContent';
+        src?.append(fileReportLine);
+      }
+    }
+
+    File(reportFileAbsPath)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(fileReport.outerHtml);
+  }
 }

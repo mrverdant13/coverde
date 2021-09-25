@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:coverde/src/common/assets.dart';
+import 'package:html/dom.dart';
+import 'package:path/path.dart' as p;
 
 /// # Computable Coverage Entity
 ///
@@ -29,4 +32,46 @@ abstract class CovComputable {
 abstract class CovElement extends CovComputable {
   /// The tested filesystem element.
   FileSystemEntity get source;
+
+  /// Generate HTML coverage report for this element.
+  void generateReport({
+    required String tracefileName,
+    required String parentReportDirAbsPath,
+    required String reportDirRelPath,
+    required int reportRelDepth,
+    required DateTime tracefileModificationDate,
+  });
+
+  /// Folder report row HTML template file.
+  static final _folderReportRowTemplateFile = File(
+    p.join(
+      assetsPath,
+      'folder-report-row-template.html',
+    ),
+  );
+
+  /// Folder report row HTML element template.
+  static final _folderReportRowTemplate = Element.html(
+    _folderReportRowTemplateFile.readAsStringSync(),
+  );
+
+  /// Get the coverage data to a HTML report row.
+  Element getFolderReportRow({
+    required String relativePath,
+  }) {
+    final row = _folderReportRowTemplate.clone(true);
+    row.querySelector('.coverFileAnchor')
+      ?..attributes['href'] = '$relativePath.html'
+      ..text = relativePath;
+    row.querySelector('.barCov')
+      ?..attributes['width'] = '$coverageString%'
+      ..classes.add('barCovHi');
+    row.querySelector('.coverPer')
+      ?..classes.add('coverPerHi')
+      ..innerHtml = '$coverageString&nbsp;%';
+    row.querySelector('.coverNum')
+      ?..classes.add('coverNumHi')
+      ..innerHtml = '$linesHit&nbsp;/&nbsp;$linesFound';
+    return row;
+  }
 }

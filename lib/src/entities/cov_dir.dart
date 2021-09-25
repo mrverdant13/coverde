@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:coverde/src/common/assets.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
+import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
@@ -172,5 +174,91 @@ class CovDir extends CovElement {
     ).forEach(buf.write);
     buf.writeln();
     return buf.toString();
+  }
+
+  /// Folder report HTML template file.
+  @visibleForTesting
+  static final folderReportTemplateFile = File(
+    p.join(
+      assetsPath,
+      'folder-report-template.html',
+    ),
+  );
+
+  /// Folder report HTML element template.
+  @visibleForTesting
+  static final folderReportTemplate = Document.html(
+    folderReportTemplateFile.readAsStringSync(),
+  );
+
+  @override
+  void generateReport({
+    required String tracefileName,
+    required String parentReportDirAbsPath,
+    required String reportDirRelPath,
+    required int reportRelDepth,
+    required DateTime tracefileModificationDate,
+  }) {
+    final folderReport = folderReportTemplate.clone(true);
+
+    final topLevelDirRelPath =
+        List.filled(reportRelDepth, '..').fold('', p.join);
+    final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = p.join(
+      topLevelDirRelPath,
+      'report-style.css',
+    );
+
+    final reportDirAbsPath = p.join(
+      parentReportDirAbsPath,
+      reportDirRelPath,
+    );
+    final reportFileAbsPath = p.join(reportDirAbsPath, 'index.html');
+
+    final title = 'Coverage Report - $tracefileName';
+    final sortAlphaIconPath = p.join(topLevelDirRelPath, 'sort-alpha.png');
+    final sortNumericIconPath = p.join(topLevelDirRelPath, 'sort-numeric.png');
+
+    folderReport.head
+      ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
+      ..querySelector('.headTitle')?.text = title;
+
+    folderReport.querySelector('.topLevelAnchor')?.attributes['href'] =
+        topLevelReportRelPath;
+    folderReport.querySelector('.sortAlpha')?.attributes['src'] =
+        sortAlphaIconPath;
+    folderReport.querySelector('.sortNumeric')?.attributes['src'] =
+        sortNumericIconPath;
+    folderReport.querySelector('.currentDirPath')?.nodes.last.text =
+        ' - ${source.path}';
+    folderReport.querySelector('.tracefileName')?.text = tracefileName;
+    folderReport.querySelector('.linesHit')?.text = '$linesHit';
+    folderReport.querySelector('.linesFound')?.text = '$linesFound';
+    folderReport.querySelector('.covValue')?.text =
+        '${coverage.toStringAsFixed(2)} %';
+
+    folderReport.querySelector('.lastTracefileModificationDate')?.text =
+        tracefileModificationDate.toString();
+
+    {
+      final table = folderReport.querySelector('.covTableBody');
+
+      for (final element in _elements) {
+        final relPath = p.relative(element.source.path, from: source.path);
+        final row = element.getFolderReportRow(relativePath: relPath);
+        table?.append(row);
+        element.generateReport(
+          tracefileName: tracefileName,
+          parentReportDirAbsPath: reportDirAbsPath,
+          reportDirRelPath: relPath,
+          reportRelDepth: reportRelDepth + p.split(relPath).length,
+          tracefileModificationDate: tracefileModificationDate,
+        );
+      }
+    }
+
+    File(reportFileAbsPath)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(folderReport.outerHtml);
   }
 }
