@@ -40,6 +40,8 @@ abstract class CovElement extends CovComputable {
     required String reportDirRelPath,
     required int reportRelDepth,
     required DateTime tracefileModificationDate,
+    required double medium,
+    required double high,
   });
 
   /// Folder report row HTML template file.
@@ -60,8 +62,11 @@ abstract class CovElement extends CovComputable {
     required String relativePath,
   }) {
     final row = _folderReportRowTemplate.clone(true);
+    final link = source is Directory
+        ? p.join(relativePath, 'index.html')
+        : '$relativePath.html';
     row.querySelector('.coverFileAnchor')
-      ?..attributes['href'] = '$relativePath.html'
+      ?..attributes['href'] = link
       ..text = relativePath;
     row.querySelector('.barCov')
       ?..attributes['width'] = '$coverageString%'

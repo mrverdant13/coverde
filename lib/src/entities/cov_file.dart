@@ -135,6 +135,8 @@ class CovFile extends CovElement {
     required String reportDirRelPath,
     required int reportRelDepth,
     required DateTime tracefileModificationDate,
+    required double medium,
+    required double high,
   }) {
     final fileReport = fileReportTemplate.clone(true);
 

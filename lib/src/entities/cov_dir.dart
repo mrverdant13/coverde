@@ -196,6 +196,8 @@ class CovDir extends CovElement {
     required String tracefileName,
     required String parentReportDirAbsPath,
     required DateTime tracefileModificationDate,
+    required double medium,
+    required double high,
   }) =>
       generateSubReport(
         tracefileName: tracefileName,
@@ -203,6 +205,8 @@ class CovDir extends CovElement {
         reportDirRelPath: '',
         reportRelDepth: 0,
         tracefileModificationDate: tracefileModificationDate,
+        medium: medium,
+        high: high,
       );
 
   @override
@@ -212,6 +216,8 @@ class CovDir extends CovElement {
     required String reportDirRelPath,
     required int reportRelDepth,
     required DateTime tracefileModificationDate,
+    required double medium,
+    required double high,
   }) {
     final folderReport = folderReportTemplate.clone(true);
 
@@ -267,6 +273,8 @@ class CovDir extends CovElement {
           reportDirRelPath: relPath,
           reportRelDepth: reportRelDepth + p.split(relPath).length,
           tracefileModificationDate: tracefileModificationDate,
+          medium: medium,
+          high: high,
         );
       }
     }

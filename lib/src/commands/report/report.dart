@@ -27,14 +27,40 @@ Coverage tracefile to be used for the coverage report generation.''',
 Destination directory where the generated coverage report will be stored.''',
         valueHelp: _outputReportDirHelpValue,
         defaultsTo: 'coverage/html/',
+      )
+      ..addSeparator('''
+Threshold values (%):
+These options provide reference coverage values for the HTML report styling.
+
+High: $_highHelpValue <= coverage <= 100
+Medium: $_mediumHelpValue <= coverge < $_highHelpValue
+Low: 0 <= coverage < $_mediumHelpValue
+''')
+      ..addOption(
+        _mediumOption,
+        help: '''
+Medium threshold.''',
+        valueHelp: _mediumHelpValue,
+        defaultsTo: '75',
+      )
+      ..addOption(
+        _highOption,
+        help: '''
+High threshold.''',
+        valueHelp: _highHelpValue,
+        defaultsTo: '90',
       );
   }
 
   static const _inputTracefileHelpValue = 'TRACEFILE';
   static const _outputReportDirHelpValue = 'REPORT_DIR';
+  static const _mediumHelpValue = 'MEDIUM_VAL';
+  static const _highHelpValue = 'HIGH_VAL';
 
   static const _inputTracefileOption = 'input-tracefile';
   static const _outputReportDirOption = 'output-report-dir';
+  static const _mediumOption = 'medium';
+  static const _highOption = 'high';
 
   @override
   String get description => '''
@@ -86,6 +112,20 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
     final _reportDirPath = ArgumentError.checkNotNull(
       _argResults[_outputReportDirOption],
     ) as String;
+    final medium = ArgumentError.checkNotNull(
+      double.tryParse(
+        ArgumentError.checkNotNull(
+          _argResults[_mediumOption],
+        ) as String,
+      ),
+    );
+    final high = ArgumentError.checkNotNull(
+      double.tryParse(
+        ArgumentError.checkNotNull(
+          _argResults[_highOption],
+        ) as String,
+      ),
+    );
 
     // Report dir path should be absolute.
     final reportDirAbsPath = path.isAbsolute(_reportDirPath)
@@ -114,6 +154,8 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
         tracefileName: path.basename(tracefileAbsPath),
         tracefileModificationDate: tracefile.lastModifiedSync(),
         parentReportDirAbsPath: reportDirAbsPath,
+        medium: medium,
+        high: high,
       );
 
     // Copy static files.
