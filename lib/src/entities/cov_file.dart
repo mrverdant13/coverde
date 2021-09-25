@@ -157,6 +157,7 @@ class CovFile extends CovElement {
       final title = 'Coverage Report - $tracefileName';
       final currentDirPath = source.parent.path;
       final fileName = p.basename(source.path);
+      final suffix = getClassSuffix(medium: medium, high: high);
 
       fileReport.head
         ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
@@ -170,8 +171,9 @@ class CovFile extends CovElement {
       fileReport.querySelector('.tracefileName')?.text = tracefileName;
       fileReport.querySelector('.linesHit')?.text = '$linesHit';
       fileReport.querySelector('.linesFound')?.text = '$linesFound';
-      fileReport.querySelector('.covValue')?.text =
-          '${coverage.toStringAsFixed(2)} %';
+      fileReport.querySelector('.covValue')
+        ?..text = '${coverage.toStringAsFixed(2)} %'
+        ..classes.add('headerCovTableEntry$suffix');
     }
 
     fileReport.querySelector('.lastTracefileModificationDate')?.text =
