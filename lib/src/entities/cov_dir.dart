@@ -163,10 +163,9 @@ class CovDir extends CovElement {
       (e) {
         if (e is CovFile) {
           final path = e.source.path;
-          final cov = e.coverage.toStringAsFixed(2);
           final linesHit = e.linesHit;
           final linesFound = e.linesFound;
-          return '\n├─ SF: $path ($cov% - $linesHit/$linesFound)';
+          return '\n├─ SF: $path ($coverageString% - $linesHit/$linesFound)';
         } else if (e is CovDir) {
           return '\n├─ ${e.toString().replaceAll('\n', '\n│  ')}';
         }
@@ -256,7 +255,7 @@ class CovDir extends CovElement {
     folderReport.querySelector('.linesHit')?.text = '$linesHit';
     folderReport.querySelector('.linesFound')?.text = '$linesFound';
     folderReport.querySelector('.covValue')
-      ?..text = '${coverage.toStringAsFixed(2)} %'
+      ?..text = '$coverageString %'
       ..classes.add('headerCovTableEntry$suffix');
 
     folderReport.querySelector('.lastTracefileModificationDate')?.text =

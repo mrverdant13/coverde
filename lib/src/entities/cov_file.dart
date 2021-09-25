@@ -172,7 +172,7 @@ class CovFile extends CovElement {
       fileReport.querySelector('.linesHit')?.text = '$linesHit';
       fileReport.querySelector('.linesFound')?.text = '$linesFound';
       fileReport.querySelector('.covValue')
-        ?..text = '${coverage.toStringAsFixed(2)} %'
+        ?..text = '$coverageString %'
         ..classes.add('headerCovTableEntry$suffix');
     }
 
