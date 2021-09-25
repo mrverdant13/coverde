@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/tracefile.dart';
 
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.

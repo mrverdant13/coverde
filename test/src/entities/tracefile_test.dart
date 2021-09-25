@@ -1,8 +1,8 @@
 import 'dart:collection';
 
 import 'package:collection/collection.dart';
-import 'package:cov_utils/src/entities/cov_file.dart';
-import 'package:cov_utils/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/tracefile.dart';
 import 'package:test/test.dart';
 
 void main() {

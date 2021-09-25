@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:cov_utils/src/entities/cov_base.dart';
-import 'package:cov_utils/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/cov_base.dart';
+import 'package:coverde/src/entities/cov_file.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 

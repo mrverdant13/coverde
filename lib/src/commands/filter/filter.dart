@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/entities/cov_file.dart';
-import 'package:cov_utils/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/tracefile.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template filter_cmd}
