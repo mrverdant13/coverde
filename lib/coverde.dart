@@ -1,3 +1,3 @@
 library coverde;
 
-export 'src/commands/cov/cov.dart';
+export 'src/commands/cov.dart';

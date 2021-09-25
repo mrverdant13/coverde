@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/cov/filter/filter.dart';
-import 'package:coverde/src/commands/cov/rm/rm.dart';
-import 'package:coverde/src/commands/cov/value/value.dart';
+import 'package:coverde/src/commands/filter/filter.dart';
+import 'package:coverde/src/commands/rm/rm.dart';
+import 'package:coverde/src/commands/value/value.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
