@@ -24,7 +24,7 @@ Coverage info actions.
 ```
 A set of commands that encapsulate coverage-related functionalities.
 
-Usage: cov <command> [arguments]
+Usage: coverde <command> [arguments]
 
 Global options:
 -h, --help    Print this usage information.
@@ -35,7 +35,7 @@ Available commands:
   report   Generate the coverage report from a tracefile.
   value    Compute the coverage value (%) of an info file.
 
-Run "cov help <command>" for more information about a command.
+Run "coverde help <command>" for more information about a command.
 ```
 
 ### `coverde` sub-commands
@@ -49,7 +49,7 @@ Filter a coverage info file.
 Filter the coverage info by ignoring data related to files with paths that matches the given PATTERNS.
 The coverage data is taken from the ORIGIN_LCOV_FILE file and the result is appended to the DESTINATION_LCOV_FILE file.
 
-Usage: cov filter [arguments]
+Usage: coverde filter [arguments]
 -h, --help                                   Print this usage information.
 -i, --ignore-patterns=<PATTERNS>             Set of comma-separated path patterns of the files to be ignored.
                                              Consider that the coverage info of each file is checked as a multiline block.
@@ -59,7 +59,7 @@ Usage: cov filter [arguments]
 -d, --destination=<DESTINATION_LCOV_FILE>    Destination coverage info file to dump the resulting coverage data into.
                                              (defaults to "coverage/wiped.lcov.info")
 
-Run "cov help" to see global options.
+Run "coverde help" to see global options.
 ```
 
 </p>
@@ -71,7 +71,7 @@ Run "cov help" to see global options.
 ```
 Remove a set of files and folders.
 
-Usage: cov remove [arguments]
+Usage: coverde remove [arguments]
 -h, --help                   Print this usage information.
     --[no-]accept-absence    Accept absence of a file or folder.
                              When an element is not present:
@@ -79,7 +79,7 @@ Usage: cov remove [arguments]
                              - If disabled, the command will fail.
                              (defaults to on)
 
-Run "cov help" to see global options.
+Run "coverde help" to see global options.
 ```
 
 </p>
@@ -93,7 +93,7 @@ Generate the coverage report from a tracefile.
 
 Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
 
-Usage: cov report [arguments]
+Usage: coverde report [arguments]
 -h, --help                              Print this usage information.
 -i, --input-tracefile=<TRACEFILE>       Coverage tracefile to be used for the coverage report generation.
                                         (defaults to "coverage/lcov.info")
@@ -112,7 +112,7 @@ Low: 0 <= coverage < MEDIUM_VAL
     --high=<HIGH_VAL>                   High threshold.
                                         (defaults to "90")
 
-Run "cov help" to see global options.
+Run "coverde help" to see global options.
 ```
 
 </p>
@@ -126,14 +126,14 @@ Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the LCOV_FILE info file.
 
-Usage: cov value [arguments]
+Usage: coverde value [arguments]
 -h, --help                Print this usage information.
 -f, --file=<LCOV_FILE>    Coverage info file to be used for the coverage value computation.
                           (defaults to "coverage/lcov.info")
 -p, --[no-]print-files    Print coverage value for each source file listed in the LCOV_FILE info file.
                           (defaults to on)
 
-Run "cov help" to see global options.
+Run "coverde help" to see global options.
 ```
 
 </p>
