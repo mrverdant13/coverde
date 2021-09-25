@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:cov_utils/src/commands/cov/filter/filter.dart';
+import 'package:cov_utils/src/commands/cov/rm/rm.dart';
 import 'package:cov_utils/src/commands/cov/value/value.dart';
 
 /// The command invocation function that provides coverage-related
@@ -10,6 +11,7 @@ Future<void> cov(List<String> args) async {
     'A set of commands that encapsulate coverage-related functionalities.',
   ) //
     ..addCommand(FilterCommand())
+    ..addCommand(RmCommand())
     ..addCommand(ValueCommand());
   await runner.run(args);
 }
