@@ -65,6 +65,7 @@ AND the file should remain inexistent
           Future<void> action() => cmdRunner.run([
                 rmCmd.name,
                 filePath,
+                '--no-${RmCommand.acceptAbsenceFlag}',
               ]);
 
           // ASSERT
@@ -116,6 +117,7 @@ AND the directory should remain inexistent
           Future<void> action() => cmdRunner.run([
                 rmCmd.name,
                 dirPath,
+                '--no-${RmCommand.acceptAbsenceFlag}',
               ]);
 
           // ASSERT
