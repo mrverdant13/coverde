@@ -17,49 +17,7 @@ $ dart pub global activate --source git https://github.com/mrverdant13/coverde.g
 
 # Commands
 
-## `$ x`
-
-Generic actions.
-
-```
-A set of commands for generic functionalities.
-
-Usage: x <command> [arguments]
-
-Global options:
--h, --help    Print this usage information.
-
-Available commands:
-  remove   Remove a set of files and folders.
-
-Run "x help <command>" for more information about a command.
-```
-
-### `x` sub-commands
-
-<details><summary><code>x rm</code></summary>
-<p>
-
-```
-Remove a set of files and folders.
-
-Usage: x remove [arguments]
--h, --help                   Print this usage information.
-    --[no-]accept-absence    Accept absence of a file or folder.
-                             When an element is not present:
-                             - If enabled, the command will continue.
-                             - If disabled, the command will fail.
-                             (defaults to on)
-
-Run "x help" to see global options.
-```
-
-</p>
-</details>
-
----
-
-## `$ cov`
+## `$ coverde`
 
 Coverage info actions.
 
@@ -73,14 +31,15 @@ Global options:
 
 Available commands:
   filter   Filter a coverage info file.
+  remove   Remove a set of files and folders.
   value    Compute the coverage value (%) of an info file.
 
 Run "cov help <command>" for more information about a command.
 ```
 
-### `cov` sub-commands
+### `coverde` sub-commands
 
-<details><summary><code>cov filter</code></summary>
+<details><summary><code>coverde filter</code></summary>
 <p>
 
 ```
@@ -105,7 +64,27 @@ Run "cov help" to see global options.
 </p>
 </details>
 
-<details><summary><code>cov value</code></summary>
+<details><summary><code>coverde remove</code></summary>
+<p>
+
+```
+Remove a set of files and folders.
+
+Usage: cov remove [arguments]
+-h, --help                   Print this usage information.
+    --[no-]accept-absence    Accept absence of a file or folder.
+                             When an element is not present:
+                             - If enabled, the command will continue.
+                             - If disabled, the command will fail.
+                             (defaults to on)
+
+Run "cov help" to see global options.
+```
+
+</p>
+</details>
+
+<details><summary><code>coverde value</code></summary>
 <p>
 
 ```
