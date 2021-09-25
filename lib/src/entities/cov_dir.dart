@@ -238,6 +238,7 @@ class CovDir extends CovElement {
     final title = 'Coverage Report - $tracefileName';
     final sortAlphaIconPath = p.join(topLevelDirRelPath, 'sort-alpha.png');
     final sortNumericIconPath = p.join(topLevelDirRelPath, 'sort-numeric.png');
+    final suffix = getClassSuffix(medium: medium, high: high);
 
     folderReport.head
       ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
@@ -254,8 +255,9 @@ class CovDir extends CovElement {
     folderReport.querySelector('.tracefileName')?.text = tracefileName;
     folderReport.querySelector('.linesHit')?.text = '$linesHit';
     folderReport.querySelector('.linesFound')?.text = '$linesFound';
-    folderReport.querySelector('.covValue')?.text =
-        '${coverage.toStringAsFixed(2)} %';
+    folderReport.querySelector('.covValue')
+      ?..text = '${coverage.toStringAsFixed(2)} %'
+      ..classes.add('headerCovTableEntry$suffix');
 
     folderReport.querySelector('.lastTracefileModificationDate')?.text =
         tracefileModificationDate.toString();
@@ -265,7 +267,11 @@ class CovDir extends CovElement {
 
       for (final element in _elements) {
         final relPath = p.relative(element.source.path, from: source.path);
-        final row = element.getFolderReportRow(relativePath: relPath);
+        final row = element.getFolderReportRow(
+          relativePath: relPath,
+          medium: medium,
+          high: high,
+        );
         table?.append(row);
         element.generateSubReport(
           tracefileName: tracefileName,

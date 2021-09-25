@@ -57,25 +57,48 @@ abstract class CovElement extends CovComputable {
     _folderReportRowTemplateFile.readAsStringSync(),
   );
 
+  String getClassSuffix({
+    required double medium,
+    required double high,
+  }) {
+    if (coverage < medium) {
+      return 'Lo';
+    } else if (coverage < high) {
+      return 'Med';
+    } else {
+      return 'Hi';
+    }
+  }
+
   /// Get the coverage data to a HTML report row.
   Element getFolderReportRow({
     required String relativePath,
+    required double medium,
+    required double high,
   }) {
     final row = _folderReportRowTemplate.clone(true);
+    final suffix = getClassSuffix(medium: medium, high: high);
     final link = source is Directory
         ? p.join(relativePath, 'index.html')
         : '$relativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link
       ..text = relativePath;
-    row.querySelector('.barCov')
-      ?..attributes['width'] = '$coverageString%'
-      ..classes.add('barCovHi');
+    {
+      final covBar = row.querySelector('.barCov');
+      if (coverage < 1) {
+        covBar?.remove();
+      } else {
+        covBar
+          ?..attributes['width'] = '$coverageString%'
+          ..classes.add('barCov$suffix');
+      }
+    }
     row.querySelector('.coverPer')
-      ?..classes.add('coverPerHi')
+      ?..classes.add('coverPer$suffix')
       ..innerHtml = '$coverageString&nbsp;%';
     row.querySelector('.coverNum')
-      ?..classes.add('coverNumHi')
+      ?..classes.add('coverNum$suffix')
       ..innerHtml = '$linesHit&nbsp;/&nbsp;$linesFound';
     return row;
   }
