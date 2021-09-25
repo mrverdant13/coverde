@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_base.dart';
+import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:meta/meta.dart';
 
@@ -65,8 +66,5 @@ class Tracefile extends CovComputable {
   }
 
   @override
-  int get hashCode => _sourceFilesCovData.fold(
-        0,
-        (hash, sourceFileCovData) => hash ^ sourceFileCovData.hashCode,
-      );
+  int get hashCode => _sourceFilesCovDataEquality.hash(_sourceFilesCovData);
 }
