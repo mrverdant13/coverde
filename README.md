@@ -10,7 +10,7 @@ A set of commands for coverage info files manipulation.
 # Installing
 
 ```sh
-$ dart pub global activate --source git https://github.com/mrverdant13/cov_utils.git
+$ dart pub global activate --source git https://github.com/mrverdant13/coverde.git
 ```
 
 ---

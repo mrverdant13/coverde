@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:cov_utils/src/commands/cov/rm/rm.dart';
+import 'package:coverde/src/commands/cov/rm/rm.dart';
 import 'package:test/test.dart';
 
 void main() {

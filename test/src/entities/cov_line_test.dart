@@ -1,4 +1,4 @@
-import 'package:cov_utils/src/entities/cov_line.dart';
+import 'package:coverde/src/entities/cov_line.dart';
 import 'package:test/test.dart';
 
 void main() {

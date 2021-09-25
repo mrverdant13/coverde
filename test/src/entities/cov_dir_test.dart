@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:cov_utils/src/entities/cov_dir.dart';
-import 'package:cov_utils/src/entities/cov_file.dart';
-import 'package:cov_utils/src/entities/cov_line.dart';
+import 'package:coverde/src/entities/cov_dir.dart';
+import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/cov_line.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
