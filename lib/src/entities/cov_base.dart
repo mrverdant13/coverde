@@ -15,6 +15,11 @@ abstract class CovComputable {
   ///
   /// From **0.00** to **100.00**.
   double get coverage => (linesHit * 100) / linesFound;
+
+  /// The string representation of the [coverage] value.
+  ///
+  /// From **0.00** to **100.00**.
+  String get coverageString => coverage.toStringAsFixed(2);
 }
 
 /// # Coverage Filesystem Element
