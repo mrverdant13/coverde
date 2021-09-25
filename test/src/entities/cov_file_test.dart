@@ -37,7 +37,7 @@ THEN a positive result should be returned
 ''',
     () {
       final sameCovFile = CovFile(
-        source: File(sourcePath.replaceAll('/', r'\')),
+        source: File(sourcePath),
         raw: rawCovFileData,
         covLines: covLines,
       );
