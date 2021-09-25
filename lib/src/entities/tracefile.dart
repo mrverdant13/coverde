@@ -43,6 +43,9 @@ class Tracefile extends CovComputable {
 
   final Iterable<CovFile> _sourceFilesCovData;
 
+  /// Create a coverage tree.
+  late final CovDir asTree = CovDir.tree(covFiles: sourceFilesCovData);
+
   /// The coverage data related to the referenced source files.
   UnmodifiableListView<CovFile> get sourceFilesCovData =>
       UnmodifiableListView<CovFile>(_sourceFilesCovData);
