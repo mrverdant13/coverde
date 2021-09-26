@@ -157,15 +157,12 @@ class CovDir extends CovElement {
   @override
   String toString() {
     final buf = StringBuffer(
-      'Node: ${source.path} ($coverage% - $linesHit/$linesFound)',
+      'Node: $coverageDataString',
     );
     elements.map(
       (e) {
         if (e is CovFile) {
-          final path = e.source.path;
-          final linesHit = e.linesHit;
-          final linesFound = e.linesFound;
-          return '\n├─ SF: $path ($coverageString% - $linesHit/$linesFound)';
+          return '\n├─ SF: ${e.coverageDataString}';
         } else if (e is CovDir) {
           return '\n├─ ${e.toString().replaceAll('\n', '\n│  ')}';
         }

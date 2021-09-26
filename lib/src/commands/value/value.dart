@@ -74,41 +74,14 @@ Compute the coverage value of the $_fileHelpValue info file.''';
       for (final fileCovData in tracefileData.sourceFilesCovData) {
         stdout
           ..writeln(fileCovData.source)
-          ..writeCovValue(
-            covValue: fileCovData.coverage,
-            linesHit: fileCovData.linesHit,
-            linesFound: fileCovData.linesFound,
-            addLine: true,
-          );
+          ..writeln(fileCovData.coverageDataString)
+          ..writeln();
       }
     }
 
     // Show resulting coverage.
     stdout
       ..writeln('GLOBAL:')
-      ..writeCovValue(
-        covValue: tracefileData.coverage,
-        linesHit: tracefileData.linesHit,
-        linesFound: tracefileData.linesFound,
-        addLine: false,
-      );
-  }
-}
-
-extension _Stdout on Stdout {
-  void writeCovValue({
-    required double covValue,
-    required int linesHit,
-    required int linesFound,
-    required bool addLine,
-  }) {
-    this
-      ..write(covValue.toStringAsFixed(2))
-      ..write(' % (')
-      ..write(linesHit)
-      ..write(' of ')
-      ..write(linesFound)
-      ..writeln(' lines)');
-    if (addLine) writeln();
+      ..writeln(tracefileData.coverageDataString);
   }
 }
