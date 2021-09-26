@@ -23,6 +23,10 @@ abstract class CovComputable {
   ///
   /// From **0.00** to **100.00**.
   String get coverageString => coverage.toStringAsFixed(2);
+
+  /// The string representation of the [coverage] value, hte [linesHit] and the
+  /// [linesFound].
+  String get coverageDataString => '$coverageString% - $linesHit/$linesFound';
 }
 
 /// # Coverage Filesystem Element
@@ -32,6 +36,12 @@ abstract class CovComputable {
 abstract class CovElement extends CovComputable {
   /// The tested filesystem element.
   FileSystemEntity get source;
+
+  /// The string representation of the [coverage] value, hte [linesHit] and the
+  /// [linesFound].
+  @override
+  String get coverageDataString =>
+      '${source.path} (${super.coverageDataString})';
 
   /// Generate HTML coverage report for this element.
   void generateSubReport({
