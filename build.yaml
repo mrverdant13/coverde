@@ -1,0 +1,17 @@
+targets:
+  coverde:coverde:
+    builders:
+      coverde|assetsBuilder:
+        enabled: True
+        generate_for:
+          - assets/*
+
+builders:
+  assetsBuilder:
+    import: "tool/assets_builder.dart"
+    builder_factories: ["assetsBuilder"]
+    build_extensions:
+      assets/{{}}:
+        - lib/src/assets/{{}}.asset.dart
+    build_to: source
+    auto_apply: root_package
