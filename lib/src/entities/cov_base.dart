@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:coverde/src/common/assets.dart';
+import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
 import 'package:html/dom.dart';
 import 'package:path/path.dart' as p;
 
@@ -54,17 +54,9 @@ abstract class CovElement extends CovComputable {
     required double high,
   });
 
-  /// Folder report row HTML template file.
-  static final _folderReportRowTemplateFile = File(
-    p.join(
-      assetsPath,
-      'folder-report-row-template.html',
-    ),
-  );
-
   /// Folder report row HTML element template.
   static final _folderReportRowTemplate = Element.html(
-    _folderReportRowTemplateFile.readAsStringSync(),
+    String.fromCharCodes(folderReportRowTemplateHtmlBytes),
   );
 
   String getClassSuffix({

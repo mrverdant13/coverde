@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:coverde/src/common/assets.dart';
+import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
+import 'package:coverde/src/assets/file_report_template.html.asset.dart';
+import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
 import 'package:html/dom.dart';
@@ -98,34 +100,16 @@ class CovFile extends CovElement {
   int get hashCode =>
       p.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
 
-  /// File report line HTML template file.
-  @visibleForTesting
-  static final fileReportLineTemplateFile = File(
-    p.join(
-      assetsPath,
-      'file-report-line-template.html',
-    ),
-  );
-
-  /// File report HTML template file.
-  @visibleForTesting
-  static final fileReportTemplateFile = File(
-    p.join(
-      assetsPath,
-      'file-report-template.html',
-    ),
-  );
-
   /// File report HTML element template.
   @visibleForTesting
   static final fileReportTemplate = Document.html(
-    fileReportTemplateFile.readAsStringSync(),
+    String.fromCharCodes(fileReportTemplateHtmlBytes),
   );
 
   /// File report line HTML element template.
   @visibleForTesting
   static final fileReportLineTemplate = Element.html(
-    fileReportLineTemplateFile.readAsStringSync(),
+    String.fromCharCodes(fileReportLineTemplateHtmlBytes),
   );
 
   @override
@@ -145,7 +129,7 @@ class CovFile extends CovElement {
     final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
     final topLevelCssRelPath = p.join(
       topLevelDirRelPath,
-      'report-style.css',
+      reportStyleCssFilename,
     );
 
     final reportFileAbsPath = p.join(
