@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/common/assets.dart';
+import 'package:coverde/src/assets/report_style.css.asset.dart';
+import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
+import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/tracefile.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template report_cmd}
@@ -74,33 +75,6 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
   @override
   List<String> get aliases => [name[0]];
 
-  /// Report style CSS file.
-  @visibleForTesting
-  static final reportStyleFile = File(
-    path.join(
-      assetsPath,
-      'report-style.css',
-    ),
-  );
-
-  /// Alphabetic sorting icon file.
-  @visibleForTesting
-  static final sortAlphaIconFile = File(
-    path.join(
-      assetsPath,
-      'sort-alpha.png',
-    ),
-  );
-
-  /// Numeric sorting icon file.
-  @visibleForTesting
-  final sortNumericIconFile = File(
-    path.join(
-      assetsPath,
-      'sort-numeric.png',
-    ),
-  );
-
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
@@ -161,24 +135,27 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
     // Copy static files.
     final cssRootPath = path.join(
       reportDirAbsPath,
-      path.basename(reportStyleFile.path),
+      'report_style.css',
     );
-    File(cssRootPath).createSync(recursive: true);
-    reportStyleFile.copySync(cssRootPath);
+    File(cssRootPath)
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(reportStyleCssBytes);
 
     final sortAlphaIconRootPath = path.join(
       reportDirAbsPath,
-      'sort-alpha.png',
+      'sort_alpha.png',
     );
-    File(sortAlphaIconRootPath).createSync(recursive: true);
-    sortAlphaIconFile.copySync(sortAlphaIconRootPath);
+    File(sortAlphaIconRootPath)
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(sortAlphaPngBytes);
 
     final sortNumericIconRootPath = path.join(
       reportDirAbsPath,
-      'sort-numeric.png',
+      'sort_numeric.png',
     );
-    File(sortNumericIconRootPath).createSync(recursive: true);
-    sortNumericIconFile.copySync(sortNumericIconRootPath);
+    File(sortNumericIconRootPath)
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(sortNumericPngBytes);
 
     stdout.writeln(covTree);
   }

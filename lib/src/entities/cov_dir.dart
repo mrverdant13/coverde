@@ -1,7 +1,10 @@
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:coverde/src/common/assets.dart';
+import 'package:coverde/src/assets/folder_report_template.html.asset.dart';
+import 'package:coverde/src/assets/report_style.css.asset.dart';
+import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
+import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:html/dom.dart';
@@ -172,19 +175,10 @@ class CovDir extends CovElement {
     return buf.toString();
   }
 
-  /// Folder report HTML template file.
-  @visibleForTesting
-  static final folderReportTemplateFile = File(
-    p.join(
-      assetsPath,
-      'folder-report-template.html',
-    ),
-  );
-
   /// Folder report HTML element template.
   @visibleForTesting
   static final folderReportTemplate = Document.html(
-    folderReportTemplateFile.readAsStringSync(),
+    String.fromCharCodes(folderReportTemplateHtmlBytes),
   );
 
   /// Generate HTML report for this directory and its children.
@@ -222,7 +216,7 @@ class CovDir extends CovElement {
     final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
     final topLevelCssRelPath = p.join(
       topLevelDirRelPath,
-      'report-style.css',
+      reportStyleCssFilename,
     );
 
     final reportDirAbsPath = p.join(
@@ -232,8 +226,14 @@ class CovDir extends CovElement {
     final reportFileAbsPath = p.join(reportDirAbsPath, 'index.html');
 
     final title = 'Coverage Report - $tracefileName';
-    final sortAlphaIconPath = p.join(topLevelDirRelPath, 'sort-alpha.png');
-    final sortNumericIconPath = p.join(topLevelDirRelPath, 'sort-numeric.png');
+    final sortAlphaIconPath = p.join(
+      topLevelDirRelPath,
+      sortAlphaPngFilename,
+    );
+    final sortNumericIconPath = p.join(
+      topLevelDirRelPath,
+      sortNumericPngFilename,
+    );
     final suffix = getClassSuffix(medium: medium, high: high);
 
     folderReport.head
