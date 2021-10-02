@@ -9,5 +9,5 @@ final _covUtilsPath = Platform.script.pathSegments
 /// CLI assets folder path.
 final assetsPath = p.join(
   _covUtilsPath,
-  'assets',
+  'lib/assets',
 );
