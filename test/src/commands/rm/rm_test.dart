@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+
+import '../../utils/mocks.dart';
 
 void main() {
   group(
@@ -11,14 +14,22 @@ void main() {
 GIVEN a filesystem element remover command''',
     () {
       late CommandRunner<void> cmdRunner;
+      late MockStdout out;
       late RmCommand rmCmd;
 
       // ARRANGE
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          rmCmd = RmCommand();
+          out = MockStdout();
+          rmCmd = RmCommand(out: out);
           cmdRunner.addCommand(rmCmd);
+        },
+      );
+
+      tearDown(
+        () {
+          verifyNoMoreInteractions(out);
         },
       );
 
@@ -51,6 +62,7 @@ THEN the file should be removed
         '''
 
 AND a non-existing file to remove
+AND the requirement for the file to exist
 WHEN the command is invoqued
 THEN an error indicating the issue should be thrown
 AND the file should remain inexistent
@@ -70,6 +82,37 @@ AND the file should remain inexistent
 
           // ASSERT
           expect(action, throwsA(isA<StateError>()));
+          expect(file.existsSync(), isFalse);
+        },
+      );
+
+      test(
+        '''
+
+AND a non-existing file to remove
+AND no requirement for the file to exist
+WHEN the command is invoqued
+THEN a message indicating the issue should be shown
+AND the file should remain inexistent
+''',
+        () async {
+          // ARRANGE
+          const filePath = 'coverage/non-existing.file';
+          final file = File(filePath);
+          when(() => out.writeln(any<String>())).thenReturn(null);
+          expect(file.existsSync(), isFalse);
+
+          // ACT
+          await cmdRunner.run([
+            rmCmd.name,
+            filePath,
+            '--${RmCommand.acceptAbsenceFlag}',
+          ]);
+
+          // ASSERT
+          verify(
+            () => out.writeln('The <$filePath> element does not exist.'),
+          ).called(1);
           expect(file.existsSync(), isFalse);
         },
       );
@@ -103,6 +146,7 @@ THEN the directory should be removed
         '''
 
 AND a non-existing directory to remove
+AND the requirement for the directory to exist
 WHEN the command is invoqued
 THEN an error indicating the issue should be thrown
 AND the directory should remain inexistent
@@ -122,6 +166,37 @@ AND the directory should remain inexistent
 
           // ASSERT
           expect(action, throwsA(isA<StateError>()));
+          expect(dir.existsSync(), isFalse);
+        },
+      );
+
+      test(
+        '''
+
+AND a non-existing directory to remove
+AND no requirement for the directory to exist
+WHEN the command is invoqued
+THEN a message indicating the issue should be shown
+AND the directory should remain inexistent
+''',
+        () async {
+          // ARRANGE
+          const dirPath = 'coverage/non-existing.dir/';
+          final dir = File(dirPath);
+          when(() => out.writeln(any<String>())).thenReturn(null);
+          expect(dir.existsSync(), isFalse);
+
+          // ACT
+          await cmdRunner.run([
+            rmCmd.name,
+            dirPath,
+            '--${RmCommand.acceptAbsenceFlag}',
+          ]);
+
+          // ASSERT
+          verify(
+            () => out.writeln('The <$dirPath> element does not exist.'),
+          ).called(1);
           expect(dir.existsSync(), isFalse);
         },
       );
