@@ -8,7 +8,7 @@ import 'package:meta/meta.dart';
 /// {@endtemplate}
 class RmCommand extends Command<void> {
   /// {@macro rm_cmd}
-  RmCommand() {
+  RmCommand({Stdout? out}) : _out = out ?? stdout {
     argParser.addFlag(
       acceptAbsenceFlag,
       help: '''
@@ -19,6 +19,8 @@ When an element is not present:
       defaultsTo: true,
     );
   }
+
+  final Stdout _out;
 
   /// Flag to define whether filesystem entity absence should be accepted.
   @visibleForTesting
@@ -65,7 +67,7 @@ Remove a set of files and folders.''';
         case FileSystemEntityType.notFound:
           final message = 'The <$elementPath> element does not exist.';
           if (shouldAcceptAbsence) {
-            stdout.writeln(message);
+            _out.writeln(message);
           } else {
             throw StateError(message);
           }
