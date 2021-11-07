@@ -1,0 +1,17 @@
+import 'package:coverde/project/dir_1/file_1.dart';
+import 'package:test/test.dart';
+
+void main() {
+  test(
+    'dir_1/file_1-plus',
+    () async {
+      const a = 2;
+      const b = 7;
+      const expected = 9;
+
+      final result = a.plus(b);
+
+      expect(result, expected);
+    },
+  );
+}
