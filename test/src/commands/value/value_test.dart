@@ -6,7 +6,7 @@ import 'package:coverde/src/entities/tracefile.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
-import '../../utils/mocks.dart';
+import '../../../utils/mocks.dart';
 
 void main() {
   group(
