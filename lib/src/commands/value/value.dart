@@ -8,7 +8,7 @@ import 'package:coverde/src/entities/tracefile.dart';
 /// {@endtemplate filter_cmd}
 class ValueCommand extends Command<void> {
   /// {@template filter_cmd}
-  ValueCommand() {
+  ValueCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
         _fileOption,
@@ -26,6 +26,8 @@ Print coverage value for each source file listed in the $_fileHelpValue info fil
         defaultsTo: true,
       );
   }
+
+  final Stdout _out;
 
   static const _fileHelpValue = 'LCOV_FILE';
 
@@ -72,7 +74,7 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     if (shouldPrintFiles) {
       // For each file coverage data.
       for (final fileCovData in tracefileData.sourceFilesCovData) {
-        stdout
+        _out
           ..writeln(fileCovData.source)
           ..writeln(fileCovData.coverageDataString)
           ..writeln();
@@ -80,7 +82,7 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     }
 
     // Show resulting coverage.
-    stdout
+    _out
       ..writeln('GLOBAL:')
       ..writeln(tracefileData.coverageDataString);
   }
