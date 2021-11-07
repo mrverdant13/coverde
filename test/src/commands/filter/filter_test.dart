@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../../utils/mocks.dart';
@@ -27,6 +28,12 @@ GIVEN a tracefile filterer command''',
         },
       );
 
+      tearDown(
+        () {
+          verifyNoMoreInteractions(out);
+        },
+      );
+
       test(
         '''
 
@@ -39,16 +46,26 @@ THEN a filtered tracefile should be created
         () async {
           // ARRANGE
           const patterns = <String>['.g.dart'];
+          final patternsRegex = patterns.map((p) => RegExp(p));
           const originalFilePath = 'test/fixtures/filter/original.lcov.info';
           const filteredFilePath = 'test/fixtures/filter/filtered.lcov.info';
           final originalFile = File(originalFilePath);
           final filteredFile = File(filteredFilePath)
             ..deleteSync(recursive: true);
+          final originalTracefile = Tracefile.parse(
+            originalFile.readAsStringSync(),
+          );
+          final originalFileIncludeFileThatMatchPatterns =
+              originalTracefile.includeFileThatMatchPatterns(patterns);
+          final filesDataToBeRemoved =
+              originalTracefile.sourceFilesCovData.where(
+            (d) => patternsRegex.any(
+              (r) => r.hasMatch(d.source.path),
+            ),
+          );
+
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isFalse);
-          final originalFileIncludeFileThatMatchPatterns = Tracefile.parse(
-            originalFile.readAsStringSync(),
-          ).includeFileThatMatchPatterns(patterns);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           // ACT
@@ -69,6 +86,12 @@ THEN a filtered tracefile should be created
             filteredFile.readAsStringSync(),
           ).includeFileThatMatchPatterns(patterns);
           expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+          for (final fileData in filesDataToBeRemoved) {
+            final path = fileData.source.path;
+            verify(
+              () => out.writeln('<$path> coverage data ignored.'),
+            ).called(1);
+          }
         },
       );
 
