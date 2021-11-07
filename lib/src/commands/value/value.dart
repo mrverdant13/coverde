@@ -83,11 +83,9 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     if (shouldPrintFiles) {
       // For each file coverage data.
       for (final fileCovData in tracefileData.sourceFilesCovData) {
-        _out
-          ..writeln(fileCovData.source)
-          ..writeln(fileCovData.coverageDataString)
-          ..writeln();
+        _out.writeln(fileCovData.coverageDataString);
       }
+      _out.writeln();
     }
 
     // Show resulting coverage.
