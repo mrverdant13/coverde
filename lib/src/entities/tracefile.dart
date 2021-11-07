@@ -46,6 +46,12 @@ class Tracefile extends CovComputable {
   /// Create a coverage tree.
   late final CovDir asTree = CovDir.tree(covFiles: sourceFilesCovData);
 
+  /// Check if any name of the files included by this tracefile match any of the
+  /// provided [patterns].
+  bool includeFileThatMatchPatterns(List<String> patterns) => patterns
+      .map((p) => RegExp(p))
+      .any((p) => _sourceFilesCovData.any((f) => p.hasMatch(f.source.path)));
+
   /// The coverage data related to the referenced source files.
   UnmodifiableListView<CovFile> get sourceFilesCovData =>
       UnmodifiableListView<CovFile>(_sourceFilesCovData);
