@@ -11,7 +11,7 @@ import 'package:path/path.dart' as path;
 /// {@endtemplate}
 class ReportCommand extends Command<void> {
   /// {@macro report_cmd}
-  ReportCommand() {
+  ReportCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
         _inputTracefileOption,
@@ -52,6 +52,8 @@ High threshold.''',
         defaultsTo: '90',
       );
   }
+
+  final Stdout _out;
 
   static const _inputTracefileHelpValue = 'TRACEFILE';
   static const _outputReportDirHelpValue = 'REPORT_DIR';
@@ -157,6 +159,6 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
       ..createSync(recursive: true)
       ..writeAsBytesSync(sortNumericPngBytes);
 
-    stdout.writeln(covTree);
+    _out.writeln(covTree);
   }
 }
