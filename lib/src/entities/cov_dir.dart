@@ -81,8 +81,8 @@ class CovDir extends CovElement {
 
     final commonSegments =
         baseDirPath == null ? <String>[] : p.split(baseDirPath);
-    late final Iterable<String> nextSegments;
 
+    final Iterable<String> nextSegments;
     {
       var segmentIdx = commonSegments.length;
 
