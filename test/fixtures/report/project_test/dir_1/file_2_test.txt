@@ -1,0 +1,17 @@
+import 'package:coverde/project/dir_1/file_2.dart';
+import 'package:test/test.dart';
+
+void main() {
+  test(
+    'dir_1/file_2',
+    () async {
+      const base = 3;
+      const exponent = 3;
+      const expectedResult = 27;
+
+      final result = pow(base, exponent);
+
+      expect(result, expectedResult);
+    },
+  );
+}

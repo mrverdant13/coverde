@@ -1,0 +1,13 @@
+import 'package:coverde/project/dir_2/dir_1/file_1.dart';
+import 'package:test/test.dart';
+
+void main() {
+  test(
+    'dir_1/file_1-plus',
+    () async {
+      const strList = <String>['a', 'b', 'c', 'd'];
+
+      strList.printEachWithQuotes();
+    },
+  );
+}

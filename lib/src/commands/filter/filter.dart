@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template filter_cmd}
@@ -10,11 +11,11 @@ import 'package:path/path.dart' as path;
 /// {@endtemplate filter_cmd}
 class FilterCommand extends Command<void> {
   /// {@template filter_cmd}
-  FilterCommand() {
+  FilterCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addMultiOption(
-        _ignorePatternsOption,
-        abbr: _ignorePatternsOption[0],
+        ignorePatternsOption,
+        abbr: ignorePatternsOption[0],
         help: '''
 Set of comma-separated path patterns of the files to be ignored.
 Consider that the coverage info of each file is checked as a multiline block.
@@ -23,36 +24,48 @@ Each bloc starts with `${CovFile.sourceFileTag}` and ends with `${CovFile.endOfR
         valueHelp: _ignorePatternsHelpValue,
       )
       ..addOption(
-        _originOption,
-        abbr: _originOption[0],
+        originOption,
+        abbr: originOption[0],
         help: 'Origin coverage info file to pick coverage data from.',
         defaultsTo: 'coverage/lcov.info',
         valueHelp: _originHelpValue,
       )
       ..addOption(
-        _destinationOption,
-        abbr: _destinationOption[0],
+        destinationOption,
+        abbr: destinationOption[0],
         help: '''
 Destination coverage info file to dump the resulting coverage data into.''',
-        defaultsTo: 'coverage/wiped.lcov.info',
+        defaultsTo: 'coverage/filtered.lcov.info',
         valueHelp: _destinationHelpValue,
       );
   }
+
+  final Stdout _out;
 
   static const _ignorePatternsHelpValue = 'PATTERNS';
   static const _originHelpValue = 'ORIGIN_LCOV_FILE';
   static const _destinationHelpValue = 'DESTINATION_LCOV_FILE';
 
-  static const _ignorePatternsOption = 'ignore-patterns';
-  static const _originOption = 'origin';
-  static const _destinationOption = 'destination';
+  /// Option name for identifier patters to be used for tracefile filtering.
+  @visibleForTesting
+  static const ignorePatternsOption = 'ignore-patterns';
 
+  /// Option name for the origin tracefile to be filtered.
+  @visibleForTesting
+  static const originOption = 'origin';
+
+  /// Option name for the resulting filtered tracefile.
+  @visibleForTesting
+  static const destinationOption = 'destination';
+
+// coverage:ignore-start
   @override
   String get description => '''
 Filter a coverage info file.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_ignorePatternsHelpValue.
 The coverage data is taken from the $_originHelpValue file and the result is appended to the $_destinationHelpValue file.''';
+// coverage:ignore-end
 
   @override
   String get name => 'filter';
@@ -66,13 +79,13 @@ The coverage data is taken from the $_originHelpValue file and the result is app
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final originPath = ArgumentError.checkNotNull(
-      _argResults[_originOption],
+      _argResults[originOption],
     ) as String;
     final destinationPath = ArgumentError.checkNotNull(
-      _argResults[_destinationOption],
+      _argResults[destinationOption],
     ) as String;
     final ignorePatterns = ArgumentError.checkNotNull(
-      _argResults[_ignorePatternsOption],
+      _argResults[ignorePatternsOption],
     ) as List<String>;
 
     final origin = File(originPath);
@@ -102,7 +115,7 @@ The coverage data is taken from the $_originHelpValue file and the result is app
 
       // Conditionaly include file coverage data.
       if (shouldBeIgnored) {
-        stdout.writeln('<${fileCovData.source.path}> coverage data ignored.');
+        _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
         acceptedSrcFilesCovData.add(fileCovData);
       }

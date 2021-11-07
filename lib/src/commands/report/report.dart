@@ -4,6 +4,7 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 /// {@template report_cmd}
@@ -11,19 +12,19 @@ import 'package:path/path.dart' as path;
 /// {@endtemplate}
 class ReportCommand extends Command<void> {
   /// {@macro report_cmd}
-  ReportCommand() {
+  ReportCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
-        _inputTracefileOption,
-        abbr: _inputTracefileOption[0],
+        inputTracefileOption,
+        abbr: inputTracefileOption[0],
         help: '''
 Coverage tracefile to be used for the coverage report generation.''',
         valueHelp: _inputTracefileHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
       ..addOption(
-        _outputReportDirOption,
-        abbr: _outputReportDirOption[0],
+        outputReportDirOption,
+        abbr: outputReportDirOption[0],
         help: '''
 Destination directory where the generated coverage report will be stored.''',
         valueHelp: _outputReportDirHelpValue,
@@ -38,14 +39,14 @@ Medium: $_mediumHelpValue <= coverge < $_highHelpValue
 Low: 0 <= coverage < $_mediumHelpValue
 ''')
       ..addOption(
-        _mediumOption,
+        mediumOption,
         help: '''
 Medium threshold.''',
         valueHelp: _mediumHelpValue,
         defaultsTo: '75',
       )
       ..addOption(
-        _highOption,
+        highOption,
         help: '''
 High threshold.''',
         valueHelp: _highHelpValue,
@@ -53,21 +54,36 @@ High threshold.''',
       );
   }
 
+  final Stdout _out;
+
   static const _inputTracefileHelpValue = 'TRACEFILE';
   static const _outputReportDirHelpValue = 'REPORT_DIR';
   static const _mediumHelpValue = 'MEDIUM_VAL';
   static const _highHelpValue = 'HIGH_VAL';
 
-  static const _inputTracefileOption = 'input-tracefile';
-  static const _outputReportDirOption = 'output-report-dir';
-  static const _mediumOption = 'medium';
-  static const _highOption = 'high';
+  /// Option name for the origin tracefile.
+  @visibleForTesting
+  static const inputTracefileOption = 'input-tracefile';
 
+  /// Option name for the destionation container folder to dump the report to.
+  @visibleForTesting
+  static const outputReportDirOption = 'output-report-dir';
+
+  /// Option name to set the medium threshold for coverage validation.
+  @visibleForTesting
+  static const mediumOption = 'medium';
+
+  /// Option name to set the high threshold for coverage validation.
+  @visibleForTesting
+  static const highOption = 'high';
+
+// coverage:ignore-start
   @override
   String get description => '''
 Generate the coverage report from a tracefile.
 
 Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTracefileHelpValue tracefile.''';
+// coverage:ignore-end
 
   @override
   String get name => 'report';
@@ -81,22 +97,22 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final _tracefilePath = ArgumentError.checkNotNull(
-      _argResults[_inputTracefileOption],
+      _argResults[inputTracefileOption],
     ) as String;
     final _reportDirPath = ArgumentError.checkNotNull(
-      _argResults[_outputReportDirOption],
+      _argResults[outputReportDirOption],
     ) as String;
     final medium = ArgumentError.checkNotNull(
       double.tryParse(
         ArgumentError.checkNotNull(
-          _argResults[_mediumOption],
+          _argResults[mediumOption],
         ) as String,
       ),
     );
     final high = ArgumentError.checkNotNull(
       double.tryParse(
         ArgumentError.checkNotNull(
-          _argResults[_highOption],
+          _argResults[highOption],
         ) as String,
       ),
     );
@@ -157,6 +173,6 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
       ..createSync(recursive: true)
       ..writeAsBytesSync(sortNumericPngBytes);
 
-    stdout.writeln(covTree);
+    _out.writeln(covTree);
   }
 }
