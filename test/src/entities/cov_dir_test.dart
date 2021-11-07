@@ -202,21 +202,6 @@ THEN an empty coverage folder should be returned
             expect(result, expectedSubtree);
           },
         );
-
-        test(
-          '''
-
-WHEN they are dispatched to be arranged according to their source paths
-THEN a tree sctructure of coverage data elements is returned
-''',
-          () {
-            // ACT
-            final result = CovDir.tree(covFiles: covFiles);
-
-            // ASSERT
-            expect(result, tree);
-          },
-        );
       },
     );
 
