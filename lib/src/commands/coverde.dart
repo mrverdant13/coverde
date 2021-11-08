@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
@@ -11,6 +12,7 @@ Future<void> coverde(List<String> args) async {
     'coverde',
     'A set of commands that encapsulate coverage-related functionalities.',
   ) //
+    ..addCommand(CheckCommand())
     ..addCommand(FilterCommand())
     ..addCommand(ReportCommand())
     ..addCommand(RmCommand())
