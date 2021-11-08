@@ -29,12 +29,6 @@ GIVEN a tracefile report generator command''',
         },
       );
 
-      tearDown(
-        () {
-          // verifyNoMoreInteractions(out);
-        },
-      );
-
       test(
         '''
 
@@ -56,6 +50,7 @@ THEN an HTML coverage report should be generated
             'dir_1/file_2.dart.html',
             'dir_1/index.html',
             'dir_2/dir_1/file_1.dart.html',
+            'dir_2/dir_1/file_2.dart.html',
             'dir_2/dir_1/index.html',
             'index.html',
             'report_style.css',
