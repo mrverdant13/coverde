@@ -59,7 +59,6 @@ class CovDir extends CovElement {
 
     // If no covered files within this folder, return the covered directory.
     if (covFiles.isEmpty) {
-      stdout.writeln('No covered files in the <$baseDirPath> folder.');
       return CovDir(
         source: Directory(baseDirPath ?? ''),
         elements: const [],

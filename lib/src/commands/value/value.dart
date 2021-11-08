@@ -63,7 +63,7 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     final filePath = ArgumentError.checkNotNull(
       _argResults[fileOption],
     ) as String;
-    final shouldPrintFiles = ArgumentError.checkNotNull(
+    final shouldLogFiles = ArgumentError.checkNotNull(
       _argResults[printFilesFlag],
     ) as bool;
 
@@ -80,17 +80,30 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     // the info by file.
     final tracefileData = Tracefile.parse(fileContent);
 
-    if (shouldPrintFiles) {
+    logCoverage(
+      out: _out,
+      tracefile: tracefileData,
+      shouldLogFiles: shouldLogFiles,
+    );
+  }
+
+  /// Log coverage values.
+  static void logCoverage({
+    required Stdout out,
+    required Tracefile tracefile,
+    required bool shouldLogFiles,
+  }) {
+    if (shouldLogFiles) {
       // For each file coverage data.
-      for (final fileCovData in tracefileData.sourceFilesCovData) {
-        _out.writeln(fileCovData.coverageDataString);
+      for (final fileCovData in tracefile.sourceFilesCovData) {
+        out.writeln(fileCovData.coverageDataString);
       }
-      _out.writeln();
+      out.writeln();
     }
 
     // Show resulting coverage.
-    _out
+    out
       ..writeln('GLOBAL:')
-      ..writeln(tracefileData.coverageDataString);
+      ..writeln(tracefile.coverageDataString);
   }
 }

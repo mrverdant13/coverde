@@ -180,7 +180,6 @@ THEN a tree sctructure of coverage data elements is returned
 
 AND a base folder path
 ├─ THAT does not contains any of the coverage file data
-│   other/dir/
 WHEN they are dispatched to be arranged according to their source paths
 THEN an empty coverage folder should be returned
 ''',
