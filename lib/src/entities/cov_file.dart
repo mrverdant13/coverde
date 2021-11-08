@@ -41,7 +41,8 @@ class CovFile extends CovElement {
             '<$key> not found in the tracefile block.',
           ),
         )
-        .replaceAll(key, '');
+        .replaceAll(key, '')
+        .trim();
 
     final sourceFile = valueByTag(sourceFileTag);
     final covLines = dataLines
