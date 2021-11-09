@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
 import 'package:html/dom.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// # Computable Coverage Entity
@@ -59,6 +60,8 @@ abstract class CovElement extends CovComputable {
     String.fromCharCodes(folderReportRowTemplateHtmlBytes),
   );
 
+  /// Obtain the HTML class suffix for coverage element.
+  @protected
   String getClassSuffix({
     required double medium,
     required double high,
