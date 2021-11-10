@@ -1,0 +1,26 @@
+name: Dart CI
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  base:
+    name: Format, analyze and test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub global activate melos
+      - run: dart pub global activate coverage
+      - run: dart pub global activate --source path .
+      - run: melos bs
+      - run: melos run WF:ci
