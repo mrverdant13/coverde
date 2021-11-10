@@ -37,6 +37,15 @@ Each bloc starts with `${CovFile.sourceFileTag}` and ends with `${CovFile.endOfR
 Destination coverage info file to dump the resulting coverage data into.''',
         defaultsTo: 'coverage/filtered.lcov.info',
         valueHelp: _destinationHelpValue,
+      )
+      ..addOption(
+        outModeOption,
+        abbr: outModeOption[0],
+        help: 'The mode in which the $_destinationHelpValue can be generated.',
+        valueHelp: _outModeHelpValue,
+        allowed: _outModeAllowedHelp.keys,
+        allowedHelp: _outModeAllowedHelp,
+        defaultsTo: _outModeAllowedHelp.keys.first,
       );
   }
 
@@ -45,6 +54,13 @@ Destination coverage info file to dump the resulting coverage data into.''',
   static const _ignorePatternsHelpValue = 'PATTERNS';
   static const _originHelpValue = 'ORIGIN_LCOV_FILE';
   static const _destinationHelpValue = 'DESTINATION_LCOV_FILE';
+  static const _outModeHelpValue = 'OUT_MODE';
+  static const _outModeAllowedHelp = {
+    'a': '''
+Append filtered content to the $_destinationHelpValue content, if any.''',
+    'w': '''
+Override the $_destinationHelpValue content, if any, with the filtered content.''',
+  };
 
   /// Option name for identifier patters to be used for tracefile filtering.
   @visibleForTesting
@@ -57,6 +73,10 @@ Destination coverage info file to dump the resulting coverage data into.''',
   /// Option name for the resulting filtered tracefile.
   @visibleForTesting
   static const destinationOption = 'destination';
+
+  /// Option name for the resulting filtered tracefile.
+  @visibleForTesting
+  static const outModeOption = 'mode';
 
 // coverage:ignore-start
   @override
@@ -87,6 +107,10 @@ The coverage data is taken from the $_originHelpValue file and the result is app
     final ignorePatterns = ArgumentError.checkNotNull(
       _argResults[ignorePatternsOption],
     ) as List<String>;
+    final shouldOverride = (ArgumentError.checkNotNull(
+          _argResults[outModeOption],
+        ) as String) ==
+        'w';
 
     final origin = File(originPath);
     final destination = File(destinationPath);
@@ -135,7 +159,7 @@ The coverage data is taken from the $_originHelpValue file and the result is app
       ..createSync(recursive: true)
       ..writeAsStringSync(
         '$finalContent\n',
-        mode: FileMode.append,
+        mode: shouldOverride ? FileMode.write : FileMode.append,
         flush: true,
       );
   }
