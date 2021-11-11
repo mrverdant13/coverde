@@ -44,7 +44,12 @@ class CovFile extends CovElement {
         .replaceAll(key, '')
         .trim();
 
-    final sourceFile = valueByTag(sourceFileTag);
+    final sourceFile = path.canonicalize(
+      [
+        '.',
+        ...valueByTag(sourceFileTag).split(RegExp(r'(\\|\/)')),
+      ].reduce(path.join),
+    );
     final covLines = dataLines
         .where((l) => l.startsWith(lineDataTag))
         .map((covLineData) => CovLine.parse(covLineData));
