@@ -66,7 +66,7 @@ scripts:
 
   WF:
     description: Run full local workflow
-    run: melos run D && melos run F && melos run A && melos run T && melos run M
+    run: melos run D && melos run F && melos run A && melos run T && melos run M && coverde check 98
   WF:ci:
     description: Run full CI workflow
-    run: melos run D:ci && melos run F:ci && melos run A:ci && melos run T:ci && melos run M
+    run: melos run D:ci && melos run F:ci && melos run A:ci && melos run T:ci && melos run M && coverde check 98
