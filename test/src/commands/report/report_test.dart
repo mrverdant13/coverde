@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
