@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -117,11 +118,12 @@ THEN an HTML coverage report should be generated
                   reason: 'Error: Non-matching (html) file <$relFilePath>',
                 );
               } else if (relFilePath.endsWith('css')) {
+                const splitter = LineSplitter();
                 final resultCss = css.parse(result);
                 final expectedCss = css.parse(expected);
                 expect(
-                  resultCss.toDebugString(),
-                  expectedCss.toDebugString(),
+                  splitter.convert(resultCss.toDebugString()).join('\n'),
+                  splitter.convert(expectedCss.toDebugString()).join('\n'),
                   reason: 'Error: Non-matching (css) file <$relFilePath>',
                 );
               } else {
