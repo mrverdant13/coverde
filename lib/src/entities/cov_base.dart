@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 /// # Computable Coverage Entity
 ///
@@ -84,7 +84,7 @@ abstract class CovElement extends CovComputable {
     final row = _folderReportRowTemplate.clone(true);
     final suffix = getClassSuffix(medium: medium, high: high);
     final link = source is Directory
-        ? p.join(relativePath, 'index.html')
+        ? path.join(relativePath, 'index.html')
         : '$relativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link

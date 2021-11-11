@@ -1,10 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report.dart';
+import 'package:coverde/src/utils/path.dart';
+import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
@@ -113,13 +115,23 @@ THEN an HTML coverage report should be generated
                 expect(
                   resultHtml.outerHtml,
                   expectedHtml.outerHtml,
-                  reason: 'Non-matching (html) file <$relFilePath>',
+                  reason: 'Error: Non-matching (html) file <$relFilePath>',
+                );
+              } else if (relFilePath.endsWith('css')) {
+                const splitter = LineSplitter();
+                final resultCss = css.parse(result);
+                final expectedCss = css.parse(expected);
+                expect(
+                  splitter.convert(resultCss.toDebugString()).join('\n'),
+                  splitter.convert(expectedCss.toDebugString()).join('\n'),
+                  reason: 'Error: Non-matching (css) file <$relFilePath>',
                 );
               } else {
                 expect(
                   result,
                   expected,
-                  reason: 'Non-matching (plain text) file <$relFilePath>',
+                  reason:
+                      'Error: Non-matching (plain text) file <$relFilePath>',
                 );
               }
             }

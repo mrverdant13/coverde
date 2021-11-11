@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_line.dart';
-import 'package:path/path.dart' as p;
+import 'package:coverde/src/utils/path.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -19,12 +19,12 @@ THEN a positive result should be returned
       const sourcePath = 'path/to/source/folder/';
       final nestedCovElements = [
         CovDir(
-          source: Directory(p.join(sourcePath, 'dir')),
+          source: Directory(path.join(sourcePath, 'dir')),
           elements: const [],
         ),
         CovFile(
           source: File(
-            p.join(sourcePath, 'file.extension'),
+            path.join(sourcePath, 'file.extension'),
           ),
           raw: '',
           covLines: const [],

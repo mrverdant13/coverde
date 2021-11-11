@@ -50,8 +50,10 @@ THEN a filtered tracefile should be created
           const originalFilePath = 'test/fixtures/filter/original.lcov.info';
           const filteredFilePath = 'test/fixtures/filter/filtered.lcov.info';
           final originalFile = File(originalFilePath);
-          final filteredFile = File(filteredFilePath)
-            ..deleteSync(recursive: true);
+          final filteredFile = File(filteredFilePath);
+          if (filteredFile.existsSync()) {
+            filteredFile.deleteSync(recursive: true);
+          }
           final originalTracefile = Tracefile.parse(
             originalFile.readAsStringSync(),
           );
