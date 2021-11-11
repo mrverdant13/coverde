@@ -7,9 +7,9 @@ import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 /// {@template cov_dir}
 /// # Covered Directory
@@ -51,7 +51,7 @@ class CovDir extends CovElement {
     final covFiles = baseDirPath == null
         ? coveredFiles
         : coveredFiles.where(
-            (covFile) => p.isWithin(
+            (covFile) => path.isWithin(
               baseDirPath,
               covFile.source.path,
             ),
@@ -70,7 +70,7 @@ class CovDir extends CovElement {
         covFiles.map((covFile) => covFile.source.parent.path).toSet();
 
     // Get folders segments.
-    final dirsSegments = dirPaths.map(p.split).toList();
+    final dirsSegments = dirPaths.map(path.split).toList();
 
     // Pick path with fewest number of segments.
     final fewestSegments = minBy<Iterable<String>, int>(
@@ -79,7 +79,7 @@ class CovDir extends CovElement {
     )!;
 
     final commonSegments =
-        baseDirPath == null ? <String>[] : p.split(baseDirPath);
+        baseDirPath == null ? <String>[] : path.split(baseDirPath);
 
     final Iterable<String> nextSegments;
     {
@@ -101,19 +101,19 @@ class CovDir extends CovElement {
     }
 
     // Build actual base path.
-    final actualBasePath = commonSegments.reduce(p.join);
+    final actualBasePath = commonSegments.reduce(path.join);
 
     // Build nested folders data from next segments.
     final allDirs = nextSegments.map(
       (nextSegment) => subtree(
-        baseDirPath: p.join(actualBasePath, nextSegment),
+        baseDirPath: path.join(actualBasePath, nextSegment),
         coveredFiles: covFiles,
       ),
     );
     final validDirs = allDirs.where((dir) => dir.linesFound > 0);
 
     final files = covFiles.where(
-      (covFile) => p.equals(covFile.source.parent.path, actualBasePath),
+      (covFile) => path.equals(covFile.source.parent.path, actualBasePath),
     );
 
     return CovDir(
@@ -148,13 +148,13 @@ class CovDir extends CovElement {
     if (identical(this, other)) return true;
 
     return other is CovDir &&
-        p.equals(other.source.path, source.path) &&
+        path.equals(other.source.path, source.path) &&
         _equality.equals(other._elements, _elements);
   }
 
   @override
   int get hashCode =>
-      p.canonicalize(source.path).hashCode ^ _equality.hash(_elements);
+      path.canonicalize(source.path).hashCode ^ _equality.hash(_elements);
 
   @override
   String toString() {
@@ -211,25 +211,25 @@ class CovDir extends CovElement {
     final folderReport = folderReportTemplate.clone(true);
 
     final topLevelDirRelPath =
-        List.filled(reportRelDepth, '..').fold('', p.join);
-    final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
-    final topLevelCssRelPath = p.join(
+        List.filled(reportRelDepth, '..').fold('', path.join);
+    final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = path.join(
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
 
-    final reportDirAbsPath = p.join(
+    final reportDirAbsPath = path.join(
       parentReportDirAbsPath,
       reportDirRelPath,
     );
-    final reportFileAbsPath = p.join(reportDirAbsPath, 'index.html');
+    final reportFileAbsPath = path.join(reportDirAbsPath, 'index.html');
 
     final title = 'Coverage Report - $tracefileName';
-    final sortAlphaIconPath = p.join(
+    final sortAlphaIconPath = path.join(
       topLevelDirRelPath,
       sortAlphaPngFilename,
     );
-    final sortNumericIconPath = p.join(
+    final sortNumericIconPath = path.join(
       topLevelDirRelPath,
       sortNumericPngFilename,
     );
@@ -261,7 +261,7 @@ class CovDir extends CovElement {
       final table = folderReport.querySelector('.covTableBody');
 
       for (final element in _elements) {
-        final relPath = p.relative(element.source.path, from: source.path);
+        final relPath = path.relative(element.source.path, from: source.path);
         final row = element.getFolderReportRow(
           relativePath: relPath,
           medium: medium,
@@ -272,7 +272,7 @@ class CovDir extends CovElement {
           tracefileName: tracefileName,
           parentReportDirAbsPath: reportDirAbsPath,
           reportDirRelPath: relPath,
-          reportRelDepth: reportRelDepth + p.split(relPath).length,
+          reportRelDepth: reportRelDepth + path.split(relPath).length,
           tracefileModificationDate: tracefileModificationDate,
           medium: medium,
           high: high,

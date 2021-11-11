@@ -6,9 +6,9 @@ import 'package:coverde/src/assets/file_report_template.html.asset.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as p;
 
 /// {@template cov_file}
 /// # Covered File Data
@@ -93,13 +93,13 @@ class CovFile extends CovElement {
     if (identical(this, other)) return true;
 
     return other is CovFile &&
-        p.equals(other.source.path, source.path) &&
+        path.equals(other.source.path, source.path) &&
         _equality.equals(other._covLines, _covLines);
   }
 
   @override
   int get hashCode =>
-      p.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
+      path.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
 
   /// File report HTML element template.
   @visibleForTesting
@@ -126,14 +126,14 @@ class CovFile extends CovElement {
     final fileReport = fileReportTemplate.clone(true);
 
     final topLevelDirRelPath =
-        List.filled(reportRelDepth - 1, '..').reduce(p.join);
-    final topLevelReportRelPath = p.join(topLevelDirRelPath, 'index.html');
-    final topLevelCssRelPath = p.join(
+        List.filled(reportRelDepth - 1, '..').reduce(path.join);
+    final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = path.join(
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
 
-    final reportFileAbsPath = p.join(
+    final reportFileAbsPath = path.join(
       parentReportDirAbsPath,
       '$reportDirRelPath.html',
     );
@@ -141,7 +141,7 @@ class CovFile extends CovElement {
     {
       final title = 'Coverage Report - $tracefileName';
       final currentDirPath = source.parent.path;
-      final fileName = p.basename(source.path);
+      final fileName = path.basename(source.path);
       final suffix = getClassSuffix(medium: medium, high: high);
 
       fileReport.head

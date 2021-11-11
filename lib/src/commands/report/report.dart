@@ -4,8 +4,8 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
 
 /// {@template report_cmd}
 /// A command to generate the coverage report from a given tracefile.
