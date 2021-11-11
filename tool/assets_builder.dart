@@ -1,12 +1,12 @@
 import 'package:build/build.dart';
-import 'package:path/path.dart' as p;
+import 'package:coverde/src/utils/path.dart';
 
 class AssetsBuilder implements Builder {
   static const _inputDirSegments = ['assets'];
-  static final _inputDir = _inputDirSegments.reduce(p.join);
+  static final _inputDir = _inputDirSegments.reduce(path.join);
 
   static const _outputDirSegments = ['lib', 'src', 'assets'];
-  static final _outputDir = _outputDirSegments.reduce(p.join);
+  static final _outputDir = _outputDirSegments.reduce(path.join);
 
   static const _outputExtension = '.asset.dart';
 
@@ -21,7 +21,7 @@ class AssetsBuilder implements Builder {
   @override
   Future<void> build(BuildStep buildStep) async {
     final origin = buildStep.inputId;
-    final assetFilename = p.basename(origin.path);
+    final assetFilename = path.basename(origin.path);
     final assetContent = await buildStep.readAsBytes(origin);
 
     final sb = StringBuffer()
@@ -41,9 +41,9 @@ class AssetsBuilder implements Builder {
 
     final destination = AssetId(
       origin.package,
-      p.join(
+      path.join(
         _outputDir,
-        p.relative(origin.path, from: _inputDir),
+        path.relative(origin.path, from: _inputDir),
       ),
     ).addExtension(_outputExtension);
 
