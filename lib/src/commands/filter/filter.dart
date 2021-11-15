@@ -13,36 +13,34 @@ class FilterCommand extends Command<void> {
   /// {@template filter_cmd}
   FilterCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
-      ..addMultiOption(
-        ignorePatternsOption,
-        abbr: ignorePatternsOption[0],
-        help: '''
-Set of comma-separated path patterns of the files to be ignored.
-Consider that the coverage info of each file is checked as a multiline block.
-Each bloc starts with `${CovFile.sourceFileTag}` and ends with `${CovFile.endOfRecordTag}`.''',
-        defaultsTo: [],
-        valueHelp: _ignorePatternsHelpValue,
-      )
       ..addOption(
-        originOption,
-        abbr: originOption[0],
+        inputOption,
+        abbr: inputOption[0],
         help: 'Origin coverage info file to pick coverage data from.',
         defaultsTo: 'coverage/lcov.info',
-        valueHelp: _originHelpValue,
+        valueHelp: _inputHelpValue,
       )
       ..addOption(
-        destinationOption,
-        abbr: destinationOption[0],
+        outputOption,
+        abbr: outputOption[0],
         help: '''
 Destination coverage info file to dump the resulting coverage data into.''',
         defaultsTo: 'coverage/filtered.lcov.info',
-        valueHelp: _destinationHelpValue,
+        valueHelp: _outpitHelpValue,
+      )
+      ..addMultiOption(
+        filtersOption,
+        abbr: filtersOption[0],
+        help: '''
+Set of comma-separated path patterns of the files to be ignored.''',
+        defaultsTo: [],
+        valueHelp: _filtersHelpValue,
       )
       ..addOption(
-        outModeOption,
-        abbr: outModeOption[0],
-        help: 'The mode in which the $_destinationHelpValue can be generated.',
-        valueHelp: _outModeHelpValue,
+        modeOption,
+        abbr: modeOption[0],
+        help: 'The mode in which the $_outpitHelpValue can be generated.',
+        valueHelp: _modeHelpValue,
         allowed: _outModeAllowedHelp.keys,
         allowedHelp: _outModeAllowedHelp,
         defaultsTo: _outModeAllowedHelp.keys.first,
@@ -51,40 +49,40 @@ Destination coverage info file to dump the resulting coverage data into.''',
 
   final Stdout _out;
 
-  static const _ignorePatternsHelpValue = 'PATTERNS';
-  static const _originHelpValue = 'ORIGIN_LCOV_FILE';
-  static const _destinationHelpValue = 'DESTINATION_LCOV_FILE';
-  static const _outModeHelpValue = 'OUT_MODE';
+  static const _inputHelpValue = 'INPUT_LCOV_FILE';
+  static const _outpitHelpValue = 'OUTPUT_LCOV_FILE';
+  static const _filtersHelpValue = 'FILTERS';
+  static const _modeHelpValue = 'MODE';
   static const _outModeAllowedHelp = {
     'a': '''
-Append filtered content to the $_destinationHelpValue content, if any.''',
+Append filtered content to the $_outpitHelpValue content, if any.''',
     'w': '''
-Override the $_destinationHelpValue content, if any, with the filtered content.''',
+Override the $_outpitHelpValue content, if any, with the filtered content.''',
   };
 
   /// Option name for identifier patters to be used for tracefile filtering.
   @visibleForTesting
-  static const ignorePatternsOption = 'ignore-patterns';
+  static const filtersOption = 'filters';
 
   /// Option name for the origin tracefile to be filtered.
   @visibleForTesting
-  static const originOption = 'origin';
+  static const inputOption = 'input';
 
   /// Option name for the resulting filtered tracefile.
   @visibleForTesting
-  static const destinationOption = 'destination';
+  static const outputOption = 'output';
 
   /// Option name for the resulting filtered tracefile.
   @visibleForTesting
-  static const outModeOption = 'mode';
+  static const modeOption = 'mode';
 
 // coverage:ignore-start
   @override
   String get description => '''
-Filter a coverage info file.
+Filter a coverage trace file.
 
-Filter the coverage info by ignoring data related to files with paths that matches the given $_ignorePatternsHelpValue.
-The coverage data is taken from the $_originHelpValue file and the result is appended to the $_destinationHelpValue file.''';
+Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
+The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outpitHelpValue file.''';
 // coverage:ignore-end
 
   @override
@@ -99,16 +97,16 @@ The coverage data is taken from the $_originHelpValue file and the result is app
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final originPath = ArgumentError.checkNotNull(
-      _argResults[originOption],
+      _argResults[inputOption],
     ) as String;
     final destinationPath = ArgumentError.checkNotNull(
-      _argResults[destinationOption],
+      _argResults[outputOption],
     ) as String;
     final ignorePatterns = ArgumentError.checkNotNull(
-      _argResults[ignorePatternsOption],
+      _argResults[filtersOption],
     ) as List<String>;
     final shouldOverride = (ArgumentError.checkNotNull(
-          _argResults[outModeOption],
+          _argResults[modeOption],
         ) as String) ==
         'w';
 

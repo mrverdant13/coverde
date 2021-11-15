@@ -62,7 +62,7 @@ scripts:
     description: Merge all packages coverage tracefiles ignoring data related to generated files.
     run: >
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- coverde filter --origin ./coverage/lcov.info --destination MELOS_ROOT_PATH/coverage/filtered.lcov.info --ignore-patterns \.asset\.dart
+      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart
 
   WF:
     description: Run full local workflow

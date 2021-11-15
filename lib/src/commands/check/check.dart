@@ -15,11 +15,11 @@ class CheckCommand extends Command<void> {
   CheckCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
-        fileOption,
-        abbr: fileOption[0],
+        inputOption,
+        abbr: inputOption[0],
         help: '''
-Coverage tracefile to be used for the coverage check.''',
-        valueHelp: _fileHelpValue,
+Trace file used for the coverage check.''',
+        valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
       ..addFlag(
@@ -32,11 +32,11 @@ Coverage tracefile to be used for the coverage check.''',
 
   final Stdout _out;
 
-  static const _fileHelpValue = 'LCOV_FILE';
+  static const _inputHelpValue = 'LCOV_FILE';
 
   /// Option name for the tracefile whose coverage value should be checked.
   @visibleForTesting
-  static const fileOption = 'file';
+  static const inputOption = 'input';
 
   /// Flag name to indicate if the coverage value for individual files should be
   /// logged.
@@ -46,9 +46,9 @@ Coverage tracefile to be used for the coverage check.''',
 // coverage:ignore-start
   @override
   String get description => '''
-Check the coverage value (%) of a tracefile.
+Check the coverage value (%) computed from a trace file.
 
-The first argument should be an integer between 0 and 100.
+The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.''';
 // coverage:ignore-end
 
@@ -64,7 +64,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final filePath = ArgumentError.checkNotNull(
-      _argResults[fileOption],
+      _argResults[inputOption],
     ) as String;
     final isVerbose = ArgumentError.checkNotNull(
       _argResults[verboseFlag],

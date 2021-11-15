@@ -15,19 +15,19 @@ class ReportCommand extends Command<void> {
   ReportCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
-        inputTracefileOption,
-        abbr: inputTracefileOption[0],
+        inputOption,
+        abbr: inputOption[0],
         help: '''
 Coverage tracefile to be used for the coverage report generation.''',
-        valueHelp: _inputTracefileHelpValue,
+        valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
       ..addOption(
-        outputReportDirOption,
-        abbr: outputReportDirOption[0],
+        outputOption,
+        abbr: outputOption[0],
         help: '''
 Destination directory where the generated coverage report will be stored.''',
-        valueHelp: _outputReportDirHelpValue,
+        valueHelp: _outputHelpValue,
         defaultsTo: 'coverage/html/',
       )
       ..addSeparator('''
@@ -56,18 +56,18 @@ High threshold.''',
 
   final Stdout _out;
 
-  static const _inputTracefileHelpValue = 'TRACEFILE';
-  static const _outputReportDirHelpValue = 'REPORT_DIR';
+  static const _inputHelpValue = 'TRACEFILE';
+  static const _outputHelpValue = 'REPORT_DIR';
   static const _mediumHelpValue = 'MEDIUM_VAL';
   static const _highHelpValue = 'HIGH_VAL';
 
   /// Option name for the origin tracefile.
   @visibleForTesting
-  static const inputTracefileOption = 'input-tracefile';
+  static const inputOption = 'input';
 
   /// Option name for the destionation container folder to dump the report to.
   @visibleForTesting
-  static const outputReportDirOption = 'output-report-dir';
+  static const outputOption = 'output';
 
   /// Option name to set the medium threshold for coverage validation.
   @visibleForTesting
@@ -82,7 +82,7 @@ High threshold.''',
   String get description => '''
 Generate the coverage report from a tracefile.
 
-Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTracefileHelpValue tracefile.''';
+Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue tracefile.''';
 // coverage:ignore-end
 
   @override
@@ -97,10 +97,10 @@ Genrate the coverage report inside $_outputReportDirHelpValue from the $_inputTr
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final _tracefilePath = ArgumentError.checkNotNull(
-      _argResults[inputTracefileOption],
+      _argResults[inputOption],
     ) as String;
     final _reportDirPath = ArgumentError.checkNotNull(
-      _argResults[outputReportDirOption],
+      _argResults[outputOption],
     ) as String;
     final medium = ArgumentError.checkNotNull(
       double.tryParse(

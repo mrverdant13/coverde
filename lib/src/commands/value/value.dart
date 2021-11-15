@@ -12,41 +12,41 @@ class ValueCommand extends Command<void> {
   ValueCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
-        fileOption,
-        abbr: fileOption[0],
+        inputOption,
+        abbr: inputOption[0],
         help: '''
 Coverage info file to be used for the coverage value computation.''',
-        valueHelp: _fileHelpValue,
+        valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
       ..addFlag(
-        printFilesFlag,
-        abbr: printFilesFlag[0],
+        verboseFlag,
+        abbr: verboseFlag[0],
         help: '''
-Print coverage value for each source file listed in the $_fileHelpValue info file.''',
+Print coverage value for each source file listed in the $_inputHelpValue info file.''',
         defaultsTo: true,
       );
   }
 
   final Stdout _out;
 
-  static const _fileHelpValue = 'LCOV_FILE';
+  static const _inputHelpValue = 'LCOV_FILE';
 
   /// Option name for the tracefile whose coverage value should be computed.
   @visibleForTesting
-  static const fileOption = 'file';
+  static const inputOption = 'input';
 
   /// Flag name to indicate if the coverage value for individual files should be
   /// logged.
   @visibleForTesting
-  static const printFilesFlag = 'print-files';
+  static const verboseFlag = 'verbose';
 
 // coverage:ignore-start
   @override
   String get description => '''
 Compute the coverage value (%) of an info file.
 
-Compute the coverage value of the $_fileHelpValue info file.''';
+Compute the coverage value of the $_inputHelpValue info file.''';
 // coverage:ignore-end
 
   @override
@@ -61,10 +61,10 @@ Compute the coverage value of the $_fileHelpValue info file.''';
     final _argResults = ArgumentError.checkNotNull(argResults);
 
     final filePath = ArgumentError.checkNotNull(
-      _argResults[fileOption],
+      _argResults[inputOption],
     ) as String;
     final shouldLogFiles = ArgumentError.checkNotNull(
-      _argResults[printFilesFlag],
+      _argResults[verboseFlag],
     ) as bool;
 
     final file = File(filePath);
