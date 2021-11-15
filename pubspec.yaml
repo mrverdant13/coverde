@@ -1,5 +1,5 @@
 name: coverde
-description: A set of commands for coverage info files manipulation.
+description: A CLI for basic coverage trace files manipulation.
 version: 0.1.0+1
 publish_to: none
 
