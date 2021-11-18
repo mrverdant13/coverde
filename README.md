@@ -174,6 +174,14 @@ To solve this, after enabling Dart or Flutter in your CI workflow, according to 
 - `dart pub global activate coverde`
 - `coverde check <min_coverage>`
 
+# Bugs or Requests
+
+If you encounter any problems or you believe the CLI is missing a feature, feel free to [open an issue on GitHub][open_issue_link].
+
+Pull request are also welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+# Contributors
+
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
@@ -182,6 +190,7 @@ To solve this, after enabling Dart or Flutter in your CI workflow, according to 
 [license_link]: https://opensource.org/licenses/MIT
 [melos_badge]: https://img.shields.io/badge/maintained%20with-melos-f700ff.svg
 [melos_link]: https://github.com/invertase/melos
+[open_issue_link]: https://github.com/mrverdant13/coverde/issues/new
 [pub_badge]: https://img.shields.io/pub/v/coverde.svg
 [pub_link]: https://pub.dev/packages/coverde
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
