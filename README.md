@@ -180,8 +180,6 @@ If you encounter any problems or you believe the CLI is missing a feature, feel 
 
 Pull request are also welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-# Contributors
-
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
