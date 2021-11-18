@@ -97,12 +97,12 @@ $ dart pub global activate coverde
 
 ### Options
 
-|      Option      |                             Description                             |    Default value     |
-| :--------------: | :-----------------------------------------------------------------: | :------------------: |
-| `--input`, `-i`  |   Coverage trace file to be used as source for report generation.   | `coverage/lcov.info` |
-| `--output`, `-o` | Destination folder where the generated report files will be placed. |   `coverage/html/`   |
-|    `--medium`    |                Medium threshold for coverage value.                 |          75          |
-|     `--high`     |                 High threshold for coverage value.                  |          90          |
+|       Option       | Description                                                         |    Default value     |
+| :----------------: | ------------------------------------------------------------------- | :------------------: |
+| `--input`<br>`-i`  | Coverage trace file to be used as source for report generation.     | `coverage/lcov.info` |
+| `--output`<br>`-o` | Destination folder where the generated report files will be placed. |   `coverage/html/`   |
+|     `--medium`     | Medium threshold for coverage value.                                |          75          |
+|      `--high`      | High threshold for coverage value.                                  |          90          |
 
 The report style is dynamically set according to individual, group and global coverage and the `--medium` and `--high` options.
 
@@ -111,6 +111,12 @@ The report style is dynamically set according to individual, group and global co
 - `coverde report`
 - `coverde report -i coverage/tracefile.info --medium 50`
 - `coverde report -o coverage/report --high 95`
+
+### Results
+
+![Report example (directory)](doc/report_directory_example.png)
+
+![Report example (file)](doc/report_file_example.png)
 
 ## `coverde value`
 
