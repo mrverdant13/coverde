@@ -23,4 +23,4 @@ dev_dependencies:
   very_good_analysis: ^2.4.0
 
 executables:
-  coverde: main
+  coverde:
