@@ -33,21 +33,21 @@ $ dart pub global activate coverde
 
 ### Parameters
 
-|      Order       |                               Description                               | Required |
-| :--------------: | :---------------------------------------------------------------------: | :------: |
+|      Order       | Description                                                             | Required |
+| :--------------: | ----------------------------------------------------------------------- | :------: |
 | Unique parameter | An integer between 0 and 100 used as minimum acceptable coverage value. |    ✔     |
 
 ### Options
 
-|     Option      |               Description               |    Default value     |
-| :-------------: | :-------------------------------------: | :------------------: |
-| `--input`, `-i` | Trace file used for the coverage check. | `coverage/lcov.info` |
+|      Option       | Description                             |    Default value     |
+| :---------------: | --------------------------------------- | :------------------: |
+| `--input`<br>`-i` | Trace file used for the coverage check. | `coverage/lcov.info` |
 
 ### Flags
 
-|                           Flag                           |      Description      | Default value |
-| :------------------------------------------------------: | :-------------------: | :-----------: |
-| Enable: `--verbose`, `-v`<br><br>Disable: `--no-verbose` | Print coverage value. |   _Enabled_   |
+| Flag                                                               | Description           | Default value |
+| ------------------------------------------------------------------ | --------------------- | :-----------: |
+| Enable:<br>• `--verbose`<br>• `-v`<br>Disable:<br>• `--no-verbose` | Print coverage value. |   _Enabled_   |
 
 ### Examples
 
@@ -61,12 +61,12 @@ $ dart pub global activate coverde
 
 ### Options
 
-|      Option       |                                                          Description                                                          |         Default value         |
-| :---------------: | :---------------------------------------------------------------------------------------------------------------------------: | :---------------------------: |
-|  `--input`, `-i`  |                                              Coverage trace file to be filtered.                                              |     `coverage/lcov.info`      |
-| `--output`, `-o`  |                             Filtered coverage trace file (automatically created if it is absent).                             | `coverage/filtered.lcov.info` |
-| `--filters`, `-f` |                           Set of comma-separated patterns of the files to be opted out of coverage.                           |                               |
-|  `--mode`, `-m`   | The mode in which the filtered trace file content should be generated.<br><br>`a`: append content.<br>`w`: overwrite content. |     `a` (append content)      |
+|       Option        | Description                                                                                                               |         Default value         |
+| :-----------------: | ------------------------------------------------------------------------------------------------------------------------- | :---------------------------: |
+|  `--input`<br>`-i`  | Coverage trace file to be filtered.                                                                                       |     `coverage/lcov.info`      |
+| `--output`<br>`-o`  | Filtered coverage trace file (automatically created if it is absent).                                                     | `coverage/filtered.lcov.info` |
+| `--filters`<br>`-f` | Set of comma-separated patterns of the files to be opted out of coverage.                                                 |                               |
+|  `--mode`<br>`-m`   | The mode in which the filtered trace file content should be generated.<br>`a`: append content.<br>`w`: overwrite content. |     `a` (append content)      |
 
 ### Examples
 
@@ -81,9 +81,9 @@ $ dart pub global activate coverde
 
 ### Flags
 
-|                               Flag                               |                                                                            Description                                                                             | Default value |
-| :--------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-----------: |
-| Enable: `--accept-absence`<br><br>Disable: `--no-accept-absence` | Set the command behavior according to a file/folder existence. If enabled, the command continues and notifies the element absence. If disabled, the command fails. |   _Enabled_   |
+| Flag                                                                   | Description                                                                                                                                                              | Default value |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----------: |
+| Enable:<br>• `--accept-absence`<br>Disable:<br>• `--no-accept-absence` | Set the command behavior according to a file/folder existence.<br>If enabled, the command continues and notifies the element absence.<br>If disabled, the command fails. |   _Enabled_   |
 
 ### Examples
 
@@ -124,15 +124,15 @@ The report style is dynamically set according to individual, group and global co
 
 ### Options
 
-|     Option      |                          Description                           |    Default value     |
-| :-------------: | :------------------------------------------------------------: | :------------------: |
-| `--input`, `-i` | Coverage trace file to be used for coverage value computation. | `coverage/lcov.info` |
+|      Option       | Description                                                    |    Default value     |
+| :---------------: | -------------------------------------------------------------- | :------------------: |
+| `--input`<br>`-i` | Coverage trace file to be used for coverage value computation. | `coverage/lcov.info` |
 
 ### Flags
 
-|                           Flag                           |                              Description                              | Default value |
-| :------------------------------------------------------: | :-------------------------------------------------------------------: | :-----------: |
-| Enable: `--verbose`, `-v`<br><br>Disable: `--no-verbose` | Print coverage value for each source file included by the trace file. |   _Enabled_   |
+| Flag                                                               | Description                                                           | Default value |
+| ------------------------------------------------------------------ | --------------------------------------------------------------------- | :-----------: |
+| Enable:<br>• `--verbose`<br>• `-v`<br>Disable:<br>• `--no-verbose` | Print coverage value for each source file included by the trace file. |   _Enabled_   |
 
 ### Examples
 
