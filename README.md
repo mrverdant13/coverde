@@ -139,6 +139,28 @@ The report style is dynamically set according to individual, group and global co
 - `coverde value`
 - `coverde value -i coverage/tracefile.info --no-verbose`
 
+---
+
+# Usage with [melos][melos_link]
+
+If your project uses melos to manage its multi-package structure, it could be handy to collect test coverage data in a unified trace file.
+
+This can be achieved by defining a melos script as follows:
+
+```yaml
+M:
+  description: Merge all packages coverage tracefiles ignoring data related to generated files.
+  run: >
+    coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
+    melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart
+```
+
+`M` is the melos script that merges the coverage trace file of all tested packages contained within the project
+
+This melos script ignores generated source files with the `.g.dart` extension but this behavior could be adjusted by setting the `--filters` option.
+
+The resulting trace file is the `filtered.lcov.info` file, located in the `coverage` folder in the root folder of the project.
+
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
