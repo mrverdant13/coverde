@@ -161,6 +161,19 @@ This melos script ignores generated source files with the `.g.dart` extension bu
 
 The resulting trace file is the `filtered.lcov.info` file, located in the `coverage` folder in the root folder of the project.
 
+---
+
+# CI integration for coverage checks
+
+If your project uses GitHub Actions for CI, you might already know [very_good_coverage][very_good_coverage_link], which offers a simple but effective method for coverage validation.
+
+However, adding coverage checks to CI workflows hosted by other alternatives is not always that straightforward.
+
+To solve this, after enabling Dart or Flutter in your CI workflow, according to your project requirements, you can use `coverde` and its `check` tool by adding the following commands to your workflow steps:
+
+- `dart pub global activate coverde`
+- `coverde check <min_coverage>`
+
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
@@ -173,3 +186,4 @@ The resulting trace file is the `filtered.lcov.info` file, located in the `cover
 [pub_link]: https://pub.dev/packages/coverde
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
+[very_good_coverage_link]: https://github.com/VeryGoodOpenSource/very_good_coverage
