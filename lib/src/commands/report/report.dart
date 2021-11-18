@@ -30,14 +30,15 @@ Destination directory where the generated coverage report will be stored.''',
         valueHelp: _outputHelpValue,
         defaultsTo: 'coverage/html/',
       )
-      ..addSeparator('''
+      ..addSeparator(
+        '''
 Threshold values (%):
 These options provide reference coverage values for the HTML report styling.
 
 High: $_highHelpValue <= coverage <= 100
 Medium: $_mediumHelpValue <= coverge < $_highHelpValue
-Low: 0 <= coverage < $_mediumHelpValue
-''')
+Low: 0 <= coverage < $_mediumHelpValue''',
+      )
       ..addOption(
         mediumOption,
         help: '''
