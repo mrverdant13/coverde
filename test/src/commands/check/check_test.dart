@@ -60,7 +60,7 @@ THEN the tracefile coverage should be checked and approved
           // ACT
           await cmdRunner.run([
             checkCmd.name,
-            '--${CheckCommand.fileOption}',
+            '--${CheckCommand.inputOption}',
             tracefileFilePath,
             '--${CheckCommand.verboseFlag}',
             '$minCoverage',
@@ -106,7 +106,7 @@ THEN the tracefile coverage should be checked and disapproved
           // ACT
           Future<void> action() => cmdRunner.run([
                 checkCmd.name,
-                '--${CheckCommand.fileOption}',
+                '--${CheckCommand.inputOption}',
                 tracefileFilePath,
                 '--no-${CheckCommand.verboseFlag}',
                 '$minCoverage',
@@ -136,7 +136,7 @@ THEN an error indicating the issue should be thrown
           // ACT
           Future<void> action() => cmdRunner.run([
                 checkCmd.name,
-                '--${CheckCommand.fileOption}',
+                '--${CheckCommand.inputOption}',
                 absentFilePath,
                 '$minCoverage',
               ]);

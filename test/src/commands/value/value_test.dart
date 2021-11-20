@@ -55,9 +55,9 @@ THEN the global value is displayed
           // ACT
           await cmdRunner.run([
             valueCmd.name,
-            '--${ValueCommand.fileOption}',
+            '--${ValueCommand.inputOption}',
             tracefilePath,
-            '--no-${ValueCommand.printFilesFlag}',
+            '--no-${ValueCommand.verboseFlag}',
           ]);
 
           // ASSERT
@@ -93,9 +93,9 @@ AND the global value should be displayed
           // ACT
           await cmdRunner.run([
             valueCmd.name,
-            '--${ValueCommand.fileOption}',
+            '--${ValueCommand.inputOption}',
             tracefilePath,
-            '--${ValueCommand.printFilesFlag}',
+            '--${ValueCommand.verboseFlag}',
           ]);
 
           // ASSERT
@@ -129,7 +129,7 @@ THEN an error indicating the issue should be thrown
           // ACT
           Future<void> action() => cmdRunner.run([
                 valueCmd.name,
-                '--${ValueCommand.fileOption}',
+                '--${ValueCommand.inputOption}',
                 absentFilePath,
               ]);
 

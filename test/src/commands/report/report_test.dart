@@ -66,9 +66,9 @@ THEN an HTML coverage report should be generated
           // ACT
           await cmdRunner.run([
             reportCmd.name,
-            '--${ReportCommand.inputTracefileOption}',
+            '--${ReportCommand.inputOption}',
             tracefileFilePath,
-            '--${ReportCommand.outputReportDirOption}',
+            '--${ReportCommand.outputOption}',
             reportDirPath,
           ]);
 
@@ -155,7 +155,7 @@ THEN an error indicating the issue should be thrown
           // ACT
           Future<void> action() => cmdRunner.run([
                 reportCmd.name,
-                '--${ReportCommand.inputTracefileOption}',
+                '--${ReportCommand.inputOption}',
                 absentFilePath,
               ]);
 

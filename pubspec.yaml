@@ -1,5 +1,5 @@
 name: coverde
-description: A set of commands for coverage info files manipulation.
+description: A CLI for basic coverage trace files manipulation.
 version: 0.1.0+1
 publish_to: none
 
@@ -7,7 +7,7 @@ environment:
   sdk: ">=2.14.2 <3.0.0"
 
 dependencies:
-  args: ^2.2.0
+  args: ^2.3.0
   collection: ^1.15.0
   html: ^0.15.0
   meta: ^1.7.0
@@ -16,11 +16,11 @@ dependencies:
 dev_dependencies:
   build: ^2.1.1
   build_config: ^1.0.0
-  build_runner: ^2.1.4
+  build_runner: ^2.1.5
   csslib: ^0.17.1
   mocktail: ^0.2.0
-  test: ^1.17.12
-  very_good_analysis: ^2.3.0
+  test: ^1.19.3
+  very_good_analysis: ^2.4.0
 
 executables:
   coverde:

@@ -73,11 +73,11 @@ THEN a filtered tracefile should be created
           // ACT
           await cmdRunner.run([
             filterCmd.name,
-            '--${FilterCommand.originOption}',
+            '--${FilterCommand.inputOption}',
             originalFilePath,
-            '--${FilterCommand.destinationOption}',
+            '--${FilterCommand.outputOption}',
             filteredFilePath,
-            '--${FilterCommand.ignorePatternsOption}',
+            '--${FilterCommand.filtersOption}',
             patterns.join(','),
           ]);
 
@@ -115,9 +115,9 @@ THEN an error indicating the issue should be thrown
           // ACT
           Future<void> action() => cmdRunner.run([
                 filterCmd.name,
-                '--${FilterCommand.originOption}',
+                '--${FilterCommand.inputOption}',
                 absentFilePath,
-                '--${FilterCommand.ignorePatternsOption}',
+                '--${FilterCommand.filtersOption}',
                 patterns.join(','),
               ]);
 

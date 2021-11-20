@@ -24,3 +24,8 @@ jobs:
       - run: dart pub global activate --source path .
       - run: melos bs
       - run: melos run WF:ci
+      - uses: codecov/codecov-action@v2
+        with:
+          files: "./coverage/filtered.lcov.info"
+          fail_ci_if_error: true
+          verbose: true

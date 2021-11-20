@@ -35,7 +35,7 @@ class CovDir extends CovElement {
   factory CovDir.tree({
     required Iterable<CovFile> covFiles,
   }) =>
-      subtree(
+      CovDir.subtree(
         baseDirPath: null,
         coveredFiles: covFiles,
       );
@@ -43,7 +43,7 @@ class CovDir extends CovElement {
   /// Create a coverage data tree structure that replicates filesystem tree
   /// organization with the given [coveredFiles] and [baseDirPath].
   @visibleForTesting
-  static CovDir subtree({
+  factory CovDir.subtree({
     required String? baseDirPath,
     required Iterable<CovFile> coveredFiles,
   }) {
@@ -105,7 +105,7 @@ class CovDir extends CovElement {
 
     // Build nested folders data from next segments.
     final allDirs = nextSegments.map(
-      (nextSegment) => subtree(
+      (nextSegment) => CovDir.subtree(
         baseDirPath: path.join(actualBasePath, nextSegment),
         coveredFiles: covFiles,
       ),
