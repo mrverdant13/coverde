@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 
 /// {@template value_cmd}
@@ -103,7 +104,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     // Show resulting coverage.
     out
-      ..writeln('GLOBAL:')
-      ..writeln(tracefile.coverageDataString);
+      ..writeln(wrapWith('GLOBAL:', [blue, styleBold]))
+      ..writeln(wrapWith(tracefile.coverageDataString, [blue, styleBold]));
   }
 }
