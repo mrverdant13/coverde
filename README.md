@@ -68,6 +68,12 @@ $ dart pub global activate coverde
 - `coverde check 75 -i lcov.info`
 - `coverde check 100 --no-verbose`
 
+### Results
+
+![Check example (pass)](doc/check_result_pass.png)
+
+![Check example (fail)](doc/check_result_fail.png)
+
 ## `coverde filter`
 
 **Filter the tested files included in a trace file.**
