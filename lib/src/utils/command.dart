@@ -2,6 +2,19 @@ import 'package:args/command_runner.dart';
 
 /// Extended utils on the command implementation.
 extension ExtendedCommand on Command {
+  /// Validate command multi-options.
+  List<String> checkMultiOption({
+    required String multiOptionKey,
+    required String multiOptionName,
+  }) {
+    if (argResults == null) usageException('Missing arguments.');
+    final maybeMultiOption = argResults![multiOptionKey] as List<String>?;
+    if (maybeMultiOption == null) {
+      usageException('The `$multiOptionName` is required.');
+    }
+    return maybeMultiOption;
+  }
+
   /// Validate command option.
   String checkOption({
     required String optionKey,
