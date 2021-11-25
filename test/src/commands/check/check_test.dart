@@ -142,7 +142,45 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND no minimum expected coverage value
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ACT
+          Future<void> action() => cmdRunner.run([checkCmd.name]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND a non-numeric argument as minimum expected coverage value
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidMinCoverage = 'str';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                checkCmd.name,
+                invalidMinCoverage,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },
