@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 
@@ -94,20 +95,22 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _argResults = ArgumentError.checkNotNull(argResults);
-
-    final originPath = ArgumentError.checkNotNull(
-      _argResults[inputOption],
-    ) as String;
-    final destinationPath = ArgumentError.checkNotNull(
-      _argResults[outputOption],
-    ) as String;
-    final ignorePatterns = ArgumentError.checkNotNull(
-      _argResults[filtersOption],
-    ) as List<String>;
-    final shouldOverride = (ArgumentError.checkNotNull(
-          _argResults[modeOption],
-        ) as String) ==
+    final originPath = checkOption(
+      optionKey: inputOption,
+      optionName: 'input trace file',
+    );
+    final destinationPath = checkOption(
+      optionKey: outputOption,
+      optionName: 'output trace file',
+    );
+    final ignorePatterns = checkMultiOption(
+      multiOptionKey: filtersOption,
+      multiOptionName: 'ignored patterns list',
+    );
+    final shouldOverride = checkOption(
+          optionKey: modeOption,
+          optionName: 'output mode',
+        ) ==
         'w';
 
     final origin = File(originPath);
@@ -115,7 +118,7 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
     final pwd = Directory.current;
 
     if (!origin.existsSync()) {
-      throw StateError('The `$originPath` file does not exist.');
+      usageException('The trace file located at `$originPath` does not exist.');
     }
 
     // Get initial package coverage data.
