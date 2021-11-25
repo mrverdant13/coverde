@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 
 /// {@template check_cmd}
@@ -43,14 +44,12 @@ Trace file used for the coverage check.''',
   @visibleForTesting
   static const verboseFlag = 'verbose';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Check the coverage value (%) computed from a trace file.
 
 The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.''';
-// coverage:ignore-end
 
   @override
   String get name => 'check';
@@ -59,29 +58,40 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
   List<String> get aliases => [name[0]];
 
   @override
+  String get invocation => super.invocation.replaceAll(
+        '[arguments]',
+        '[min-coverage]',
+      );
+
+  @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _argResults = ArgumentError.checkNotNull(argResults);
-
-    final filePath = ArgumentError.checkNotNull(
-      _argResults[inputOption],
-    ) as String;
-    final isVerbose = ArgumentError.checkNotNull(
-      _argResults[verboseFlag],
-    ) as bool;
-
-    final coverageThreshold = RangeError.checkValueInInterval(
-      ArgumentError.checkNotNull(
-        int.tryParse(_argResults.rest.firstOrNull ?? ''),
-      ),
-      0,
-      100,
+    final filePath = checkOption(
+      optionKey: inputOption,
+      optionName: 'input trace file',
+    );
+    final isVerbose = checkFlag(
+      flagKey: verboseFlag,
+      flagName: 'verbose',
+    );
+    final args = argResults!.rest;
+    final coverageThresholdStr = args.firstOrNull;
+    if (coverageThresholdStr == null) {
+      usageException('Missing minimum coverage threshold.');
+    }
+    final maybeCoverageThreshold = double.tryParse(coverageThresholdStr);
+    if (maybeCoverageThreshold == null) {
+      usageException('Invalid minimum coverage threshold.');
+    }
+    final coverageThreshold = checkCoverage(
+      coverage: maybeCoverageThreshold,
+      valueName: 'coverage threshold',
     );
 
     final file = File(filePath);
 
     if (!file.existsSync()) {
-      throw StateError('The `$filePath` file does not exist.');
+      usageException('The trace file located at `$filePath` does not exist.');
     }
 
     // Get coverage info.

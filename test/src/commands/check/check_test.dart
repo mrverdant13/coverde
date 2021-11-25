@@ -38,6 +38,29 @@ GIVEN a tracefile coverage checker command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Check the coverage value (%) computed from a trace file.
+
+The unique argument should be an integer between 0 and 100.
+This parameter indicates the minimum value for the coverage to be accepted.
+''';
+
+          // ACT
+          final result = checkCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND a minimum expected coverage value
 AND an existing tracefile
 ├─ THAT has a coverage value greater than the minimum expected coverage value
@@ -142,7 +165,45 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND no minimum expected coverage value
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ACT
+          Future<void> action() => cmdRunner.run([checkCmd.name]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND a non-numeric argument as minimum expected coverage value
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidMinCoverage = 'str';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                checkCmd.name,
+                invalidMinCoverage,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },

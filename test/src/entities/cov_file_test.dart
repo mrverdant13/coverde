@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_line.dart';
+import 'package:coverde/src/entities/covfile_format.exception.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -85,7 +86,7 @@ DA:3,5''';
       void action() => CovFile.parse(rawCovFileString);
 
       // ASSERT
-      expect(action, throwsA(isA<StateError>()));
+      expect(action, throwsA(isA<CovfileFormatException>()));
     },
   );
 }

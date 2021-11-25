@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 
 /// {@template rm_cmd}
@@ -26,7 +27,7 @@ When an element is not present:
   @visibleForTesting
   static const acceptAbsenceFlag = 'accept-absence';
 
-  @override // coverage:ignore-line
+  @override
   String get description => '''
 Remove a set of files and folders.''';
 
@@ -38,15 +39,14 @@ Remove a set of files and folders.''';
 
   @override
   Future<void> run() async {
-    final _argResults = ArgumentError.checkNotNull(argResults);
+    final shouldAcceptAbsence = checkFlag(
+      flagKey: acceptAbsenceFlag,
+      flagName: 'absence acceptance',
+    );
 
-    final shouldAcceptAbsence = ArgumentError.checkNotNull(
-      _argResults[acceptAbsenceFlag],
-    ) as bool;
-
-    final paths = _argResults.rest;
+    final paths = argResults!.rest;
     if (paths.isEmpty) {
-      throw ArgumentError(
+      usageException(
         'A set of file and/or directory paths should be provided.',
       );
     }
@@ -69,7 +69,7 @@ Remove a set of files and folders.''';
           if (shouldAcceptAbsence) {
             _out.writeln(message);
           } else {
-            throw StateError(message);
+            usageException(message);
           }
       }
     }

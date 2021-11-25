@@ -34,6 +34,28 @@ GIVEN a tracefile report generator command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Generate the coverage report from a tracefile.
+
+Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
+''';
+
+          // ACT
+          final result = reportCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing tracefile
 WHEN the command is invoqued
 THEN an HTML coverage report should be generated
@@ -160,7 +182,53 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND an invalid medium threshold
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidMediumThreshold = 'medium';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                reportCmd.name,
+                '--${ReportCommand.mediumOption}',
+                invalidMediumThreshold,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND an invalid high threshold
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidHighThreshold = 'high';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                reportCmd.name,
+                '--${ReportCommand.highOption}',
+                invalidHighThreshold,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },

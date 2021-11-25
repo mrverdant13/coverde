@@ -36,6 +36,26 @@ GIVEN a filesystem element remover command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Remove a set of files and folders.
+''';
+
+          // ACT
+          final result = rmCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing file to remove
 WHEN the command is invoqued
 THEN the file should be removed
@@ -81,7 +101,7 @@ AND the file should remain inexistent
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
           expect(file.existsSync(), isFalse);
         },
       );
@@ -165,7 +185,7 @@ AND the directory should remain inexistent
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
           expect(dir.existsSync(), isFalse);
         },
       );
@@ -213,7 +233,7 @@ THEN an error indicating the issue should be thrown
           Future<void> action() => cmdRunner.run([rmCmd.name]);
 
           // ASSERT
-          expect(action, throwsA(isA<ArgumentError>()));
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },

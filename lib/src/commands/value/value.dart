@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/command.dart';
+import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 
 /// {@template value_cmd}
@@ -41,13 +43,11 @@ Print coverage value for each source file listed in the $_inputHelpValue info fi
   @visibleForTesting
   static const verboseFlag = 'verbose';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the $_inputHelpValue info file.''';
-// coverage:ignore-end
 
   @override
   String get name => 'value';
@@ -58,19 +58,19 @@ Compute the coverage value of the $_inputHelpValue info file.''';
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _argResults = ArgumentError.checkNotNull(argResults);
-
-    final filePath = ArgumentError.checkNotNull(
-      _argResults[inputOption],
-    ) as String;
-    final shouldLogFiles = ArgumentError.checkNotNull(
-      _argResults[verboseFlag],
-    ) as bool;
+    final filePath = checkOption(
+      optionKey: inputOption,
+      optionName: 'input trace file',
+    );
+    final shouldLogFiles = checkFlag(
+      flagKey: verboseFlag,
+      flagName: 'verbose',
+    );
 
     final file = File(filePath);
 
     if (!file.existsSync()) {
-      throw StateError('The `$filePath` file does not exist.');
+      usageException('The `$filePath` file does not exist.');
     }
 
     // Get coverage info.
@@ -103,7 +103,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     // Show resulting coverage.
     out
-      ..writeln('GLOBAL:')
-      ..writeln(tracefile.coverageDataString);
+      ..writeln(wrapWith('GLOBAL:', [blue, styleBold]))
+      ..writeln(wrapWith(tracefile.coverageDataString, [blue, styleBold]));
   }
 }

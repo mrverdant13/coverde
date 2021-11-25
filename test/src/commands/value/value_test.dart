@@ -37,6 +37,28 @@ GIVEN a tracefile value computer command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Compute the coverage value (%) of an info file.
+
+Compute the coverage value of the LCOV_FILE info file.
+''';
+
+          // ACT
+          final result = valueCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing tracefile
 AND the disabled option to print coverage data about tracefile listed files
 WHEN the the tracefile coverage value is requested
@@ -134,7 +156,7 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },
