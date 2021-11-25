@@ -6,6 +6,7 @@ import 'package:coverde/src/assets/file_report_template.html.asset.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
+import 'package:coverde/src/entities/covfile_format.exception.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
@@ -31,25 +32,29 @@ class CovFile extends CovElement {
   }) : _covLines = covLines;
 
   /// Create a [CovFile] from a [data] trace block string.
+  ///
+  /// Throws a [CovfileFormatException] if the [data] is not a valid trace
+  /// block.
   factory CovFile.parse(String data) {
     final dataLines = data.split('\n');
 
-    String valueByTag(String key) => dataLines
+    String sourcePath() => dataLines
         .firstWhere(
-          (l) => l.startsWith(key),
-          orElse: () => throw StateError(
-            '<$key> not found in the tracefile block.',
+          (l) => l.startsWith(sourceFileTag),
+          orElse: () => throw CovfileFormatException(
+            message: 'Source file tag not found in the tracefile block.',
           ),
         )
-        .replaceAll(key, '')
+        .replaceAll(sourceFileTag, '')
         .trim();
 
     final sourceFile = path.canonicalize(
       [
         '.',
-        ...valueByTag(sourceFileTag).split(RegExp(r'(\\|\/)')),
+        ...sourcePath().split(RegExp(r'(\\|\/)')),
       ].reduce(path.join),
     );
+
     final covLines = dataLines
         .where((l) => l.startsWith(lineDataTag))
         .map((covLineData) => CovLine.parse(covLineData));
