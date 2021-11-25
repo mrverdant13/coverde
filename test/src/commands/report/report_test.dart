@@ -34,6 +34,28 @@ GIVEN a tracefile report generator command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Generate the coverage report from a tracefile.
+
+Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
+''';
+
+          // ACT
+          final result = reportCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing tracefile
 WHEN the command is invoqued
 THEN an HTML coverage report should be generated

@@ -79,13 +79,11 @@ High threshold.''',
   @visibleForTesting
   static const highOption = 'high';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Generate the coverage report from a tracefile.
 
 Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue tracefile.''';
-// coverage:ignore-end
 
   @override
   String get name => 'report';

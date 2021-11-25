@@ -43,13 +43,11 @@ Print coverage value for each source file listed in the $_inputHelpValue info fi
   @visibleForTesting
   static const verboseFlag = 'verbose';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the $_inputHelpValue info file.''';
-// coverage:ignore-end
 
   @override
   String get name => 'value';

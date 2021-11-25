@@ -37,6 +37,29 @@ GIVEN a tracefile filterer command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Filter a coverage trace file.
+
+Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.
+The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
+''';
+
+          // ACT
+          final result = filterCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing tracefile to filter
 AND a set of patterns to be filtered
 WHEN the command is invoqued

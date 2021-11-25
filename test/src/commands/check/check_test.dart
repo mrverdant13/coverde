@@ -38,6 +38,29 @@ GIVEN a tracefile coverage checker command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Check the coverage value (%) computed from a trace file.
+
+The unique argument should be an integer between 0 and 100.
+This parameter indicates the minimum value for the coverage to be accepted.
+''';
+
+          // ACT
+          final result = checkCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND a minimum expected coverage value
 AND an existing tracefile
 ├─ THAT has a coverage value greater than the minimum expected coverage value

@@ -77,14 +77,12 @@ Override the $_outpitHelpValue content, if any, with the filtered content.''',
   @visibleForTesting
   static const modeOption = 'mode';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Filter a coverage trace file.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
 The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outpitHelpValue file.''';
-// coverage:ignore-end
 
   @override
   String get name => 'filter';

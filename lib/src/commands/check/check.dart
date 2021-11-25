@@ -44,14 +44,12 @@ Trace file used for the coverage check.''',
   @visibleForTesting
   static const verboseFlag = 'verbose';
 
-// coverage:ignore-start
   @override
   String get description => '''
 Check the coverage value (%) computed from a trace file.
 
 The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.''';
-// coverage:ignore-end
 
   @override
   String get name => 'check';

@@ -36,6 +36,26 @@ GIVEN a filesystem element remover command''',
       test(
         '''
 
+WHEN its description is requested
+THEN a proper abstract should be returned
+''',
+        () {
+          // ARRANGE
+          const expected = '''
+Remove a set of files and folders.
+''';
+
+          // ACT
+          final result = rmCmd.description;
+
+          // ASSERT
+          expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''
+
 AND an existing file to remove
 WHEN the command is invoqued
 THEN the file should be removed

@@ -27,7 +27,7 @@ When an element is not present:
   @visibleForTesting
   static const acceptAbsenceFlag = 'accept-absence';
 
-  @override // coverage:ignore-line
+  @override
   String get description => '''
 Remove a set of files and folders.''';
 
