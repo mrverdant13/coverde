@@ -8,10 +8,7 @@ extension ExtendedCommand on Command {
     required String multiOptionName,
   }) {
     if (argResults == null) usageException('Missing arguments.');
-    final maybeMultiOption = argResults![multiOptionKey] as List<String>?;
-    if (maybeMultiOption == null) {
-      usageException('The `$multiOptionName` is required.');
-    }
+    final maybeMultiOption = argResults![multiOptionKey] as List<String>;
     return maybeMultiOption;
   }
 
