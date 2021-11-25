@@ -64,6 +64,10 @@ scripts:
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
       melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart
 
+  R:
+    description: Generate HTML coverage report.
+    run: coverde report --input ./coverage/lcov.info
+
   WF:
     description: Run full local workflow
     run: melos run D && melos run F && melos run A && melos run T && melos run M && coverde check 98
