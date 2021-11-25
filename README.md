@@ -11,11 +11,24 @@ A CLI for basic coverage trace files manipulation.
 
 ---
 
+# Index
+
+- [Installing](#installing)
+- [Features](#features)
+- [Usage with `melos`](#usage-with-melos)
+- [CI integration for coverage checks](#ci-integration-for-coverage-checks)
+
+---
+
 # Installing
+
+You can make `coverde` globally available by executing the following command:
 
 ```sh
 $ dart pub global activate coverde
 ```
+
+**NOTE:** To run `coverde` directly from the terminal, add the system cache `bin` directory to your `PATH` environment variable.
 
 ---
 
