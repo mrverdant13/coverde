@@ -81,7 +81,7 @@ AND the file should remain inexistent
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
           expect(file.existsSync(), isFalse);
         },
       );
@@ -165,7 +165,7 @@ AND the directory should remain inexistent
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
           expect(dir.existsSync(), isFalse);
         },
       );
@@ -213,7 +213,7 @@ THEN an error indicating the issue should be thrown
           Future<void> action() => cmdRunner.run([rmCmd.name]);
 
           // ASSERT
-          expect(action, throwsA(isA<ArgumentError>()));
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },
