@@ -163,6 +163,52 @@ THEN an error indicating the issue should be thrown
           expect(action, throwsA(isA<UsageException>()));
         },
       );
+
+      test(
+        '''
+
+AND an invalid medium threshold
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidMediumThreshold = 'medium';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                reportCmd.name,
+                '--${ReportCommand.mediumOption}',
+                invalidMediumThreshold,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
+
+      test(
+        '''
+
+AND an invalid high threshold
+WHEN the command is invoqued
+THEN an error indicating the issue should be thrown
+''',
+        () async {
+          // ARRANGE
+          const invalidHighThreshold = 'high';
+
+          // ACT
+          Future<void> action() => cmdRunner.run([
+                reportCmd.name,
+                '--${ReportCommand.highOption}',
+                invalidHighThreshold,
+              ]);
+
+          // ASSERT
+          expect(action, throwsA(isA<UsageException>()));
+        },
+      );
     },
   );
 }
