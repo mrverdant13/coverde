@@ -68,8 +68,6 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    if (argResults == null) throw Exception('');
-
     final filePath = checkOption(
       optionKey: inputOption,
       optionName: 'input trace file',
