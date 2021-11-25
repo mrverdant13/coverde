@@ -160,7 +160,7 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<StateError>()));
+          expect(action, throwsA(isA<UsageException>()));
         },
       );
     },

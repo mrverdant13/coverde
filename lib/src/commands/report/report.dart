@@ -4,6 +4,7 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 
@@ -95,28 +96,26 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _argResults = ArgumentError.checkNotNull(argResults);
-
-    final _tracefilePath = ArgumentError.checkNotNull(
-      _argResults[inputOption],
-    ) as String;
-    final _reportDirPath = ArgumentError.checkNotNull(
-      _argResults[outputOption],
-    ) as String;
-    final medium = ArgumentError.checkNotNull(
-      double.tryParse(
-        ArgumentError.checkNotNull(
-          _argResults[mediumOption],
-        ) as String,
-      ),
+    final _tracefilePath = checkOption(
+      optionKey: inputOption,
+      optionName: 'input trace file',
     );
-    final high = ArgumentError.checkNotNull(
-      double.tryParse(
-        ArgumentError.checkNotNull(
-          _argResults[highOption],
-        ) as String,
-      ),
+    final _reportDirPath = checkOption(
+      optionKey: outputOption,
+      optionName: 'output report folder',
     );
+    final mediumString = checkOption(
+      optionKey: mediumOption,
+      optionName: 'medium threshold',
+    );
+    final medium = double.tryParse(mediumString);
+    if (medium == null) usageException('Invalid medium threshold.');
+    final highString = checkOption(
+      optionKey: highOption,
+      optionName: 'high threshold',
+    );
+    final high = double.tryParse(highString);
+    if (high == null) usageException('Invalid high threshold.');
 
     // Report dir path should be absolute.
     final reportDirAbsPath = path.isAbsolute(_reportDirPath)
@@ -129,7 +128,9 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
     final tracefile = File(tracefileAbsPath);
 
     if (!tracefile.existsSync()) {
-      throw StateError('The `$tracefileAbsPath` tracefile does not exist.');
+      usageException(
+        'The trace file located at `$tracefileAbsPath` does not exist.',
+      );
     }
 
     // Get tracefile content.
