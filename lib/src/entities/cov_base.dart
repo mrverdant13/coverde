@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
+import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 
 /// # Computable Coverage Entity
@@ -41,8 +42,10 @@ abstract class CovElement extends CovComputable {
   /// The string representation of the [coverage] value, hte [linesHit] and the
   /// [linesFound].
   @override
-  String get coverageDataString =>
-      '${source.path} (${super.coverageDataString})';
+  String get coverageDataString {
+    final color = coverage < 100 ? lightRed : lightGreen;
+    return '${source.path} ${color.wrap('(${super.coverageDataString})')}';
+  }
 
   /// Generate HTML coverage report for this element.
   void generateSubReport({
