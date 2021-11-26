@@ -1,0 +1,23 @@
+// ignore_for_file: prefer_const_constructors
+import 'package:fake_project_2/fake_project_2.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group(
+    'StringUtils',
+    () => test(
+      'can be instantiated',
+      () {
+        // ARRANGE
+        const input = 'text';
+        const output = 'Text';
+
+        // ACT
+        final result = input.capitalized;
+
+        // ASSERT
+        expect(result, output);
+      },
+    ),
+  );
+}

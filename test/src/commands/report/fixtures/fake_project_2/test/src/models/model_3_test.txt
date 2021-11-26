@@ -1,0 +1,13 @@
+// ignore_for_file: prefer_const_constructors
+import 'package:fake_project_2/fake_project_2.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group(
+    'Model3',
+    () => test(
+      'can be instantiated',
+      () => expect(Model3(doubleValue: 0), isNotNull),
+    ),
+  );
+}
