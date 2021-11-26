@@ -2,8 +2,16 @@ import 'dart:io';
 
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
+
+extension _FixturedString on String {
+  String get fixturePath => path.join(
+        'test/src/commands/check/fixtures/',
+        this,
+      );
+}
 
 void main() {
   group(
@@ -15,7 +23,7 @@ GIVEN a minimum coverage exception
     () {
       // ARRANGE
       const minCoverage = 40.0;
-      const tracefileFilePath = 'test/fixtures/check/lcov.info';
+      final tracefileFilePath = 'lcov.info'.fixturePath;
       final tracefileFile = File(tracefileFilePath);
       final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
       final exception = MinCoverageException(
