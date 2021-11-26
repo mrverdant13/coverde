@@ -11,6 +11,13 @@ import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
 
+extension _FixturedString on String {
+  String get fixturePath => path.join(
+        'test/src/commands/report/fixtures/',
+        this,
+      );
+}
+
 void main() {
   group(
     '''
@@ -62,12 +69,11 @@ THEN an HTML coverage report should be generated
 ''',
         () async {
           // ARRANGE
-          const tracefileFilePath = 'test/fixtures/report/lcov.info';
+          final tracefileFilePath = 'lcov.info'.fixturePath;
           final tracefileFile = File(tracefileFilePath);
-          const fixturesBasePath = 'test/fixtures/report';
           const resultDirName = 'result';
           const expectedDirName = 'expected';
-          final reportDirPath = path.join(fixturesBasePath, resultDirName);
+          final reportDirPath = resultDirName.fixturePath;
           final reportDir = Directory(reportDirPath);
           final relFilePaths = [
             'dir_1/file_1.dart.html',
@@ -98,18 +104,20 @@ THEN an HTML coverage report should be generated
           expect(reportDir.existsSync(), isTrue);
           for (final relFilePath in relFilePaths) {
             final resultFile = File(
-              path.join(
-                fixturesBasePath,
-                resultDirName,
-                relFilePath,
-              ),
+              path
+                  .join(
+                    resultDirName,
+                    relFilePath,
+                  )
+                  .fixturePath,
             );
             final expectedFile = File(
-              path.join(
-                fixturesBasePath,
-                expectedDirName,
-                relFilePath,
-              ),
+              path
+                  .join(
+                    expectedDirName,
+                    relFilePath,
+                  )
+                  .fixturePath,
             );
             if (relFilePath.endsWith('png')) {
               final result = resultFile.readAsBytesSync();

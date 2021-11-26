@@ -3,10 +3,18 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
+
+extension _FixturedString on String {
+  String get fixturePath => path.join(
+        'test/src/commands/value/fixtures/',
+        this,
+      );
+}
 
 void main() {
   group(
@@ -68,7 +76,7 @@ THEN the global value is displayed
 ''',
         () async {
           // ARRANGE
-          const tracefilePath = 'test/fixtures/value/lcov.info';
+          final tracefilePath = 'lcov.info'.fixturePath;
           final tracefileFile = File(tracefilePath);
           final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
 
@@ -106,7 +114,7 @@ AND the global value should be displayed
 ''',
         () async {
           // ARRANGE
-          const tracefilePath = 'test/fixtures/value/lcov.info';
+          final tracefilePath = 'lcov.info'.fixturePath;
           final tracefileFile = File(tracefilePath);
           final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
 
@@ -144,7 +152,7 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          const absentFilePath = 'test/fixtures/value/absent.lcov.info';
+          final absentFilePath = 'absent.lcov.info'.fixturePath;
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 
