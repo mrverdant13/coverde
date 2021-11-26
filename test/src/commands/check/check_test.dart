@@ -4,10 +4,18 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
+
+extension _FixturedString on String {
+  String get fixturePath => path.join(
+        'test/src/commands/check/fixtures/',
+        this,
+      );
+}
 
 void main() {
   group(
@@ -72,7 +80,7 @@ THEN the tracefile coverage should be checked and approved
 ''',
         () async {
           // ARRANGE
-          const tracefileFilePath = 'test/fixtures/check/lcov.info';
+          final tracefileFilePath = 'lcov.info'.fixturePath;
           final tracefileFile = File(tracefileFilePath);
           final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
           const minCoverage = 50;
@@ -118,7 +126,7 @@ THEN the tracefile coverage should be checked and disapproved
 ''',
         () async {
           // ARRANGE
-          const tracefileFilePath = 'test/fixtures/check/lcov.info';
+          final tracefileFilePath = 'lcov.info'.fixturePath;
           final tracefileFile = File(tracefileFilePath);
           final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
           const minCoverage = 90;
@@ -150,7 +158,7 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          const absentFilePath = 'test/fixtures/check/absent.lcov.info';
+          final absentFilePath = 'absent.lcov.info'.fixturePath;
           final absentFile = File(absentFilePath);
           const minCoverage = 50;
 

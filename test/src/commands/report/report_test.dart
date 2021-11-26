@@ -11,6 +11,55 @@ import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
 
+enum _Project {
+  // ignore: constant_identifier_names
+  fake_project_1,
+  // ignore: constant_identifier_names
+  fake_project_2,
+}
+
+extension _ExtendedProj on _Project {
+  String get name => toString().split('.').last;
+  Iterable<String> get relFilePaths {
+    switch (this) {
+      case _Project.fake_project_1:
+        return [
+          'dir_1/file_1.dart.html',
+          'dir_1/file_2.dart.html',
+          'dir_1/index.html',
+          'dir_2/dir_1/file_1.dart.html',
+          'dir_2/dir_1/file_2.dart.html',
+          'dir_2/dir_1/index.html',
+          'index.html',
+          'report_style.css',
+          'sort_alpha.png',
+          'sort_numeric.png',
+        ];
+      case _Project.fake_project_2:
+        return [
+          'models/index.html',
+          'models/model_1.dart.html',
+          'models/model_2.dart.html',
+          'models/model_3.dart.html',
+          'exception.dart.html',
+          'fake_project_2.dart.html',
+          'index.html',
+        ];
+    }
+  }
+}
+
+extension _FixturedString on String {
+  String fixturePath({
+    required _Project proj,
+  }) =>
+      path.join(
+        'test/src/commands/report/fixtures',
+        proj.name,
+        this,
+      );
+}
+
 void main() {
   group(
     '''
@@ -53,113 +102,106 @@ Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
         },
       );
 
-      test(
-        '''
+      {
+        for (final proj in _Project.values) {
+          test(
+            '''
 
-AND an existing tracefile
+AND an existing tracefile <${proj.name}>
 WHEN the command is invoqued
 THEN an HTML coverage report should be generated
 ''',
-        () async {
-          // ARRANGE
-          const tracefileFilePath = 'test/fixtures/report/lcov.info';
-          final tracefileFile = File(tracefileFilePath);
-          const fixturesBasePath = 'test/fixtures/report';
-          const resultDirName = 'result';
-          const expectedDirName = 'expected';
-          final reportDirPath = path.join(fixturesBasePath, resultDirName);
-          final reportDir = Directory(reportDirPath);
-          final relFilePaths = [
-            'dir_1/file_1.dart.html',
-            'dir_1/file_2.dart.html',
-            'dir_1/index.html',
-            'dir_2/dir_1/file_1.dart.html',
-            'dir_2/dir_1/file_2.dart.html',
-            'dir_2/dir_1/index.html',
-            'index.html',
-            'report_style.css',
-            'sort_alpha.png',
-            'sort_numeric.png',
-          ];
-          const listEquality = ListEquality<int>();
+            () async {
+              // ARRANGE
+              final tracefileFilePath = 'lcov.info'.fixturePath(proj: proj);
+              final tracefileFile = File(tracefileFilePath);
+              const resultDirName = 'result';
+              const expectedDirName = 'expected';
+              final reportDirPath = resultDirName.fixturePath(proj: proj);
+              final reportDir = Directory(reportDirPath);
+              const listEquality = ListEquality<int>();
 
-          expect(tracefileFile.existsSync(), isTrue);
+              expect(tracefileFile.existsSync(), isTrue);
 
-          // ACT
-          await cmdRunner.run([
-            reportCmd.name,
-            '--${ReportCommand.inputOption}',
-            tracefileFilePath,
-            '--${ReportCommand.outputOption}',
-            reportDirPath,
-          ]);
+              // ACT
+              await cmdRunner.run([
+                reportCmd.name,
+                '--${ReportCommand.inputOption}',
+                tracefileFilePath,
+                '--${ReportCommand.outputOption}',
+                reportDirPath,
+              ]);
 
-          // ASSERT
-          expect(reportDir.existsSync(), isTrue);
-          for (final relFilePath in relFilePaths) {
-            final resultFile = File(
-              path.join(
-                fixturesBasePath,
-                resultDirName,
-                relFilePath,
-              ),
-            );
-            final expectedFile = File(
-              path.join(
-                fixturesBasePath,
-                expectedDirName,
-                relFilePath,
-              ),
-            );
-            if (relFilePath.endsWith('png')) {
-              final result = resultFile.readAsBytesSync();
-              final expected = expectedFile.readAsBytesSync();
-              final haveSameContent = listEquality.equals(result, expected);
-              expect(
-                haveSameContent,
-                isTrue,
-                reason: 'Non-matching (bytes) file <$relFilePath>',
-              );
-            } else {
-              final result = resultFile.readAsStringSync();
-              final expected = expectedFile.readAsStringSync();
-              if (relFilePath.endsWith('html')) {
-                const lastTracefileModificationDateSelector =
-                    '.lastTracefileModificationDate';
-                final resultHtml = Document.html(result);
-                final expectedHtml = Document.html(expected);
-                resultHtml
-                    .querySelector(lastTracefileModificationDateSelector)
-                    ?.remove();
-                expectedHtml
-                    .querySelector(lastTracefileModificationDateSelector)
-                    ?.remove();
-                expect(
-                  resultHtml.outerHtml,
-                  expectedHtml.outerHtml,
-                  reason: 'Error: Non-matching (html) file <$relFilePath>',
+              // ASSERT
+              expect(reportDir.existsSync(), isTrue);
+              for (final relFilePath in proj.relFilePaths) {
+                final resultFile = File(
+                  path
+                      .join(
+                        resultDirName,
+                        relFilePath,
+                      )
+                      .fixturePath(proj: proj),
                 );
-              } else if (relFilePath.endsWith('css')) {
-                const splitter = LineSplitter();
-                final resultCss = css.parse(result);
-                final expectedCss = css.parse(expected);
-                expect(
-                  splitter.convert(resultCss.toDebugString()).join('\n'),
-                  splitter.convert(expectedCss.toDebugString()).join('\n'),
-                  reason: 'Error: Non-matching (css) file <$relFilePath>',
+                final expectedFile = File(
+                  path
+                      .join(
+                        expectedDirName,
+                        relFilePath,
+                      )
+                      .fixturePath(proj: proj),
                 );
-              } else {
-                expect(
-                  result,
-                  expected,
-                  reason:
-                      'Error: Non-matching (plain text) file <$relFilePath>',
-                );
+                if (relFilePath.endsWith('png')) {
+                  final result = resultFile.readAsBytesSync();
+                  final expected = expectedFile.readAsBytesSync();
+                  final haveSameContent = listEquality.equals(result, expected);
+                  expect(
+                    haveSameContent,
+                    isTrue,
+                    reason: 'Non-matching (bytes) file <$relFilePath>',
+                  );
+                } else {
+                  final result = resultFile.readAsStringSync();
+                  final expected = expectedFile.readAsStringSync();
+                  if (relFilePath.endsWith('html')) {
+                    const lastTracefileModificationDateSelector =
+                        '.lastTracefileModificationDate';
+                    final resultHtml = Document.html(result);
+                    final expectedHtml = Document.html(expected);
+                    resultHtml
+                        .querySelector(lastTracefileModificationDateSelector)
+                        ?.remove();
+                    expectedHtml
+                        .querySelector(lastTracefileModificationDateSelector)
+                        ?.remove();
+                    expect(
+                      resultHtml.outerHtml,
+                      expectedHtml.outerHtml,
+                      reason: 'Error: Non-matching (html) file <$relFilePath>',
+                    );
+                  } else if (relFilePath.endsWith('css')) {
+                    const splitter = LineSplitter();
+                    final resultCss = css.parse(result);
+                    final expectedCss = css.parse(expected);
+                    expect(
+                      splitter.convert(resultCss.toDebugString()).join('\n'),
+                      splitter.convert(expectedCss.toDebugString()).join('\n'),
+                      reason: 'Error: Non-matching (css) file <$relFilePath>',
+                    );
+                  } else {
+                    expect(
+                      result,
+                      expected,
+                      reason: '''
+Error: Non-matching (plain text) file <$relFilePath>''',
+                    );
+                  }
+                }
               }
-            }
-          }
-        },
-      );
+            },
+          );
+        }
+      }
 
       test(
         '''

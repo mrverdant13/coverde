@@ -2,7 +2,7 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" type="text/css" href="../report_style.css">
+  <link rel="stylesheet" type="text/css" href="./report_style.css">
   <title class="headTitle">Coverage Report - lcov.info</title>
 </head>
 
@@ -23,11 +23,11 @@
               <tr>
                 <td width="10%" class="headerItem">Current view:</td>
                 <td width="35%" class="headerValue currentFileName">
-                  <a class="topLevelAnchor" href="../index.html">
+                  <a class="topLevelAnchor" href="./index.html">
                     top level
                   </a>
                   -
-                  <a class="currentDirPath" href="index.html">test/fixtures/report/project/dir_1</a> - file_2.dart</td>
+                  <a class="currentDirPath" href="index.html">test/src/commands/report/fixtures/fake_project_2/lib/src</a> - exception.dart</td>
                 <td width="5%"></td>
                 <td width="15%"></td>
                 <td width="10%" class="headerCovTableHead">Hit</td>
@@ -45,7 +45,7 @@
               </tr>
               <tr>
                 <td class="headerItem">Date:</td>
-                <td class="headerValue lastTracefileModificationDate">2021-11-07 03:59:47.000</td>
+                <td class="headerValue lastTracefileModificationDate">2021-11-26 02:47:07.000</td>
                 <td></td>
                 <td></td>
                 <td></td>
@@ -74,9 +74,18 @@
       <tr>
         <td>
           <pre class="sourceHeading">          Line data    Source code</pre>
-          <pre class="source"><a name="replace.with.line.number"><span class="lineNum">       1 </span><span class="sourceLine">            : import 'dart:math' as math;</span>
-</a><a name="replace.with.line.number"><span class="lineNum">       2 </span><span class="sourceLine">            : </span>
-</a><a name="replace.with.line.number"><span class="lineNum">       3 </span><span class="sourceLine lineCov">          2 : num pow(num base, num exponent) =&gt; math.pow(base, exponent);</span>
+          <pre class="source"><a name="replace.with.line.number"><span class="lineNum">       1 </span><span class="sourceLine">            : /// {@template custom_exception}</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       2 </span><span class="sourceLine">            : /// A fake custom exception.</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       3 </span><span class="sourceLine">            : /// {@endtemplate}</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       4 </span><span class="sourceLine">            : class CustomException implements Exception {</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       5 </span><span class="sourceLine">            :   /// {@macro custom_exception}</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       6 </span><span class="sourceLine lineCov">          1 :   const CustomException({</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       7 </span><span class="sourceLine">            :     required this.message,</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       8 </span><span class="sourceLine">            :   });</span>
+</a><a name="replace.with.line.number"><span class="lineNum">       9 </span><span class="sourceLine">            : </span>
+</a><a name="replace.with.line.number"><span class="lineNum">      10 </span><span class="sourceLine">            :   /// A fake exception message.</span>
+</a><a name="replace.with.line.number"><span class="lineNum">      11 </span><span class="sourceLine">            :   final String message;</span>
+</a><a name="replace.with.line.number"><span class="lineNum">      12 </span><span class="sourceLine">            : }</span>
 </a></pre>
         </td>
       </tr>

@@ -135,8 +135,9 @@ class CovFile extends CovElement {
   }) {
     final fileReport = fileReportTemplate.clone(true);
 
-    final topLevelDirRelPath =
-        List.filled(reportRelDepth - 1, '..').reduce(path.join);
+    final topLevelDirRelPath = (reportRelDepth > 1)
+        ? List.filled(reportRelDepth - 1, '..').reduce(path.join)
+        : '.';
     final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
     final topLevelCssRelPath = path.join(
       topLevelDirRelPath,

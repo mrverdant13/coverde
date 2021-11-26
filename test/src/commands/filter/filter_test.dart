@@ -3,10 +3,18 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
+
+extension _FixturedString on String {
+  String get fixturePath => path.join(
+        'test/src/commands/filter/fixtures/',
+        this,
+      );
+}
 
 void main() {
   group(
@@ -70,8 +78,8 @@ THEN a filtered tracefile should be created
           // ARRANGE
           const patterns = <String>['.g.dart'];
           final patternsRegex = patterns.map((p) => RegExp(p));
-          const originalFilePath = 'test/fixtures/filter/original.lcov.info';
-          const filteredFilePath = 'test/fixtures/filter/filtered.lcov.info';
+          final originalFilePath = 'original.lcov.info'.fixturePath;
+          final filteredFilePath = 'filtered.lcov.info'.fixturePath;
           final originalFile = File(originalFilePath);
           final filteredFile = File(filteredFilePath);
           if (filteredFile.existsSync()) {
@@ -131,7 +139,7 @@ THEN an error indicating the issue should be thrown
         () async {
           // ARRANGE
           const patterns = <String>['.g.dart'];
-          const absentFilePath = 'test/fixtures/filter/absent.lcov.info';
+          final absentFilePath = 'absent.lcov.info'.fixturePath;
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 
