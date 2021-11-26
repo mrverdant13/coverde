@@ -13,7 +13,7 @@ import '../../../utils/mocks.dart';
 
 extension _FixturedString on String {
   String get fixturePath => path.join(
-        'test/src/commands/report/fixtures/',
+        'test/src/commands/report/fixtures/fake_project_1/',
         this,
       );
 }
