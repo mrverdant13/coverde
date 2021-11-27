@@ -6,6 +6,7 @@ import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
+import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 
 /// {@template report_cmd}
@@ -173,6 +174,24 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
       ..createSync(recursive: true)
       ..writeAsBytesSync(sortNumericPngBytes);
 
-    _out.writeln(covTree);
+    final reportIndexAbsPath = path
+        .join(reportDirAbsPath, 'index.html')
+        .replaceAll(RegExp(r'(\/|\\)'), path.separator);
+
+    _out
+      ..writeln(covTree)
+      ..write(
+        wrapWith(
+          'Report location: ',
+          [blue, styleBold],
+        ),
+      )
+      ..writeln(
+        wrapWith(
+          reportIndexAbsPath,
+          [blue, styleBold, styleUnderlined],
+        ),
+      )
+      ..writeln();
   }
 }
