@@ -45,3 +45,14 @@ jobs:
           files: "./coverage/filtered.lcov.info"
           fail_ci_if_error: true
           verbose: true
+
+  pana:
+    name: Check pub score
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub global activate melos ^1.0.0-dev.10
+      - run: melos bs
+      - run: melos run P
