@@ -82,6 +82,12 @@ scripts:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
     run: melos run T:ci && melos run M && coverde check 100
 
+  P:
+    # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
+    # TODO: Create CHANGELOG and reduce max diff to 10.
+    description: Check pub score.
+    run: dart run tool/pub_score_checker.dart 15
+
   WF:
     description: Run full local workflow
     run: melos run FA && melos run TMC
