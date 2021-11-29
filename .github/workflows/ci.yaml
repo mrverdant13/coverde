@@ -35,15 +35,25 @@ jobs:
       - run: dart pub global activate --source path .
       - run: melos bs
       - run: melos run TMC:ci
+      - uses: actions/upload-artifact@v2
+        if: matrix.os == "ubuntu-latest"
+        with:
+          name: filtered.lcov.info
+          path: ./coverage/filtered.lcov.info
+          retention-days: 1
 
   codecov:
     name: Publish coverage results
     needs: test
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: filtered.lcov.info
+          path: ./coverage/filtered.lcov.info
       - uses: codecov/codecov-action@v2
         with:
-          files: "./coverage/filtered.lcov.info"
+          files: ./coverage/filtered.lcov.info
           fail_ci_if_error: true
           verbose: true
 
