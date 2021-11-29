@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// # Computable Coverage Entity
 ///

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
 import 'package:coverde/src/assets/file_report_template.html.asset.dart';
@@ -10,6 +8,7 @@ import 'package:coverde/src/entities/covfile_format.exception.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template cov_file}
 /// # Covered File Data

@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:coverde/coverde.dart' show coverde;
 import 'package:coverde/src/entities/coverde.exception.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+import 'package:universal_io/io.dart';
 
 Future<void> main(List<String> arguments) async {
   try {

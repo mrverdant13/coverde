@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
@@ -7,6 +5,7 @@ import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template check_cmd}
 /// A command to check the minimum coverage value from a tracefile.

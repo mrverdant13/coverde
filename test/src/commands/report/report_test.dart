@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
@@ -8,6 +7,7 @@ import 'package:coverde/src/utils/path.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 

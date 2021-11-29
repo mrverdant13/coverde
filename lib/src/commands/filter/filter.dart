@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template filter_cmd}
 /// A command to filter coverage info files.

@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_line.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 void main() {
   test(
