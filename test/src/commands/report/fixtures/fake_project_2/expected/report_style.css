@@ -463,12 +463,12 @@ span.coverLegendCovHi {
   background-color: #a7fc9d;
 }
 
-/* HACK: Cov table */
+/* Cov table */
 table.barTable {
   min-width: 100px;
 }
 
-/* HACK: Progress bars */
+/* Progress bars */
 
 td.barBackground {
   background-color: white;
