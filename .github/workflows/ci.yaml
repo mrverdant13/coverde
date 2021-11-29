@@ -55,5 +55,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1
       - run: dart pub global activate melos ^1.0.0-dev.10
+      - run: dart pub global activate pana
       - run: melos bs
       - run: melos run P
