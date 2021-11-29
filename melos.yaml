@@ -68,9 +68,23 @@ scripts:
     description: Generate HTML coverage report.
     run: coverde report --input ./coverage/lcov.info
 
+  FA:
+    description: Format and analyze.
+    run: melos run D && melos run F && melos run A
+  FA:ci:
+    description: Format and analyze.
+    run: melos run D:ci && melos run F:ci && melos run A:ci
+
+  TMC:
+    description: Run tests, generate unified coverage trace file and check minimum coverage.
+    run: melos run T && melos run M && coverde check 100
+  TMC:ci:
+    description: Run tests, generate unified coverage trace file and check minimum coverage.
+    run: melos run T:ci && melos run M && coverde check 100
+
   WF:
     description: Run full local workflow
-    run: melos run D && melos run F && melos run A && melos run T && melos run M && coverde check 98 --input ./coverage/lcov.info
+    run: melos run FA && melos run TMC
   WF:ci:
     description: Run full CI workflow
-    run: melos run D:ci && melos run F:ci && melos run A:ci && melos run T:ci && melos run M && coverde check 98 --input ./coverage/lcov.info
+    run: melos run FA:ci && melos run TMC:ci
