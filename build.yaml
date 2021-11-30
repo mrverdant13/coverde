@@ -5,6 +5,10 @@ targets:
         enabled: True
         generate_for:
           - assets/*
+      coverde|cliDataBuilder:
+        enabled: True
+        generate_for:
+          - pubspec.yaml
 
 builders:
   assetsBuilder:
@@ -13,5 +17,13 @@ builders:
     build_extensions:
       assets/{{}}:
         - lib/src/assets/{{}}.asset.dart
+    build_to: source
+    auto_apply: root_package
+  cliDataBuilder:
+    import: "tool/cli_data_builder.dart"
+    builder_factories: ["cliDataBuilder"]
+    build_extensions:
+      pubspec.yaml:
+        - lib/src/utils/cli.data.dart
     build_to: source
     auto_apply: root_package
