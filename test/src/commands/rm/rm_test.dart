@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 

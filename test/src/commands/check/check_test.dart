@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
@@ -7,6 +5,7 @@ import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 

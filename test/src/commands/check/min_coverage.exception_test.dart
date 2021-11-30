@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 extension _FixturedString on String {
   String get fixturePath => path.join(

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
@@ -8,6 +7,7 @@ import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template report_cmd}
 /// A command to generate the coverage report from a given tracefile.
