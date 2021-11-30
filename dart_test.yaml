@@ -1,0 +1,3 @@
+tags:
+  ci-only:
+    skip: "Should only be run on CI workflows"

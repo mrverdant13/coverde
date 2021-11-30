@@ -18,6 +18,8 @@ class AssetsBuilder implements Builder {
     _inputPath: [_outputPath],
   };
 
+  static const _plainTextFileExtensions = ['.html', '.css'];
+
   @override
   Future<void> build(BuildStep buildStep) async {
     final origin = buildStep.inputId;
@@ -35,7 +37,14 @@ class AssetsBuilder implements Builder {
       ..writeln('/// `$assetFilename` asset.')
       ..writeln('const ${assetFilename.asCamelCase}Bytes = <int>[');
     for (final b in assetContent) {
-      sb.writeln('  $b,');
+      final isPlainTextFile = _plainTextFileExtensions.contains(
+        origin.extension,
+      );
+      // Ignore `CR` char for plain text files.
+      // This avoids issues related to platform specific line endings.
+      if (b != 13 || !isPlainTextFile) {
+        sb.writeln('  $b,');
+      }
     }
     sb.writeln('];');
 

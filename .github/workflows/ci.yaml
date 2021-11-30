@@ -19,9 +19,20 @@ jobs:
       - run: melos bs
       - run: melos run FA:ci
 
+  src-gen:
+    name: Ensure up-to-date source generation
+    runs-on: ubuntu-latest
+    needs: min-conditions
+    steps:
+      - uses: actions/checkout@v2
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub global activate melos ^1.0.0-dev.10
+      - run: melos bs
+      - run: melos exec --file-exists=test/ensure_up_to_date_src_gen_test.dart --depends-on=test -- dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
+
   test:
     name: Test implementation
-    needs: min-conditions
+    needs: src-gen
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
