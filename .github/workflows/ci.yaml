@@ -28,7 +28,7 @@ jobs:
       - uses: dart-lang/setup-dart@v1
       - run: dart pub global activate melos ^1.0.0-dev.10
       - run: melos bs
-      - run: melos exec --depends-on=test --file-exists=test/ensure_up_to_date_src_gen_test.dart -- dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
+      - run: melos exec --file-exists=test/ensure_up_to_date_src_gen_test.dart --depends-on=test -- dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
 
   test:
     name: Test implementation
