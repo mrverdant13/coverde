@@ -8,3 +8,7 @@ pubspec.lock
 
 # Coverage
 coverage/
+
+# Melos
+melos_coverde.iml
+.idea/
