@@ -6,6 +6,8 @@ import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -60,7 +62,25 @@ extension _FixturedString on String {
       );
 }
 
+class MockProcessManager extends Mock implements ProcessManager {}
+
+class FakeProcessResult extends Mock implements ProcessResult {}
+
 void main() {
+  test(
+    '''
+    
+A trace file report generator command should be instantiable
+''',
+    () {
+      // ACT
+      final result = ReportCommand();
+
+      // ASSERT
+      expect(result, isNotNull);
+    },
+  );
+
   group(
     '''
 
@@ -68,6 +88,7 @@ GIVEN a tracefile report generator command''',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
+      late MockProcessManager processManager;
       late ReportCommand reportCmd;
 
       // ARRANGE
@@ -75,7 +96,11 @@ GIVEN a tracefile report generator command''',
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
           out = MockStdout();
-          reportCmd = ReportCommand(out: out);
+          processManager = MockProcessManager();
+          reportCmd = ReportCommand(
+            out: out,
+            processManager: processManager,
+          );
           cmdRunner.addCommand(reportCmd);
         },
       );
@@ -109,7 +134,9 @@ Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
 
 AND an existing tracefile <${proj.name}>
 WHEN the command is invoqued
-THEN an HTML coverage report should be generated
+THEN a coverage report should be launched
+├─ BY generating an HTML report
+├─ AND launching it in a browser 
 ''',
             () async {
               // ARRANGE
@@ -120,6 +147,16 @@ THEN an HTML coverage report should be generated
               final reportDirPath = resultDirName.fixturePath(proj: proj);
               final reportDir = Directory(reportDirPath);
               const listEquality = ListEquality<int>();
+              when(
+                () => processManager.run(
+                  any(),
+                  runInShell: any(named: 'runInShell'),
+                ),
+              ).thenAnswer(
+                (_) async => Future.value(
+                  FakeProcessResult(),
+                ),
+              );
 
               expect(tracefileFile.existsSync(), isTrue);
 
@@ -130,6 +167,7 @@ THEN an HTML coverage report should be generated
                 tracefileFilePath,
                 '--${ReportCommand.outputOption}',
                 reportDirPath,
+                '--${ReportCommand.launchFlag}',
               ]);
 
               // ASSERT
@@ -198,6 +236,19 @@ Error: Non-matching (plain text) file <$relFilePath>''',
                   }
                 }
               }
+              verify(
+                () => processManager.run(
+                  any(
+                    that: containsAllInOrder(
+                      <Matcher>[
+                        equals(launchCommands[Platform.operatingSystem]),
+                        contains(path.join(reportDirPath, 'index.html')),
+                      ],
+                    ),
+                  ),
+                  runInShell: true,
+                ),
+              ).called(1);
             },
           );
         }
