@@ -90,7 +90,7 @@ scripts:
 
   WF:
     description: Run full local workflow
-    run: melos run FA && melos run TMC
+    run: melos run FA && melos run TMC && melos run P
   WF:ci:
     description: Run full CI workflow
-    run: melos run FA:ci && melos run TMC:ci
+    run: melos run FA:ci && melos run TMC:ci && melos run P
