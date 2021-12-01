@@ -37,6 +37,13 @@ Destination directory where the generated coverage report will be stored.''',
         valueHelp: _outputHelpValue,
         defaultsTo: 'coverage/html/',
       )
+      ..addFlag(
+        launchFlag,
+        abbr: launchFlag[0],
+        help: '''
+Launch the generated report in the default browser.
+(defaults to off)''',
+      )
       ..addSeparator(
         '''
 Threshold values (%):
@@ -59,12 +66,6 @@ Medium threshold.''',
 High threshold.''',
         valueHelp: _highHelpValue,
         defaultsTo: '90',
-      )
-      ..addFlag(
-        launchFlag,
-        abbr: launchFlag[0],
-        help: '''
-Launch the generated report in the default browser.''',
       );
   }
 
