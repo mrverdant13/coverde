@@ -7,6 +7,7 @@ import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
+import 'package:process/process.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template report_cmd}
@@ -14,7 +15,11 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class ReportCommand extends Command<void> {
   /// {@macro report_cmd}
-  ReportCommand({Stdout? out}) : _out = out ?? stdout {
+  ReportCommand({
+    Stdout? out,
+    ProcessManager? processManager,
+  })  : _out = out ?? stdout,
+        _processManager = processManager ?? const LocalProcessManager() {
     argParser
       ..addOption(
         inputOption,
@@ -31,6 +36,13 @@ Coverage tracefile to be used for the coverage report generation.''',
 Destination directory where the generated coverage report will be stored.''',
         valueHelp: _outputHelpValue,
         defaultsTo: 'coverage/html/',
+      )
+      ..addFlag(
+        launchFlag,
+        abbr: launchFlag[0],
+        help: '''
+Launch the generated report in the default browser.
+(defaults to off)''',
       )
       ..addSeparator(
         '''
@@ -58,6 +70,7 @@ High threshold.''',
   }
 
   final Stdout _out;
+  final ProcessManager _processManager;
 
   static const _inputHelpValue = 'TRACEFILE';
   static const _outputHelpValue = 'REPORT_DIR';
@@ -79,6 +92,11 @@ High threshold.''',
   /// Option name to set the high threshold for coverage validation.
   @visibleForTesting
   static const highOption = 'high';
+
+  /// Flag name to indicate if the resulting report should be launched in the
+  /// browser.
+  @visibleForTesting
+  static const launchFlag = 'launch';
 
   @override
   String get description => '''
@@ -115,6 +133,10 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
     );
     final high = double.tryParse(highString);
     if (high == null) usageException('Invalid high threshold.');
+    final shouldLaunch = checkFlag(
+      flagKey: launchFlag,
+      flagName: 'launch',
+    );
 
     // Report dir path should be absolute.
     final reportDirAbsPath = path.isAbsolute(_reportDirPath)
@@ -193,5 +215,22 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
         ),
       )
       ..writeln();
+
+    if (shouldLaunch) {
+      final launchCommand = launchCommands[Platform.operatingSystem];
+      await _processManager.run(
+        [launchCommand!, reportIndexAbsPath],
+        runInShell: true,
+      );
+    }
   }
 }
+
+/// A linked map of commands to launch the report in the browser by its platform
+/// name.
+@visibleForTesting
+const launchCommands = {
+  'macos': 'open',
+  'linux': 'xdg-open',
+  'windows': 'start',
+};

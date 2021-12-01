@@ -126,11 +126,17 @@ $ dart pub global activate coverde
 
 The report style is dynamically set according to individual, group and global coverage and the `--medium` and `--high` options.
 
+### Flags
+
+| Flag                                                             | Description                                         | Default value |
+| ---------------------------------------------------------------- | --------------------------------------------------- | :-----------: |
+| Enable:<br>• `--launch`<br>• `-l`<br>Disable:<br>• `--no-launch` | Launch the generated report in the default browser. |  _Disabled_   |
+
 ### Examples
 
 - `coverde report`
 - `coverde report -i coverage/tracefile.info --medium 50`
-- `coverde report -o coverage/report --high 95`
+- `coverde report -o coverage/report --high 95 -l`
 
 ### Results
 
