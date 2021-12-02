@@ -37,6 +37,12 @@ Remove a set of files and folders.''';
   List<String> get aliases => ['rm'];
 
   @override
+  String get invocation => super.invocation.replaceAll(
+        '[arguments]',
+        '[paths]',
+      );
+
+  @override
   Future<void> run() async {
     final shouldAcceptAbsence = checkFlag(
       flagKey: acceptAbsenceFlag,

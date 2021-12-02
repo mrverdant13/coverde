@@ -90,6 +90,9 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
   List<String> get aliases => [name[0]];
 
   @override
+  bool get takesArguments => false;
+
+  @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
     final originPath = checkOption(

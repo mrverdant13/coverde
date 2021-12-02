@@ -74,6 +74,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
       flagName: 'verbose',
     );
     final args = argResults!.rest;
+    if (args.length > 1) usageException('Too many arguments.');
     final coverageThresholdStr = args.firstOrNull;
     if (coverageThresholdStr == null) {
       usageException('Missing minimum coverage threshold.');
