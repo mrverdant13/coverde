@@ -46,18 +46,6 @@ scripts:
     description: Analyze codebase for all packages considering infos and warnings as errors.
     run: melos exec --fail-fast -- dart analyze --fatal-infos --fatal-warnings .
 
-  v:
-    description: Verify up-to-date generated files for a selected package.
-    run: melos exec -c 1 -- "dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart"
-    select-package:
-      depends-on: build_runner
-  V:
-    description: Verify up-to-date generated files for all packages.
-    run: melos run v --no-select
-  V:ci:
-    description: Verify up-to-date generated files for all packages.
-    run: melos exec --fail-fast --depends-on=build_runner -- "dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart"
-
   t:
     description: Run tests and generate coverage tracefile for a selected package in random order.
     run: melos exec -c 1 -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
@@ -102,7 +90,7 @@ scripts:
 
   WF:
     description: Run full local workflow
-    run: melos run FA && melos run V && melos run TMC && melos run P
+    run: melos run FA && melos run TMC && melos run P
   WF:ci:
     description: Run full CI workflow
-    run: melos run FA:ci && melos run V:ci && melos run TMC:ci && melos run P
+    run: melos run FA:ci && melos run TMC:ci && melos run P
