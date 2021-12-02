@@ -53,6 +53,10 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Install melos
         run: dart pub global activate melos ^1.0.0-dev.10
+      - name: Install coverage
+        run: dart pub global activate coverage
+      - name: Install coverde
+        run: dart pub global activate --source path .
       - name: Initialize melos
         run: melos bs
       - name: Run tests, merge tests if needed, and check 100% coverage
