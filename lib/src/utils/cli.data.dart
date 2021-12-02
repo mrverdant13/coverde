@@ -1,5 +1,5 @@
 /// The `coverde` CLI name.
-const String cliName = 'coverde';
+const cliName = 'coverde';
 
 /// The `coverde` CLI version.
-const String cliVersion = '0.1.0+1';
+const cliVersion = '0.1.0+1';

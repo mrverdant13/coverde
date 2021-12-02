@@ -20,10 +20,10 @@ class CliDataBuilder implements Builder {
 
     final sb = StringBuffer()
       ..writeln('/// The `coverde` CLI name.')
-      ..writeln("const String cliName = '$cliName';")
+      ..writeln("const cliName = '$cliName';")
       ..writeln()
       ..writeln('/// The `coverde` CLI version.')
-      ..writeln("const String cliVersion = '$cliVersion';");
+      ..writeln("const cliVersion = '$cliVersion';");
 
     final destination = AssetId(
       origin.package,

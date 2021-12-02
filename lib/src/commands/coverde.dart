@@ -31,7 +31,7 @@ Future<void> _checkUpdates() async {
     final latestVersion = await updater.getLatestVersion(cliName);
     final isUpToDate = latestVersion == cliVersion;
     if (!isUpToDate) {
-      final updateMessage = 'A new version of `$cliName` is available!';
+      const updateMessage = 'A new version of `$cliName` is available!';
       final styledUpdateMessage = lightYellow.wrap(updateMessage);
       final styledVersionsMessage = '''
 ${lightGray.wrap(cliVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
@@ -40,7 +40,7 @@ ${lightGray.wrap(cliVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
         [lightCyan, styleBold],
       );
       final styledCommandMessage = 'Run $styledCommand to update.';
-      final boxLength = updateMessage.length + 4;
+      const boxLength = updateMessage.length + 4;
       final totalVersionsMessagePaddingLength =
           boxLength - latestVersion.length - cliVersion.length - 3;
       final versionsMessagePadding =

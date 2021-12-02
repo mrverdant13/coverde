@@ -55,6 +55,9 @@ Compute the coverage value of the $_inputHelpValue info file.''';
   List<String> get aliases => [name[0]];
 
   @override
+  bool get takesArguments => false;
+
+  @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
     final filePath = checkOption(

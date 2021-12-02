@@ -58,11 +58,12 @@ scripts:
     description: Run tests and generate coverage tracefiles for all packages in random order.
     run: melos exec --fail-fast --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
 
-  M:
+  MC:
     description: Merge all packages coverage tracefiles ignoring data related to generated files.
     run: >
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart
+      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart &&
+      coverde check -i coverage/filtered.lcov.info 100
 
   R:
     description: Generate HTML coverage report.
@@ -70,23 +71,22 @@ scripts:
 
   FA:
     description: Format and analyze.
-    run: melos run D && melos run F && melos run A
+    run: melos run F && melos run A
   FA:ci:
     description: Format and analyze.
-    run: melos run D:ci && melos run F:ci && melos run A:ci
+    run: melos run F:ci && melos run A:ci
 
   TMC:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
-    run: melos run T && melos run M && coverde check 100
+    run: melos run T && melos run MC
   TMC:ci:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
-    run: melos run T:ci && melos run M && coverde check 100
+    run: melos run T:ci && melos run MC
 
   P:
     # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
-    # TODO: Create CHANGELOG and reduce max diff to 10.
     description: Check pub score.
-    run: dart run tool/pub_score_checker.dart 15
+    run: dart run tool/pub_score_checker.dart 10
 
   WF:
     description: Run full local workflow

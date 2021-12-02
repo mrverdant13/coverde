@@ -71,9 +71,9 @@ $ dart pub global activate coverde
 
 ### Results
 
-![Check example (pass)](doc/check_result_pass.png)
+![Check example (pass)](https://github.com/mrverdant13/coverde/blob/main/doc/check_result_pass.png?raw=true)
 
-![Check example (fail)](doc/check_result_fail.png)
+![Check example (fail)](https://github.com/mrverdant13/coverde/blob/main/doc/check_result_fail.png?raw=true)
 
 ## `coverde filter`
 
@@ -140,9 +140,9 @@ The report style is dynamically set according to individual, group and global co
 
 ### Results
 
-![Report example (directory)](doc/report_directory_example.png)
+![Report example (directory)](https://github.com/mrverdant13/coverde/blob/main/doc/report_directory_example.png?raw=true)
 
-![Report example (file)](doc/report_file_example.png)
+![Report example (file)](https://github.com/mrverdant13/coverde/blob/main/doc/report_file_example.png?raw=true)
 
 ## `coverde value`
 
