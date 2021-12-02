@@ -40,7 +40,7 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Verify up-to-date generated source files
-        run: melos exec --file-exists=test/ensure_up_to_date_src_gen_test.dart --depends-on=test -- dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
+        run: melos run V:ci
 
   test:
     name: Test implementation

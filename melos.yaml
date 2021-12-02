@@ -46,6 +46,18 @@ scripts:
     description: Analyze codebase for all packages considering infos and warnings as errors.
     run: melos exec --fail-fast -- dart analyze --fatal-infos --fatal-warnings .
 
+  v:
+    description: Verify up-to-date generated files for a selected package.
+    run: melos exec -c 1 -- "dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart"
+    select-package:
+      depends-on: build_runner
+  V:
+    description: Verify up-to-date generated files for all packages.
+    run: melos run v --no-select
+  V:ci:
+    description: Verify up-to-date generated files for all packages.
+    run: melos exec --fail-fast --depends-on=build_runner -- "dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart"
+
   t:
     description: Run tests and generate coverage tracefile for a selected package in random order.
     run: melos exec -c 1 -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
@@ -58,11 +70,12 @@ scripts:
     description: Run tests and generate coverage tracefiles for all packages in random order.
     run: melos exec --fail-fast --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
 
-  M:
+  MC:
     description: Merge all packages coverage tracefiles ignoring data related to generated files.
     run: >
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart
+      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart &&
+      coverde check -i coverage/filtered.lcov.info 100
 
   R:
     description: Generate HTML coverage report.
@@ -70,27 +83,26 @@ scripts:
 
   FA:
     description: Format and analyze.
-    run: melos run D && melos run F && melos run A
+    run: melos run F && melos run A
   FA:ci:
     description: Format and analyze.
-    run: melos run D:ci && melos run F:ci && melos run A:ci
+    run: melos run F:ci && melos run A:ci
 
   TMC:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
-    run: melos run T && melos run M && coverde check 100
+    run: melos run T && melos run MC
   TMC:ci:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
-    run: melos run T:ci && melos run M && coverde check 100
+    run: melos run T:ci && melos run MC
 
   P:
     # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
-    # TODO: Create CHANGELOG and reduce max diff to 10.
     description: Check pub score.
-    run: dart run tool/pub_score_checker.dart 15
+    run: dart run tool/pub_score_checker.dart 10
 
   WF:
     description: Run full local workflow
-    run: melos run FA && melos run TMC && melos run P
+    run: melos run FA && melos run V && melos run TMC && melos run P
   WF:ci:
     description: Run full CI workflow
-    run: melos run FA:ci && melos run TMC:ci && melos run P
+    run: melos run FA:ci && melos run V:ci && melos run TMC:ci && melos run P
