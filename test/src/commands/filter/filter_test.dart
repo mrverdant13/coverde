@@ -76,7 +76,7 @@ THEN a filtered tracefile should be created
         () async {
           // ARRANGE
           const patterns = <String>['.g.dart'];
-          final patternsRegex = patterns.map((p) => RegExp(p));
+          final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = 'original.lcov.info'.fixturePath;
           final filteredFilePath = 'filtered.lcov.info'.fixturePath;
           final originalFile = File(originalFilePath);
