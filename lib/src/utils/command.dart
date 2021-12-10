@@ -19,7 +19,7 @@ extension ExtendedCommand on Command {
   }) {
     if (argResults == null) usageException('Missing arguments.');
     final maybeOption = argResults![optionKey] as String?;
-    if (maybeOption == null || (maybeOption is String && maybeOption.isEmpty)) {
+    if (maybeOption == null || maybeOption.isEmpty) {
       usageException('The `$optionName` is required.');
     }
     return maybeOption;

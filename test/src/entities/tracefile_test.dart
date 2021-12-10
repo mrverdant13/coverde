@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
@@ -21,7 +19,7 @@ ${buildCovLinesEntries(linesCount + 1).map((covLineEntry) => 'DA:${covLineEntry.
 end_of_record''';
 
   final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
-      .map((s) => CovFile.parse(s));
+      .map(CovFile.parse);
 
   final tracefile = Tracefile(
     sourceFilesCovData: covFiles,

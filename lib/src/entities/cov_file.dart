@@ -54,9 +54,8 @@ class CovFile extends CovElement {
       ].reduce(path.join),
     );
 
-    final covLines = dataLines
-        .where((l) => l.startsWith(lineDataTag))
-        .map((covLineData) => CovLine.parse(covLineData));
+    final covLines =
+        dataLines.where((l) => l.startsWith(lineDataTag)).map(CovLine.parse);
 
     return CovFile(
       source: File(sourceFile),

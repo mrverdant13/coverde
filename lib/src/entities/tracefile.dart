@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_dir.dart';
@@ -34,7 +32,7 @@ class Tracefile extends CovComputable {
         .where((s) => s.isNotEmpty)
         .map((s) => '$s\n${CovFile.endOfRecordTag}');
     final sourceFilesCovData = filesCovDataStr
-        .map((d) => CovFile.parse(d))
+        .map(CovFile.parse)
         .where((fileCovData) => fileCovData.linesFound > 0);
     return Tracefile(
       sourceFilesCovData: sourceFilesCovData,
@@ -49,7 +47,7 @@ class Tracefile extends CovComputable {
   /// Check if any name of the files included by this tracefile match any of the
   /// provided [patterns].
   bool includeFileThatMatchPatterns(List<String> patterns) => patterns
-      .map((p) => RegExp(p))
+      .map(RegExp.new)
       .any((p) => _sourceFilesCovData.any((f) => p.hasMatch(f.source.path)));
 
   /// The coverage data related to the referenced source files.
