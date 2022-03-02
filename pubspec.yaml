@@ -6,7 +6,7 @@ repository: https://github.com/mrverdant13/coverde
 issue_tracker: https://github.com/mrverdant13/coverde/issues
 
 environment:
-  sdk: ">=2.15.0 <3.0.0"
+  sdk: ">=2.16.1 <3.0.0"
 
 dependencies:
   args: ^2.3.0
