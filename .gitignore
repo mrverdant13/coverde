@@ -12,3 +12,6 @@ coverage/
 # Melos
 melos_coverde.iml
 .idea/
+
+# VSCode
+.vscode/
