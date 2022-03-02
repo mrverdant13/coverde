@@ -28,8 +28,8 @@ If you can include screenshots, trace data or any additional context, it could b
 
 ### Pre-requisites
 
-- [Dart SDK][dart_link] - min version: 2.14.4 (stable)
-- [Melos][melos_link] - min version: 0.4.11+2
+- [Dart SDK][dart_link] - min version: 2.16.1
+- [Melos][melos_link] - min version: 1.3.0
 - `coverde` - version: local (installed by executing `dart pub global activate --source path .` in the local `coverde` root folder)
 
 ### Pull Requests
