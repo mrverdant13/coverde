@@ -14,6 +14,7 @@ dependencies:
   html: ^0.15.0
   io: ^1.0.3
   meta: ^1.7.0
+  mustache_template: ^2.0.0
   path: ^1.8.1
   process: ^4.2.4
   pub_updater: ^0.2.2
