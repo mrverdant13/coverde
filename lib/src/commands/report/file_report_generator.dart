@@ -224,7 +224,7 @@ mixin FileReportGenerator on ReportGeneratorBase {
       'coverage': covFile.coverage,
       'covSuffix': covClassSuffix(covFile.coverage),
       'date': tracefileModificationDateTime.toString(),
-      'linesReports': lineReportSegmentsBuf.toString(),
+      'linesReports': lineReportSegmentsBuf.toString().trim(),
     };
 
     final reportPath = path.join(rootReportDir.path, '$relativePath.html');
