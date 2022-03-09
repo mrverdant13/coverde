@@ -148,7 +148,7 @@ mixin FileReportGenerator on ReportGeneratorBase {
     required CovLine? covLine,
     required String source,
   }) {
-    final paddedLineNumber = '$lineNumber'.padLeft(9);
+    final paddedLineNumber = '$lineNumber '.padLeft(9);
     final maybePaddedLineHits = () {
       final maybeLineHits = '${covLine?.hitsNumber ?? ''}';
       return maybeLineHits.padLeft(11);
