@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
+import 'package:coverde/src/commands/report/report_generator.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
@@ -163,16 +164,18 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
     // Parse tracefile data.
     final tracefileData = Tracefile.parse(tracefileContent);
 
-    // Build cov report base tree.
-    final covTree = tracefileData.asTree
-      // Generate report doc.
-      ..generateReport(
-        tracefileName: path.basename(tracefileAbsPath),
-        tracefileModificationDate: tracefile.lastModifiedSync(),
-        parentReportDirAbsPath: reportDirAbsPath,
-        medium: medium,
-        high: high,
-      );
+    // Build coverage tree
+    final covTree = tracefileData.asTree;
+
+    ReportGenerator(
+      tracefile: tracefileData,
+      tracefileName: path.basename(tracefileAbsPath),
+      tracefileModificationDateTime: tracefile.lastModifiedSync(),
+    ).generate(
+      outputDir: Directory(reportDirAbsPath),
+      medium: medium,
+      high: high,
+    );
 
     // Copy static files.
     final cssRootPath = path.join(
