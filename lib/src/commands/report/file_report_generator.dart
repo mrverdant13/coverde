@@ -9,7 +9,7 @@ import 'package:universal_io/io.dart';
 /// Report generator for [CovFile]s.
 mixin FileReportGenerator on ReportGeneratorBase {
   static const _lineReportSegmentTemplateSource = '''
-<a name="{{lineNumber}}"><span class="lineNum">{{paddedLineNumber}} </span><span class="sourceLine{{lineHtmlClass}}">{{maybePaddedLineHits}} : {{{lineSource}}}</span></a>''';
+<a name="{{lineNumber}}"><span class="lineNum">{{paddedLineNumber}}</span><span class="sourceLine{{lineHtmlClass}}">{{maybePaddedLineHits}} : {{{lineSource}}}</span></a>''';
 
   static final _lineReportSegmentTemplate = Template(
     _lineReportSegmentTemplateSource,
