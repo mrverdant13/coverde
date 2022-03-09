@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
 import 'package:coverde/src/assets/file_report_template.html.asset.dart';
-import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
 import 'package:coverde/src/entities/covfile_format.exception.dart';
@@ -120,86 +119,4 @@ class CovFile extends CovElement {
   static final fileReportLineTemplate = Element.html(
     String.fromCharCodes(fileReportLineTemplateHtmlBytes),
   );
-
-  @override
-  void generateSubReport({
-    required String tracefileName,
-    required String parentReportDirAbsPath,
-    required String reportDirRelPath,
-    required int reportRelDepth,
-    required DateTime tracefileModificationDate,
-    required double medium,
-    required double high,
-  }) {
-    final fileReport = fileReportTemplate.clone(true);
-
-    final topLevelDirRelPath = (reportRelDepth > 1)
-        ? List.filled(reportRelDepth - 1, '..').reduce(path.join)
-        : '.';
-    final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
-    final topLevelCssRelPath = path.join(
-      topLevelDirRelPath,
-      reportStyleCssFilename,
-    );
-
-    final reportFileAbsPath = path.join(
-      parentReportDirAbsPath,
-      '$reportDirRelPath.html',
-    );
-
-    {
-      final title = 'Coverage Report - $tracefileName';
-      final currentDirPath = source.parent.path;
-      final fileName = path.basename(source.path);
-      final suffix = getClassSuffix(medium: medium, high: high);
-
-      fileReport.head
-        ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
-        ..querySelector('.headTitle')?.text = title;
-
-      fileReport.querySelector('.topLevelAnchor')?.attributes['href'] =
-          topLevelReportRelPath;
-      fileReport.querySelector('.currentDirPath')?.text = currentDirPath;
-      fileReport.querySelector('.currentFileName')?.nodes.last.text =
-          ' - $fileName';
-      fileReport.querySelector('.tracefileName')?.text = tracefileName;
-      fileReport.querySelector('.linesHit')?.text = '$linesHit';
-      fileReport.querySelector('.linesFound')?.text = '$linesFound';
-      fileReport.querySelector('.covValue')
-        ?..text = '$coverageString %'
-        ..classes.add('headerCovTableEntry$suffix');
-    }
-
-    fileReport.querySelector('.lastTracefileModificationDate')?.text =
-        tracefileModificationDate.toString();
-
-    {
-      final src = fileReport.querySelector('.source');
-      final sourceLines = source.readAsLinesSync();
-      final indexedSourceLines = sourceLines.asMap();
-      for (final sourceLine in indexedSourceLines.entries) {
-        final lineNumber = sourceLine.key + 1;
-        final lineContent = sourceLine.value;
-        final fileReportLine = fileReportLineTemplate.clone(true);
-        final lineNumberText = '$lineNumber '.padLeft(9);
-        fileReportLine.querySelector('.lineNum')?.text = lineNumberText;
-        {
-          final covLine = _covLines.singleWhereOrNull(
-            (e) => e.lineNumber == lineNumber,
-          );
-          final lineHitsText = '${covLine?.hitsNumber ?? ''}'.padLeft(11);
-          final srcLine = fileReportLine.querySelector('.sourceLine');
-          srcLine?.text = '$lineHitsText : $lineContent';
-          if (covLine != null) {
-            srcLine?.classes.add(covLine.hasBeenHit ? 'lineCov' : 'lineNoCov');
-          }
-          src?.append(fileReportLine);
-        }
-      }
-    }
-
-    File(reportFileAbsPath)
-      ..createSync(recursive: true)
-      ..writeAsStringSync(fileReport.outerHtml);
-  }
 }
