@@ -51,7 +51,7 @@ Threshold values (%):
 These options provide reference coverage values for the HTML report styling.
 
 High: $_highHelpValue <= coverage <= 100
-Medium: $_mediumHelpValue <= coverge < $_highHelpValue
+Medium: $_mediumHelpValue <= coverage < $_highHelpValue
 Low: 0 <= coverage < $_mediumHelpValue''',
       )
       ..addOption(
@@ -82,7 +82,7 @@ High threshold.''',
   @visibleForTesting
   static const inputOption = 'input';
 
-  /// Option name for the destionation container folder to dump the report to.
+  /// Option name for the destination container folder to dump the report to.
   @visibleForTesting
   static const outputOption = 'output';
 
@@ -103,7 +103,7 @@ High threshold.''',
   String get description => '''
 Generate the coverage report from a tracefile.
 
-Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue tracefile.''';
+Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue tracefile.''';
 
   @override
   String get name => 'report';
