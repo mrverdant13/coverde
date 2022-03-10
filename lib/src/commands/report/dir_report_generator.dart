@@ -183,11 +183,8 @@ mixin DirReportGenerator on ReportGeneratorBase {
       from: covParent.source.path,
     );
     final reportRelativePath = () {
-      if (covSubElement is CovDir) {
-        return path.join(relativePath, 'index.html');
-      }
       if (covSubElement is CovFile) return '$relativePath.html';
-      throw FallThroughError();
+      if (covSubElement is CovDir) return path.join(relativePath, 'index.html');
     }();
     final coverage = covSubElement.coverage;
 
