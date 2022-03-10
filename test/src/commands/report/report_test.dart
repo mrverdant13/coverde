@@ -142,7 +142,7 @@ THEN a coverage report should be launched
               // ARRANGE
               final tracefileFilePath = 'lcov.info'.fixturePath(proj: proj);
               final tracefileFile = File(tracefileFilePath);
-              const resultDirName = 'result';
+              const resultDirName = '.report-output-test';
               const expectedDirName = 'expected';
               final reportDirPath = resultDirName.fixturePath(proj: proj);
               final reportDir = Directory(reportDirPath);
