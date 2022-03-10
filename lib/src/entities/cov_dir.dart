@@ -152,19 +152,17 @@ class CovDir extends CovElement {
 
   @override
   String toString() {
-    final buf = StringBuffer(
-      'Node: $coverageDataString',
-    );
+    final buf = StringBuffer()..writeln('Node: $coverageDataString');
     elements.map(
       (e) {
         if (e is CovFile) {
-          return '\n├─ SF: ${e.coverageDataString}';
+          return '├─ SF: ${e.coverageDataString}';
         } else if (e is CovDir) {
-          return '\n├─ ${e.toString().replaceAll('\n', '\n│  ')}';
+          return '├─ ${e.toString().replaceAll('\n', '\n│  ')}';
         }
       },
-    ).forEach(buf.write);
+    ).forEach(buf.writeln);
     buf.writeln();
-    return buf.toString();
+    return buf.toString().trim();
   }
 }

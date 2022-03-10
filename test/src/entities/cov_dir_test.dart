@@ -217,14 +217,10 @@ Node: test/ (100.00% - 4/4)
 ├─ Node: test/dir_1/ (100.00% - 2/2)
 │  ├─ SF: test/dir_1/file_1.1.ext (100.00% - 1/1)
 │  ├─ SF: test/dir_1/file_1.2.ext (100.00% - 1/1)
-│
 ├─ Node: test/dir_2/dir_2_1/dir_2_1_1 (100.00% - 2/2)
 │  ├─ Node: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/ (100.00% - 1/1)
 │  │  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext (100.00% - 1/1)
-│  │
-│  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext (100.00% - 1/1)
-│
-''';
+│  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext (100.00% - 1/1)''';
 
         // ACT
         final result = tree.toString();
