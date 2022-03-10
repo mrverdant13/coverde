@@ -1,7 +1,4 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/assets/report_style.css.asset.dart';
-import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
-import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/commands/report/report_generator.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
@@ -176,31 +173,6 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       medium: medium,
       high: high,
     );
-
-    // Copy static files.
-    final cssRootPath = path.join(
-      reportDirAbsPath,
-      'report_style.css',
-    );
-    File(cssRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(reportStyleCssBytes);
-
-    final sortAlphaIconRootPath = path.join(
-      reportDirAbsPath,
-      'sort_alpha.png',
-    );
-    File(sortAlphaIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortAlphaPngBytes);
-
-    final sortNumericIconRootPath = path.join(
-      reportDirAbsPath,
-      'sort_numeric.png',
-    );
-    File(sortNumericIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortNumericPngBytes);
 
     final reportIndexAbsPath = path
         .join(reportDirAbsPath, 'index.html')
