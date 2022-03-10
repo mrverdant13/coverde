@@ -34,8 +34,6 @@ extension _ExtendedProj on _Project {
           'dir_2/dir_1/index.html',
           'index.html',
           'report_style.css',
-          'sort_alpha.png',
-          'sort_numeric.png',
         ];
       case _Project.fake_project_2:
         return [
@@ -46,6 +44,8 @@ extension _ExtendedProj on _Project {
           'exception.dart.html',
           'fake_project_2.dart.html',
           'index.html',
+          'report_style.css',
+          'utils.dart.html',
         ];
     }
   }
