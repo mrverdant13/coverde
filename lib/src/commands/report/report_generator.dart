@@ -1,6 +1,7 @@
 import 'package:coverde/src/commands/report/dir_report_generator.dart';
 import 'package:coverde/src/commands/report/file_report_generator.dart';
 import 'package:coverde/src/commands/report/report_generator_base.dart';
+import 'package:coverde/src/commands/report/report_stylesheet_generator.dart';
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
@@ -10,7 +11,7 @@ import 'package:universal_io/io.dart';
 /// A coverage report generator.
 /// {@endtemplate}
 class ReportGenerator extends ReportGeneratorBase
-    with DirReportGenerator, FileReportGenerator {
+    with ReportStylesheetGenerator, DirReportGenerator, FileReportGenerator {
   /// {@macro report_generator}
   ReportGenerator({
     required this.tracefile,
@@ -62,6 +63,7 @@ class ReportGenerator extends ReportGeneratorBase
       }
     }
 
+    generateStyleSheet(rootReportDir: outputDir);
     generateDirReport(
       rootReportDir: outputDir,
       covDir: projectRootCovDir,
