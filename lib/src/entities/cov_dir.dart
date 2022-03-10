@@ -1,9 +1,7 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/assets/folder_report_template.html.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/utils/path.dart';
-import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -169,10 +167,4 @@ class CovDir extends CovElement {
     buf.writeln();
     return buf.toString();
   }
-
-  /// Folder report HTML element template.
-  @visibleForTesting
-  static final folderReportTemplate = Document.html(
-    String.fromCharCodes(folderReportTemplateHtmlBytes),
-  );
 }

@@ -1,11 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
-import 'package:coverde/src/assets/file_report_template.html.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_line.dart';
 import 'package:coverde/src/entities/covfile_format.exception.dart';
 import 'package:coverde/src/utils/path.dart';
-import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -107,16 +104,4 @@ class CovFile extends CovElement {
   @override
   int get hashCode =>
       path.canonicalize(source.path).hashCode ^ _equality.hash(_covLines);
-
-  /// File report HTML element template.
-  @visibleForTesting
-  static final fileReportTemplate = Document.html(
-    String.fromCharCodes(fileReportTemplateHtmlBytes),
-  );
-
-  /// File report line HTML element template.
-  @visibleForTesting
-  static final fileReportLineTemplate = Element.html(
-    String.fromCharCodes(fileReportLineTemplateHtmlBytes),
-  );
 }
