@@ -8,7 +8,7 @@ import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 
-extension _FixturedString on String {
+extension _FixtureString on String {
   String get fixturePath => path.join(
         'test/src/commands/filter/fixtures/',
         this,
@@ -69,7 +69,7 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
 
 AND an existing tracefile to filter
 AND a set of patterns to be filtered
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN a filtered tracefile should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
@@ -132,7 +132,7 @@ THEN a filtered tracefile should be created
 
 AND a non-existing tracefile to filter
 AND a set of patterns to be filtered
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {

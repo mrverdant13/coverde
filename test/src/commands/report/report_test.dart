@@ -51,7 +51,7 @@ extension _ExtendedProj on _Project {
   }
 }
 
-extension _FixturedString on String {
+extension _FixtureString on String {
   String fixturePath({
     required _Project proj,
   }) =>
@@ -133,7 +133,7 @@ Generate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
             '''
 
 AND an existing tracefile <${proj.name}>
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN a coverage report should be launched
 ├─ BY generating an HTML report
 ├─ AND launching it in a browser
@@ -258,7 +258,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         '''
 
 AND a non-existing tracefile
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -283,7 +283,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND an invalid medium threshold
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -306,7 +306,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND an invalid high threshold
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {

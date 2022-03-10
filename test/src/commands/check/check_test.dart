@@ -9,7 +9,7 @@ import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 
-extension _FixturedString on String {
+extension _FixtureString on String {
   String get fixturePath => path.join(
         'test/src/commands/check/fixtures/',
         this,
@@ -72,7 +72,7 @@ AND a minimum expected coverage value
 AND an existing tracefile
 ├─ THAT has a coverage value greater than the minimum expected coverage value
 AND the enabled option to log coverage value info
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN the tracefile coverage should be checked and approved
 ├─ BY comparing its coverage value
 ├─ AND logging coverage value data
@@ -118,7 +118,7 @@ AND a minimum expected coverage value
 AND an existing tracefile
 ├─ THAT has a coverage value lower than the minimum expected coverage value
 AND the disabled option to log coverage value info
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN the tracefile coverage should be checked and disapproved
 ├─ BY comparing its coverage value
 ├─ AND throwing an exception
@@ -152,7 +152,7 @@ THEN the tracefile coverage should be checked and disapproved
 
 AND a non-existing tracefile
 AND a minimum expected coverage value
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -180,7 +180,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND no minimum expected coverage value
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -196,7 +196,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND a non-numeric argument as minimum expected coverage value
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {

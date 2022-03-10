@@ -8,7 +8,7 @@ import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 
-extension _FixturedString on String {
+extension _FixtureString on String {
   String get fixturePath => path.join(
         'test/src/commands/value/fixtures/',
         this,
