@@ -69,7 +69,7 @@ class FakeProcessResult extends Mock implements ProcessResult {}
 void main() {
   test(
     '''
-    
+
 A trace file report generator command should be instantiable
 ''',
     () {
@@ -116,7 +116,7 @@ THEN a proper abstract should be returned
           const expected = '''
 Generate the coverage report from a tracefile.
 
-Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
+Generate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
 ''';
 
           // ACT
@@ -136,7 +136,7 @@ AND an existing tracefile <${proj.name}>
 WHEN the command is invoqued
 THEN a coverage report should be launched
 ├─ BY generating an HTML report
-├─ AND launching it in a browser 
+├─ AND launching it in a browser
 ''',
             () async {
               // ARRANGE
