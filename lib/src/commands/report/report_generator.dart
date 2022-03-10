@@ -58,8 +58,6 @@ class ReportGenerator extends ReportGeneratorBase
             covClassSuffix: covClassSuffix,
           );
           generateSubReports(covDir: element);
-        } else {
-          throw FallThroughError();
         }
       }
     }
