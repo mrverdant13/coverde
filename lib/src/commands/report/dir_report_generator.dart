@@ -9,48 +9,43 @@ import 'package:universal_io/io.dart';
 /// Report generator for [CovDir]s.
 mixin DirReportGenerator on ReportGeneratorBase {
   static const _subElementReportSegmentTemplateSource = '''
-<tr>
-  <td class="coverFile">
-    <a class="coverFileAnchor" href="{{{reportPath}}}">{{{elementPath}}}</a>
-  </td>
-  <td class="coverBar" align="center">
-    <table
-      class="barTable"
-      width="100%"
-      border="0"
-      cellspacing="0"
-      cellpadding="1"
-    >
-      <tbody>
-        <tr>
-          <td class="coverBarOutline">
-            <table
-              width="100%"
-              height="10"
-              border="0"
-              cellspacing="0"
-              cellpadding="0"
-            >
-              <tbody>
-                <tr>
-                  <td
-                    width="{{{coverage}}}%"
-                    class="barCov barCov{{{covSuffix}}}"
-                  ></td>
-                  <td class="barBackground"></td>
-                </tr>
-              </tbody>
-            </table>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </td>
-  <td class="coverPer coverPer{{{covSuffix}}}">{{{coverage}}} %</td>
-  <td class="coverNum coverNum{{{covSuffix}}}">
-    {{{hitLines}}} / {{{foundLines}}}
-  </td>
-</tr>''';
+          <tr>
+            <td class="coverFile">
+              <a class="coverFileAnchor" href="{{{reportPath}}}">{{{elementPath}}}</a>
+            </td>
+            <td class="coverBar" align="center">
+              <table
+                class="barTable"
+                width="100%"
+                border="0"
+                cellspacing="0"
+                cellpadding="1"
+              >
+                <tbody>
+                  <tr>
+                    <td class="coverBarOutline">
+                      <table
+                        width="100%"
+                        height="10"
+                        border="0"
+                        cellspacing="0"
+                        cellpadding="0"
+                      >
+                        <tbody>
+                          <tr>
+                            {{#positiveCoverage}}<td width="{{{coverage}}}%" class="barCov barCov{{{covSuffix}}}"></td>
+                            {{/positiveCoverage}}<td class="barBackground"></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+            <td class="coverPer coverPer{{{covSuffix}}}">{{{coverage}}} %</td>
+            <td class="coverNum coverNum{{{covSuffix}}}">{{{hitLines}}} / {{{foundLines}}}</td>
+          </tr>''';
 
   static final _subElementReportSegmentTemplate = Template(
     _subElementReportSegmentTemplateSource,
@@ -87,10 +82,7 @@ mixin DirReportGenerator on ReportGeneratorBase {
                 <tr>
                   <td width="10%" class="headerItem">Current view:</td>
                   <td width="35%" class="headerValue currentDirPath">
-                    <a class="topLevelAnchor" href="{{{reportRoot}}}">
-                      top level
-                    </a>
-                    - {{{dirPath}}}
+                    <a class="topLevelAnchor" href="{{{reportRoot}}}">top level</a> - {{{dirPath}}}
                   </td>
                   <td width="5%"></td>
                   <td width="15%"></td>
@@ -104,12 +96,8 @@ mixin DirReportGenerator on ReportGeneratorBase {
                   <td></td>
                   <td class="headerItem">Lines:</td>
                   <td class="headerCovTableEntry linesHit">{{{hitLines}}}</td>
-                  <td class="headerCovTableEntry linesFound">
-                    {{{foundLines}}}
-                  </td>
-                  <td class="covValue headerCovTableEntry{{{covSuffix}}}">
-                    {{{coverage}}} %
-                  </td>
+                  <td class="headerCovTableEntry linesFound">{{{foundLines}}}</td>
+                  <td class="covValue headerCovTableEntry{{{covSuffix}}}">{{{coverage}}} %</td>
                 </tr>
                 <tr>
                   <td class="headerItem">Date:</td>
@@ -149,7 +137,7 @@ mixin DirReportGenerator on ReportGeneratorBase {
             <td class="tableHead">Source</td>
             <td class="tableHead" colspan="3">Coverage</td>
           </tr>
-          {{{subElementsReports}}}
+{{{subElementsReports}}}
         </tbody>
       </table>
     </center>
@@ -208,6 +196,7 @@ mixin DirReportGenerator on ReportGeneratorBase {
       'elementPath': relativePath,
       'hitLines': covSubElement.linesHit,
       'foundLines': covSubElement.linesFound,
+      'positiveCoverage': covSubElement.coverage > 0,
       'coverage': covSubElement.coverage,
       'covSuffix': covClassSuffix(coverage),
     };
@@ -258,7 +247,7 @@ mixin DirReportGenerator on ReportGeneratorBase {
       'coverage': covDir.coverage,
       'covSuffix': covClassSuffix(covDir.coverage),
       'date': tracefileModificationDateTime.toString(),
-      'subElementsReports': subElementReportSegmentsBuf.toString(),
+      'subElementsReports': subElementReportSegmentsBuf.toString().trimRight(),
     };
 
     final reportPath = path.canonicalize(

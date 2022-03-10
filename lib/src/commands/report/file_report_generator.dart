@@ -43,14 +43,7 @@ mixin FileReportGenerator on ReportGeneratorBase {
                 <tr>
                   <td width="10%" class="headerItem">Current view:</td>
                   <td width="35%" class="headerValue currentFileName">
-                    <a class="topLevelAnchor" href="{{{reportRoot}}}">
-                      top level
-                    </a>
-                    -
-                    <a class="currentDirPath" href="index.html">
-                      {{{dirPath}}}
-                    </a>
-                    - {{fileName}}
+                    <a class="topLevelAnchor" href="{{{reportRoot}}}">top level</a> - <a class="currentDirPath" href="index.html">{{{dirPath}}}</a> - {{fileName}}
                   </td>
                   <td width="5%"></td>
                   <td width="15%"></td>
@@ -65,9 +58,7 @@ mixin FileReportGenerator on ReportGeneratorBase {
                   <td class="headerItem">Lines:</td>
                   <td class="headerCovTableEntry linesHit">{{hitLines}}</td>
                   <td class="headerCovTableEntry linesFound">{{foundLines}}</td>
-                  <td class="covValue headerCovTableEntry{{covSuffix}}">
-                    {{coverage}} %
-                  </td>
+                  <td class="covValue headerCovTableEntry{{covSuffix}}">{{coverage}} %</td>
                 </tr>
                 <tr>
                   <td class="headerItem">Date:</td>
