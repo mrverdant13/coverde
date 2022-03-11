@@ -76,13 +76,13 @@
           <td>
             <pre class="sourceHeading">          Line data    Source code</pre>
             <pre class="source">
-<a name="1"><span class="lineNum">       1 </span><span class="sourceLine">            : extension ExtendedStringList on List<String> {</span></a>
+<a name="1"><span class="lineNum">       1 </span><span class="sourceLine">            : extension ExtendedStringList on List&lt;String&gt; {</span></a>
 <a name="2"><span class="lineNum">       2 </span><span class="sourceLine lineNoCov">          0 :   void printEachWithQuotes([</span></a>
-<a name="3"><span class="lineNum">       3 </span><span class="sourceLine">            :     String quote = '"',</span></a>
+<a name="3"><span class="lineNum">       3 </span><span class="sourceLine">            :     String quote = &#x27;&quot;&#x27;,</span></a>
 <a name="4"><span class="lineNum">       4 </span><span class="sourceLine">            :   ]) {</span></a>
 <a name="5"><span class="lineNum">       5 </span><span class="sourceLine lineNoCov">          0 :     for (final str in this) {</span></a>
-<a name="6"><span class="lineNum">       6 </span><span class="sourceLine lineNoCov">          0 :       // ignore: avoid_print</span></a>
-<a name="7"><span class="lineNum">       7 </span><span class="sourceLine">            :       print('$quote$str$quote');</span></a>
+<a name="6"><span class="lineNum">       6 </span><span class="sourceLine lineNoCov">          0 :       &#x2F;&#x2F; ignore: avoid_print</span></a>
+<a name="7"><span class="lineNum">       7 </span><span class="sourceLine">            :       print(&#x27;$quote$str$quote&#x27;);</span></a>
 <a name="8"><span class="lineNum">       8 </span><span class="sourceLine">            :     }</span></a>
 <a name="9"><span class="lineNum">       9 </span><span class="sourceLine">            :   }</span></a>
 <a name="10"><span class="lineNum">      10 </span><span class="sourceLine">            : }</span></a>
