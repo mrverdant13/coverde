@@ -4,7 +4,6 @@
 [![License: MIT][license_badge]][license_link]
 [![Dart CI][dart_ci_badge]][dart_ci_link]
 [![codecov][codecov_badge]][codecov_link]
-[![CodeFactor][codefactor_badge]][codefactor_link]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![melos][melos_badge]][melos_link]
 
@@ -208,8 +207,6 @@ Pull request are also welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
-[codefactor_badge]: https://www.codefactor.io/repository/github/mrverdant13/coverde/badge
-[codefactor_link]: https://www.codefactor.io/repository/github/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
 [dart_ci_link]: https://github.com/mrverdant13/coverde/actions?query=workflow%3A%22Dart+CI%22
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
