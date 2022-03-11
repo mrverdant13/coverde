@@ -174,7 +174,8 @@ THEN an exception should be thrown
 
 AND invalid coverage percentage values
 WHEN the coverage values are checked
-THEN exceptions should be thrown''',
+THEN exceptions should be thrown
+''',
         () {
           // ARRANGE
           const invalidCovValues = [-3, -1.3, 101, 103.6];
