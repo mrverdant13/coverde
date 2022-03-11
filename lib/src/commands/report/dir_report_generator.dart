@@ -1,5 +1,5 @@
+import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report_generator_base.dart';
-import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/utils/path.dart';
@@ -46,10 +46,6 @@ mixin DirReportGenerator on ReportGeneratorBase {
             <td class="coverPer coverPer{{{covSuffix}}}">{{{coverage}}} %</td>
             <td class="coverNum coverNum{{{covSuffix}}}">{{{hitLines}}} / {{{foundLines}}}</td>
           </tr>''';
-
-  static final _subElementReportSegmentTemplate = Template(
-    _subElementReportSegmentTemplateSource,
-  );
 
   static const _dirReportTemplateSource = '''
 <!DOCTYPE html>
@@ -137,7 +133,9 @@ mixin DirReportGenerator on ReportGeneratorBase {
             <td class="tableHead">Source</td>
             <td class="tableHead" colspan="3">Coverage</td>
           </tr>
-{{{subElementsReports}}}
+{{#subElementReports}}
+$_subElementReportSegmentTemplateSource
+{{/subElementReports}}
         </tbody>
       </table>
     </center>
@@ -163,44 +161,10 @@ mixin DirReportGenerator on ReportGeneratorBase {
 
   static final _dirReportTemplate = Template(_dirReportTemplateSource);
 
-  String _generateSubElementReportSegmentContent({
-    required Map<String, dynamic> vars,
-  }) =>
-      _subElementReportSegmentTemplate.renderString(vars);
-
   String _generateDirReportContent({
     required Map<String, dynamic> vars,
   }) =>
       _dirReportTemplate.renderString(vars);
-
-  String _generateSubElementReportSegment({
-    required CovDir covParent,
-    required CovElement covSubElement,
-    required CovClassSuffixBuilder covClassSuffix,
-  }) {
-    final relativePath = path.relative(
-      covSubElement.source.path,
-      from: covParent.source.path,
-    );
-    final reportRelativePath = () {
-      if (covSubElement is CovFile) return '$relativePath.html';
-      if (covSubElement is CovDir) return path.join(relativePath, 'index.html');
-    }();
-    final coverage = covSubElement.coverage;
-
-    final vars = <String, dynamic>{
-      'reportPath': reportRelativePath,
-      'elementPath': relativePath,
-      'hitLines': covSubElement.linesHit,
-      'foundLines': covSubElement.linesFound,
-      'positiveCoverage': covSubElement.coverage > 0,
-      'coverage': covSubElement.coverage,
-      'covSuffix': covClassSuffix(coverage),
-    };
-
-    final segment = _generateSubElementReportSegmentContent(vars: vars);
-    return segment;
-  }
 
   /// Generate the coverage report for the given [covDir].
   void generateDirReport({
@@ -224,15 +188,33 @@ mixin DirReportGenerator on ReportGeneratorBase {
     final rootReportRelativePath = path.join(rootRelativePath, 'index.html');
     final dirPath = covDir.source.path;
 
-    final subElementReportSegmentsBuf = StringBuffer();
-    for (final subElement in covDir.elements) {
-      final subElementReportSegment = _generateSubElementReportSegment(
-        covParent: covDir,
-        covSubElement: subElement,
-        covClassSuffix: covClassSuffix,
-      );
-      subElementReportSegmentsBuf.writeln(subElementReportSegment);
-    }
+    final subElementReportsVars = <Map<String, dynamic>>[
+      ...covDir.elements.mapIndexed(
+        (index, subElement) {
+          final relativePath = path.relative(
+            subElement.source.path,
+            from: covDir.source.path,
+          );
+          final reportRelativePath = () {
+            if (subElement is CovFile) return '$relativePath.html';
+            if (subElement is CovDir) {
+              return path.join(relativePath, 'index.html');
+            }
+          }();
+          final coverage = subElement.coverage;
+
+          return <String, dynamic>{
+            'reportPath': reportRelativePath,
+            'elementPath': relativePath,
+            'hitLines': subElement.linesHit,
+            'foundLines': subElement.linesFound,
+            'positiveCoverage': subElement.coverage > 0,
+            'coverage': subElement.coverage,
+            'covSuffix': covClassSuffix(coverage),
+          };
+        },
+      ),
+    ];
 
     final vars = <String, dynamic>{
       'tracefileName': tracefileName,
@@ -244,7 +226,7 @@ mixin DirReportGenerator on ReportGeneratorBase {
       'coverage': covDir.coverage,
       'covSuffix': covClassSuffix(covDir.coverage),
       'date': tracefileModificationDateTime.toString(),
-      'subElementsReports': subElementReportSegmentsBuf.toString().trimRight(),
+      'subElementReports': subElementReportsVars,
     };
 
     final reportPath = path.canonicalize(

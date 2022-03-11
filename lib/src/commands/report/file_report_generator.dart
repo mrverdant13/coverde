@@ -1,7 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report_generator_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
-import 'package:coverde/src/entities/cov_line.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:mustache_template/mustache_template.dart';
 import 'package:universal_io/io.dart';
@@ -9,11 +8,7 @@ import 'package:universal_io/io.dart';
 /// Report generator for [CovFile]s.
 mixin FileReportGenerator on ReportGeneratorBase {
   static const _lineReportSegmentTemplateSource = '''
-<a name="{{lineNumber}}"><span class="lineNum">{{paddedLineNumber}}</span><span class="sourceLine{{lineHtmlClass}}">{{maybePaddedLineHits}} : {{{lineSource}}}</span></a>''';
-
-  static final _lineReportSegmentTemplate = Template(
-    _lineReportSegmentTemplateSource,
-  );
+<a name="{{lineNumber}}"><span class="lineNum">{{paddedLineNumber}}</span><span class="sourceLine{{lineHtmlClass}}">{{maybePaddedLineHits}} : {{lineSource}}</span></a>''';
 
   static const _fileReportTemplateSource = '''
 <!DOCTYPE html>
@@ -94,7 +89,9 @@ mixin FileReportGenerator on ReportGeneratorBase {
           <td>
             <pre class="sourceHeading">          Line data    Source code</pre>
             <pre class="source">
-{{{linesReports}}}
+{{#lineReports}}
+$_lineReportSegmentTemplateSource
+{{/lineReports}}
             </pre>
           </td>
         </tr>
@@ -124,42 +121,10 @@ mixin FileReportGenerator on ReportGeneratorBase {
 
   static final _fileReportTemplate = Template(_fileReportTemplateSource);
 
-  String _generateLineReportSegmentContent({
-    required Map<String, dynamic> vars,
-  }) =>
-      _lineReportSegmentTemplate.renderString(vars);
-
   String _generateFileReportContent({
     required Map<String, dynamic> vars,
   }) =>
       _fileReportTemplate.renderString(vars);
-
-  String _generateLineReportSegment({
-    required int lineNumber,
-    required CovLine? covLine,
-    required String source,
-  }) {
-    final paddedLineNumber = '$lineNumber '.padLeft(9);
-    final maybePaddedLineHits = () {
-      final maybeLineHits = '${covLine?.hitsNumber ?? ''}';
-      return maybeLineHits.padLeft(11);
-    }();
-    final lineHtmlClass = () {
-      if (covLine == null) return null;
-      return covLine.hasBeenHit ? ' lineCov' : ' lineNoCov';
-    }();
-
-    final vars = <String, dynamic>{
-      'lineNumber': lineNumber,
-      'paddedLineNumber': paddedLineNumber,
-      'maybePaddedLineHits': maybePaddedLineHits,
-      'lineHtmlClass': lineHtmlClass,
-      'lineSource': source,
-    };
-
-    final segment = _generateLineReportSegmentContent(vars: vars);
-    return segment;
-  }
 
   /// Generate the coverage report for the given [covFile].
   void generateFileReport({
@@ -189,20 +154,33 @@ mixin FileReportGenerator on ReportGeneratorBase {
     final fileName = path.basename(relativePath);
 
     final sourceLines = covFile.source.readAsLinesSync();
-    final lineReportSegmentsBuf = StringBuffer();
-    for (var i = 0; i < sourceLines.length; i++) {
-      final lineNumber = i + 1;
-      final covLine = covFile.covLines.singleWhereOrNull(
-        (l) => l.lineNumber == lineNumber,
-      );
-      final source = sourceLines[i];
-      final lineReportSegment = _generateLineReportSegment(
-        lineNumber: lineNumber,
-        covLine: covLine,
-        source: source,
-      );
-      lineReportSegmentsBuf.writeln(lineReportSegment);
-    }
+    final lineReportsVars = <Map<String, dynamic>>[
+      ...sourceLines.mapIndexed(
+        (index, sourceLine) {
+          final lineNumber = index + 1;
+          final maybeCovLine = covFile.covLines.singleWhereOrNull(
+            (l) => l.lineNumber == lineNumber,
+          );
+          final paddedLineNumber = '$lineNumber '.padLeft(9);
+          final maybePaddedLineHits = () {
+            final maybeLineHits = '${maybeCovLine?.hitsNumber ?? ''}';
+            return maybeLineHits.padLeft(11);
+          }();
+          final lineHtmlClass = () {
+            if (maybeCovLine == null) return null;
+            return maybeCovLine.hasBeenHit ? ' lineCov' : ' lineNoCov';
+          }();
+
+          return <String, dynamic>{
+            'lineNumber': lineNumber,
+            'paddedLineNumber': paddedLineNumber,
+            'maybePaddedLineHits': maybePaddedLineHits,
+            'lineHtmlClass': lineHtmlClass,
+            'lineSource': sourceLine,
+          };
+        },
+      ),
+    ];
 
     final vars = <String, dynamic>{
       'cssPath': cssRelativePath,
@@ -215,7 +193,7 @@ mixin FileReportGenerator on ReportGeneratorBase {
       'coverage': covFile.coverage,
       'covSuffix': covClassSuffix(covFile.coverage),
       'date': tracefileModificationDateTime.toString(),
-      'linesReports': lineReportSegmentsBuf.toString().trim(),
+      'lineReports': lineReportsVars,
     };
 
     final reportPath = path.join(rootReportDir.path, '$relativePath.html');
