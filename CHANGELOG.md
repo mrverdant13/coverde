@@ -1,3 +1,7 @@
+## [Unreleased]
+
+- **FEAT (BREAKING)**: require Dart 3.
+
 ## 0.1.0+1
 
 - **FIX**: use proper version for update check.
