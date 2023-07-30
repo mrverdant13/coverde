@@ -48,7 +48,7 @@ scripts:
 
   t:
     description: Run tests and generate coverage tracefile for a selected package in random order.
-    run: melos exec -c 1 -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
+    run: melos exec -c 1 -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib"
     select-package:
       dir-exists: test
   T:
@@ -56,7 +56,7 @@ scripts:
     run: melos run t --no-select
   T:ci:
     description: Run tests and generate coverage tracefiles for all packages in random order.
-    run: melos exec --fail-fast --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.packages --report-on=lib"
+    run: melos exec --fail-fast --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib"
 
   MC:
     description: Merge all packages coverage tracefiles ignoring data related to generated files.
