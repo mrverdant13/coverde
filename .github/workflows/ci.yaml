@@ -20,7 +20,7 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos
+        run: dart pub global activate melos 2.9.0
       - name: Initialize melos
         run: melos bs
       - name: Format and analyze
@@ -52,9 +52,9 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos
+        run: dart pub global activate melos 2.9.0
       - name: Install coverage
-        run: dart pub global activate coverage
+        run: dart pub global activate coverage 1.6.3
       - name: Install coverde
         run: dart pub global activate --source path .
       - name: Initialize melos
@@ -95,9 +95,9 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos
+        run: dart pub global activate melos 2.9.0
       - name: Install pana
-        run: dart pub global activate pana
+        run: dart pub global activate pana 0.21.35
       - name: Initialize melos
         run: melos bs
       - name: Verify pub score (10pts of tolerance)
