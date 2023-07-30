@@ -64,12 +64,10 @@ extension _FixturedString on String {
 
 class MockProcessManager extends Mock implements ProcessManager {}
 
-class FakeProcessResult extends Mock implements ProcessResult {}
-
 void main() {
   test(
     '''
-    
+
 A trace file report generator command should be instantiable
 ''',
     () {
@@ -136,7 +134,7 @@ AND an existing tracefile <${proj.name}>
 WHEN the command is invoqued
 THEN a coverage report should be launched
 ├─ BY generating an HTML report
-├─ AND launching it in a browser 
+├─ AND launching it in a browser
 ''',
             () async {
               // ARRANGE
@@ -154,7 +152,7 @@ THEN a coverage report should be launched
                 ),
               ).thenAnswer(
                 (_) async => Future.value(
-                  FakeProcessResult(),
+                  ProcessResult(0, 0, '', ''),
                 ),
               );
 
