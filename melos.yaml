@@ -62,7 +62,7 @@ scripts:
     description: Merge all packages coverage tracefiles ignoring data related to generated files.
     run: >
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart &&
+      melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart" &&
       coverde check -i coverage/filtered.lcov.info 100
 
   R:
@@ -83,10 +83,13 @@ scripts:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
     run: melos run T:ci && melos run MC
 
+  # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
+  p:
+    description: Check pub score for a selected package.
+    run: melos exec -c 1 -- "dart run tool/pub_score_checker.dart 10"
   P:
-    # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
     description: Check pub score.
-    run: dart run tool/pub_score_checker.dart 10
+    run: melos run p --no-select
 
   WF:
     description: Run full local workflow
