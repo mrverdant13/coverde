@@ -4,11 +4,12 @@
 /.dart_tool/
 /.packages
 /build/
-/pubspec.lock
 
 # Coverage
 /coverage/
 
 # Melos
-/melos_coverde.iml
 /.idea/
+/melos_coverde.iml
+/melos_overrides.yaml
+/pubspec_overrides.yaml

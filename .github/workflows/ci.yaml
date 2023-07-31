@@ -55,8 +55,6 @@ jobs:
         run: dart pub global activate melos 2.9.0
       - name: Install coverage
         run: dart pub global activate coverage 1.6.3
-      - name: Install coverde
-        run: dart pub global activate --source path .
       - name: Initialize melos
         run: melos bs
       - name: Run tests, merge tests if needed, and check 100% coverage
@@ -101,4 +99,4 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Verify pub score (10pts of tolerance)
-        run: melos run P
+        run: melos run P:ci
