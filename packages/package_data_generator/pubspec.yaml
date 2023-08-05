@@ -1,0 +1,13 @@
+name: package_data_generator
+description: Package data generator.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  very_good_analysis: ^5.0.0+1
+dependencies:
+  build: ^2.4.1
+  pubspec_parse: ^1.2.3
