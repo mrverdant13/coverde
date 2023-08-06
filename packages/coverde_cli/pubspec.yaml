@@ -29,6 +29,10 @@ dev_dependencies:
   pubspec_parse: ^1.2.0
   test: ^1.20.1
   very_good_analysis: ^2.4.0
+  package_assets_generator:
+    path: ../package_assets_generator
+  package_data_generator:
+    path: ../package_data_generator
 
 executables:
   coverde:

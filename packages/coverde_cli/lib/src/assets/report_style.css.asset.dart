@@ -1,3 +1,5 @@
+// ! GENERATED CODE - DO NOT MODIFY BY HAND !
+
 /// The filename of the
 /// `report_style.css` asset
 const reportStyleCssFilename = '''

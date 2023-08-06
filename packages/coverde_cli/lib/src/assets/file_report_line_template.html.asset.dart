@@ -1,3 +1,5 @@
+// ! GENERATED CODE - DO NOT MODIFY BY HAND !
+
 /// The filename of the
 /// `file_report_line_template.html` asset
 const fileReportLineTemplateHtmlFilename = '''
