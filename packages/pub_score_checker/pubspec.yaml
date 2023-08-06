@@ -1,0 +1,14 @@
+name: pub_score_checker
+description: Evaluate the health and quality of a Dart package.
+version: 0.1.0+1
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  mocktail: ^0.3.0
+  test: ^1.19.2
+  very_good_analysis: ^5.0.0
+dependencies:
+  pana: ^0.21.35
