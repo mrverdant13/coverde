@@ -2,6 +2,8 @@ name: coverde
 
 packages:
   - ./packages/coverde_cli/
+  - ./packages/package_assets_generator/
+  - ./packages/package_data_generator/
 
 scripts:
   d:

@@ -9,7 +9,7 @@
 /coverage/
 
 # Melos
-/.idea/
-/melos_coverde.iml
-/melos_overrides.yaml
-/pubspec_overrides.yaml
+/**/.idea/
+/**/melos_overrides.yaml
+/**/pubspec_overrides.yaml
+/**/melos_*.iml
