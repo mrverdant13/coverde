@@ -94,9 +94,7 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Install melos
         run: dart pub global activate melos 2.9.0
-      - name: Install pana
-        run: dart pub global activate pana 0.21.35
       - name: Initialize melos
         run: melos bs
-      - name: Verify pub score (10pts of tolerance)
+      - name: Verify pub score
         run: melos run P:ci
