@@ -1,0 +1,14 @@
+builders:
+  package_assets_generator:
+    import: package:package_assets_generator/package_assets_generator.dart
+    builder_factories:
+      - packageAssetsBuilder
+    build_extensions:
+      assets/{{}}:
+        - "lib/src/assets/{{}}.asset.dart"
+    auto_apply: dependents
+    build_to: source
+    defaults:
+      generate_for:
+        include:
+          - assets/**
