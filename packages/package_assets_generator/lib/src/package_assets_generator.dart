@@ -100,7 +100,9 @@ extension on String {
   }
 
   String upperCaseFirstLetter(String word) {
-    return '${word.substring(0, 1).toUpperCase()}${word.substring(1).toLowerCase()}';
+    final firstLetter = word[0];
+    final rest = word.substring(1);
+    return '${firstLetter.toUpperCase()}${rest.toLowerCase()}';
   }
 
   String get asCamelCase {
