@@ -119,7 +119,7 @@ scripts:
     run: melos run p --no-select
   P:ci:
     description: Check pub score.
-    run: melos exec --fail-fast --scope"coverde*" -- "dart run MELOS_ROOT_PATH/packages/pub_score_checker/main.dart MELOS_PACKAGE_PATH 20"
+    run: melos exec --fail-fast --scope="coverde*" -- "dart run MELOS_ROOT_PATH/packages/pub_score_checker/main.dart MELOS_PACKAGE_PATH 20"
 
   WF:
     description: Run full local workflow
