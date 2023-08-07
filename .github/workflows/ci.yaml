@@ -35,7 +35,12 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dart
         uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        run: dart pub global activate melos 3.1.1
+      - name: Initialize melos
+        run: melos bs
       - name: Verify up-to-date generated source files
+        working-directory: packages/coverde/
         run: dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
 
   test:
