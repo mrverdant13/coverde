@@ -1,0 +1,6 @@
+targets:
+  $default:
+    builders:
+      package_data_generator:
+        options:
+          output: lib/src/utils/package_data.dart

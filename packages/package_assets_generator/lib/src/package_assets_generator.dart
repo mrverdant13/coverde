@@ -1,21 +1,26 @@
 import 'package:build/build.dart';
-import 'package:coverde/src/utils/path.dart';
+import 'package:path/path.dart' show posix;
 
-class AssetsBuilder implements Builder {
-  static const _inputDirSegments = ['assets'];
-  static final _inputDir = _inputDirSegments.reduce(path.join);
+final path = posix;
 
-  static const _outputDirSegments = ['lib', 'src', 'assets'];
-  static final _outputDir = _outputDirSegments.reduce(path.join);
+class PackageAssetsBuilder implements Builder {
+  static const inputDir = 'assets';
+  static const outputDir = 'lib/src/assets';
+  static const filePathPlaceholder = '{{}}';
+  static const outputExtension = '.asset.dart';
 
-  static const _outputExtension = '.asset.dart';
-
-  static final _inputPath = '$_inputDir/{{}}';
-  static final _outputPath = '$_outputDir/{{}}$_outputExtension';
+  static final input = path.joinAll([
+    inputDir,
+    filePathPlaceholder,
+  ]);
+  static final output = path.joinAll([
+    outputDir,
+    '$filePathPlaceholder$outputExtension',
+  ]);
 
   @override
   final buildExtensions = {
-    _inputPath: [_outputPath],
+    input: [output],
   };
 
   static const _plainTextFileExtensions = ['.html', '.css'];
@@ -27,6 +32,8 @@ class AssetsBuilder implements Builder {
     final assetContent = await buildStep.readAsBytes(origin);
 
     final sb = StringBuffer()
+      ..writeln('// ! GENERATED CODE - DO NOT MODIFY BY HAND !')
+      ..writeln()
       ..writeln('/// The filename of the')
       ..writeln('/// `$assetFilename` asset')
       ..writeln("const ${assetFilename.asCamelCase}Filename = '''")
@@ -51,16 +58,16 @@ class AssetsBuilder implements Builder {
     final destination = AssetId(
       origin.package,
       path.join(
-        _outputDir,
-        path.relative(origin.path, from: _inputDir),
+        outputDir,
+        path.relative(origin.path, from: inputDir),
       ),
-    ).addExtension(_outputExtension);
+    ).addExtension(outputExtension);
 
     await buildStep.writeAsString(destination, sb.toString());
   }
 }
 
-extension ExtendedString on String {
+extension on String {
   static const symbolSet = {' ', '.', '/', '_', r'\', '-'};
   static final upperAlphaRegex = RegExp('[A-Z]');
 
@@ -92,8 +99,11 @@ extension ExtendedString on String {
     return words;
   }
 
-  String upperCaseFirstLetter(String word) =>
-      '${word.substring(0, 1).toUpperCase()}${word.substring(1).toLowerCase()}';
+  String upperCaseFirstLetter(String word) {
+    final firstLetter = word[0];
+    final rest = word.substring(1);
+    return '${firstLetter.toUpperCase()}${rest.toLowerCase()}';
+  }
 
   String get asCamelCase {
     if (words.isEmpty) return this;
@@ -106,4 +116,4 @@ extension ExtendedString on String {
   }
 }
 
-Builder assetsBuilder(BuilderOptions options) => AssetsBuilder();
+Builder packageAssetsBuilder(BuilderOptions options) => PackageAssetsBuilder();

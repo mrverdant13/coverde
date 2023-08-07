@@ -4,7 +4,7 @@ import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
 import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/utils/cli.data.dart';
+import 'package:coverde/src/utils/package_data.dart';
 import 'package:io/ansi.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:universal_io/io.dart';
@@ -13,7 +13,7 @@ import 'package:universal_io/io.dart';
 /// functionalities.
 Future<void> coverde(List<String> args) async {
   final runner = CommandRunner<void>(
-    cliName,
+    packageName,
     'A set of commands that encapsulate coverage-related functionalities.',
   ) //
     ..addCommand(CheckCommand())
@@ -28,21 +28,21 @@ Future<void> coverde(List<String> args) async {
 Future<void> _checkUpdates() async {
   try {
     final updater = PubUpdater();
-    final latestVersion = await updater.getLatestVersion(cliName);
-    final isUpToDate = latestVersion == cliVersion;
+    final latestVersion = await updater.getLatestVersion(packageName);
+    final isUpToDate = latestVersion == packageVersion;
     if (!isUpToDate) {
-      const updateMessage = 'A new version of `$cliName` is available!';
+      const updateMessage = 'A new version of `$packageName` is available!';
       final styledUpdateMessage = lightYellow.wrap(updateMessage);
       final styledVersionsMessage = '''
-${lightGray.wrap(cliVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
+${lightGray.wrap(packageVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
       final styledCommand = wrapWith(
-        'dart pub activate $cliName',
+        'dart pub activate $packageName',
         [lightCyan, styleBold],
       );
       final styledCommandMessage = 'Run $styledCommand to update.';
       const boxLength = updateMessage.length + 4;
       final totalVersionsMessagePaddingLength =
-          boxLength - latestVersion.length - cliVersion.length - 3;
+          boxLength - latestVersion.length - packageVersion.length - 3;
       final versionsMessagePadding =
           ' ' * (totalVersionsMessagePaddingLength ~/ 2);
       stdout

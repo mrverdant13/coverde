@@ -1,3 +1,5 @@
+// ! GENERATED CODE - DO NOT MODIFY BY HAND !
+
 /// The filename of the
 /// `folder_report_template.html` asset
 const folderReportTemplateHtmlFilename = '''

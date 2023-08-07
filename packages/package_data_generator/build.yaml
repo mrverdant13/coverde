@@ -1,0 +1,14 @@
+builders:
+  package_data_generator:
+    import: package:package_data_generator/package_data_generator.dart
+    builder_factories:
+      - packageDataBuilder
+    build_extensions:
+      pubspec.yaml:
+        - "" # This is just a placeholder
+    auto_apply: dependents
+    build_to: source
+    defaults:
+      generate_for:
+        include:
+          - pubspec.yaml

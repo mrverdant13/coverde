@@ -1,34 +1,7 @@
 name: coverde
-description: A CLI for basic coverage trace files manipulation. Validate minimum coverage, filter trace files data by tested file paths and generate HTML coverage reports.
-version: 0.1.0+1
-homepage: https://github.com/mrverdant13/coverde
-repository: https://github.com/mrverdant13/coverde
-issue_tracker: https://github.com/mrverdant13/coverde/issues
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
-dependencies:
-  args: ^2.3.0
-  collection: ^1.15.0
-  html: ^0.15.0
-  io: ^1.0.3
-  meta: ^1.7.0
-  path: ^1.8.1
-  process: ^4.2.4
-  pub_updater: ^0.2.2
-  universal_io: ^2.0.4
-
 dev_dependencies:
-  build: ^2.2.1
-  build_config: ^1.0.0
-  build_runner: ^2.1.7
-  build_verify: ^3.0.0
-  csslib: ^0.17.1
-  mocktail: ^0.3.0
-  pubspec_parse: ^1.2.0
-  test: ^1.20.1
-  very_good_analysis: ^2.4.0
-
-executables:
-  coverde:
+  melos: ^3.1.1
