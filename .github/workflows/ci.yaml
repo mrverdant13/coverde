@@ -40,7 +40,7 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Verify up-to-date generated source files
-        working-directory: packages/coverde/
+        working-directory: packages/coverde_cli/
         run: dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
 
   test:
