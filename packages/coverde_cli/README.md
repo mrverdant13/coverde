@@ -71,9 +71,9 @@ $ dart pub global activate coverde
 
 ### Results
 
-![Check example (pass)](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_pass.png?raw=true)
+![Check example (pass)][_docs_coverde_check_example_1]
 
-![Check example (fail)](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_fail.png?raw=true)
+![Check example (fail)][_docs_coverde_check_example_2]
 
 ## `coverde filter`
 
@@ -140,9 +140,9 @@ The report style is dynamically set according to individual, group and global co
 
 ### Results
 
-![Report example (directory)](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_directory_example.png?raw=true)
+![Report example (directory)][_docs_coverde_report_example_1]
 
-![Report example (file)](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_file_example.png?raw=true)
+![Report example (file)][_docs_coverde_report_example_2]
 
 ## `coverde value`
 
@@ -204,8 +204,13 @@ To solve this, after enabling Dart or Flutter in your CI workflow, according to 
 
 If you encounter any problems or you believe the CLI is missing a feature, feel free to [open an issue on GitHub][open_issue_link].
 
-Pull request are also welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 
+[_docs_contributing_link]: https://github.com/mrverdant13/coverde/blob/main/CONTRIBUTING.md
+[_docs_coverde_check_example_1]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_pass.png?raw=true
+[_docs_coverde_check_example_2]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_fail.png?raw=true
+[_docs_coverde_report_example_1]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_directory_example.png?raw=true
+[_docs_coverde_report_example_2]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_file_example.png?raw=true
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [codefactor_badge]: https://www.codefactor.io/repository/github/mrverdant13/coverde/badge
