@@ -1,4 +1,4 @@
-name: coverde
+name: coverde_monorepo
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
