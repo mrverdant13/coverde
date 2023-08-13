@@ -2,7 +2,6 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/tracefile.dart';
 import 'package:coverde/src/utils/command.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -26,7 +25,7 @@ class FilterCommand extends Command<void> {
         help: '''
 Destination coverage info file to dump the resulting coverage data into.''',
         defaultsTo: 'coverage/filtered.lcov.info',
-        valueHelp: _outpitHelpValue,
+        valueHelp: _outputHelpValue,
       )
       ..addMultiOption(
         filtersOption,
@@ -39,7 +38,7 @@ Set of comma-separated path patterns of the files to be ignored.''',
       ..addOption(
         modeOption,
         abbr: modeOption[0],
-        help: 'The mode in which the $_outpitHelpValue can be generated.',
+        help: 'The mode in which the $_outputHelpValue can be generated.',
         valueHelp: _modeHelpValue,
         allowed: _outModeAllowedHelp.keys,
         allowedHelp: _outModeAllowedHelp,
@@ -50,14 +49,14 @@ Set of comma-separated path patterns of the files to be ignored.''',
   final Stdout _out;
 
   static const _inputHelpValue = 'INPUT_LCOV_FILE';
-  static const _outpitHelpValue = 'OUTPUT_LCOV_FILE';
+  static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
   static const _filtersHelpValue = 'FILTERS';
   static const _modeHelpValue = 'MODE';
   static const _outModeAllowedHelp = {
     'a': '''
-Append filtered content to the $_outpitHelpValue content, if any.''',
+Append filtered content to the $_outputHelpValue content, if any.''',
     'w': '''
-Override the $_outpitHelpValue content, if any, with the filtered content.''',
+Override the $_outputHelpValue content, if any, with the filtered content.''',
   };
 
   /// Option name for identifier patters to be used for tracefile filtering.
@@ -81,7 +80,7 @@ Override the $_outpitHelpValue content, if any, with the filtered content.''',
 Filter a coverage trace file.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
-The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outpitHelpValue file.''';
+The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.''';
 
   @override
   String get name => 'filter';
@@ -115,7 +114,6 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
 
     final origin = File(originPath);
     final destination = File(destinationPath);
-    final pwd = Directory.current;
 
     if (!origin.existsSync()) {
       usageException('The trace file located at `$originPath` does not exist.');
@@ -138,7 +136,7 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
         },
       );
 
-      // Conditionaly include file coverage data.
+      // Conditionally include file coverage data.
       if (shouldBeIgnored) {
         _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
@@ -146,14 +144,9 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
       }
     }
 
-    // Use absolute path.
     final finalContent = acceptedSrcFilesCovData
         .map((srcFileCovData) => srcFileCovData.raw)
-        .join('\n')
-        .replaceAll(
-          RegExp(CovFile.sourceFileTag),
-          '${CovFile.sourceFileTag}${pwd.path}${path.separator}',
-        );
+        .join('\n');
 
     // Generate destination file and its content.
     destination

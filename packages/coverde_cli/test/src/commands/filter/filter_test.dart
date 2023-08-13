@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/tracefile.dart';
@@ -79,8 +81,11 @@ THEN a filtered tracefile should be created
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = 'original.lcov.info'.fixturePath;
           final filteredFilePath = 'unquoted.filtered.lcov.info'.fixturePath;
+          final expectedFilteredFilePath =
+              'expected.unquoted.filtered.lcov.info'.fixturePath;
           final originalFile = File(originalFilePath);
           final filteredFile = File(filteredFilePath);
+          final expectedFilteredFile = File(expectedFilteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
@@ -112,12 +117,21 @@ THEN a filtered tracefile should be created
           ]);
 
           // ASSERT
+          const splitter = LineSplitter();
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
-          final filteredFileIncludeFileThatMatchPatterns = Tracefile.parse(
-            filteredFile.readAsStringSync(),
-          ).includeFileThatMatchPatterns(patterns);
+          final filteredFileContent = filteredFile.readAsStringSync();
+          final expectedFilteredFileContent =
+              expectedFilteredFile.readAsStringSync();
+          final filteredFileIncludeFileThatMatchPatterns =
+              Tracefile.parse(filteredFileContent)
+                  .includeFileThatMatchPatterns(patterns);
           expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+          expect(
+            splitter.convert(filteredFileContent),
+            splitter.convert(expectedFilteredFileContent),
+            reason: 'Error: Non-matching filtered file content.',
+          );
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(
@@ -142,8 +156,11 @@ THEN a filtered tracefile should be created
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = 'original.lcov.info'.fixturePath;
           final filteredFilePath = 'raw.filtered.lcov.info'.fixturePath;
+          final expectedFilteredFilePath =
+              'expected.raw.filtered.lcov.info'.fixturePath;
           final originalFile = File(originalFilePath);
           final filteredFile = File(filteredFilePath);
+          final expectedFilteredFile = File(expectedFilteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
@@ -175,12 +192,21 @@ THEN a filtered tracefile should be created
           ]);
 
           // ASSERT
+          const splitter = LineSplitter();
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
-          final filteredFileIncludeFileThatMatchPatterns = Tracefile.parse(
-            filteredFile.readAsStringSync(),
-          ).includeFileThatMatchPatterns(patterns);
+          final filteredFileContent = filteredFile.readAsStringSync();
+          final expectedFilteredFileContent =
+              expectedFilteredFile.readAsStringSync();
+          final filteredFileIncludeFileThatMatchPatterns =
+              Tracefile.parse(filteredFileContent)
+                  .includeFileThatMatchPatterns(patterns);
           expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+          expect(
+            splitter.convert(filteredFileContent),
+            splitter.convert(expectedFilteredFileContent),
+            reason: 'Error: Non-matching filtered file content.',
+          );
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(

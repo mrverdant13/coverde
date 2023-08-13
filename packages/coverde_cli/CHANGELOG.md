@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 - **FEAT (BREAKING)**: require Dart 3.
+- **FIX (BREAKING)**: keep relative paths when filtering.
 
 ## 0.1.0+1
 
