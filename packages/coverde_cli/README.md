@@ -91,8 +91,9 @@ $ dart pub global activate coverde
 ### Examples
 
 - `coverde filter`
-- `coverde filter -f \.g\.dart`
-- `coverde filter -f \.freezed\.dart -mode w`
+- `coverde filter -f '\.g\.dart'`
+- `coverde filter -f '\.freezed\.dart' -mode w`
+- `coverde filter -f generated -mode a`
 - `coverde filter -o coverage/tracefile.info`
 
 ## `coverde remove`
@@ -178,7 +179,7 @@ M:
   description: Merge all packages coverage tracefiles ignoring data related to generated files.
   run: >
     coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-    melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart
+    melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters '\.g\.dart'
 ```
 
 `M` is the melos script that merges the coverage trace file of all tested packages contained within the project
