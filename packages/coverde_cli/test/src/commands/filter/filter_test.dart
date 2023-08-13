@@ -8,7 +8,7 @@ import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 
-extension _FixturedString on String {
+extension on String {
   String get fixturePath => path.join(
         'test/src/commands/filter/fixtures/',
         this,
@@ -68,8 +68,8 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
         '''
 
 AND an existing tracefile to filter
-AND a set of patterns to be filtered
-WHEN the command is invoqued
+AND a set of unquoted patterns to be filtered
+WHEN the command is invoked
 THEN a filtered tracefile should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
@@ -78,7 +78,70 @@ THEN a filtered tracefile should be created
           const patterns = <String>['.g.dart'];
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = 'original.lcov.info'.fixturePath;
-          final filteredFilePath = 'filtered.lcov.info'.fixturePath;
+          final filteredFilePath = 'unquoted.filtered.lcov.info'.fixturePath;
+          final originalFile = File(originalFilePath);
+          final filteredFile = File(filteredFilePath);
+          if (filteredFile.existsSync()) {
+            filteredFile.deleteSync(recursive: true);
+          }
+          final originalTracefile = Tracefile.parse(
+            originalFile.readAsStringSync(),
+          );
+          final originalFileIncludeFileThatMatchPatterns =
+              originalTracefile.includeFileThatMatchPatterns(patterns);
+          final filesDataToBeRemoved =
+              originalTracefile.sourceFilesCovData.where(
+            (d) => patternsRegex.any(
+              (r) => r.hasMatch(d.source.path),
+            ),
+          );
+
+          expect(originalFile.existsSync(), isTrue);
+          expect(filteredFile.existsSync(), isFalse);
+          expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+
+          // ACT
+          await cmdRunner.run([
+            filterCmd.name,
+            '--${FilterCommand.inputOption}',
+            originalFilePath,
+            '--${FilterCommand.outputOption}',
+            filteredFilePath,
+            '--${FilterCommand.filtersOption}',
+            patterns.join(','),
+          ]);
+
+          // ASSERT
+          expect(originalFile.existsSync(), isTrue);
+          expect(filteredFile.existsSync(), isTrue);
+          final filteredFileIncludeFileThatMatchPatterns = Tracefile.parse(
+            filteredFile.readAsStringSync(),
+          ).includeFileThatMatchPatterns(patterns);
+          expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+          for (final fileData in filesDataToBeRemoved) {
+            final path = fileData.source.path;
+            verify(
+              () => out.writeln('<$path> coverage data ignored.'),
+            ).called(1);
+          }
+        },
+      );
+
+      test(
+        '''
+
+AND an existing tracefile to filter
+AND a set of raw patterns to be filtered
+WHEN the command is invoked
+THEN a filtered tracefile should be created
+├─ BY dumping the filtered content to the default destination
+''',
+        () async {
+          // ARRANGE
+          const patterns = <String>[r'\.g\.dart'];
+          final patternsRegex = patterns.map(RegExp.new);
+          final originalFilePath = 'original.lcov.info'.fixturePath;
+          final filteredFilePath = 'raw.filtered.lcov.info'.fixturePath;
           final originalFile = File(originalFilePath);
           final filteredFile = File(filteredFilePath);
           if (filteredFile.existsSync()) {
@@ -132,7 +195,7 @@ THEN a filtered tracefile should be created
 
 AND a non-existing tracefile to filter
 AND a set of patterns to be filtered
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
