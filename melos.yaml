@@ -6,6 +6,11 @@ packages:
   - ./packages/package_data_generator/
   - ./packages/pub_score_checker/
 
+command:
+  clean:
+    hooks:
+      pre: melos exec -- "coverde rm .dart_tool pubspec_overrides.yaml pubspec.lock coverage"
+
 scripts:
   d:
     description: Install dependencies for a selected package.
@@ -83,7 +88,7 @@ scripts:
     run: >
       dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.asset\.dart" &&
+      melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters '\.asset\.dart'" &&
       coverde check -i coverage/filtered.lcov.info 100
 
   R:
@@ -106,7 +111,6 @@ scripts:
     description: Run tests, generate unified coverage trace file and check minimum coverage.
     run: melos run T:ci && melos run MC
 
-  # HACK: Allowing 10 points of tolerance since JS runtime is not supported yet.
   p:
     description: Check pub score for a selected package.
     run: dart run MELOS_ROOT_PATH/packages/pub_score_checker/main.dart MELOS_PACKAGE_PATH 20
