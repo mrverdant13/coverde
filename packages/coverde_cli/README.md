@@ -94,7 +94,7 @@ $ dart pub global activate coverde
 - `coverde filter -f '\.g\.dart'`
 - `coverde filter -f '\.freezed\.dart' -mode w`
 - `coverde filter -f generated -mode a`
-- `coverde filter -o coverage/tracefile.info`
+- `coverde filter -o coverage/trace-file.info`
 
 ## `coverde remove`
 
@@ -136,7 +136,7 @@ The report style is dynamically set according to individual, group and global co
 ### Examples
 
 - `coverde report`
-- `coverde report -i coverage/tracefile.info --medium 50`
+- `coverde report -i coverage/trace-file.info --medium 50`
 - `coverde report -o coverage/report --high 95 -l`
 
 ### Results
@@ -164,7 +164,7 @@ The report style is dynamically set according to individual, group and global co
 ### Examples
 
 - `coverde value`
-- `coverde value -i coverage/tracefile.info --no-verbose`
+- `coverde value -i coverage/trace-file.info --no-verbose`
 
 ---
 
@@ -176,7 +176,7 @@ This can be achieved by defining a melos script as follows:
 
 ```yaml
 M:
-  description: Merge all packages coverage tracefiles ignoring data related to generated files.
+  description: Merge all packages coverage trace files ignoring data related to generated files.
   run: >
     coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
     melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters '\.g\.dart'

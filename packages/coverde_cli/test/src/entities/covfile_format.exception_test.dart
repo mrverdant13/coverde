@@ -1,4 +1,4 @@
-import 'package:coverde/src/entities/covfile_format.exception.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -6,10 +6,10 @@ void main() {
   group(
     '''
 
-GIVEN a covfile format exception''',
+GIVEN a cov-file format exception''',
     () {
       // ARRANGE
-      final exception = CovfileFormatException(message: 'A message.');
+      final exception = CovFileFormatException(message: 'A message.');
 
       test(
         '''

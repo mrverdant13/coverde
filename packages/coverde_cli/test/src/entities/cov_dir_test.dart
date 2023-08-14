@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_line.dart';
@@ -144,7 +146,7 @@ THEN a positive result should be returned
 
     group(
       '''
-    
+
 GIVEN a collection of coverage file data
 ├─ THAT is organized as follows:
 │   test/ (dir)
@@ -163,7 +165,7 @@ GIVEN a collection of coverage file data
           '''
 
 WHEN they are dispatched to be arranged according to their source paths
-THEN a tree sctructure of coverage data elements is returned
+THEN a tree structure of coverage data elements is returned
 ''',
           () {
             // ACT
@@ -217,20 +219,24 @@ Node: test/ (100.00% - 4/4)
 ├─ Node: test/dir_1/ (100.00% - 2/2)
 │  ├─ SF: test/dir_1/file_1.1.ext (100.00% - 1/1)
 │  ├─ SF: test/dir_1/file_1.2.ext (100.00% - 1/1)
-│  
+│
 ├─ Node: test/dir_2/dir_2_1/dir_2_1_1 (100.00% - 2/2)
 │  ├─ Node: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/ (100.00% - 1/1)
 │  │  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext (100.00% - 1/1)
-│  │  
+│  │
 │  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext (100.00% - 1/1)
-│  
+│
 ''';
 
         // ACT
         final result = tree.toString();
 
         // ASSERT
-        expect(result, expectedTreeString);
+        final splitter = const LineSplitter();
+        expect(
+          splitter.convert(result).map((line) => line.trim()),
+          splitter.convert(expectedTreeString).map((line) => line.trim()),
+        );
       },
     );
   }

@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/cov_file.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
@@ -59,19 +59,19 @@ Append filtered content to the $_outputHelpValue content, if any.''',
 Override the $_outputHelpValue content, if any, with the filtered content.''',
   };
 
-  /// Option name for identifier patters to be used for tracefile filtering.
+  /// Option name for identifier patters to be used for trace file filtering.
   @visibleForTesting
   static const filtersOption = 'filters';
 
-  /// Option name for the origin tracefile to be filtered.
+  /// Option name for the origin trace file to be filtered.
   @visibleForTesting
   static const inputOption = 'input';
 
-  /// Option name for the resulting filtered tracefile.
+  /// Option name for the resulting filtered trace file.
   @visibleForTesting
   static const outputOption = 'output';
 
-  /// Option name for the resulting filtered tracefile.
+  /// Option name for the resulting filtered trace file.
   @visibleForTesting
   static const modeOption = 'mode';
 
@@ -122,12 +122,12 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
     // Get initial package coverage data.
     final initialContent = origin.readAsStringSync().trim();
 
-    // Parse tracefile.
-    final tracefile = Tracefile.parse(initialContent);
+    // Parse trace file.
+    final traceFile = TraceFile.parse(initialContent);
     final acceptedSrcFilesCovData = <CovFile>{};
 
     // For each file coverage data.
-    for (final fileCovData in tracefile.sourceFilesCovData) {
+    for (final fileCovData in traceFile.sourceFilesCovData) {
       // Check if file should be ignored according to matching patterns.
       final shouldBeIgnored = ignorePatterns.any(
         (ignorePattern) {

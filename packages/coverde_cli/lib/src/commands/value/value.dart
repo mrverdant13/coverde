@@ -1,5 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -33,7 +33,7 @@ Print coverage value for each source file listed in the $_inputHelpValue info fi
 
   static const _inputHelpValue = 'LCOV_FILE';
 
-  /// Option name for the tracefile whose coverage value should be computed.
+  /// Option name for the trace file whose coverage value should be computed.
   @visibleForTesting
   static const inputOption = 'input';
 
@@ -80,11 +80,11 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     // Split coverage data by the end of record prefix, which indirectly splits
     // the info by file.
-    final tracefileData = Tracefile.parse(fileContent);
+    final traceFileData = TraceFile.parse(fileContent);
 
     logCoverage(
       out: _out,
-      tracefile: tracefileData,
+      traceFile: traceFileData,
       shouldLogFiles: shouldLogFiles,
     );
   }
@@ -92,12 +92,12 @@ Compute the coverage value of the $_inputHelpValue info file.''';
   /// Log coverage values.
   static void logCoverage({
     required Stdout out,
-    required Tracefile tracefile,
+    required TraceFile traceFile,
     required bool shouldLogFiles,
   }) {
     if (shouldLogFiles) {
       // For each file coverage data.
-      for (final fileCovData in tracefile.sourceFilesCovData) {
+      for (final fileCovData in traceFile.sourceFilesCovData) {
         out.writeln(fileCovData.coverageDataString);
       }
       out.writeln();
@@ -106,6 +106,6 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     // Show resulting coverage.
     out
       ..writeln(wrapWith('GLOBAL:', [blue, styleBold]))
-      ..writeln(wrapWith(tracefile.coverageDataString, [blue, styleBold]));
+      ..writeln(wrapWith(traceFile.coverageDataString, [blue, styleBold]));
   }
 }

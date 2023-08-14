@@ -1,11 +1,11 @@
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
-extension _FixturedString on String {
+extension on String {
   String get fixturePath => path.join(
         'test/src/commands/check/fixtures/',
         this,
@@ -18,16 +18,16 @@ void main() {
 
 GIVEN a minimum coverage exception
 ├─ THAT includes a minimum coverage value
-├─ AND holds a tracefile''',
+├─ AND holds a trace file''',
     () {
       // ARRANGE
       const minCoverage = 40.0;
-      final tracefileFilePath = 'lcov.info'.fixturePath;
-      final tracefileFile = File(tracefileFilePath);
-      final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
+      final traceFilePath = 'lcov.info'.fixturePath;
+      final traceFileFile = File(traceFilePath);
+      final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
       final exception = MinCoverageException(
         minCoverage: minCoverage,
-        tracefile: tracefile,
+        traceFile: traceFile,
       );
 
       test(
@@ -63,7 +63,7 @@ THEN a string holding the exception details should be returned
             isTrue,
           );
           expect(
-            result.contains('Actual coverage: ${tracefile.coverageString}'),
+            result.contains('Actual coverage: ${traceFile.coverageString}'),
             isTrue,
           );
         },

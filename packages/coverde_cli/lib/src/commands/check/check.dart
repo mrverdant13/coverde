@@ -2,13 +2,13 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template check_cmd}
-/// A command to check the minimum coverage value from a tracefile.
+/// A command to check the minimum coverage value from a trace file.
 /// {@endtemplate check_cmd}
 class CheckCommand extends Command<void> {
   /// {@macro check_cmd}
@@ -34,7 +34,7 @@ Trace file used for the coverage check.''',
 
   static const _inputHelpValue = 'LCOV_FILE';
 
-  /// Option name for the tracefile whose coverage value should be checked.
+  /// Option name for the trace file whose coverage value should be checked.
   @visibleForTesting
   static const inputOption = 'input';
 
@@ -99,20 +99,20 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
 
     // Split coverage data by the end of record prefix, which indirectly splits
     // the info by file.
-    final tracefile = Tracefile.parse(fileContent);
+    final traceFile = TraceFile.parse(fileContent);
 
     if (isVerbose) {
       ValueCommand.logCoverage(
         out: _out,
-        tracefile: tracefile,
+        traceFile: traceFile,
         shouldLogFiles: true,
       );
     }
 
-    if (tracefile.coverage < coverageThreshold) {
+    if (traceFile.coverage < coverageThreshold) {
       throw MinCoverageException(
         minCoverage: coverageThreshold,
-        tracefile: tracefile,
+        traceFile: traceFile,
       );
     }
   }

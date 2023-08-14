@@ -51,7 +51,7 @@ extension _ExtendedProj on _Project {
   }
 }
 
-extension _FixturedString on String {
+extension on String {
   String fixturePath({
     required _Project proj,
   }) =>
@@ -82,7 +82,7 @@ A trace file report generator command should be instantiable
   group(
     '''
 
-GIVEN a tracefile report generator command''',
+GIVEN a trace file report generator command''',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
@@ -112,9 +112,9 @@ THEN a proper abstract should be returned
         () {
           // ARRANGE
           const expected = '''
-Generate the coverage report from a tracefile.
+Generate the coverage report from a trace file.
 
-Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
+Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 ''';
 
           // ACT
@@ -130,16 +130,16 @@ Genrate the coverage report inside REPORT_DIR from the TRACEFILE tracefile.
           test(
             '''
 
-AND an existing tracefile <${proj.name}>
-WHEN the command is invoqued
+AND an existing trace file <${proj.name}>
+WHEN the command is invoked
 THEN a coverage report should be launched
 ├─ BY generating an HTML report
 ├─ AND launching it in a browser
 ''',
             () async {
               // ARRANGE
-              final tracefileFilePath = 'lcov.info'.fixturePath(proj: proj);
-              final tracefileFile = File(tracefileFilePath);
+              final traceFilePath = 'lcov.info'.fixturePath(proj: proj);
+              final traceFileFile = File(traceFilePath);
               const resultDirName = 'result';
               const expectedDirName = 'expected';
               final reportDirPath = resultDirName.fixturePath(proj: proj);
@@ -156,13 +156,13 @@ THEN a coverage report should be launched
                 ),
               );
 
-              expect(tracefileFile.existsSync(), isTrue);
+              expect(traceFileFile.existsSync(), isTrue);
 
               // ACT
               await cmdRunner.run([
                 reportCmd.name,
                 '--${ReportCommand.inputOption}',
-                tracefileFilePath,
+                traceFilePath,
                 '--${ReportCommand.outputOption}',
                 reportDirPath,
                 '--${ReportCommand.launchFlag}',
@@ -199,35 +199,39 @@ THEN a coverage report should be launched
                 } else {
                   final result = resultFile.readAsStringSync();
                   final expected = expectedFile.readAsStringSync();
+                  const splitter = LineSplitter();
                   if (relFilePath.endsWith('html')) {
-                    const lastTracefileModificationDateSelector =
-                        '.lastTracefileModificationDate';
+                    const lastTraceFileModificationDateSelector =
+                        '.lastTraceFileModificationDate';
                     final resultHtml = Document.html(result);
                     final expectedHtml = Document.html(expected);
                     resultHtml
-                        .querySelector(lastTracefileModificationDateSelector)
+                        .querySelector(lastTraceFileModificationDateSelector)
                         ?.remove();
                     expectedHtml
-                        .querySelector(lastTracefileModificationDateSelector)
+                        .querySelector(lastTraceFileModificationDateSelector)
                         ?.remove();
                     expect(
-                      resultHtml.outerHtml,
-                      expectedHtml.outerHtml,
+                      splitter
+                          .convert(resultHtml.outerHtml)
+                          .map((line) => line.trim()),
+                      splitter
+                          .convert(expectedHtml.outerHtml)
+                          .map((line) => line.trim()),
                       reason: 'Error: Non-matching (html) file <$relFilePath>',
                     );
                   } else if (relFilePath.endsWith('css')) {
-                    const splitter = LineSplitter();
                     final resultCss = css.parse(result);
                     final expectedCss = css.parse(expected);
                     expect(
-                      splitter.convert(resultCss.toDebugString()).join('\n'),
-                      splitter.convert(expectedCss.toDebugString()).join('\n'),
+                      splitter.convert(resultCss.toDebugString()),
+                      splitter.convert(expectedCss.toDebugString()),
                       reason: 'Error: Non-matching (css) file <$relFilePath>',
                     );
                   } else {
                     expect(
-                      result,
-                      expected,
+                      splitter.convert(result),
+                      splitter.convert(expected),
                       reason: '''
 Error: Non-matching (plain text) file <$relFilePath>''',
                     );
@@ -255,8 +259,8 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       test(
         '''
 
-AND a non-existing tracefile
-WHEN the command is invoqued
+AND a non-existing trace file
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -281,7 +285,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND an invalid medium threshold
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {
@@ -304,7 +308,7 @@ THEN an error indicating the issue should be thrown
         '''
 
 AND an invalid high threshold
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () async {

@@ -22,7 +22,7 @@ class CovLine {
 
   /// Create a [CovLine] from a [data] trace line.
   ///
-  /// The [data] string should be the content of a line in a tracefile that
+  /// The [data] string should be the content of a line in a trace file that
   /// starts with the [tag] prefix.
   ///
   /// {@macro cov_line}
@@ -54,7 +54,7 @@ class CovLine {
   late final hasBeenHit = hitsNumber > 0;
 
   /// {@template cov_line.tag}
-  /// The tag or prefix that identifies a line in a tracefile that contains
+  /// The tag or prefix that identifies a line in a trace file that contains
   /// coverage data for a line of code from a source file.
   /// {@endtemplate}
   static const tag = 'DA:';

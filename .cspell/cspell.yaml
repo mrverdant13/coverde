@@ -1,0 +1,29 @@
+version: "0.2"
+$schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json
+ignorePaths:
+  - "**/.cspell/*.txt"
+  - "**/pubspec.lock"
+  - "**/test/**/fixtures/**/*lcov.info"
+dictionaryDefinitions:
+  - name: global-allow
+    path: ./global.allow.txt
+    addWords: true
+  - name: dart-allow
+    path: ./dart.allow.txt
+    addWords: true
+  - name: docs-allow
+    path: ./docs.allow.txt
+    addWords: true
+dictionaries:
+  - global-allow
+useGitignore: true
+overrides:
+  - filename: "**/{*.dart,pubspec.yaml}"
+    dictionaries:
+      - dart-allow
+  - filename: "**/{CHANGELOG.md,CONTRIBUTING.md,README.md,LICENSE}"
+    dictionaries:
+      - docs-allow
+  - filename: "**/test/**/fixtures/**/{*.html,*.css}"
+    ignoreWords:
+      - endtemplate

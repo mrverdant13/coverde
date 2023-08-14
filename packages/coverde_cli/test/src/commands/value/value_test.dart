@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -8,7 +8,7 @@ import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
 
-extension _FixturedString on String {
+extension on String {
   String get fixturePath => path.join(
         'test/src/commands/value/fixtures/',
         this,
@@ -19,7 +19,7 @@ void main() {
   group(
     '''
 
-GIVEN a tracefile value computer command''',
+GIVEN a trace file value computer command''',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
@@ -66,33 +66,33 @@ Compute the coverage value of the LCOV_FILE info file.
       test(
         '''
 
-AND an existing tracefile
-AND the disabled option to print coverage data about tracefile listed files
-WHEN the the tracefile coverage value is requested
+AND an existing trace file
+AND the disabled option to print coverage data about trace file listed files
+WHEN the the trace file coverage value is requested
 THEN the global value is displayed
 ├─ BY logging the relative coverage value in percentage
 ├─ AND logging the number of covered lines fo code
 ''',
         () async {
           // ARRANGE
-          final tracefilePath = 'lcov.info'.fixturePath;
-          final tracefileFile = File(tracefilePath);
-          final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
+          final traceFilePath = 'lcov.info'.fixturePath;
+          final traceFileFile = File(traceFilePath);
+          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
 
-          expect(tracefileFile.existsSync(), isTrue);
+          expect(traceFileFile.existsSync(), isTrue);
 
           // ACT
           await cmdRunner.run([
             valueCmd.name,
             '--${ValueCommand.inputOption}',
-            tracefilePath,
+            traceFilePath,
             '--no-${ValueCommand.verboseFlag}',
           ]);
 
           // ASSERT
           final verifications = verifyInOrder([
             () => out.writeln('GLOBAL:'),
-            () => out.writeln(tracefile.coverageDataString),
+            () => out.writeln(traceFile.coverageDataString),
           ]);
           for (final verification in verifications) {
             verification.called(1);
@@ -103,9 +103,9 @@ THEN the global value is displayed
       test(
         '''
 
-AND an existing tracefile
-AND the enabled option to print coverage data about tracefile listed files
-WHEN the the tracefile coverage value is requested
+AND an existing trace file
+AND the enabled option to print coverage data about trace file listed files
+WHEN the the trace file coverage value is requested
 THEN the coverage value for each individual file should be displayed
 AND the global value should be displayed
 ├─ BY logging the relative coverage value in percentage
@@ -113,27 +113,27 @@ AND the global value should be displayed
 ''',
         () async {
           // ARRANGE
-          final tracefilePath = 'lcov.info'.fixturePath;
-          final tracefileFile = File(tracefilePath);
-          final tracefile = Tracefile.parse(tracefileFile.readAsStringSync());
+          final traceFilePath = 'lcov.info'.fixturePath;
+          final traceFileFile = File(traceFilePath);
+          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
 
-          expect(tracefileFile.existsSync(), isTrue);
+          expect(traceFileFile.existsSync(), isTrue);
 
           // ACT
           await cmdRunner.run([
             valueCmd.name,
             '--${ValueCommand.inputOption}',
-            tracefilePath,
+            traceFilePath,
             '--${ValueCommand.verboseFlag}',
           ]);
 
           // ASSERT
           final verifications = verifyInOrder([
-            ...tracefile.sourceFilesCovData.map(
+            ...traceFile.sourceFilesCovData.map(
               (d) => () => out.writeln(d.coverageDataString),
             ),
             () => out.writeln('GLOBAL:'),
-            () => out.writeln(tracefile.coverageDataString),
+            () => out.writeln(traceFile.coverageDataString),
           ]);
           for (final verification in verifications) {
             verification.called(1);
@@ -145,8 +145,8 @@ AND the global value should be displayed
       test(
         '''
 
-AND a non-existing tracefile
-WHEN the the tracefile coverage value is requested
+AND a non-existing trace file
+WHEN the the trace file coverage value is requested
 THEN an error indicating the issue should be thrown
 ''',
         () async {
