@@ -4,4 +4,4 @@
 const packageName = 'coverde';
 
 /// Package version.
-const packageVersion = '0.1.0+1';
+const packageVersion = '0.2.0+1';
