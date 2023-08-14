@@ -1,7 +1,10 @@
-## [Unreleased]
+## 0.2.0
 
-- **FEAT (BREAKING)**: require Dart 3.
-- **FIX (BREAKING)**: keep relative paths when filtering.
+- **FEAT**: require Dart 3 (#52).
+- **REFACTOR**: solve typos (#63).
+- **FIX**: keep relative paths when filtering (#60).
+- **DOCS**: use representative usage examples (#61).
+- **DOCS**: update links and references (#58).
 
 ## 0.1.0+1
 
