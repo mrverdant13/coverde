@@ -42,7 +42,7 @@ scripts:
 
   S:
     description: Run spell checking for the whole project.
-    run: cspell lint --fail-fast -c ./.cspell/cspell.yaml "MELOS_ROOT_PATH"
+    run: cspell lint --fail-fast --no-progress -c ./.cspell/cspell.yaml "MELOS_ROOT_PATH"
 
   f:
     description: Format codebase for a selected package.
