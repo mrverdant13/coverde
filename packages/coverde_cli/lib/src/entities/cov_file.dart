@@ -3,8 +3,8 @@ import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
 import 'package:coverde/src/assets/file_report_template.html.asset.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/cov_line.dart';
-import 'package:coverde/src/entities/covfile_format.exception.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
@@ -32,7 +32,7 @@ class CovFile extends CovElement {
 
   /// Create a [CovFile] from a [data] trace block string.
   ///
-  /// Throws a [CovfileFormatException] if the [data] is not a valid trace
+  /// Throws a [CovFileFormatException] if the [data] is not a valid trace
   /// block.
   factory CovFile.parse(String data) {
     final dataLines = data.split('\n');
@@ -40,8 +40,8 @@ class CovFile extends CovElement {
     String sourcePath() => dataLines
         .firstWhere(
           (l) => l.startsWith(sourceFileTag),
-          orElse: () => throw CovfileFormatException(
-            message: 'Source file tag not found in the tracefile block.',
+          orElse: () => throw CovFileFormatException(
+            message: 'Source file tag not found in the trace file block.',
           ),
         )
         .replaceAll(sourceFileTag, '')
@@ -123,11 +123,11 @@ class CovFile extends CovElement {
 
   @override
   void generateSubReport({
-    required String tracefileName,
+    required String traceFileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
-    required DateTime tracefileModificationDate,
+    required DateTime traceFileModificationDate,
     required double medium,
     required double high,
   }) {
@@ -148,7 +148,7 @@ class CovFile extends CovElement {
     );
 
     {
-      final title = 'Coverage Report - $tracefileName';
+      final title = 'Coverage Report - $traceFileName';
       final currentDirPath = source.parent.path;
       final fileName = path.basename(source.path);
       final suffix = getClassSuffix(medium: medium, high: high);
@@ -162,7 +162,7 @@ class CovFile extends CovElement {
       fileReport.querySelector('.currentDirPath')?.text = currentDirPath;
       fileReport.querySelector('.currentFileName')?.nodes.last.text =
           ' - $fileName';
-      fileReport.querySelector('.tracefileName')?.text = tracefileName;
+      fileReport.querySelector('.traceFileName')?.text = traceFileName;
       fileReport.querySelector('.linesHit')?.text = '$linesHit';
       fileReport.querySelector('.linesFound')?.text = '$linesFound';
       fileReport.querySelector('.covValue')
@@ -170,8 +170,8 @@ class CovFile extends CovElement {
         ..classes.add('headerCovTableEntry$suffix');
     }
 
-    fileReport.querySelector('.lastTracefileModificationDate')?.text =
-        tracefileModificationDate.toString();
+    fileReport.querySelector('.lastTraceFileModificationDate')?.text =
+        traceFileModificationDate.toString();
 
     {
       final src = fileReport.querySelector('.source');

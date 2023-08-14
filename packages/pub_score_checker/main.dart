@@ -1,4 +1,3 @@
-// cspell:words sigint, sigterm, writeln
 import 'dart:async';
 import 'dart:io';
 

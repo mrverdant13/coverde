@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -21,7 +21,7 @@ void main() {
   group(
     '''
 
-GIVEN a tracefile filterer command''',
+GIVEN a trace file filterer command''',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
@@ -69,10 +69,10 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
       test(
         '''
 
-AND an existing tracefile to filter
+AND an existing trace file to filter
 AND a set of unquoted patterns to be filtered
 WHEN the command is invoked
-THEN a filtered tracefile should be created
+THEN a filtered trace file should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
         () async {
@@ -89,13 +89,13 @@ THEN a filtered tracefile should be created
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
-          final originalTracefile = Tracefile.parse(
+          final originalTraceFile = TraceFile.parse(
             originalFile.readAsStringSync(),
           );
           final originalFileIncludeFileThatMatchPatterns =
-              originalTracefile.includeFileThatMatchPatterns(patterns);
+              originalTraceFile.includeFileThatMatchPatterns(patterns);
           final filesDataToBeRemoved =
-              originalTracefile.sourceFilesCovData.where(
+              originalTraceFile.sourceFilesCovData.where(
             (d) => patternsRegex.any(
               (r) => r.hasMatch(d.source.path),
             ),
@@ -124,7 +124,7 @@ THEN a filtered tracefile should be created
           final expectedFilteredFileContent =
               expectedFilteredFile.readAsStringSync();
           final filteredFileIncludeFileThatMatchPatterns =
-              Tracefile.parse(filteredFileContent)
+              TraceFile.parse(filteredFileContent)
                   .includeFileThatMatchPatterns(patterns);
           expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
           expect(
@@ -144,10 +144,10 @@ THEN a filtered tracefile should be created
       test(
         '''
 
-AND an existing tracefile to filter
+AND an existing trace file to filter
 AND a set of raw patterns to be filtered
 WHEN the command is invoked
-THEN a filtered tracefile should be created
+THEN a filtered trace file should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
         () async {
@@ -164,13 +164,13 @@ THEN a filtered tracefile should be created
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
-          final originalTracefile = Tracefile.parse(
+          final originalTraceFile = TraceFile.parse(
             originalFile.readAsStringSync(),
           );
           final originalFileIncludeFileThatMatchPatterns =
-              originalTracefile.includeFileThatMatchPatterns(patterns);
+              originalTraceFile.includeFileThatMatchPatterns(patterns);
           final filesDataToBeRemoved =
-              originalTracefile.sourceFilesCovData.where(
+              originalTraceFile.sourceFilesCovData.where(
             (d) => patternsRegex.any(
               (r) => r.hasMatch(d.source.path),
             ),
@@ -199,7 +199,7 @@ THEN a filtered tracefile should be created
           final expectedFilteredFileContent =
               expectedFilteredFile.readAsStringSync();
           final filteredFileIncludeFileThatMatchPatterns =
-              Tracefile.parse(filteredFileContent)
+              TraceFile.parse(filteredFileContent)
                   .includeFileThatMatchPatterns(patterns);
           expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
           expect(
@@ -219,7 +219,7 @@ THEN a filtered tracefile should be created
       test(
         '''
 
-AND a non-existing tracefile to filter
+AND a non-existing trace file to filter
 AND a set of patterns to be filtered
 WHEN the command is invoked
 THEN an error indicating the issue should be thrown

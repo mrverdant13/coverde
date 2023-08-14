@@ -1,3 +1,5 @@
+// cspell:words posix
+
 import 'package:build/build.dart';
 import 'package:path/path.dart' show posix;
 

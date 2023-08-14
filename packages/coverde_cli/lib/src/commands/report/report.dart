@@ -2,7 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:io/ansi.dart';
@@ -11,7 +11,7 @@ import 'package:process/process.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template report_cmd}
-/// A command to generate the coverage report from a given tracefile.
+/// A command to generate the coverage report from a given trace file.
 /// {@endtemplate}
 class ReportCommand extends Command<void> {
   /// {@macro report_cmd}
@@ -25,7 +25,7 @@ class ReportCommand extends Command<void> {
         inputOption,
         abbr: inputOption[0],
         help: '''
-Coverage tracefile to be used for the coverage report generation.''',
+Coverage trace file to be used for the coverage report generation.''',
         valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
@@ -50,7 +50,7 @@ Threshold values (%):
 These options provide reference coverage values for the HTML report styling.
 
 High: $_highHelpValue <= coverage <= 100
-Medium: $_mediumHelpValue <= coverge < $_highHelpValue
+Medium: $_mediumHelpValue <= coverage < $_highHelpValue
 Low: 0 <= coverage < $_mediumHelpValue''',
       )
       ..addOption(
@@ -72,16 +72,16 @@ High threshold.''',
   final Stdout _out;
   final ProcessManager _processManager;
 
-  static const _inputHelpValue = 'TRACEFILE';
+  static const _inputHelpValue = 'TRACE_FILE';
   static const _outputHelpValue = 'REPORT_DIR';
   static const _mediumHelpValue = 'MEDIUM_VAL';
   static const _highHelpValue = 'HIGH_VAL';
 
-  /// Option name for the origin tracefile.
+  /// Option name for the origin trace file.
   @visibleForTesting
   static const inputOption = 'input';
 
-  /// Option name for the destionation container folder to dump the report to.
+  /// Option name for the destination container folder to dump the report to.
   @visibleForTesting
   static const outputOption = 'output';
 
@@ -100,9 +100,9 @@ High threshold.''',
 
   @override
   String get description => '''
-Generate the coverage report from a tracefile.
+Generate the coverage report from a trace file.
 
-Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue tracefile.''';
+Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue trace file.''';
 
   @override
   String get name => 'report';
@@ -116,7 +116,7 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _tracefilePath = checkOption(
+    final _traceFilePath = checkOption(
       optionKey: inputOption,
       optionName: 'input trace file',
     );
@@ -145,30 +145,30 @@ Genrate the coverage report inside $_outputHelpValue from the $_inputHelpValue t
     final reportDirAbsPath = path.isAbsolute(_reportDirPath)
         ? _reportDirPath
         : path.join(Directory.current.path, _reportDirPath);
-    final tracefileAbsPath = path.isAbsolute(_tracefilePath)
-        ? _tracefilePath
-        : path.join(Directory.current.path, _tracefilePath);
+    final traceFileAbsPath = path.isAbsolute(_traceFilePath)
+        ? _traceFilePath
+        : path.join(Directory.current.path, _traceFilePath);
 
-    final tracefile = File(tracefileAbsPath);
+    final traceFile = File(traceFileAbsPath);
 
-    if (!tracefile.existsSync()) {
+    if (!traceFile.existsSync()) {
       usageException(
-        'The trace file located at `$tracefileAbsPath` does not exist.',
+        'The trace file located at `$traceFileAbsPath` does not exist.',
       );
     }
 
-    // Get tracefile content.
-    final tracefileContent = tracefile.readAsStringSync().trim();
+    // Get trace file content.
+    final traceFileContent = traceFile.readAsStringSync().trim();
 
-    // Parse tracefile data.
-    final tracefileData = Tracefile.parse(tracefileContent);
+    // Parse trace file data.
+    final traceFileData = TraceFile.parse(traceFileContent);
 
     // Build cov report base tree.
-    final covTree = tracefileData.asTree
+    final covTree = traceFileData.asTree
       // Generate report doc.
       ..generateReport(
-        tracefileName: path.basename(tracefileAbsPath),
-        tracefileModificationDate: tracefile.lastModifiedSync(),
+        traceFileName: path.basename(traceFileAbsPath),
+        traceFileModificationDate: traceFile.lastModifiedSync(),
         parentReportDirAbsPath: reportDirAbsPath,
         medium: medium,
         high: high,

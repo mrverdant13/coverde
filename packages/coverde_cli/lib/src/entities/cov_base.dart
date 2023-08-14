@@ -1,3 +1,5 @@
+// cspell:words nbsp
+
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
@@ -49,11 +51,11 @@ abstract class CovElement extends CovComputable {
 
   /// Generate HTML coverage report for this element.
   void generateSubReport({
-    required String tracefileName,
+    required String traceFileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
-    required DateTime tracefileModificationDate,
+    required DateTime traceFileModificationDate,
     required double medium,
     required double high,
   });

@@ -1,0 +1,2 @@
+# Allowed words for CI files
+codecov

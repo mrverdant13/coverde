@@ -1,0 +1,6 @@
+# Globally allowed words
+coverde
+github
+lcov
+melos
+pubspec

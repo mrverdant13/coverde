@@ -56,7 +56,7 @@ Remove a set of files and folders.
         '''
 
 AND an existing file to remove
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN the file should be removed
 ''',
         () async {
@@ -82,7 +82,7 @@ THEN the file should be removed
 
 AND a non-existing file to remove
 AND the requirement for the file to exist
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 AND the file should remain inexistent
 ''',
@@ -110,7 +110,7 @@ AND the file should remain inexistent
 
 AND a non-existing file to remove
 AND no requirement for the file to exist
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN a message indicating the issue should be shown
 AND the file should remain inexistent
 ''',
@@ -140,7 +140,7 @@ AND the file should remain inexistent
         '''
 
 AND an existing directory to remove
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN the directory should be removed
 ''',
         () async {
@@ -166,7 +166,7 @@ THEN the directory should be removed
 
 AND a non-existing directory to remove
 AND the requirement for the directory to exist
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 AND the directory should remain inexistent
 ''',
@@ -194,7 +194,7 @@ AND the directory should remain inexistent
 
 AND a non-existing directory to remove
 AND no requirement for the directory to exist
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN a message indicating the issue should be shown
 AND the directory should remain inexistent
 ''',
@@ -224,7 +224,7 @@ AND the directory should remain inexistent
         '''
 
 AND no element to remove
-WHEN the command is invoqued
+WHEN the command is invoked
 THEN an error indicating the issue should be thrown
 ''',
         () {

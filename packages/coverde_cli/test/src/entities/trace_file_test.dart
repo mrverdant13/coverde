@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_file.dart';
-import 'package:coverde/src/entities/tracefile.dart';
+import 'package:coverde/src/entities/trace_file.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -21,10 +21,10 @@ end_of_record''';
   final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
       .map(CovFile.parse);
 
-  final tracefile = Tracefile(
+  final traceFile = TraceFile(
     sourceFilesCovData: covFiles,
   );
-  final tracefileString = Iterable.generate(
+  final traceFileString = Iterable.generate(
     covFilesCount,
     buildRawCovFileString,
   ).join('\n');
@@ -32,20 +32,20 @@ end_of_record''';
   test(
     '''
 
-GIVEN two tracefile instances
+GIVEN two trace file instances
 ├─ THAT hold the same data
 WHEN they are compared with each other
 THEN a positive result should be returned
 ''',
     () {
       // ARRANGE
-      final sameTracefile = Tracefile(
+      final sameTraceFile = TraceFile(
         sourceFilesCovData: covFiles,
       );
 
       // ACT
-      final valueComparisonResult = tracefile == sameTracefile;
-      final hashComparisonResult = tracefile.hashCode == sameTracefile.hashCode;
+      final valueComparisonResult = traceFile == sameTraceFile;
+      final hashComparisonResult = traceFile.hashCode == sameTraceFile.hashCode;
 
       // ASSERT
       expect(valueComparisonResult, isTrue);
@@ -56,31 +56,31 @@ THEN a positive result should be returned
   test(
     '''
 
-GIVEN a valid string representation of a tracefile
+GIVEN a valid string representation of a trace file
 WHEN the string is parsed
-THEN a tracefile instance should be returned
+THEN a trace file instance should be returned
 ''',
     () async {
       // ACT
-      final result = Tracefile.parse(
-        tracefileString,
+      final result = TraceFile.parse(
+        traceFileString,
       );
 
       // ASSERT
-      expect(result, tracefile);
+      expect(result, traceFile);
     },
   );
 
   test(
     '''
 
-GIVEN a tracefile instance
+GIVEN a trace file instance
 WHEN source files coverage data is requested
 THEN its actual collection of source files coverage data is returned
 ''',
     () async {
       // ACT
-      final result = tracefile.sourceFilesCovData;
+      final result = traceFile.sourceFilesCovData;
 
       // ASSERT
 
@@ -102,7 +102,7 @@ THEN its actual collection of source files coverage data is returned
   test(
     '''
 
-GIVEN a tracefile instance
+GIVEN a trace file instance
 WHEN its total number of hit lines is requested
 THEN the actual value should be returned
 ''',
@@ -111,7 +111,7 @@ THEN the actual value should be returned
       const expectedLinesHit = (covFilesCount * (covFilesCount - 1)) / 2;
 
       // ACT
-      final result = tracefile.linesHit;
+      final result = traceFile.linesHit;
 
       // ASSERT
       expect(result, expectedLinesHit);
@@ -121,7 +121,7 @@ THEN the actual value should be returned
   test(
     '''
 
-GIVEN a tracefile instance
+GIVEN a trace file instance
 WHEN its total number of found lines is requested
 THEN the actual value should be returned
 ''',
@@ -130,7 +130,7 @@ THEN the actual value should be returned
       const expectedLinesFound = (covFilesCount * (covFilesCount + 1)) / 2;
 
       // ACT
-      final result = tracefile.linesFound;
+      final result = traceFile.linesFound;
 
       // ASSERT
       expect(result, expectedLinesFound);

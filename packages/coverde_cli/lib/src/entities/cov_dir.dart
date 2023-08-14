@@ -181,29 +181,29 @@ class CovDir extends CovElement {
 
   /// Generate HTML report for this directory and its children.
   void generateReport({
-    required String tracefileName,
+    required String traceFileName,
     required String parentReportDirAbsPath,
-    required DateTime tracefileModificationDate,
+    required DateTime traceFileModificationDate,
     required double medium,
     required double high,
   }) =>
       generateSubReport(
-        tracefileName: tracefileName,
+        traceFileName: traceFileName,
         parentReportDirAbsPath: parentReportDirAbsPath,
         reportDirRelPath: '',
         reportRelDepth: 0,
-        tracefileModificationDate: tracefileModificationDate,
+        traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
       );
 
   @override
   void generateSubReport({
-    required String tracefileName,
+    required String traceFileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
-    required DateTime tracefileModificationDate,
+    required DateTime traceFileModificationDate,
     required double medium,
     required double high,
   }) {
@@ -223,7 +223,7 @@ class CovDir extends CovElement {
     );
     final reportFileAbsPath = path.join(reportDirAbsPath, 'index.html');
 
-    final title = 'Coverage Report - $tracefileName';
+    final title = 'Coverage Report - $traceFileName';
     final sortAlphaIconPath = path.join(
       topLevelDirRelPath,
       sortAlphaPngFilename,
@@ -246,15 +246,15 @@ class CovDir extends CovElement {
         sortNumericIconPath;
     folderReport.querySelector('.currentDirPath')?.nodes.last.text =
         ' - ${source.path}';
-    folderReport.querySelector('.tracefileName')?.text = tracefileName;
+    folderReport.querySelector('.traceFileName')?.text = traceFileName;
     folderReport.querySelector('.linesHit')?.text = '$linesHit';
     folderReport.querySelector('.linesFound')?.text = '$linesFound';
     folderReport.querySelector('.covValue')
       ?..text = '$coverageString %'
       ..classes.add('headerCovTableEntry$suffix');
 
-    folderReport.querySelector('.lastTracefileModificationDate')?.text =
-        tracefileModificationDate.toString();
+    folderReport.querySelector('.lastTraceFileModificationDate')?.text =
+        traceFileModificationDate.toString();
 
     {
       final table = folderReport.querySelector('.covTableBody');
@@ -268,11 +268,11 @@ class CovDir extends CovElement {
         );
         table?.append(row);
         element.generateSubReport(
-          tracefileName: tracefileName,
+          traceFileName: traceFileName,
           parentReportDirAbsPath: reportDirAbsPath,
           reportDirRelPath: relPath,
           reportRelDepth: reportRelDepth + path.split(relPath).length,
-          tracefileModificationDate: tracefileModificationDate,
+          traceFileModificationDate: traceFileModificationDate,
           medium: medium,
           high: high,
         );
