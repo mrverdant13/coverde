@@ -36,3 +36,5 @@ overrides:
   - filename: "**/.github/**/*"
     dictionaries:
       - ci-allow
+enableFiletypes:
+  - github-actions-workflow
