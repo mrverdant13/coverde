@@ -11,8 +11,14 @@ dictionaryDefinitions:
   - name: dart-allow
     path: ./dart.allow.txt
     addWords: true
+  - name: ci-allow
+    path: ./ci.allow.txt
+    addWords: true
   - name: docs-allow
     path: ./docs.allow.txt
+    addWords: true
+  - name: fixtures-allow
+    path: ./fixtures.allow.txt
     addWords: true
 dictionaries:
   - global-allow
@@ -25,5 +31,8 @@ overrides:
     dictionaries:
       - docs-allow
   - filename: "**/test/**/fixtures/**/{*.html,*.css}"
-    ignoreWords:
-      - endtemplate
+    dictionaries:
+      - fixtures-allow
+  - filename: "**/.github/**/*"
+    dictionaries:
+      - ci-allow
