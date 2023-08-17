@@ -1,4 +1,4 @@
-SF:C:\parent\lib\core\config.dart
+SF:lib\core\config.dart
 DA:33,1
 DA:34,1
 DA:36,2
@@ -6,7 +6,7 @@ DA:37,1
 LF:4
 LH:4
 end_of_record
-SF:\root\parent\lib\core\dependency_injection.dart
+SF:lib\core\dependency_injection.dart
 DA:6,6
 DA:7,2
 DA:12,6
@@ -18,7 +18,7 @@ DA:24,2
 LF:8
 LH:8
 end_of_record
-SF:C:\parent\lib\core\flavors.dart
+SF:lib\core\flavors.dart
 DA:1,17
 DA:20,1
 DA:21,1
