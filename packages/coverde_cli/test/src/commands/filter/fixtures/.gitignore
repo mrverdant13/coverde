@@ -1,2 +1,3 @@
-unquoted.filtered.lcov.info
-raw.filtered.lcov.info
+unquoted.relative.filtered.lcov.info
+raw.relative.filtered.lcov.info
+prefixed.relative.filtered.lcov.info

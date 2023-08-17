@@ -9,7 +9,7 @@ packages:
 command:
   clean:
     hooks:
-      pre: melos exec -- "coverde rm .dart_tool pubspec_overrides.yaml pubspec.lock coverage"
+      pre: coverde rm .dart_tool coverage && melos exec -- "coverde rm .dart_tool pubspec_overrides.yaml pubspec.lock coverage"
 
 scripts:
   d:
@@ -74,7 +74,7 @@ scripts:
     description: Run tests and generate coverage trace file for a selected package in random order.
     run: >
       dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color &&
-      dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+      dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
     exec:
       concurrency: 1
       orderDependents: true
@@ -85,21 +85,21 @@ scripts:
     run: melos run t --no-select
   T:ci:
     description: Run tests and generate coverage trace files for all packages in random order.
-    run: melos exec --fail-fast --order-dependents --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib"
+    run: melos exec --fail-fast --order-dependents --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
 
   MC:
     description: Merge all packages coverage trace files ignoring data related to generated files.
     run: >
       dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
       coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-      melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters '\.asset\.dart'" &&
+      melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.asset\.dart'" &&
       coverde check -i coverage/filtered.lcov.info 100
 
   R:
     description: Generate HTML coverage report.
     run: >
       dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
-      coverde report --input ./coverage/lcov.info
+      coverde report --input ./coverage/filtered.lcov.info
 
   FA:
     description: Format and analyze.

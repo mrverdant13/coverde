@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -27,6 +27,14 @@ Destination coverage info file to dump the resulting coverage data into.''',
         defaultsTo: 'coverage/filtered.lcov.info',
         valueHelp: _outputHelpValue,
       )
+      ..addOption(
+        pathsParentOption,
+        abbr: pathsParentOption[0],
+        help: '''
+Path to be used to prefix all the paths in the resulting coverage trace file.''',
+        valueHelp: _pathsParentHelpValue,
+        mandatory: false,
+      )
       ..addMultiOption(
         filtersOption,
         abbr: filtersOption[0],
@@ -50,6 +58,7 @@ Set of comma-separated path patterns of the files to be ignored.''',
 
   static const _inputHelpValue = 'INPUT_LCOV_FILE';
   static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
+  static const _pathsParentHelpValue = 'PATHS_PARENT';
   static const _filtersHelpValue = 'FILTERS';
   static const _modeHelpValue = 'MODE';
   static const _outModeAllowedHelp = {
@@ -71,6 +80,13 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
   @visibleForTesting
   static const outputOption = 'output';
 
+  /// Option name for the paths parent to be used to prefix all the paths in the
+  /// resulting coverage trace file.
+  ///
+  /// This option is optional.
+  @visibleForTesting
+  static const pathsParentOption = 'paths-parent';
+
   /// Option name for the resulting filtered trace file.
   @visibleForTesting
   static const modeOption = 'mode';
@@ -80,7 +96,10 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
 Filter a coverage trace file.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
-The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.''';
+The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.
+
+All the relative paths in the resulting coverage trace file will be prefixed with $_pathsParentHelpValue, if provided.
+If an absolute path is found in the coverage trace file, the process will fail.''';
 
   @override
   String get name => 'filter';
@@ -101,6 +120,9 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
     final destinationPath = checkOption(
       optionKey: outputOption,
       optionName: 'output trace file',
+    );
+    final pathsParent = checkOptionalOption(
+      optionKey: pathsParentOption,
     );
     final ignorePatterns = checkMultiOption(
       multiOptionKey: filtersOption,
@@ -124,7 +146,7 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
 
     // Parse trace file.
     final traceFile = TraceFile.parse(initialContent);
-    final acceptedSrcFilesCovData = <CovFile>{};
+    final acceptedSrcFilesRawData = <String>{};
 
     // For each file coverage data.
     for (final fileCovData in traceFile.sourceFilesCovData) {
@@ -140,13 +162,23 @@ The coverage data is taken from the $_inputHelpValue file and the result is appe
       if (shouldBeIgnored) {
         _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
-        acceptedSrcFilesCovData.add(fileCovData);
+        if (path.isAbsolute(fileCovData.source.path) && pathsParent != null) {
+          usageException(
+            'The `$pathsParentOption` option cannot be used with trace files'
+            'that contain absolute paths.',
+          );
+        }
+        final raw = pathsParent == null
+            ? fileCovData.raw
+            : fileCovData.raw.replaceFirst(
+                RegExp(r'^SF:(.*)$', multiLine: true),
+                'SF:${path.join(pathsParent, fileCovData.source.path)}',
+              );
+        acceptedSrcFilesRawData.add(raw);
       }
     }
 
-    final finalContent = acceptedSrcFilesCovData
-        .map((srcFileCovData) => srcFileCovData.raw)
-        .join('\n');
+    final finalContent = acceptedSrcFilesRawData.join('\n');
 
     // Generate destination file and its content.
     destination
