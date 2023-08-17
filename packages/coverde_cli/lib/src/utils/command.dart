@@ -25,6 +25,16 @@ extension ExtendedCommand on Command {
     return maybeOption;
   }
 
+  /// Validate optional command option.
+  String? checkOptionalOption({
+    required String optionKey,
+  }) {
+    if (argResults == null) usageException('Missing arguments.');
+    final maybeOption = argResults![optionKey] as String?;
+    if (maybeOption == null || maybeOption.isEmpty) return null;
+    return maybeOption;
+  }
+
   /// Validate command flag.
   bool checkFlag({
     required String flagKey,
