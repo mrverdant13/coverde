@@ -162,7 +162,7 @@ If an absolute path is found in the coverage trace file, the process will fail.'
       if (shouldBeIgnored) {
         _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
-        if (fileCovData.source.isAbsolute && pathsParent != null) {
+        if (path.isAbsolute(fileCovData.source.path) && pathsParent != null) {
           usageException(
             'The `$pathsParentOption` option cannot be used with trace files'
             'that contain absolute paths.',
