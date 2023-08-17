@@ -509,6 +509,7 @@ AND no filtered file should be created
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isFalse);
           expect(action, throwsA(isA<UsageException>()));
+          verify(() => out.writeln(any()));
         },
       );
 
