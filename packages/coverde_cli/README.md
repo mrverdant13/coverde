@@ -81,12 +81,13 @@ $ dart pub global activate coverde
 
 ### Options
 
-|       Option        | Description                                                                                                               |         Default value         |
-| :-----------------: | ------------------------------------------------------------------------------------------------------------------------- | :---------------------------: |
-|  `--input`<br>`-i`  | Coverage trace file to be filtered.                                                                                       |     `coverage/lcov.info`      |
-| `--output`<br>`-o`  | Filtered coverage trace file (automatically created if it is absent).                                                     | `coverage/filtered.lcov.info` |
-| `--filters`<br>`-f` | Set of comma-separated patterns of the files to be opted out of coverage.                                                 |                               |
-|  `--mode`<br>`-m`   | The mode in which the filtered trace file content should be generated.<br>`a`: append content.<br>`w`: overwrite content. |     `a` (append content)      |
+|          Option          | Description                                                                                                               |         Default value         |
+| :----------------------: | ------------------------------------------------------------------------------------------------------------------------- | :---------------------------: |
+|    `--input`<br>`-i`     | Coverage trace file to be filtered.                                                                                       |     `coverage/lcov.info`      |
+|    `--output`<br>`-o`    | Filtered coverage trace file (automatically created if it is absent).                                                     | `coverage/filtered.lcov.info` |
+| `--paths-parent`<br>`-p` | Prefix of the resulting filtered paths.                                                                                   |                               |
+|   `--filters`<br>`-f`    | Set of comma-separated patterns of the files to be opted out of coverage.                                                 |                               |
+|     `--mode`<br>`-m`     | The mode in which the filtered trace file content should be generated.<br>`a`: append content.<br>`w`: overwrite content. |     `a` (append content)      |
 
 ### Examples
 
@@ -175,14 +176,14 @@ If your project uses melos to manage its multi-package structure, it could be ha
 This can be achieved by defining a melos script as follows:
 
 ```yaml
-M:
+merge-trace-files:
   description: Merge all packages coverage trace files ignoring data related to generated files.
   run: >
     coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-    melos exec --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters '\.g\.dart'
+    melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.g\.dart'"
 ```
 
-`M` is the melos script that merges the coverage trace file of all tested packages contained within the project
+`merge-trace-files` is the melos script that merges the coverage trace file of all tested packages contained within the project
 
 This melos script ignores generated source files with the `.g.dart` extension but this behavior could be adjusted by setting the `--filters` option.
 
