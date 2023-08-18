@@ -1,3 +1,13 @@
+## 0.2.0+2
+
+- **FEAT**: optional prefix for filtered paths (#69).
+- **DOCS**: update README (#70).
+- **DOCS**: add topics and screenshots to Pub docs (#71).
+
+## 0.2.0+1
+
+- **FIX**: use proper version for update check (#67).
+
 ## 0.2.0
 
 - **FEAT**: require Dart 3 (#52).
