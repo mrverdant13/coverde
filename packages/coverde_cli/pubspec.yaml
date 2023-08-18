@@ -6,9 +6,9 @@ repository: https://github.com/mrverdant13/coverde/tree/main/packages/coverde_cl
 issue_tracker: https://github.com/mrverdant13/coverde/issues
 topics:
   - test
+  - testing
   - coverage
   - lcov
-  - trace-file
 screenshots:
   - description: Coverage report example (directory)
     path: doc/report_directory_example.png
