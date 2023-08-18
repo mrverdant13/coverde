@@ -4,6 +4,20 @@ version: 0.2.0+1
 homepage: https://github.com/mrverdant13/coverde
 repository: https://github.com/mrverdant13/coverde/tree/main/packages/coverde_cli
 issue_tracker: https://github.com/mrverdant13/coverde/issues
+topics:
+  - test
+  - coverage
+  - lcov
+  - trace-file
+screenshots:
+  - description: Coverage report example (directory)
+    path: doc/report_directory_example.png
+  - description: Coverage report example (file)
+    path: doc/report_file_example.png
+  - description: Coverage check example (passing)
+    path: doc/check_result_pass.png
+  - description: Coverage check example (failing)
+    path: doc/check_result_fail.png
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
