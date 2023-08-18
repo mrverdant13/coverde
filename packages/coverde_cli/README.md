@@ -45,28 +45,32 @@ $ dart pub global activate coverde
 
 **Check coverage value computed from a trace file.**
 
-### Parameters
-
-|      Order       | Description                                                             | Required |
-| :--------------: | ----------------------------------------------------------------------- | :------: |
-| Unique parameter | An integer between 0 and 100 used as minimum acceptable coverage value. |    ✔     |
-
 ### Options
 
-|      Option       | Description                             |    Default value     |
-| :---------------: | --------------------------------------- | :------------------: |
-| `--input`<br>`-i` | Trace file used for the coverage check. | `coverage/lcov.info` |
+- `--input` | `-i`
+
+  Trace file used for the coverage check.\
+  Default value: `coverage/lcov.info`
 
 ### Flags
 
-| Flag                                                               | Description           | Default value |
-| ------------------------------------------------------------------ | --------------------- | :-----------: |
-| Enable:<br>• `--verbose`<br>• `-v`<br>Disable:<br>• `--no-verbose` | Print coverage value. |   _Enabled_   |
+- `--verbose` | `-v`
+
+  Whether to print the coverage value.\
+  Use `--no-verbose` to disable this flag.\
+  Default value: _Enabled_
+
+### Parameters
+
+- `<min_coverage>`
+
+  An integer between 0 and 100 used as minimum acceptable coverage value.\
+  This value is required.
 
 ### Examples
 
 - `coverde check 90`
-- `coverde check 75 -i lcov.info`
+- `coverde check -i lcov.info 75`
 - `coverde check 100 --no-verbose`
 
 ### Results
@@ -81,13 +85,32 @@ $ dart pub global activate coverde
 
 ### Options
 
-|          Option          | Description                                                                                                               |         Default value         |
-| :----------------------: | ------------------------------------------------------------------------------------------------------------------------- | :---------------------------: |
-|    `--input`<br>`-i`     | Coverage trace file to be filtered.                                                                                       |     `coverage/lcov.info`      |
-|    `--output`<br>`-o`    | Filtered coverage trace file (automatically created if it is absent).                                                     | `coverage/filtered.lcov.info` |
-| `--paths-parent`<br>`-p` | Prefix of the resulting filtered paths.                                                                                   |                               |
-|   `--filters`<br>`-f`    | Set of comma-separated patterns of the files to be opted out of coverage.                                                 |                               |
-|     `--mode`<br>`-m`     | The mode in which the filtered trace file content should be generated.<br>`a`: append content.<br>`w`: overwrite content. |     `a` (append content)      |
+- `--input` | `-i`
+
+  Coverage trace file to be filtered.\
+  Default value: `coverage/lcov.info`
+
+- `--output` | `-o`
+
+  Filtered coverage trace file (automatically created if it is absent).\
+  Default value: `coverage/filtered.lcov.info`
+
+- `--paths-parent` | `-p`
+
+  Prefix of the resulting filtered paths.\
+  Default value: _Unset_
+
+- `--filters` | `-f`
+
+  Set of comma-separated patterns of the files to be opted out of coverage.\
+  Default value: _Unset_
+
+- `--mode` | `-m`
+
+  The mode in which the filtered trace file content should be generated.\
+  `a`: append content.\
+  `w`: overwrite content.\
+  Default value: `a` (append content)
 
 ### Examples
 
@@ -103,9 +126,21 @@ $ dart pub global activate coverde
 
 ### Flags
 
-| Flag                                                                   | Description                                                                                                                                                              | Default value |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-----------: |
-| Enable:<br>• `--accept-absence`<br>Disable:<br>• `--no-accept-absence` | Set the command behavior according to a file/folder existence.<br>If enabled, the command continues and notifies the element absence.<br>If disabled, the command fails. |   _Enabled_   |
+- `--accept-absence`
+
+  Set the command behavior according to a file/folder existence.\
+  If enabled, the command continues and notifies the element absence.\
+  If disabled, the command fails.\
+  Use `--no-accept-absence` to disable this flag.\
+  Default value: _Enabled_
+
+## Parameters
+
+- `<paths>`
+
+  Set of paths to be removed.\
+  Multiple paths can be specified by separating them with a space.\
+  This value is required.
 
 ### Examples
 
@@ -119,20 +154,36 @@ $ dart pub global activate coverde
 
 ### Options
 
-|       Option       | Description                                                         |    Default value     |
-| :----------------: | ------------------------------------------------------------------- | :------------------: |
-| `--input`<br>`-i`  | Coverage trace file to be used as source for report generation.     | `coverage/lcov.info` |
-| `--output`<br>`-o` | Destination folder where the generated report files will be placed. |   `coverage/html/`   |
-|     `--medium`     | Medium threshold for coverage value.                                |          75          |
-|      `--high`      | High threshold for coverage value.                                  |          90          |
+- `--input` | `-i`
 
-The report style is dynamically set according to individual, group and global coverage and the `--medium` and `--high` options.
+  Coverage trace file to be used as source for report generation.\
+  Default value: `coverage/lcov.info`
+
+- `--output` | `-o`
+
+  Destination folder where the generated report files will be placed.\
+  Default value: `coverage/html/`
+
+- `--medium`
+
+  Medium threshold for coverage value.\
+  Default value: `75`
+
+- `--high`
+
+  High threshold for coverage value.\
+  Default value: `90`
+
+> [!NOTE]
+> The report style is dynamically set according to individual, group and global coverage and the `--medium` and `--high` options.
 
 ### Flags
 
-| Flag                                                             | Description                                         | Default value |
-| ---------------------------------------------------------------- | --------------------------------------------------- | :-----------: |
-| Enable:<br>• `--launch`<br>• `-l`<br>Disable:<br>• `--no-launch` | Launch the generated report in the default browser. |  _Disabled_   |
+- `--launch` | `-l`
+
+  Whether to launch the generated report in the default browser.\
+  Use `--no-launch` to disable this flag.\
+  Default value: _Disabled_
 
 ### Examples
 
@@ -152,15 +203,18 @@ The report style is dynamically set according to individual, group and global co
 
 ### Options
 
-|      Option       | Description                                                    |    Default value     |
-| :---------------: | -------------------------------------------------------------- | :------------------: |
-| `--input`<br>`-i` | Coverage trace file to be used for coverage value computation. | `coverage/lcov.info` |
+- `--input` | `-i`
+
+  Coverage trace file to be used for coverage value computation.\
+  Default value: `coverage/lcov.info`
 
 ### Flags
 
-| Flag                                                               | Description                                                           | Default value |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------- | :-----------: |
-| Enable:<br>• `--verbose`<br>• `-v`<br>Disable:<br>• `--no-verbose` | Print coverage value for each source file included by the trace file. |   _Enabled_   |
+- `--verbose` | `-v`
+
+  Whether to print the coverage value for each source file referenced in the trace file.\
+  Use `--no-verbose` to disable this flag.\
+  Default value: _Enabled_
 
 ### Examples
 
@@ -185,9 +239,13 @@ merge-trace-files:
 
 `merge-trace-files` is the melos script that merges the coverage trace file of all tested packages contained within the project
 
-This melos script ignores generated source files with the `.g.dart` extension but this behavior could be adjusted by setting the `--filters` option.
+First, the script removes the `filtered.lcov.info` file, if it exists, from the `coverage` folder in the root folder of the project.
 
-The resulting trace file is the `filtered.lcov.info` file, located in the `coverage` folder in the root folder of the project.
+Then, the script executes the `coverde filter` command for each package that contains a `coverage/lcov.info` file, using its content as input and the `filtered.lcov.info` file in the project root as output.
+
+The resulting merged trace file ignores data related to generated files, which are identified by the `.g.dart` extension.
+
+Each referenced file path is prefixed with the package path, so that the resulting merged trace file contains a set of paths that represent the actual project structure, which is critical for the `coverde report` command to work properly, as it relies on the file system to generate the HTML report.
 
 ---
 
@@ -222,10 +280,10 @@ Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
 [melos_badge]: https://img.shields.io/badge/maintained%20with-melos-f700ff.svg
-[melos_link]: https://github.com/invertase/melos
+[melos_link]: https://melos.invertase.dev/
 [open_issue_link]: https://github.com/mrverdant13/coverde/issues/new
 [pub_badge]: https://img.shields.io/pub/v/coverde.svg
 [pub_link]: https://pub.dev/packages/coverde
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
-[very_good_analysis_link]: https://pub.dev/packages/very_good_analysis
+[very_good_analysis_link]: https://github.com/VeryGoodOpenSource/very_good_analysis
 [very_good_coverage_link]: https://github.com/VeryGoodOpenSource/very_good_coverage
