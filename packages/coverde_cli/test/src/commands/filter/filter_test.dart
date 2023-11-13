@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
