@@ -4,9 +4,9 @@ import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
 import 'package:universal_io/io.dart';
 
@@ -120,9 +120,13 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       optionKey: inputOption,
       optionName: 'input trace file',
     );
-    final _reportDirPath = checkOption(
-      optionKey: outputOption,
-      optionName: 'output report folder',
+    final _reportDirPath = path.joinAll(
+      path.split(
+        checkOption(
+          optionKey: outputOption,
+          optionName: 'output report folder',
+        ),
+      ),
     );
     final mediumString = checkOption(
       optionKey: mediumOption,
@@ -199,9 +203,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       ..createSync(recursive: true)
       ..writeAsBytesSync(sortNumericPngBytes);
 
-    final reportIndexAbsPath = path
-        .join(reportDirAbsPath, 'index.html')
-        .replaceAll(RegExp(r'(\/|\\)'), path.separator);
+    final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
 
     _out
       ..writeln(covTree)
