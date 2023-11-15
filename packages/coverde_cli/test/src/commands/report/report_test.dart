@@ -141,7 +141,11 @@ THEN a coverage report should be launched
 ''',
             () async {
               // ARRANGE
-              final traceFilePath = 'lcov.info'.fixturePath(proj: proj);
+              final traceFilePath = path.joinAll([
+                'coverage',
+                if (Platform.isWindows) 'windows' else 'posix',
+                'lcov.info',
+              ]).fixturePath(proj: proj);
               final traceFileFile = File(traceFilePath);
               const resultDirName = 'result';
               const expectedDirName = 'expected';
