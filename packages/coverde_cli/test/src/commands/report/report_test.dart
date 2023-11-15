@@ -143,6 +143,7 @@ THEN a coverage report should be launched
               // ARRANGE
               final traceFilePath = path.joinAll([
                 'coverage',
+                // cspell: disable-next-line
                 if (Platform.isWindows) 'windows' else 'posix',
                 'lcov.info',
               ]).fixturePath(proj: proj);
