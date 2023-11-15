@@ -21,7 +21,6 @@ enum _Project {
 }
 
 extension _ExtendedProj on _Project {
-  String get name => toString().split('.').last;
   Iterable<String> get relFilePaths {
     switch (this) {
       case _Project.fake_project_1:
@@ -55,11 +54,15 @@ extension on String {
   String fixturePath({
     required _Project proj,
   }) =>
-      path.join(
-        'test/src/commands/report/fixtures',
+      path.joinAll([
+        'test',
+        'src',
+        'commands',
+        'report',
+        'fixtures',
         proj.name,
         this,
-      );
+      ]);
 }
 
 class MockProcessManager extends Mock implements ProcessManager {}
@@ -265,7 +268,14 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          const absentFilePath = 'test/fixtures/report/absent.lcov.info';
+          final absentFilePath = path.joinAll([
+            'test',
+            'src',
+            'commands',
+            'report',
+            'fixtures',
+            'absent.lcov.info',
+          ]);
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 

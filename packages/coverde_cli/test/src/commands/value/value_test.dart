@@ -1,19 +1,11 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/entities/trace_file.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
-
-extension on String {
-  String get fixturePath => path.join(
-        'test/src/commands/value/fixtures/',
-        this,
-      );
-}
 
 void main() {
   group(
@@ -75,9 +67,21 @@ THEN the global value is displayed
 ''',
         () async {
           // ARRANGE
-          final traceFilePath = 'lcov.info'.fixturePath;
-          final traceFileFile = File(traceFilePath);
-          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
+          final directory = Directory.systemTemp.createTempSync();
+          final traceFileContent = '''
+SF:${path.joinAll(['path', 'to', 'source_file.dart'])}
+DA:1,1
+DA:2,0
+DA:3,1
+DA:4,0
+LF:4
+LH:2
+end_of_record
+''';
+          final traceFilePath = path.join(directory.path, 'lcov.info');
+          final traceFileFile = File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync(traceFileContent);
 
           expect(traceFileFile.existsSync(), isTrue);
 
@@ -92,11 +96,12 @@ THEN the global value is displayed
           // ASSERT
           final verifications = verifyInOrder([
             () => out.writeln('GLOBAL:'),
-            () => out.writeln(traceFile.coverageDataString),
+            () => out.writeln('50.00% - 2/4'),
           ]);
           for (final verification in verifications) {
             verification.called(1);
           }
+          directory.deleteSync(recursive: true);
         },
       );
 
@@ -113,9 +118,34 @@ AND the global value should be displayed
 ''',
         () async {
           // ARRANGE
-          final traceFilePath = 'lcov.info'.fixturePath;
-          final traceFileFile = File(traceFilePath);
-          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
+          final directory = Directory.systemTemp.createTempSync();
+          final sourceFileAPath =
+              path.joinAll(['path', 'to', 'source_file_a.dart']);
+          final sourceFileBPath =
+              path.joinAll(['path', 'to', 'source_file_b.dart']);
+          final traceFileContent = '''
+SF:$sourceFileAPath
+DA:1,1
+DA:2,0
+DA:3,1
+DA:4,0
+LF:4
+LH:2
+end_of_record
+SF:$sourceFileBPath
+DA:1,1
+DA:2,0
+DA:3,0
+DA:4,0
+DA:5,0
+LF:5
+LH:1
+end_of_record
+''';
+          final traceFilePath = path.join(directory.path, 'lcov.info');
+          final traceFileFile = File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync(traceFileContent);
 
           expect(traceFileFile.existsSync(), isTrue);
 
@@ -129,16 +159,16 @@ AND the global value should be displayed
 
           // ASSERT
           final verifications = verifyInOrder([
-            ...traceFile.sourceFilesCovData.map(
-              (d) => () => out.writeln(d.coverageDataString),
-            ),
+            () => out.writeln('$sourceFileAPath (50.00% - 2/4)'),
+            () => out.writeln('$sourceFileBPath (20.00% - 1/5)'),
             () => out.writeln('GLOBAL:'),
-            () => out.writeln(traceFile.coverageDataString),
+            () => out.writeln('33.33% - 3/9'),
           ]);
           for (final verification in verifications) {
             verification.called(1);
           }
           verify(() => out.writeln());
+          directory.deleteSync(recursive: true);
         },
       );
 
@@ -151,7 +181,8 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          final absentFilePath = 'absent.lcov.info'.fixturePath;
+          final directory = Directory.systemTemp.createTempSync();
+          final absentFilePath = path.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 
@@ -164,6 +195,7 @@ THEN an error indicating the issue should be thrown
 
           // ASSERT
           expect(action, throwsA(isA<UsageException>()));
+          directory.deleteSync(recursive: true);
         },
       );
     },

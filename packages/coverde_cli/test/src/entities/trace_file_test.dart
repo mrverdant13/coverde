@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/trace_file.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -14,7 +15,7 @@ void main() {
       );
 
   String buildRawCovFileString(int linesCount) => '''
-SF:path/to/source.${linesCount + 1}.file
+SF:${path.joinAll(['path', 'to', 'source.${linesCount + 1}.file'])}
 ${buildCovLinesEntries(linesCount + 1).map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.value}').join('\n')}
 end_of_record''';
 
