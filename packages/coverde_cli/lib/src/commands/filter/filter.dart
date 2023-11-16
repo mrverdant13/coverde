@@ -1,8 +1,8 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
 /// {@template filter_cmd}
@@ -172,7 +172,10 @@ If an absolute path is found in the coverage trace file, the process will fail.'
             ? fileCovData.raw
             : fileCovData.raw.replaceFirst(
                 RegExp(r'^SF:(.*)$', multiLine: true),
-                'SF:${path.join(pathsParent, fileCovData.source.path)}',
+                'SF:${path.joinAll([
+                      ...path.split(pathsParent),
+                      fileCovData.source.path,
+                    ])}',
               );
         acceptedSrcFilesRawData.add(raw);
       }

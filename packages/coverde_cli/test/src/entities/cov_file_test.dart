@@ -1,12 +1,13 @@
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/cov_line.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 void main() {
   // ARRANGE
-  const sourcePath = 'path/to/source.file';
+  final sourcePath = path.joinAll(['path', 'to', 'source.file']);
   final covLinesEntries = Iterable.generate(
     32,
     (idx) => MapEntry(idx + 1, idx + 1),

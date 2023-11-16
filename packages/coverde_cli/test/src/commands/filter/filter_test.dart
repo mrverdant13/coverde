@@ -3,19 +3,12 @@ import 'dart:convert';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
-
-extension on String {
-  String get fixturePath => path.join(
-        'test/src/commands/filter/fixtures/',
-        this,
-      );
-}
 
 void main() {
   group(
@@ -74,23 +67,57 @@ If an absolute path is found in the coverage trace file, the process will fail.
 
 AND an existing trace file to filter
 ├─ THAT does not contain any absolute path
-AND a set of unquoted patterns to be filtered
+AND a set of patterns to be filtered
 WHEN the command is invoked
 THEN a filtered trace file should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
         () async {
           // ARRANGE
-          const patterns = <String>['.g.dart'];
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          const patterns = <String>[r'ignored_source'];
           final patternsRegex = patterns.map(RegExp.new);
-          final originalFilePath = 'original.relative.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'unquoted.relative.filtered.lcov.info'.fixturePath;
-          final expectedFilteredFilePath =
-              'expected.unquoted.relative.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
+          final originalFilePath = path.joinAll([
+            directory.path,
+            'original.info',
+          ]);
+          final filteredFilePath = path.joinAll([
+            directory.path,
+            'actual.info',
+          ]);
+          final acceptedSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'accepted_source_file.dart',
+          ]);
+          final ignoredSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'ignored_source_file.dart',
+          ]);
+          final acceptedSourceFileData = '''
+SF:$acceptedSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final ignoredSourceFileData = '''
+SF:$ignoredSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final originalFileContent =
+              '$acceptedSourceFileData\n$ignoredSourceFileData';
+          final originalFile = File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
           final filteredFile = File(filteredFilePath);
-          final expectedFilteredFile = File(expectedFilteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
@@ -126,8 +153,7 @@ THEN a filtered trace file should be created
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
-          final expectedFilteredFileContent =
-              expectedFilteredFile.readAsStringSync();
+          final expectedFilteredFileContent = acceptedSourceFileData;
           final filteredFileIncludeFileThatMatchPatterns =
               TraceFile.parse(filteredFileContent)
                   .includeFileThatMatchPatterns(patterns);
@@ -143,6 +169,7 @@ THEN a filtered trace file should be created
               () => out.writeln('<$path> coverage data ignored.'),
             ).called(1);
           }
+          directory.deleteSync(recursive: true);
         },
       );
 
@@ -151,23 +178,59 @@ THEN a filtered trace file should be created
 
 AND an existing trace file to filter
 ├─ THAT contains at least one absolute path
-AND a set of unquoted patterns to be filtered
+AND a set of patterns to be filtered
 WHEN the command is invoked
 THEN a filtered trace file should be created
 ├─ BY dumping the filtered content to the default destination
 ''',
         () async {
           // ARRANGE
-          const patterns = <String>['.g.dart'];
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          const patterns = <String>[r'ignored_source'];
           final patternsRegex = patterns.map(RegExp.new);
-          final originalFilePath = 'original.absolute.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'unquoted.absolute.filtered.lcov.info'.fixturePath;
-          final expectedFilteredFilePath =
-              'expected.unquoted.absolute.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
+          final originalFilePath = path.join(
+            directory.path,
+            'original.info',
+          );
+          final filteredFilePath = path.join(
+            directory.path,
+            'actual.info',
+          );
+          final acceptedSourceFilePath = path.joinAll([
+            if (Platform.isWindows) 'C:' else '/',
+            'path',
+            'to',
+            'accepted_source_file.dart',
+          ]);
+          final ignoredSourceFilePath = path.joinAll([
+            if (Platform.isWindows) 'C:' else '/',
+            'path',
+            'to',
+            'ignored_source_file.dart',
+          ]);
+          final acceptedSourceFileData = '''
+SF:$acceptedSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final ignoredSourceFileData = '''
+SF:$ignoredSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final originalFileContent =
+              '$acceptedSourceFileData\n$ignoredSourceFileData';
+          final originalFile = File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
           final filteredFile = File(filteredFilePath);
-          final expectedFilteredFile = File(expectedFilteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
@@ -203,8 +266,7 @@ THEN a filtered trace file should be created
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
-          final expectedFilteredFileContent =
-              expectedFilteredFile.readAsStringSync();
+          final expectedFilteredFileContent = acceptedSourceFileData;
           final filteredFileIncludeFileThatMatchPatterns =
               TraceFile.parse(filteredFileContent)
                   .includeFileThatMatchPatterns(patterns);
@@ -220,6 +282,7 @@ THEN a filtered trace file should be created
               () => out.writeln('<$path> coverage data ignored.'),
             ).called(1);
           }
+          directory.deleteSync(recursive: true);
         },
       );
 
@@ -228,161 +291,7 @@ THEN a filtered trace file should be created
 
 AND an existing trace file to filter
 ├─ THAT does not contain any absolute path
-AND a set of raw patterns to be filtered
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY dumping the filtered content to the default destination
-''',
-        () async {
-          // ARRANGE
-          const patterns = <String>[r'\.g\.dart'];
-          final patternsRegex = patterns.map(RegExp.new);
-          final originalFilePath = 'original.relative.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'raw.relative.filtered.lcov.info'.fixturePath;
-          final expectedFilteredFilePath =
-              'expected.raw.relative.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
-          final filteredFile = File(filteredFilePath);
-          final expectedFilteredFile = File(expectedFilteredFilePath);
-          if (filteredFile.existsSync()) {
-            filteredFile.deleteSync(recursive: true);
-          }
-          final originalTraceFile = TraceFile.parse(
-            originalFile.readAsStringSync(),
-          );
-          final originalFileIncludeFileThatMatchPatterns =
-              originalTraceFile.includeFileThatMatchPatterns(patterns);
-          final filesDataToBeRemoved =
-              originalTraceFile.sourceFilesCovData.where(
-            (d) => patternsRegex.any(
-              (r) => r.hasMatch(d.source.path),
-            ),
-          );
-
-          expect(originalFile.existsSync(), isTrue);
-          expect(filteredFile.existsSync(), isFalse);
-          expect(originalFileIncludeFileThatMatchPatterns, isTrue);
-
-          // ACT
-          await cmdRunner.run([
-            filterCmd.name,
-            '--${FilterCommand.inputOption}',
-            originalFilePath,
-            '--${FilterCommand.outputOption}',
-            filteredFilePath,
-            '--${FilterCommand.filtersOption}',
-            patterns.join(','),
-          ]);
-
-          // ASSERT
-          const splitter = LineSplitter();
-          expect(originalFile.existsSync(), isTrue);
-          expect(filteredFile.existsSync(), isTrue);
-          final filteredFileContent = filteredFile.readAsStringSync();
-          final expectedFilteredFileContent =
-              expectedFilteredFile.readAsStringSync();
-          final filteredFileIncludeFileThatMatchPatterns =
-              TraceFile.parse(filteredFileContent)
-                  .includeFileThatMatchPatterns(patterns);
-          expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-          expect(
-            splitter.convert(filteredFileContent),
-            splitter.convert(expectedFilteredFileContent),
-            reason: 'Error: Non-matching filtered file content.',
-          );
-          for (final fileData in filesDataToBeRemoved) {
-            final path = fileData.source.path;
-            verify(
-              () => out.writeln('<$path> coverage data ignored.'),
-            ).called(1);
-          }
-        },
-      );
-
-      test(
-        '''
-
-AND an existing trace file to filter
-├─ THAT contains at least one absolute path
-AND a set of raw patterns to be filtered
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY dumping the filtered content to the default destination
-''',
-        () async {
-          // ARRANGE
-          const patterns = <String>[r'\.g\.dart'];
-          final patternsRegex = patterns.map(RegExp.new);
-          final originalFilePath = 'original.absolute.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'raw.absolute.filtered.lcov.info'.fixturePath;
-          final expectedFilteredFilePath =
-              'expected.raw.absolute.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
-          final filteredFile = File(filteredFilePath);
-          final expectedFilteredFile = File(expectedFilteredFilePath);
-          if (filteredFile.existsSync()) {
-            filteredFile.deleteSync(recursive: true);
-          }
-          final originalTraceFile = TraceFile.parse(
-            originalFile.readAsStringSync(),
-          );
-          final originalFileIncludeFileThatMatchPatterns =
-              originalTraceFile.includeFileThatMatchPatterns(patterns);
-          final filesDataToBeRemoved =
-              originalTraceFile.sourceFilesCovData.where(
-            (d) => patternsRegex.any(
-              (r) => r.hasMatch(d.source.path),
-            ),
-          );
-
-          expect(originalFile.existsSync(), isTrue);
-          expect(filteredFile.existsSync(), isFalse);
-          expect(originalFileIncludeFileThatMatchPatterns, isTrue);
-
-          // ACT
-          await cmdRunner.run([
-            filterCmd.name,
-            '--${FilterCommand.inputOption}',
-            originalFilePath,
-            '--${FilterCommand.outputOption}',
-            filteredFilePath,
-            '--${FilterCommand.filtersOption}',
-            patterns.join(','),
-          ]);
-
-          // ASSERT
-          const splitter = LineSplitter();
-          expect(originalFile.existsSync(), isTrue);
-          expect(filteredFile.existsSync(), isTrue);
-          final filteredFileContent = filteredFile.readAsStringSync();
-          final expectedFilteredFileContent =
-              expectedFilteredFile.readAsStringSync();
-          final filteredFileIncludeFileThatMatchPatterns =
-              TraceFile.parse(filteredFileContent)
-                  .includeFileThatMatchPatterns(patterns);
-          expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-          expect(
-            splitter.convert(filteredFileContent),
-            splitter.convert(expectedFilteredFileContent),
-            reason: 'Error: Non-matching filtered file content.',
-          );
-          for (final fileData in filesDataToBeRemoved) {
-            final path = fileData.source.path;
-            verify(
-              () => out.writeln('<$path> coverage data ignored.'),
-            ).called(1);
-          }
-        },
-      );
-
-      test(
-        '''
-
-AND an existing trace file to filter
-├─ THAT does not contain any absolute path
-AND a set of raw patterns to be filtered
+AND a set of patterns to be filtered
 AND a path to be used as prefix for the tested file paths
 WHEN the command is invoked
 THEN a filtered trace file should be created
@@ -390,17 +299,51 @@ THEN a filtered trace file should be created
 ''',
         () async {
           // ARRANGE
-          const patterns = <String>[r'\.g\.dart'];
-          const pathsPrefix = 'root/parent/';
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          const patterns = <String>[r'ignored_source'];
+          final pathsPrefix = path.join('root', 'parent');
           final patternsRegex = patterns.map(RegExp.new);
-          final originalFilePath = 'original.relative.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'prefixed.relative.filtered.lcov.info'.fixturePath;
-          final expectedFilteredFilePath =
-              'expected.prefixed.relative.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
+          final originalFilePath = path.join(
+            directory.path,
+            'original.info',
+          );
+          final filteredFilePath = path.join(
+            directory.path,
+            'actual.info',
+          );
+          final acceptedSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'accepted_source_file.dart',
+          ]);
+          final ignoredSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'ignored_source_file.dart',
+          ]);
+          final acceptedSourceFileData = '''
+SF:$acceptedSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final ignoredSourceFileData = '''
+SF:$ignoredSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final originalFileContent =
+              '$acceptedSourceFileData\n$ignoredSourceFileData';
+          final originalFile = File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
           final filteredFile = File(filteredFilePath);
-          final expectedFilteredFile = File(expectedFilteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
           }
@@ -437,8 +380,14 @@ THEN a filtered trace file should be created
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
-          final expectedFilteredFileContent =
-              expectedFilteredFile.readAsStringSync();
+          final expectedFilteredFileContent = '''
+SF:${path.join(pathsPrefix, acceptedSourceFilePath)}
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
           final filteredTraceFile = TraceFile.parse(filteredFileContent);
           final expectedTraceFile =
               TraceFile.parse(expectedFilteredFileContent);
@@ -464,7 +413,7 @@ THEN a filtered trace file should be created
 
 AND a trace file content to filter
 ├─ THAT contains at least one absolute path
-AND a set of raw patterns to be filtered
+AND a set of patterns to be filtered
 AND a path to be used as prefix for the tested file paths
 WHEN the command is invoked
 THEN an error indicating the issue should be thrown
@@ -472,12 +421,66 @@ AND no filtered file should be created
 ''',
         () async {
           // ARRANGE
-          const patterns = <String>[r'\.g\.dart'];
-          const pathsPrefix = 'root/parent/';
-          final originalFilePath = 'original.absolute.lcov.info'.fixturePath;
-          final filteredFilePath =
-              'prefixed.absolute.filtered.lcov.info'.fixturePath;
-          final originalFile = File(originalFilePath);
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          const patterns = <String>[r'ignored_source'];
+          final pathsPrefix = path.join('root', 'parent');
+          final originalFilePath = path.join(
+            directory.path,
+            'original.info',
+          );
+          final filteredFilePath = path.join(
+            directory.path,
+            'actual.info',
+          );
+          final acceptedSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'accepted_source_file.dart',
+          ]);
+          final ignoredSourceFilePath = path.joinAll([
+            'path',
+            'to',
+            'ignored_source_file.dart',
+          ]);
+          final forbiddenSourceFilePath = path.joinAll([
+            if (Platform.isWindows) 'C:' else '/',
+            'path',
+            'to',
+            'forbidden_source_file.dart',
+          ]);
+          final acceptedSourceFileData = '''
+SF:$acceptedSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final ignoredSourceFileData = '''
+SF:$ignoredSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final forbiddenSourceFileData = '''
+SF:$forbiddenSourceFilePath
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final originalFileContent = '''
+$acceptedSourceFileData
+$ignoredSourceFileData
+$forbiddenSourceFileData
+''';
+          final originalFile = File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
           final filteredFile = File(filteredFilePath);
           if (filteredFile.existsSync()) {
             filteredFile.deleteSync(recursive: true);
@@ -523,8 +526,13 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          const patterns = <String>['.g.dart'];
-          final absentFilePath = 'absent.lcov.info'.fixturePath;
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          const patterns = <String>[r'ignored_source'];
+          final absentFilePath = path.join(
+            directory.path,
+            'absent.info',
+          );
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 

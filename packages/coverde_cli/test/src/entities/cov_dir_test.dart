@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/cov_line.dart';
-import 'package:coverde/src/utils/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -17,7 +17,7 @@ WHEN they are compared with each other
 THEN a positive result should be returned
 ''',
     () {
-      const sourcePath = 'path/to/source/folder/';
+      final sourcePath = path.joinAll(['path', 'to', 'source', 'folder']);
       final nestedCovElements = [
         CovDir(
           source: Directory(path.join(sourcePath, 'dir')),
@@ -56,7 +56,11 @@ THEN a positive result should be returned
     final covFiles = [
       CovFile(
         source: File(
-          'test/dir_1/file_1.1.ext',
+          path.joinAll([
+            'test',
+            'dir_1',
+            'file_1.1.ext',
+          ]),
         ),
         raw: '',
         covLines: [
@@ -65,7 +69,11 @@ THEN a positive result should be returned
       ),
       CovFile(
         source: File(
-          'test/dir_1/file_1.2.ext',
+          path.joinAll([
+            'test',
+            'dir_1',
+            'file_1.2.ext',
+          ]),
         ),
         raw: '',
         covLines: [
@@ -74,7 +82,13 @@ THEN a positive result should be returned
       ),
       CovFile(
         source: File(
-          'test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext',
+          path.joinAll([
+            'test',
+            'dir_2',
+            'dir_2_1',
+            'dir_2_1_1',
+            'file_2_1_1.1.ext',
+          ]),
         ),
         raw: '',
         covLines: [
@@ -83,7 +97,15 @@ THEN a positive result should be returned
       ),
       CovFile(
         source: File(
-          'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
+          path.joinAll([
+            'test',
+            'dir_2',
+            'dir_2_1',
+            'dir_2_1_1',
+            'dir_2_1_1_1',
+            'dir_2_1_1_1_1',
+            'file_2_1_1_1_1.1.ext',
+          ]),
         ),
         raw: '',
         covLines: [
@@ -92,20 +114,33 @@ THEN a positive result should be returned
       ),
     ];
     final tree = CovDir(
-      source: Directory('test/'),
+      source: Directory(path.joinAll([
+        'test',
+      ])),
       elements: [
         CovDir(
-          source: Directory('test/dir_1/'),
+          source: Directory(path.joinAll([
+            'test',
+            'dir_1',
+          ])),
           elements: [
             CovFile(
-              source: File('test/dir_1/file_1.1.ext'),
+              source: File(path.joinAll([
+                'test',
+                'dir_1',
+                'file_1.1.ext',
+              ])),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
               ],
             ),
             CovFile(
-              source: File('test/dir_1/file_1.2.ext'),
+              source: File(path.joinAll([
+                'test',
+                'dir_1',
+                'file_1.2.ext',
+              ])),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -114,17 +149,33 @@ THEN a positive result should be returned
           ],
         ),
         CovDir(
-          source: Directory('test/dir_2/dir_2_1/dir_2_1_1'),
+          source: Directory(path.joinAll([
+            'test',
+            'dir_2',
+            'dir_2_1',
+            'dir_2_1_1',
+          ])),
           elements: [
             CovDir(
-              source: Directory(
-                'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/',
-              ),
+              source: Directory(path.joinAll([
+                'test',
+                'dir_2',
+                'dir_2_1',
+                'dir_2_1_1',
+                'dir_2_1_1_1',
+                'dir_2_1_1_1_1',
+              ])),
               elements: [
                 CovFile(
-                  source: File(
-                    'test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext',
-                  ),
+                  source: File(path.joinAll([
+                    'test',
+                    'dir_2',
+                    'dir_2_1',
+                    'dir_2_1_1',
+                    'dir_2_1_1_1',
+                    'dir_2_1_1_1_1',
+                    'file_2_1_1_1_1.1.ext',
+                  ])),
                   raw: '',
                   covLines: [
                     CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -133,7 +184,13 @@ THEN a positive result should be returned
               ],
             ),
             CovFile(
-              source: File('test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext'),
+              source: File(path.joinAll([
+                'test',
+                'dir_2',
+                'dir_2_1',
+                'dir_2_1_1',
+                'file_2_1_1.1.ext',
+              ])),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -186,7 +243,10 @@ THEN an empty coverage folder should be returned
 ''',
           () {
             // ARRANGE
-            const baseDirPath = 'other/dir/';
+            final baseDirPath = path.joinAll([
+              'other',
+              'dir',
+            ]);
             final expectedSubtree = CovDir(
               source: Directory(baseDirPath),
               elements: const [],
@@ -214,17 +274,56 @@ THEN a formatted string should be returned
 ''',
       () {
         // ARRANGE
-        const expectedTreeString = '''
-Node: test/ (100.00% - 4/4)
-├─ Node: test/dir_1/ (100.00% - 2/2)
-│  ├─ SF: test/dir_1/file_1.1.ext (100.00% - 1/1)
-│  ├─ SF: test/dir_1/file_1.2.ext (100.00% - 1/1)
+        final expectedTreeString = '''
+Node: ${path.joinAll([
+              'test',
+            ])} (100.00% - 4/4)
+├─ Node: ${path.joinAll([
+              'test',
+              'dir_1',
+            ])} (100.00% - 2/2)
+│  ├─ SF: ${path.joinAll([
+              'test',
+              'dir_1',
+              'file_1.1.ext',
+            ])} (100.00% - 1/1)
+│  ├─ SF: ${path.joinAll([
+              'test',
+              'dir_1',
+              'file_1.2.ext',
+            ])} (100.00% - 1/1)
 │
-├─ Node: test/dir_2/dir_2_1/dir_2_1_1 (100.00% - 2/2)
-│  ├─ Node: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/ (100.00% - 1/1)
-│  │  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/dir_2_1_1_1/dir_2_1_1_1_1/file_2_1_1_1_1.1.ext (100.00% - 1/1)
+├─ Node: ${path.joinAll([
+              'test',
+              'dir_2',
+              'dir_2_1',
+              'dir_2_1_1',
+            ])} (100.00% - 2/2)
+│  ├─ Node: ${path.joinAll([
+              'test',
+              'dir_2',
+              'dir_2_1',
+              'dir_2_1_1',
+              'dir_2_1_1_1',
+              'dir_2_1_1_1_1',
+            ])} (100.00% - 1/1)
+│  │  ├─ SF: ${path.joinAll([
+              'test',
+              'dir_2',
+              'dir_2_1',
+              'dir_2_1_1',
+              'dir_2_1_1_1',
+              'dir_2_1_1_1_1',
+              'file_2_1_1_1_1.1.ext',
+            ])} (100.00% - 1/1)
 │  │
-│  ├─ SF: test/dir_2/dir_2_1/dir_2_1_1/file_2_1_1.1.ext (100.00% - 1/1)
+│  ├─ SF: ${path.joinAll([
+              'test',
+              'dir_2',
+              'dir_2_1',
+              'dir_2_1_1',
+              'file_2_1_1.1.ext',
+            ])} (100.00% - 1/1)
 │
 ''';
 

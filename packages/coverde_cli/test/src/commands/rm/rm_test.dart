@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -61,7 +62,7 @@ THEN the file should be removed
 ''',
         () async {
           // ARRANGE
-          const filePath = 'coverage/existing.file';
+          final filePath = path.joinAll(['coverage', 'existing.file']);
           final file = File(filePath);
           await file.create(recursive: true);
           expect(file.existsSync(), isTrue);
@@ -88,7 +89,7 @@ AND the file should remain inexistent
 ''',
         () async {
           // ARRANGE
-          const filePath = 'coverage/non-existing.file';
+          final filePath = path.joinAll(['coverage', 'non-existing.file']);
           final file = File(filePath);
           expect(file.existsSync(), isFalse);
 
@@ -116,7 +117,7 @@ AND the file should remain inexistent
 ''',
         () async {
           // ARRANGE
-          const filePath = 'coverage/non-existing.file';
+          final filePath = path.joinAll(['coverage', 'non-existing.file']);
           final file = File(filePath);
           when(() => out.writeln(any<String>())).thenReturn(null);
           expect(file.existsSync(), isFalse);
@@ -145,7 +146,7 @@ THEN the directory should be removed
 ''',
         () async {
           // ARRANGE
-          const dirPath = 'coverage/existing.dir/';
+          final dirPath = path.joinAll(['coverage', 'existing.dir']);
           final dir = Directory(dirPath);
           await dir.create(recursive: true);
           expect(dir.existsSync(), isTrue);
@@ -172,7 +173,7 @@ AND the directory should remain inexistent
 ''',
         () async {
           // ARRANGE
-          const dirPath = 'coverage/non-existing.dir/';
+          final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
           final dir = File(dirPath);
           expect(dir.existsSync(), isFalse);
 
@@ -200,7 +201,7 @@ AND the directory should remain inexistent
 ''',
         () async {
           // ARRANGE
-          const dirPath = 'coverage/non-existing.dir/';
+          final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
           final dir = File(dirPath);
           when(() => out.writeln(any<String>())).thenReturn(null);
           expect(dir.existsSync(), isFalse);

@@ -5,9 +5,9 @@ import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
 /// {@template cov_dir}
@@ -210,9 +210,10 @@ class CovDir extends CovElement {
     final folderReport = folderReportTemplate.clone(true);
 
     final topLevelDirRelPath =
-        List.filled(reportRelDepth, '..').fold('', path.join);
-    final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
-    final topLevelCssRelPath = path.join(
+        path.url.joinAll(List.filled(reportRelDepth, '..'));
+    final topLevelReportRelPath =
+        path.url.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = path.url.join(
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
@@ -224,11 +225,11 @@ class CovDir extends CovElement {
     final reportFileAbsPath = path.join(reportDirAbsPath, 'index.html');
 
     final title = 'Coverage Report - $traceFileName';
-    final sortAlphaIconPath = path.join(
+    final sortAlphaIconPath = path.url.join(
       topLevelDirRelPath,
       sortAlphaPngFilename,
     );
-    final sortNumericIconPath = path.join(
+    final sortNumericIconPath = path.url.join(
       topLevelDirRelPath,
       sortNumericPngFilename,
     );
@@ -245,7 +246,7 @@ class CovDir extends CovElement {
     folderReport.querySelector('.sortNumeric')?.attributes['src'] =
         sortNumericIconPath;
     folderReport.querySelector('.currentDirPath')?.nodes.last.text =
-        ' - ${source.path}';
+        ' - ${path.url.joinAll(path.split(source.path))}';
     folderReport.querySelector('.traceFileName')?.text = traceFileName;
     folderReport.querySelector('.linesHit')?.text = '$linesHit';
     folderReport.querySelector('.linesFound')?.text = '$linesFound';

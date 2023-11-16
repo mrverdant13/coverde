@@ -1,10 +1,10 @@
 // cspell:words nbsp
 
 import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
 /// # Computable Coverage Entity
@@ -86,10 +86,11 @@ abstract class CovElement extends CovComputable {
     required double medium,
     required double high,
   }) {
+    relativePath = path.url.joinAll(path.split(relativePath));
     final row = _folderReportRowTemplate.clone(true);
     final suffix = getClassSuffix(medium: medium, high: high);
     final link = source is Directory
-        ? path.join(relativePath, 'index.html')
+        ? path.url.join(relativePath, 'index.html')
         : '$relativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link

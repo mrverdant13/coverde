@@ -5,9 +5,9 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/cov_line.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
 /// {@template cov_file}
@@ -47,18 +47,13 @@ class CovFile extends CovElement {
         .replaceAll(sourceFileTag, '')
         .trim();
 
-    final sourceFile = path.canonicalize(
-      [
-        '.',
-        ...sourcePath().split(RegExp(r'(\\|\/)')),
-      ].reduce(path.join),
-    );
+    final sourceFilePath = path.joinAll(path.split(sourcePath()));
 
     final covLines =
         dataLines.where((l) => l.startsWith(lineDataTag)).map(CovLine.parse);
 
     return CovFile(
-      source: File(sourceFile),
+      source: File(sourceFilePath),
       raw: data,
       covLines: covLines,
     );
@@ -134,10 +129,11 @@ class CovFile extends CovElement {
     final fileReport = fileReportTemplate.clone(true);
 
     final topLevelDirRelPath = (reportRelDepth > 1)
-        ? List.filled(reportRelDepth - 1, '..').reduce(path.join)
+        ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
         : '.';
-    final topLevelReportRelPath = path.join(topLevelDirRelPath, 'index.html');
-    final topLevelCssRelPath = path.join(
+    final topLevelReportRelPath =
+        path.url.join(topLevelDirRelPath, 'index.html');
+    final topLevelCssRelPath = path.url.join(
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
@@ -149,7 +145,7 @@ class CovFile extends CovElement {
 
     {
       final title = 'Coverage Report - $traceFileName';
-      final currentDirPath = source.parent.path;
+      final currentDirPath = path.url.joinAll(path.split(source.parent.path));
       final fileName = path.basename(source.path);
       final suffix = getClassSuffix(medium: medium, high: high);
 

@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
@@ -21,7 +21,6 @@ enum _Project {
 }
 
 extension _ExtendedProj on _Project {
-  String get name => toString().split('.').last;
   Iterable<String> get relFilePaths {
     switch (this) {
       case _Project.fake_project_1:
@@ -55,11 +54,15 @@ extension on String {
   String fixturePath({
     required _Project proj,
   }) =>
-      path.join(
-        'test/src/commands/report/fixtures',
+      path.joinAll([
+        'test',
+        'src',
+        'commands',
+        'report',
+        'fixtures',
         proj.name,
         this,
-      );
+      ]);
 }
 
 class MockProcessManager extends Mock implements ProcessManager {}
@@ -138,7 +141,12 @@ THEN a coverage report should be launched
 ''',
             () async {
               // ARRANGE
-              final traceFilePath = 'lcov.info'.fixturePath(proj: proj);
+              final traceFilePath = path.joinAll([
+                'coverage',
+                // cspell: disable-next-line
+                if (Platform.isWindows) 'windows' else 'posix',
+                'lcov.info',
+              ]).fixturePath(proj: proj);
               final traceFileFile = File(traceFilePath);
               const resultDirName = 'result';
               const expectedDirName = 'expected';
@@ -265,7 +273,14 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          const absentFilePath = 'test/fixtures/report/absent.lcov.info';
+          final absentFilePath = path.joinAll([
+            'test',
+            'src',
+            'commands',
+            'report',
+            'fixtures',
+            'absent.lcov.info',
+          ]);
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 

@@ -2,19 +2,12 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/path.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 import '../../../utils/mocks.dart';
-
-extension on String {
-  String get fixturePath => path.join(
-        'test/src/commands/check/fixtures/',
-        this,
-      );
-}
 
 void main() {
   group(
@@ -79,10 +72,24 @@ THEN the trace file coverage should be checked and approved
 ''',
         () async {
           // ARRANGE
-          final traceFilePath = 'lcov.info'.fixturePath;
-          final traceFileFile = File(traceFilePath);
+          final directory = Directory.systemTemp.createTempSync();
+          final traceFileContent = '''
+SF:${path.join('path', 'to', 'source_file.dart')}
+DA:1,1
+DA:2,0
+DA:3,1
+DA:4,1
+DA:5,0
+LF:5
+LH:3
+end_of_record
+''';
+          final traceFilePath = path.join(directory.path, 'lcov.info');
+          final traceFileFile = File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync(traceFileContent);
           final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
-          const minCoverage = 50;
+          const minCoverage = 50.0;
 
           expect(traceFileFile.existsSync(), isTrue);
           expect(traceFile.coverage, greaterThan(minCoverage));
@@ -108,6 +115,7 @@ THEN the trace file coverage should be checked and approved
             verification.called(1);
           }
           verify(() => out.writeln());
+          directory.deleteSync(recursive: true);
         },
       );
 
@@ -125,10 +133,24 @@ THEN the trace file coverage should be checked and disapproved
 ''',
         () async {
           // ARRANGE
-          final traceFilePath = 'lcov.info'.fixturePath;
-          final traceFileFile = File(traceFilePath);
+          final directory = Directory.systemTemp.createTempSync();
+          final traceFileContent = '''
+SF:${path.join('path', 'to', 'source_file.dart')}
+DA:1,1
+DA:2,0
+DA:3,1
+DA:4,1
+DA:5,0
+LF:5
+LH:3
+end_of_record
+''';
+          final traceFilePath = path.join(directory.path, 'lcov.info');
+          final traceFileFile = File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync(traceFileContent);
           final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
-          const minCoverage = 90;
+          const minCoverage = 75.0;
 
           expect(traceFileFile.existsSync(), isTrue);
           expect(traceFile.coverage, lessThan(minCoverage));
@@ -157,10 +179,10 @@ THEN an error indicating the issue should be thrown
 ''',
         () async {
           // ARRANGE
-          final absentFilePath = 'absent.lcov.info'.fixturePath;
+          final directory = Directory.systemTemp.createTempSync();
+          final absentFilePath = path.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           const minCoverage = 50;
-
           expect(absentFile.existsSync(), isFalse);
 
           // ACT
@@ -173,6 +195,7 @@ THEN an error indicating the issue should be thrown
 
           // ASSERT
           expect(action, throwsA(isA<UsageException>()));
+          directory.deleteSync(recursive: true);
         },
       );
 

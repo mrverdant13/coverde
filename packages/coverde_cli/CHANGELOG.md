@@ -1,3 +1,7 @@
+## Unreleased
+
+- **FIX**: use platform-dependent path handling (#82).
+
 ## 0.2.0+2
 
 - **FEAT**: optional prefix for filtered paths (#69).
