@@ -7,9 +7,9 @@ import 'package:universal_io/io.dart';
 
 /// {@template filter_cmd}
 /// A command to filter coverage info files.
-/// {@endtemplate filter_cmd}
+/// {@endtemplate}
 class FilterCommand extends Command<void> {
-  /// {@template filter_cmd}
+  /// {@macro filter_cmd}
   FilterCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(

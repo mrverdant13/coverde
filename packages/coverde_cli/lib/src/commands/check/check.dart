@@ -9,7 +9,7 @@ import 'package:universal_io/io.dart';
 
 /// {@template check_cmd}
 /// A command to check the minimum coverage value from a trace file.
-/// {@endtemplate check_cmd}
+/// {@endtemplate}
 class CheckCommand extends Command<void> {
   /// {@macro check_cmd}
   CheckCommand({Stdout? out}) : _out = out ?? stdout {
