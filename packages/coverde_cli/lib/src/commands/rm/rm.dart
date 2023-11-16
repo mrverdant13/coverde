@@ -64,11 +64,9 @@ Remove a set of files and folders.''';
         case FileSystemEntityType.directory:
           final dir = Directory(elementPath);
           dir.deleteSync(recursive: true);
-          break;
         case FileSystemEntityType.file:
           final file = File(elementPath);
           file.deleteSync(recursive: true);
-          break;
         case FileSystemEntityType.notFound:
           final message = 'The <$elementPath> element does not exist.';
           if (shouldAcceptAbsence) {

@@ -116,11 +116,11 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final _traceFilePath = checkOption(
+    final traceFilePath = checkOption(
       optionKey: inputOption,
       optionName: 'input trace file',
     );
-    final _reportDirPath = path.joinAll(
+    final reportDirPath = path.joinAll(
       path.split(
         checkOption(
           optionKey: outputOption,
@@ -146,12 +146,12 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     );
 
     // Report dir path should be absolute.
-    final reportDirAbsPath = path.isAbsolute(_reportDirPath)
-        ? _reportDirPath
-        : path.join(Directory.current.path, _reportDirPath);
-    final traceFileAbsPath = path.isAbsolute(_traceFilePath)
-        ? _traceFilePath
-        : path.join(Directory.current.path, _traceFilePath);
+    final reportDirAbsPath = path.isAbsolute(reportDirPath)
+        ? reportDirPath
+        : path.join(Directory.current.path, reportDirPath);
+    final traceFileAbsPath = path.isAbsolute(traceFilePath)
+        ? traceFilePath
+        : path.join(Directory.current.path, traceFilePath);
 
     final traceFile = File(traceFileAbsPath);
 

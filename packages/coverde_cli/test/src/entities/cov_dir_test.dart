@@ -114,33 +114,41 @@ THEN a positive result should be returned
       ),
     ];
     final tree = CovDir(
-      source: Directory(path.joinAll([
-        'test',
-      ])),
+      source: Directory(
+        path.joinAll([
+          'test',
+        ]),
+      ),
       elements: [
         CovDir(
-          source: Directory(path.joinAll([
-            'test',
-            'dir_1',
-          ])),
+          source: Directory(
+            path.joinAll([
+              'test',
+              'dir_1',
+            ]),
+          ),
           elements: [
             CovFile(
-              source: File(path.joinAll([
-                'test',
-                'dir_1',
-                'file_1.1.ext',
-              ])),
+              source: File(
+                path.joinAll([
+                  'test',
+                  'dir_1',
+                  'file_1.1.ext',
+                ]),
+              ),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
               ],
             ),
             CovFile(
-              source: File(path.joinAll([
-                'test',
-                'dir_1',
-                'file_1.2.ext',
-              ])),
+              source: File(
+                path.joinAll([
+                  'test',
+                  'dir_1',
+                  'file_1.2.ext',
+                ]),
+              ),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -149,33 +157,39 @@ THEN a positive result should be returned
           ],
         ),
         CovDir(
-          source: Directory(path.joinAll([
-            'test',
-            'dir_2',
-            'dir_2_1',
-            'dir_2_1_1',
-          ])),
+          source: Directory(
+            path.joinAll([
+              'test',
+              'dir_2',
+              'dir_2_1',
+              'dir_2_1_1',
+            ]),
+          ),
           elements: [
             CovDir(
-              source: Directory(path.joinAll([
-                'test',
-                'dir_2',
-                'dir_2_1',
-                'dir_2_1_1',
-                'dir_2_1_1_1',
-                'dir_2_1_1_1_1',
-              ])),
+              source: Directory(
+                path.joinAll([
+                  'test',
+                  'dir_2',
+                  'dir_2_1',
+                  'dir_2_1_1',
+                  'dir_2_1_1_1',
+                  'dir_2_1_1_1_1',
+                ]),
+              ),
               elements: [
                 CovFile(
-                  source: File(path.joinAll([
-                    'test',
-                    'dir_2',
-                    'dir_2_1',
-                    'dir_2_1_1',
-                    'dir_2_1_1_1',
-                    'dir_2_1_1_1_1',
-                    'file_2_1_1_1_1.1.ext',
-                  ])),
+                  source: File(
+                    path.joinAll([
+                      'test',
+                      'dir_2',
+                      'dir_2_1',
+                      'dir_2_1_1',
+                      'dir_2_1_1_1',
+                      'dir_2_1_1_1_1',
+                      'file_2_1_1_1_1.1.ext',
+                    ]),
+                  ),
                   raw: '',
                   covLines: [
                     CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -184,13 +198,15 @@ THEN a positive result should be returned
               ],
             ),
             CovFile(
-              source: File(path.joinAll([
-                'test',
-                'dir_2',
-                'dir_2_1',
-                'dir_2_1_1',
-                'file_2_1_1.1.ext',
-              ])),
+              source: File(
+                path.joinAll([
+                  'test',
+                  'dir_2',
+                  'dir_2_1',
+                  'dir_2_1_1',
+                  'file_2_1_1.1.ext',
+                ]),
+              ),
               raw: '',
               covLines: [
                 CovLine(lineNumber: 1, hitsNumber: 1, checksum: null),
@@ -331,7 +347,7 @@ Node: ${path.joinAll([
         final result = tree.toString();
 
         // ASSERT
-        final splitter = const LineSplitter();
+        const splitter = LineSplitter();
         expect(
           splitter.convert(result).map((line) => line.trim()),
           splitter.convert(expectedTreeString).map((line) => line.trim()),

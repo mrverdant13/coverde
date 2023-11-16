@@ -1,3 +1,4 @@
+/// Fake project 2 library.
 library fake_project_2;
 
 export 'src/exception.dart';
