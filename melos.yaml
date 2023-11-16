@@ -73,7 +73,7 @@ scripts:
   t:
     description: Run tests and generate coverage trace file for a selected package in random order.
     run: >
-      dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color &&
+      dart test -j 1 -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color &&
       dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
     exec:
       concurrency: 1
