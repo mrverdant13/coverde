@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
 
 /// Extended utils on the command implementation.
-extension ExtendedCommand on Command {
+extension ExtendedCommand on Command<void> {
   /// Validate command multi-options.
   List<String> checkMultiOption({
     required String multiOptionKey,

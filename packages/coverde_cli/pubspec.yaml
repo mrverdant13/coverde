@@ -40,13 +40,13 @@ dev_dependencies:
   build_verify: ^3.1.0
   csslib: ^1.0.0
   mocktail: ^1.0.0
-  pubspec_parse: ^1.2.3
-  test: ^1.24.6
-  very_good_analysis: ^5.0.0+1
   package_assets_generator:
     path: ../package_assets_generator
   package_data_generator:
     path: ../package_data_generator
+  pubspec_parse: ^1.2.3
+  test: ^1.24.6
+  very_good_analysis: ^5.0.0+1
 
 executables:
   coverde:

@@ -76,7 +76,7 @@ THEN a filtered trace file should be created
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
-          const patterns = <String>[r'ignored_source'];
+          const patterns = <String>['ignored_source'];
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = path.joinAll([
             directory.path,
@@ -187,7 +187,7 @@ THEN a filtered trace file should be created
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
-          const patterns = <String>[r'ignored_source'];
+          const patterns = <String>['ignored_source'];
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = path.join(
             directory.path,
@@ -301,7 +301,7 @@ THEN a filtered trace file should be created
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
-          const patterns = <String>[r'ignored_source'];
+          const patterns = <String>['ignored_source'];
           final pathsPrefix = path.join('root', 'parent');
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = path.join(
@@ -423,7 +423,7 @@ AND no filtered file should be created
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
-          const patterns = <String>[r'ignored_source'];
+          const patterns = <String>['ignored_source'];
           final pathsPrefix = path.join('root', 'parent');
           final originalFilePath = path.join(
             directory.path,
@@ -528,7 +528,7 @@ THEN an error indicating the issue should be thrown
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
-          const patterns = <String>[r'ignored_source'];
+          const patterns = <String>['ignored_source'];
           final absentFilePath = path.join(
             directory.path,
             'absent.info',

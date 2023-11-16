@@ -26,7 +26,7 @@ void main() {
 GIVEN a command''',
     () {
       late CommandRunner<void> cmdRunner;
-      late Command cmd;
+      late Command<void> cmd;
 
       // ARRANGE
       setUp(

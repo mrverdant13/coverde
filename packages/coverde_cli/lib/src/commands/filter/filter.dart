@@ -33,7 +33,6 @@ Destination coverage info file to dump the resulting coverage data into.''',
         help: '''
 Path to be used to prefix all the paths in the resulting coverage trace file.''',
         valueHelp: _pathsParentHelpValue,
-        mandatory: false,
       )
       ..addMultiOption(
         filtersOption,
@@ -164,7 +163,7 @@ If an absolute path is found in the coverage trace file, the process will fail.'
       } else {
         if (path.isAbsolute(fileCovData.source.path) && pathsParent != null) {
           usageException(
-            'The `$pathsParentOption` option cannot be used with trace files'
+            'The `$pathsParentOption` option cannot be used with trace files '
             'that contain absolute paths.',
           );
         }
