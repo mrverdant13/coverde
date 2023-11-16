@@ -7,9 +7,9 @@ import 'package:universal_io/io.dart';
 
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
-/// {@endtemplate filter_cmd}
+/// {@endtemplate}
 class ValueCommand extends Command<void> {
-  /// {@template filter_cmd}
+  /// {@macro filter_cmd}
   ValueCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
