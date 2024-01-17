@@ -6,7 +6,6 @@ import 'package:io/io.dart';
 import 'package:universal_io/io.dart';
 
 Future<void> main(List<String> arguments) async {
-  print('MEOW');
   try {
     return await coverde(arguments);
   } on UsageException catch (exception) {
