@@ -84,9 +84,9 @@ class TraceFile extends CovComputable {
         '${covFile.source.path} | ${covFile.linesHit}/${covFile.linesFound} | ${covFile.coverageString} | ',
       );
 
-      if (covFile.coverage > high) {
+      if (covFile.coverage >= high) {
         buffer.writeln('✅');
-      } else if (covFile.coverage > medium) {
+      } else if (covFile.coverage >= medium) {
         buffer.writeln('👍');
       } else {
         buffer.writeln('❌');
@@ -106,9 +106,9 @@ class TraceFile extends CovComputable {
   }) {
     var badgeColor = 'grey';
 
-    if (coverage > high) {
+    if (coverage >= high) {
       badgeColor = 'success';
-    } else if (coverage > medium) {
+    } else if (coverage >= medium) {
       badgeColor = 'yellow';
     } else {
       badgeColor = 'red';
