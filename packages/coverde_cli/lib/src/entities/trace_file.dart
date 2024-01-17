@@ -73,6 +73,10 @@ class TraceFile extends CovComputable {
       ..writeln('Code coverage threshold : [$medium - $high]')
       ..writeln('```')
       ..writeln()
+      ..writeln('<details>')
+      ..writeln()
+      ..writeln('<summary> View Report </summary>')
+      ..writeln()
       ..writeln('File | Lines Covered | Coverage | Health')
       ..writeln('-------- | --------- | -------- | --------');
 
@@ -93,7 +97,10 @@ class TraceFile extends CovComputable {
       }
     }
 
-    buffer.writeln('Summary | $coverageString ($linesHit/$linesFound)');
+    buffer
+      ..writeln('Summary | $coverageString ($linesHit/$linesFound)')
+      ..writeln()
+      ..writeln('</details>');
 
     return buffer.toString();
   }
