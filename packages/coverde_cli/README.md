@@ -226,7 +226,6 @@ $ dart pub global activate coverde
 # Usage with [melos][melos_link]
 
 If your project uses melos to manage its multi-package structure, it could be handy to collect test coverage data in a unified trace file.
-
 This can be achieved by defining a melos script as follows:
 
 ```yaml
