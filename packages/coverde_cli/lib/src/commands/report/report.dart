@@ -43,7 +43,7 @@ Destination directory where the generated html coverage report will be stored.''
         help: '''
 Destination directory where the generated markdown coverage report will be stored.''',
         valueHelp: _markdownHelpValue,
-        defaultsTo: 'coverage/markdown/',
+        defaultsTo: 'coverage/markdown/report.md',
       )
       ..addFlag(
         launchFlag,
@@ -191,6 +191,17 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     // Parse trace file data.
     final traceFileData = TraceFile.parse(traceFileContent);
+
+    // generate markdown report
+    File(markdownReportDirAbsPath)
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        '''
+${traceFileData.generateBadge(medium: medium, high: high)}
+
+${traceFileData.generateMarkdownReport(medium: medium, high: high)}
+''',
+      );
 
     // Build cov report base tree.
     final covTree = traceFileData.asTree
