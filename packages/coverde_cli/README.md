@@ -281,7 +281,7 @@ Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [_docs_coverde_check_example_2]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_fail.png?raw=true
 [_docs_coverde_report_example_1]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_directory_example.png?raw=true
 [_docs_coverde_report_example_2]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/report_file_example.png?raw=true
-[_docs_coverde_report_example_3]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/markdown-report-file-example.png?raw=true
+[_docs_coverde_report_example_3]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/markdown_report_file_example.png?raw=true
 [codecov_badge]: https://codecov.io/gh/mrverdant13/coverde/branch/main/graph/badge.svg
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [codefactor_badge]: https://www.codefactor.io/repository/github/mrverdant13/coverde/badge
