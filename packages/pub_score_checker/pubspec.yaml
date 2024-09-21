@@ -6,9 +6,8 @@ publish_to: none
 environment:
   sdk: ">=3.0.0 <4.0.0"
 
-dev_dependencies:
-  mocktail: ^1.0.0
-  test: ^1.25.0
-  very_good_analysis: ^6.0.0
 dependencies:
   pana: any # Using the latest version of `pana` to ensure that the package score computation method is also up-to-date.
+
+dev_dependencies:
+  very_good_analysis: ^6.0.0
