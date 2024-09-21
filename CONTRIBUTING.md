@@ -8,10 +8,12 @@ If you'd like to report a bug or join in the development of `coverde`, then here
 
 ## Contents
 
-- [Reporting bugs and opening issues](#reporting-bugs-and-opening-issues)
-- [Coding Guidelines](#coding-guidelines)
-  - [Pre-requisites](#pre-requisites)
-  - [Pull Requests](#pull-requests)
+- [Contributing to `coverde`](#contributing-to-coverde)
+  - [Contents](#contents)
+  - [Reporting bugs and opening issues](#reporting-bugs-and-opening-issues)
+  - [Coding Guidelines](#coding-guidelines)
+    - [Pre-requisites](#pre-requisites)
+    - [Pull Requests](#pull-requests)
 
 ## Reporting bugs and opening issues
 
@@ -29,7 +31,7 @@ If you can include screenshots, trace data or any additional context, it could b
 ### Pre-requisites
 
 - [Dart SDK][dart_link] - min version: 3.0.0
-- [Melos][melos_link] - min version: 3.1.1
+- [Melos][melos_link] - min version: 6.1.0
 - `coverde` - version: local (installed by executing `dart pub global activate --source path ./packages/coverde_cli/` in the root folder of the local project)
 
 ### Pull Requests
