@@ -10,6 +10,14 @@ updates:
     labels:
       - ci
   - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: daily
+    reviewers:
+      - mrverdant13
+    labels:
+      - build
+  - package-ecosystem: pub
     directory: /packages/coverde_cli/
     schedule:
       interval: daily
