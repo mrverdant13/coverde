@@ -40,18 +40,15 @@ Future<void> main(List<String> args) async {
       ..writeln('🔍 Analyzing pub score ($threshold points of tolerance)...')
       ..writeln('⏳ This may take a while...');
     const pubHostedUrl = defaultHostedUrl;
-    final analyzer = await PackageAnalyzer.create(
+    final toolEnv = await ToolEnvironment.create(
       pubCacheDir: tempPath,
-      panaCacheDir: Platform.environment['PANA_CACHE'],
-      // sdkDir: result['dart-sdk'] as String?,
-      // flutterDir: result['flutter-sdk'] as String?,
       pubHostedUrl: pubHostedUrl,
-      environment: Platform.environment,
+    );
+    final analyzer = PackageAnalyzer(
+      toolEnv,
     );
     final options = InspectOptions(
       pubHostedUrl: pubHostedUrl,
-      // lineLength: int.tryParse(result['line-length'] as String? ?? ''),
-      checkRemoteRepository: true,
     );
     try {
       final summary = await analyzer.inspectDir(packagePath, options: options);
