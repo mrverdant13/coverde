@@ -3,6 +3,7 @@ import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
+import 'package:coverde/src/commands/test/test.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/utils/package_data.dart';
 import 'package:io/ansi.dart';
@@ -16,6 +17,7 @@ Future<void> coverde(List<String> args) async {
     packageName,
     'A set of commands that encapsulate coverage-related functionalities.',
   ) //
+    ..addCommand(TestCommand())
     ..addCommand(CheckCommand())
     ..addCommand(FilterCommand())
     ..addCommand(ReportCommand())
