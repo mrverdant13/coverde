@@ -1,6 +1,7 @@
 ## Unreleased
 
 - **FIX**: use platform-dependent path handling (#82).
+- **FEAT**: use Dart 3.5.0 as minimum SDK version (#114).
 
 ## 0.2.0+2
 
