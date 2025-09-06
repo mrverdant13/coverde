@@ -2,12 +2,14 @@ name: package_assets_generator
 description: Package assets generator.
 version: 0.1.0+1
 publish_to: none
+resolution: workspace
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  build: ^2.5.4
+  path: ^1.9.1
 
 dev_dependencies:
   very_good_analysis: ^6.0.0
-dependencies:
-  build: ^2.4.1
-  path: ^1.9.0

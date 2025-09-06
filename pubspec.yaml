@@ -1,7 +1,144 @@
 name: coverde_monorepo
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.5.0 <4.0.0"
 
 dev_dependencies:
-  melos: ^6.1.0
+  melos: ^7.1.0
+
+melos:
+  command:
+    clean:
+      hooks:
+        pre: coverde rm .dart_tool coverage && melos exec -- "coverde rm .dart_tool pubspec_overrides.yaml pubspec.lock coverage"
+
+  scripts:
+    d:
+      description: Install dependencies for a selected package.
+      run: dart pub get
+      exec:
+        concurrency: 1
+        failFast: true
+        orderDependents: true
+      packageFilters: {}
+    D:
+      description: Install dependencies for all packages.
+      run: melos run d --no-select
+    D:ci:
+      description: Install dependencies for all packages.
+      run: melos exec --fail-fast --order-dependents -- "dart pub get"
+
+    g:
+      description: Run code generation for a selected package.
+      run: dart pub run build_runner build -d
+      exec:
+        concurrency: 1
+        failFast: true
+        orderDependents: true
+      packageFilters:
+        dependsOn: build_runner
+    G:
+      description: Run code generation for all packages.
+      run: melos run g --no-select
+
+    S:
+      description: Run spell checking for the whole project.
+      run: cspell lint --fail-fast --no-progress -c ./.cspell/cspell.yaml "MELOS_ROOT_PATH"
+
+    f:
+      description: Format codebase for a selected package.
+      run: dart format .
+      exec:
+        concurrency: 1
+      packageFilters: {}
+    F:
+      description: Format codebase for all packages.
+      run: melos run f --no-select
+    F:ci:
+      description: Format codebase for all packages and stop if a change is identified.
+      run: melos exec --fail-fast -- "dart format --set-exit-if-changed ."
+
+    a:
+      description: Analyze codebase for a selected package considering infos and warnings as errors.
+      run: dart analyze --fatal-infos --fatal-warnings .
+      exec:
+        concurrency: 1
+      packageFilters: {}
+    A:
+      description: Analyze codebase for all packages considering infos and warnings as errors.
+      run: melos run a --no-select
+    A:ci:
+      description: Analyze codebase for all packages considering infos and warnings as errors.
+      run: melos exec --fail-fast --order-dependents -- "dart analyze --fatal-infos --fatal-warnings ."
+
+    t:
+      description: Run tests and generate coverage trace file for a selected package in random order.
+      run: >
+        dart test -j 1 -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color &&
+        dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
+      exec:
+        concurrency: 1
+        orderDependents: true
+      packageFilters:
+        dirExists: test
+    T:
+      description: Run tests and generate coverage trace files for all packages in random order.
+      run: melos run t --no-select
+    T:ci:
+      description: Run tests and generate coverage trace files for all packages in random order.
+      run: melos exec --fail-fast --order-dependents --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
+
+    MC:
+      description: Merge all packages coverage trace files ignoring data related to generated files.
+      run: >
+        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
+        coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
+        melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.asset\.dart'" &&
+        coverde check -i coverage/filtered.lcov.info 100
+
+    R:
+      description: Generate HTML coverage report.
+      run: >
+        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
+        coverde report --input ./coverage/filtered.lcov.info
+
+    FA:
+      description: Format and analyze.
+      run: melos run F && melos run A
+    FA:ci:
+      description: Format and analyze.
+      run: melos run F:ci && melos run A:ci
+
+    TMC:
+      description: Run tests, generate unified coverage trace file and check minimum coverage.
+      run: melos run T && melos run MC
+    TMC:ci:
+      description: Run tests, generate unified coverage trace file and check minimum coverage.
+      run: melos run T:ci && melos run MC
+
+    p:
+      description: Check pub score for a selected package.
+      run: dart run MELOS_ROOT_PATH/packages/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20
+      exec:
+        concurrency: 1
+      packageFilters:
+        scope: coverde*
+    P:
+      description: Check pub score.
+      run: melos run p --no-select
+    P:ci:
+      description: Check pub score.
+      run: melos exec --fail-fast --scope="coverde*" -- "dart run MELOS_ROOT_PATH/packages/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20"
+
+    WF:
+      description: Run full local workflow
+      run: melos run S && melos run FA && melos run TMC && melos run P
+    WF:ci:
+      description: Run full CI workflow
+      run: melos run S && melos run FA:ci && melos run TMC:ci && melos run P:ci
+
+workspace:
+  - packages/coverde_cli/
+  - packages/package_assets_generator/
+  - packages/package_data_generator/
+  - packages/pub_score_checker/
