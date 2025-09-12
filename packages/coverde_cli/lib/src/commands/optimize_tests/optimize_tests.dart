@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/command_runner.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
@@ -21,7 +24,7 @@ class OptimizeTestsCommand extends Command<void> {
       ..addOption(
         filterOptionName,
         help: 'The glob pattern to filter the tests files.',
-        defaultsTo: 'test/**/*_test.dart',
+        defaultsTo: 'test/**_test.dart',
       )
       ..addOption(
         outputOptionName,
@@ -53,31 +56,31 @@ class OptimizeTestsCommand extends Command<void> {
 
   /// The regex to match the onPlatform annotation.
   static final onPlatformRegex = RegExp(
-    r'@OnPlatform\((?<onPlatform>[\s\S]*?)\)',
+    r'^@OnPlatform\((?<onPlatform>[\s\S]*?)\)',
     dotAll: true,
   );
 
   /// The regex to match the skip annotation.
   static final skipRegex = RegExp(
-    r'@Skip\((?<skip>[\s\S]*?)\)',
+    r'^@Skip\((?<skip>[\s\S]*?)\)',
     dotAll: true,
   );
 
   /// The regex to match the tags annotation.
   static final tagsRegex = RegExp(
-    r'@Tags\((?<tags>[\s\S]*?)\)',
+    r'^@Tags\((?<tags>[\s\S]*?)\)',
     dotAll: true,
   );
 
   /// The regex to match the testOn annotation.
   static final testOnRegex = RegExp(
-    r'@TestOn\((?<testOn>[\s\S]*?)\)',
+    r'^@TestOn\((?<testOn>[\s\S]*?)\)',
     dotAll: true,
   );
 
   /// The regex to match the timeout annotation.
   static final timeoutRegex = RegExp(
-    r'@(?<timeout>Timeout\([\s\S]*?\))',
+    r'^@(?<timeout>Timeout\([\s\S]*?\))',
     dotAll: true,
   );
 
@@ -117,6 +120,29 @@ class OptimizeTestsCommand extends Command<void> {
     final files = filter.listSync().whereType<File>().sortedBy((it) => it.path);
     for (final file in files) {
       final fileContent = file.readAsStringSync();
+      final result = parseFile(
+        path: file.path,
+        featureSet: FeatureSet.latestLanguageVersion(),
+      );
+      final unit = result.unit;
+      final declarations = unit.declarations;
+      final functionDeclarations =
+          declarations.whereType<FunctionDeclaration>();
+      final mainFunctionDeclaration = functionDeclarations
+          .firstWhereOrNull((declaration) => declaration.name.lexeme == 'main');
+      if (mainFunctionDeclaration == null) {
+        // TODO(mrverdant13): Use proper logging.
+        print('Test file ${file.path} has not a `main` function');
+        continue;
+      }
+      final mainFunctionHasParams = mainFunctionDeclaration
+              .functionExpression.parameters?.parameters.isNotEmpty ??
+          true;
+      if (mainFunctionHasParams) {
+        // TODO(mrverdant13): Use proper logging.
+        print('Test file ${file.path} has a `main` function with params');
+        continue;
+      }
       final onPlatform =
           onPlatformRegex.firstMatch(fileContent)?.namedGroup('onPlatform');
       final skip = skipRegex.firstMatch(fileContent)?.namedGroup('skip');
