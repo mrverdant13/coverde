@@ -19,7 +19,7 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class OptimizeTestsCommand extends Command<void> {
   /// {@macro optimize_tests_cmd}
-  OptimizeTestsCommand() {
+  OptimizeTestsCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
         filterOptionName,
@@ -37,6 +37,8 @@ class OptimizeTestsCommand extends Command<void> {
         defaultsTo: true,
       );
   }
+
+  final Stdout _out;
 
   @override
   String get description => 'Optimize tests by gathering them.';
@@ -132,7 +134,9 @@ class OptimizeTestsCommand extends Command<void> {
           .firstWhereOrNull((declaration) => declaration.name.lexeme == 'main');
       if (mainFunctionDeclaration == null) {
         // TODO(mrverdant13): Use proper logging.
-        print('Test file ${file.path} has not a `main` function');
+        _out.writeln(
+          'Test file ${file.path} has not a `main` function',
+        );
         continue;
       }
       final mainFunctionHasParams = mainFunctionDeclaration
@@ -140,7 +144,9 @@ class OptimizeTestsCommand extends Command<void> {
           true;
       if (mainFunctionHasParams) {
         // TODO(mrverdant13): Use proper logging.
-        print('Test file ${file.path} has a `main` function with params');
+        _out.writeln(
+          'Test file ${file.path} has a `main` function with params',
+        );
         continue;
       }
       final onPlatform =
