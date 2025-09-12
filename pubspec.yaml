@@ -74,10 +74,11 @@ melos:
     t:
       description: Run tests and generate coverage trace file for a selected package in random order.
       run: >
-        dart test -j 1 -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color &&
+        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
+        coverde optimize-tests --output=optimized_test.dart &&
+        dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color optimized_test.dart &&
         dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
       exec:
-        concurrency: 1
         orderDependents: true
       packageFilters:
         dirExists: test
@@ -86,7 +87,7 @@ melos:
       run: melos run t --no-select
     T:ci:
       description: Run tests and generate coverage trace files for all packages in random order.
-      run: melos exec --fail-fast --order-dependents --dir-exists=test -- "dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
+      run: melos exec --fail-fast --order-dependents --dir-exists=test -- "coverde optimize-tests --output=optimized_test.dart && dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
 
     MC:
       description: Merge all packages coverage trace files ignoring data related to generated files.
