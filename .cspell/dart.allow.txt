@@ -2,6 +2,7 @@
 canonicalize
 csslib
 endtemplate
+golden
 mocktail
 pana
 writeln
