@@ -6,8 +6,9 @@
 /build/
 /pubspec.lock
 
-# Coverage
+# Testing and coverage
 /coverage/
+/optimized_test.dart
 
 # Melos
 /melos_coverde.iml
