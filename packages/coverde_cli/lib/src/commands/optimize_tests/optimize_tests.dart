@@ -139,14 +139,12 @@ class OptimizeTestsCommand extends Command<void> {
         );
         continue;
       }
-      final mainFunctionHasParams = mainFunctionDeclaration
-              .functionExpression.parameters?.parameters.isNotEmpty ??
-          true;
+      final mainFunctionHasParams =
+          switch (mainFunctionDeclaration.functionExpression.parameters) {
+        FormalParameterList(:final parameters) => parameters.isNotEmpty,
+        null => false,
+      };
       if (mainFunctionHasParams) {
-        final fileRelativePath = p.relative(
-          file.path,
-          from: projectDir.path,
-        );
         stdout.writeln(
           'Test file $fileRelativePath has a `main` function with params.',
         );
