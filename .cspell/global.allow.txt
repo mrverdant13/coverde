@@ -1,6 +1,7 @@
 # Globally allowed words
 coverde
 github
+goldens
 lcov
 melos
 mrverdant13
