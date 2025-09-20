@@ -91,7 +91,7 @@ class OptimizeTestsCommand extends Command<void> {
   );
 
   @override
-  FutureOr<void>? run() async {
+  FutureOr<void> run() async {
     final projectDir = Directory.current;
     final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
