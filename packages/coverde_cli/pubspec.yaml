@@ -24,14 +24,18 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
+  analyzer: ^7.7.1
   args: ^2.7.0
+  code_builder: ^4.10.1
   collection: ^1.19.1
+  dart_style: ^3.1.1
   html: ^0.15.6
   io: ^1.0.5
   meta: ^1.17.0
   path: ^1.9.1
   process: ^5.0.5
   pub_updater: ^0.5.0
+  pubspec_parse: ^1.5.0
   universal_io: ^2.2.2
 
 dev_dependencies:
@@ -45,7 +49,6 @@ dev_dependencies:
     path: ../package_assets_generator
   package_data_generator:
     path: ../package_data_generator
-  pubspec_parse: ^1.5.0
   test: ^1.26.3
   very_good_analysis: ^6.0.0
 

@@ -35,11 +35,39 @@ $ dart pub global activate coverde
 
 # Features
 
+- [**Optimize tests by gathering them**](#coverde-optimize-tests)
 - [**Check coverage value computed from a trace file**](#coverde-check)
 - [**Filter the tested files included in a trace file**](#coverde-filter)
 - [**Remove a set of files and folders**](#coverde-remove)
 - [**Generate HTML coverage report**](#coverde-report)
 - [**Compute and display the coverage value from a trace file**](#coverde-value)
+
+## `coverde optimize-tests`
+
+**Optimize tests by gathering them.**
+
+### Options
+
+- `--filter`
+
+  The regex pattern to filter the tests files.\
+  Default value: `test/.*_test.dart`
+
+- `--output`
+
+  The path to the optimized tests file.\
+  Default value: `test/optimized_test.dart`
+
+- `--flutter-goldens`
+
+  Whether to use golden tests in case of a Flutter package.\
+  Default value: `true`
+
+### Examples
+
+- `coverde optimize-tests`
+- `coverde optimize-tests --filter='^test\/(?!.*fixtures\/).*_test\.dart' --output=test/optimized_test.dart`
+- `coverde optimize-tests --flutter-goldens=false`
 
 ## `coverde check`
 
