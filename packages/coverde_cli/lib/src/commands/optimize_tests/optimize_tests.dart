@@ -85,7 +85,7 @@ class OptimizeTestsCommand extends Command<void> {
 
   /// The regex to match the timeout annotation.
   static final timeoutRegex = RegExp(
-    r'^@(?<timeout>Timeout\([\s\S]*?\)|Timeout\.none|Timeout\.factor\(\d*\.?\d*\))$',
+    r'^@(?<timeout>Timeout\([\s\S]*?\)|Timeout\.none|Timeout\.factor\((?:\d+\.?\d*|\d*\.\d+)\))$',
     dotAll: true,
     multiLine: true,
   );
