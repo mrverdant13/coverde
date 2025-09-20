@@ -1,0 +1,8 @@
+name: flutter_proj_with_no_tests
+description: A Flutter project with no tests.
+publish_to: none
+version: 1.0.0+1
+
+dependencies:
+  flutter:
+    sdk: flutter

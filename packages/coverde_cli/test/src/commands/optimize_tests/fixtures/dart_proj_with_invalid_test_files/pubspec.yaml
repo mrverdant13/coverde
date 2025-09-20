@@ -1,0 +1,4 @@
+name: dart_proj_with_invalid_test_files
+description: A Dart project with invalid test files.
+publish_to: none
+version: 1.0.0+1

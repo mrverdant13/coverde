@@ -1,0 +1,8 @@
+name: flutter_proj_with_invalid_test_files
+description: A Flutter project with invalid test files.
+publish_to: none
+version: 1.0.0+1
+
+dependencies:
+  flutter:
+    sdk: flutter

@@ -8,8 +8,6 @@ import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:glob/glob.dart';
-import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -19,17 +17,17 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class OptimizeTestsCommand extends Command<void> {
   /// {@macro optimize_tests_cmd}
-  OptimizeTestsCommand({Stdout? out}) : _out = out ?? stdout {
+  OptimizeTestsCommand() {
     argParser
       ..addOption(
         filterOptionName,
-        help: 'The glob pattern to filter the tests files.',
-        defaultsTo: 'test/**_test.dart',
+        help: 'The regex pattern to filter the tests files.',
+        defaultsTo: 'test/.*_test.dart',
       )
       ..addOption(
         outputOptionName,
         help: 'The path to the optimized tests file.',
-        defaultsTo: 'optimized_test.dart',
+        defaultsTo: 'test/optimized_test.dart',
       )
       ..addFlag(
         useFlutterGoldenTestsFlagName,
@@ -38,7 +36,8 @@ class OptimizeTestsCommand extends Command<void> {
       );
   }
 
-  final Stdout _out;
+  @override
+  bool get takesArguments => false;
 
   @override
   String get description => 'Optimize tests by gathering them.';
@@ -46,7 +45,7 @@ class OptimizeTestsCommand extends Command<void> {
   @override
   String get name => 'optimize-tests';
 
-  /// The name of the option for the glob pattern to filter the tests files.
+  /// The name of the option for the regex pattern to filter the tests files.
   static const filterOptionName = 'filter';
 
   /// The name of the flag for the use of golden tests in case of a Flutter
@@ -58,32 +57,37 @@ class OptimizeTestsCommand extends Command<void> {
 
   /// The regex to match the onPlatform annotation.
   static final onPlatformRegex = RegExp(
-    r'^@OnPlatform\((?<onPlatform>[\s\S]*?)\)',
+    r'^@OnPlatform\((?<onPlatform>[\s\S]*?)\)$',
     dotAll: true,
+    multiLine: true,
   );
 
   /// The regex to match the skip annotation.
   static final skipRegex = RegExp(
-    r'^@Skip\((?<skip>[\s\S]*?)\)',
+    r'^@Skip\((?<skip>[\s\S]*?)\)$',
     dotAll: true,
+    multiLine: true,
   );
 
   /// The regex to match the tags annotation.
   static final tagsRegex = RegExp(
-    r'^@Tags\((?<tags>[\s\S]*?)\)',
+    r'^@Tags\((?<tags>[\s\S]*?)\)$',
     dotAll: true,
+    multiLine: true,
   );
 
   /// The regex to match the testOn annotation.
   static final testOnRegex = RegExp(
-    r'^@TestOn\((?<testOn>[\s\S]*?)\)',
+    r'^@TestOn\((?<testOn>[\s\S]*?)\)$',
     dotAll: true,
+    multiLine: true,
   );
 
   /// The regex to match the timeout annotation.
   static final timeoutRegex = RegExp(
-    r'^@(?<timeout>Timeout\([\s\S]*?\))',
+    r'^@(?<timeout>Timeout\([\s\S]*?\)|Timeout\.none|Timeout\.factor\(\d*\.?\d*\))$',
     dotAll: true,
+    multiLine: true,
   );
 
   @override
@@ -91,36 +95,33 @@ class OptimizeTestsCommand extends Command<void> {
     final projectDir = Directory.current;
     final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
-      // TODO(mrverdant13): Use custom exceptions.
-      throw Exception('pubspec.yaml not found in ${projectDir.path}');
+      usageException('pubspec.yaml not found in ${projectDir.path}.');
     }
-
     final pubspecRawContent = pubspecFile.readAsStringSync();
     final pubspec = Pubspec.parse(pubspecRawContent);
-    final isFlutterPackage = pubspec.flutter != null;
-    final useFlutterGoldenTests = checkFlag(
-          flagKey: useFlutterGoldenTestsFlagName,
-          flagName: 'Flutter golden tests',
-        ) &&
-        isFlutterPackage;
-
     final outputPath = checkOption(
       optionKey: outputOptionName,
       optionName: 'output path',
     );
-    final outputFile = File(outputPath);
-    if (outputFile.existsSync()) {
-      outputFile.deleteSync(recursive: true);
-    }
-
+    final outputFile = File(p.join(projectDir.path, outputPath));
+    if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
     final rawFilter = checkOption(
       optionKey: filterOptionName,
-      optionName: 'glob pattern',
+      optionName: 'regex pattern',
     );
-    final filter = Glob(rawFilter);
+    final filter = RegExp(rawFilter);
+    final files = projectDir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .sortedBy((it) => it.path);
+
     final testFileGroupsStatements = <coder.Code>[];
-    final files = filter.listSync().whereType<File>().sortedBy((it) => it.path);
     for (final file in files) {
+      final fileRelativePath = p.relative(
+        file.path,
+        from: projectDir.path,
+      );
+      if (!filter.hasMatch(fileRelativePath)) continue;
       final fileContent = file.readAsStringSync();
       final result = parseFile(
         path: file.path,
@@ -133,9 +134,8 @@ class OptimizeTestsCommand extends Command<void> {
       final mainFunctionDeclaration = functionDeclarations
           .firstWhereOrNull((declaration) => declaration.name.lexeme == 'main');
       if (mainFunctionDeclaration == null) {
-        // TODO(mrverdant13): Use proper logging.
-        _out.writeln(
-          'Test file ${file.path} has not a `main` function',
+        stdout.writeln(
+          'Test file $fileRelativePath has not a `main` function.',
         );
         continue;
       }
@@ -143,9 +143,12 @@ class OptimizeTestsCommand extends Command<void> {
               .functionExpression.parameters?.parameters.isNotEmpty ??
           true;
       if (mainFunctionHasParams) {
-        // TODO(mrverdant13): Use proper logging.
-        _out.writeln(
-          'Test file ${file.path} has a `main` function with params',
+        final fileRelativePath = p.relative(
+          file.path,
+          from: projectDir.path,
+        );
+        stdout.writeln(
+          'Test file $fileRelativePath has a `main` function with params.',
         );
         continue;
       }
@@ -173,7 +176,7 @@ class OptimizeTestsCommand extends Command<void> {
             ),
           if (skip != null)
             'skip': coder.CodeExpression(
-              coder.Code(skip),
+              skip == '' ? coder.literalBool(true).code : coder.Code(skip),
             ),
           if (tags != null)
             'tags': coder.CodeExpression(
@@ -191,7 +194,16 @@ class OptimizeTestsCommand extends Command<void> {
       ).statement;
       testFileGroupsStatements.add(testFileGroupStatement);
     }
-
+    final isFlutterPackage = switch (pubspec.dependencies['flutter']) {
+      final SdkDependency dep => dep.sdk == 'flutter',
+      _ => false,
+    };
+    final useFlutterGoldenTests = checkFlag(
+          flagKey: useFlutterGoldenTestsFlagName,
+          flagName: 'Flutter golden tests',
+        ) &&
+        isFlutterPackage &&
+        testFileGroupsStatements.isNotEmpty;
     final mainFunction = coder.Method.returnsVoid(
       (b) => b
         ..name = 'main'
@@ -203,18 +215,22 @@ class OptimizeTestsCommand extends Command<void> {
     final library = coder.Library(
       (b) => b
         ..directives.addAll([
-          coder.Directive.import(
-            // TODO(mrverdant13): Check actual dependencies.
-            isFlutterPackage
-                ? 'package:flutter_test/flutter_test.dart'
-                : 'package:test/test.dart',
-          ),
+          if (useFlutterGoldenTests)
+            coder.Directive.import(
+              'package:flutter_test/flutter_test.dart',
+              hide: const ['group'],
+            ),
+          if (testFileGroupsStatements.isNotEmpty)
+            coder.Directive.import('package:test_api/test_api.dart'),
           if (useFlutterGoldenTests) ...[
             coder.Directive.import('dart:io'),
             coder.Directive.import('dart:typed_data'),
           ],
         ])
-        ..ignoreForFile.add('type=lint')
+        ..ignoreForFile.addAll([
+          'type=lint',
+          if (testFileGroupsStatements.isNotEmpty) 'deprecated_member_use',
+        ])
         ..body.addAll([
           mainFunction,
           if (useFlutterGoldenTests)
@@ -229,7 +245,11 @@ class OptimizeTestsCommand extends Command<void> {
       languageVersion: DartFormatter.latestLanguageVersion,
       trailingCommas: TrailingCommas.preserve,
     );
-    final output = formatter.format('${library.accept(emitter)}');
+    final unformattedOutput = '${library.accept(emitter)}';
+    final output = formatter.format(unformattedOutput);
+    if (!outputFile.parent.existsSync()) {
+      outputFile.parent.createSync(recursive: true);
+    }
     outputFile.writeAsStringSync(output);
   }
 }
