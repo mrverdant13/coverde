@@ -188,7 +188,7 @@ void main() {}
                 verify(
                   () => out.writeln(
                     'Test file $testFilePath '
-                    'has not a `main` function.',
+                    'does not have a `main` function.',
                   ),
                 ).called(1);
               }
@@ -352,7 +352,7 @@ void main() {
                 optimizedTestFile.readAsStringSync(),
                 expectedOutput,
                 reason: 'optimized test '
-                    'with invalid test files '
+                    'should preserve annotations '
                     'for $projectType project',
               );
             },
@@ -561,6 +561,10 @@ Iterable<String> get _goldenFilePaths sync* {
             expect(
               optimizedTestFile.readAsStringSync(),
               expectedOutput,
+              reason: 'optimized test '
+                  'should preserve annotations and '
+                  'add golden tests setup '
+                  'for flutter project',
             );
           },
           getCurrentDirectory: () => Directory(
