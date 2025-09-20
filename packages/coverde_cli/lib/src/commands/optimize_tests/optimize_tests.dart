@@ -135,7 +135,7 @@ class OptimizeTestsCommand extends Command<void> {
           .firstWhereOrNull((declaration) => declaration.name.lexeme == 'main');
       if (mainFunctionDeclaration == null) {
         stdout.writeln(
-          'Test file $fileRelativePath has not a `main` function.',
+          'Test file $fileRelativePath does not have a `main` function.',
         );
         continue;
       }
