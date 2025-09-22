@@ -1,9 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
-import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/entities/file_coverage_log_level.dart';
+import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -11,9 +12,7 @@ import '../../../utils/mocks.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a trace file coverage checker command''',
+    'coverde check',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
@@ -36,11 +35,7 @@ GIVEN a trace file coverage checker command''',
       );
 
       test(
-        '''
-
-WHEN its description is requested
-THEN a proper abstract should be returned
-''',
+        '| description',
         () {
           // ARRANGE
           const expected = '''
@@ -59,63 +54,40 @@ This parameter indicates the minimum value for the coverage to be accepted.
       );
 
       test(
-        '''
-
-AND a minimum expected coverage value
-AND an existing trace file
-├─ THAT has a coverage value greater than the minimum expected coverage value
-AND the enabled option to log coverage value info
-WHEN the command is invoked
-THEN the trace file coverage should be checked and approved
-├─ BY comparing its coverage value
-├─ AND logging coverage value data
-''',
+        '''--${CheckCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.none.identifier} '''
+        '''<min_coverage> '''
+        '''| meets the minimum coverage''',
         () async {
-          // ARRANGE
-          final directory = Directory.systemTemp.createTempSync();
-          final traceFileContent = '''
-SF:${path.join('path', 'to', 'source_file.dart')}
-DA:1,1
-DA:2,0
-DA:3,1
-DA:4,1
-DA:5,0
-LF:5
-LH:3
-end_of_record
-''';
-          final traceFilePath = path.join(directory.path, 'lcov.info');
-          final traceFileFile = File(traceFilePath)
-            ..createSync()
-            ..writeAsStringSync(traceFileContent);
-          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
-          const minCoverage = 50.0;
-
-          expect(traceFileFile.existsSync(), isTrue);
-          expect(traceFile.coverage, greaterThan(minCoverage));
-
-          // ACT
-          await cmdRunner.run([
-            checkCmd.name,
-            '--${CheckCommand.inputOption}',
-            traceFilePath,
-            '--${CheckCommand.verboseFlag}',
-            '$minCoverage',
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'check',
+            'fixtures',
+            'partially_covered_proj',
           ]);
 
-          // ASSERT
-          final verifications = verifyInOrder([
-            ...traceFile.sourceFilesCovData.map(
-              (d) => () => out.writeln(d.coverageDataString),
-            ),
-            () => out.writeln('GLOBAL:'),
-            () => out.writeln(traceFile.coverageDataString),
+          await IOOverrides.runZoned(
+            () async {
+              await cmdRunner.run([
+                checkCmd.name,
+                '--${CheckCommand.fileCoverageLogLevelFlag}',
+                FileCoverageLogLevel.none.identifier,
+                '${50}',
+              ]);
+            },
+            getCurrentDirectory: () => Directory(projectPath),
+          );
+
+          final messages = [
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
           ]);
-          for (final verification in verifications) {
-            verification.called(1);
-          }
-          verify(() => out.writeln());
-          directory.deleteSync(recursive: true);
         },
       );
 
@@ -132,40 +104,37 @@ THEN the trace file coverage should be checked and disapproved
 ├─ AND throwing an exception
 ''',
         () async {
-          // ARRANGE
-          final directory = Directory.systemTemp.createTempSync();
-          final traceFileContent = '''
-SF:${path.join('path', 'to', 'source_file.dart')}
-DA:1,1
-DA:2,0
-DA:3,1
-DA:4,1
-DA:5,0
-LF:5
-LH:3
-end_of_record
-''';
-          final traceFilePath = path.join(directory.path, 'lcov.info');
-          final traceFileFile = File(traceFilePath)
-            ..createSync()
-            ..writeAsStringSync(traceFileContent);
-          final traceFile = TraceFile.parse(traceFileFile.readAsStringSync());
-          const minCoverage = 75.0;
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'check',
+            'fixtures',
+            'partially_covered_proj',
+          ]);
 
-          expect(traceFileFile.existsSync(), isTrue);
-          expect(traceFile.coverage, lessThan(minCoverage));
+          Future<void> action() => IOOverrides.runZoned(
+                () async {
+                  await cmdRunner.run([
+                    checkCmd.name,
+                    '--${CheckCommand.fileCoverageLogLevelFlag}',
+                    FileCoverageLogLevel.none.identifier,
+                    '${75}',
+                  ]);
+                },
+                getCurrentDirectory: () => Directory(projectPath),
+              );
 
-          // ACT
-          Future<void> action() => cmdRunner.run([
-                checkCmd.name,
-                '--${CheckCommand.inputOption}',
-                traceFilePath,
-                '--no-${CheckCommand.verboseFlag}',
-                '$minCoverage',
-              ]);
-
-          // ASSERT
           expect(action, throwsA(isA<MinCoverageException>()));
+          final messages = [
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
+          ]);
         },
       );
 
@@ -180,7 +149,7 @@ THEN an error indicating the issue should be thrown
         () async {
           // ARRANGE
           final directory = Directory.systemTemp.createTempSync();
-          final absentFilePath = path.join(directory.path, 'absent.lcov.info');
+          final absentFilePath = p.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           const minCoverage = 50;
           expect(absentFile.existsSync(), isFalse);

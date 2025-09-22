@@ -2,9 +2,11 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
 /// {@template check_cmd}
@@ -22,11 +24,15 @@ Trace file used for the coverage check.''',
         valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
-      ..addFlag(
-        verboseFlag,
-        abbr: verboseFlag[0],
-        help: 'Print coverage value.',
-        defaultsTo: true,
+      ..addOption(
+        fileCoverageLogLevelFlag,
+        help: '''
+The log level for the coverage value for each source file listed in the $_inputHelpValue info file.''',
+        allowedHelp: {
+          for (final logLevel in FileCoverageLogLevel.values)
+            logLevel.identifier: logLevel.help,
+        },
+        defaultsTo: FileCoverageLogLevel.lineContent.identifier,
       );
   }
 
@@ -38,10 +44,9 @@ Trace file used for the coverage check.''',
   @visibleForTesting
   static const inputOption = 'input';
 
-  /// Flag name to indicate if the coverage value for individual files should be
-  /// logged.
+  /// Option name for the log level for the coverage value for each source file.
   @visibleForTesting
-  static const verboseFlag = 'verbose';
+  static const fileCoverageLogLevelFlag = 'file-coverage-log-level';
 
   @override
   String get description => '''
@@ -65,14 +70,22 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
   @override
   Future<void> run() async {
     // Retrieve arguments and validate their value and the state they represent.
-    final filePath = checkOption(
-      optionKey: inputOption,
-      optionName: 'input trace file',
-    );
-    final isVerbose = checkFlag(
-      flagKey: verboseFlag,
-      flagName: 'verbose',
-    );
+    final filePath = () {
+      final rawFilePath = checkOption(
+        optionKey: inputOption,
+        optionName: 'input trace file',
+      );
+      return p.absolute(rawFilePath);
+    }();
+    final fileCoverageLogLevel = () {
+      final rawFileCoverageLogLevel = checkOption(
+        optionKey: fileCoverageLogLevelFlag,
+        optionName: 'file coverage log level',
+      );
+      return FileCoverageLogLevel.values.firstWhere(
+        (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
+      );
+    }();
     final args = argResults!.rest;
     if (args.length > 1) usageException('Too many arguments.');
     final coverageThresholdStr = args.firstOrNull;
@@ -101,13 +114,11 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     // the info by file.
     final traceFile = TraceFile.parse(fileContent);
 
-    if (isVerbose) {
-      ValueCommand.logCoverage(
-        out: _out,
-        traceFile: traceFile,
-        shouldLogFiles: true,
-      );
-    }
+    ValueCommand.logCoverage(
+      out: _out,
+      traceFile: traceFile,
+      fileCoverageLogLevel: fileCoverageLogLevel,
+    );
 
     if (traceFile.coverage < coverageThreshold) {
       throw MinCoverageException(
