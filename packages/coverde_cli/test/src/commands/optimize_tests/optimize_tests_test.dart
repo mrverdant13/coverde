@@ -186,33 +186,33 @@ void main() {}
         );
         expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
         final testFilesWithNoMainFunction = [
-          p.joinAll(['test', '01', 't01_01_test.dart']),
-          p.joinAll(['test', '01', 't01_03_test.dart']),
-          p.joinAll(['test', '02', 't02_02_test.dart']),
-          p.joinAll(['test', '02', 't02_04_test.dart']),
-          p.joinAll(['test', 't02_test.dart']),
-          p.joinAll(['test', 't04_test.dart']),
+          ['test', '01', 't01_01_test.dart'],
+          ['test', '01', 't01_03_test.dart'],
+          ['test', '02', 't02_02_test.dart'],
+          ['test', '02', 't02_04_test.dart'],
+          ['test', 't02_test.dart'],
+          ['test', 't04_test.dart'],
         ];
         for (final testFilePath in testFilesWithNoMainFunction) {
           verify(
             () => out.writeln(
-              'Test file $testFilePath '
+              'Test file ${p.joinAll(testFilePath)} '
               'does not have a `main` function.',
             ),
           ).called(1);
         }
         final testFilesWithMainFunctionWithParams = [
-          p.joinAll(['test', '01', 't01_02_test.dart']),
-          p.joinAll(['test', '01', 't01_04_test.dart']),
-          p.joinAll(['test', '02', 't02_01_test.dart']),
-          p.joinAll(['test', '02', 't02_03_test.dart']),
-          p.joinAll(['test', 't01_test.dart']),
-          p.joinAll(['test', 't03_test.dart']),
+          ['test', '01', 't01_02_test.dart'],
+          ['test', '01', 't01_04_test.dart'],
+          ['test', '02', 't02_01_test.dart'],
+          ['test', '02', 't02_03_test.dart'],
+          ['test', 't01_test.dart'],
+          ['test', 't03_test.dart'],
         ];
         for (final testFilePath in testFilesWithMainFunctionWithParams) {
           verify(
             () => out.writeln(
-              'Test file $testFilePath '
+              'Test file ${p.joinAll(testFilePath)} '
               'has a `main` function with params.',
             ),
           ).called(1);
