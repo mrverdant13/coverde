@@ -4,7 +4,7 @@ import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/command.dart';
+import 'package:coverde/src/utils/coverage.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -69,24 +69,22 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
 
   @override
   Future<void> run() async {
-    // Retrieve arguments and validate their value and the state they represent.
+    final argResults = this.argResults!;
     final filePath = () {
-      final rawFilePath = checkOption(
-        optionKey: inputOption,
-        optionName: 'input trace file',
-      );
+      final rawFilePath = argResults.option(
+        inputOption,
+      )!;
       return p.absolute(rawFilePath);
     }();
     final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel = checkOption(
-        optionKey: fileCoverageLogLevelFlag,
-        optionName: 'file coverage log level',
-      );
+      final rawFileCoverageLogLevel = argResults.option(
+        fileCoverageLogLevelFlag,
+      )!;
       return FileCoverageLogLevel.values.firstWhere(
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
       );
     }();
-    final args = argResults!.rest;
+    final args = argResults.rest;
     if (args.length > 1) usageException('Too many arguments.');
     final coverageThresholdStr = args.firstOrNull;
     if (coverageThresholdStr == null) {
@@ -96,8 +94,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     if (maybeCoverageThreshold == null) {
       usageException('Invalid minimum coverage threshold.');
     }
-    final coverageThreshold = checkCoverage(
-      coverage: maybeCoverageThreshold,
+    final coverageThreshold = maybeCoverageThreshold.checkedAsCoverage(
       valueName: 'coverage threshold',
     );
 

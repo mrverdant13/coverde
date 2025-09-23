@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/command_runner.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -92,6 +91,7 @@ class OptimizeTestsCommand extends Command<void> {
 
   @override
   FutureOr<void> run() async {
+    final argResults = this.argResults!;
     final projectDir = Directory.current;
     final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
@@ -99,16 +99,10 @@ class OptimizeTestsCommand extends Command<void> {
     }
     final pubspecRawContent = pubspecFile.readAsStringSync();
     final pubspec = Pubspec.parse(pubspecRawContent);
-    final outputPath = checkOption(
-      optionKey: outputOptionName,
-      optionName: 'output path',
-    );
+    final outputPath = argResults.option(outputOptionName)!;
     final outputFile = File(p.join(projectDir.path, outputPath));
     if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
-    final rawFilter = checkOption(
-      optionKey: filterOptionName,
-      optionName: 'regex pattern',
-    );
+    final rawFilter = argResults.option(filterOptionName)!;
     final filter = RegExp(rawFilter);
     final files = projectDir
         .listSync(recursive: true)
@@ -196,12 +190,10 @@ class OptimizeTestsCommand extends Command<void> {
       final SdkDependency dep => dep.sdk == 'flutter',
       _ => false,
     };
-    final useFlutterGoldenTests = checkFlag(
-          flagKey: useFlutterGoldenTestsFlagName,
-          flagName: 'Flutter golden tests',
-        ) &&
-        isFlutterPackage &&
-        testFileGroupsStatements.isNotEmpty;
+    final useFlutterGoldenTests =
+        argResults.flag(useFlutterGoldenTestsFlagName) &&
+            isFlutterPackage &&
+            testFileGroupsStatements.isNotEmpty;
     final mainFunction = coder.Method.returnsVoid(
       (b) => b
         ..name = 'main'
