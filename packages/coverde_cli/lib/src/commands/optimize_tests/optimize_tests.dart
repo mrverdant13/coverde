@@ -8,6 +8,8 @@ import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:glob/glob.dart';
+import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -20,9 +22,13 @@ class OptimizeTestsCommand extends Command<void> {
   OptimizeTestsCommand() {
     argParser
       ..addOption(
-        filterOptionName,
-        help: 'The regex pattern to filter the tests files.',
-        defaultsTo: 'test/.*_test.dart',
+        includeOptionName,
+        help: 'The glob pattern for the tests files to include.',
+        defaultsTo: 'test/**_test.dart',
+      )
+      ..addOption(
+        excludeOptionName,
+        help: 'The glob pattern for the tests files to exclude.',
       )
       ..addOption(
         outputOptionName,
@@ -45,8 +51,13 @@ class OptimizeTestsCommand extends Command<void> {
   @override
   String get name => 'optimize-tests';
 
-  /// The name of the option for the regex pattern to filter the tests files.
-  static const filterOptionName = 'filter';
+  /// The name of the option for the glob pattern for the tests files to
+  /// include.
+  static const includeOptionName = 'include';
+
+  /// The name of the option for the glob pattern for the tests files to
+  /// exclude.
+  static const excludeOptionName = 'exclude';
 
   /// The name of the flag for the use of golden tests in case of a Flutter
   /// package.
@@ -105,23 +116,34 @@ class OptimizeTestsCommand extends Command<void> {
     );
     final outputFile = File(p.join(projectDir.path, outputPath));
     if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
-    final rawFilter = checkOption(
-      optionKey: filterOptionName,
-      optionName: 'regex pattern',
-    );
-    final filter = RegExp(rawFilter);
-    final files = projectDir
-        .listSync(recursive: true)
+    final includeGlob = () {
+      final pattern = checkOption(
+        optionKey: includeOptionName,
+        optionName: 'include glob pattern',
+      );
+      return Glob(pattern);
+    }();
+    final excludeGlob = () {
+      final pattern = checkOptionalOption(
+        optionKey: excludeOptionName,
+      );
+      if (pattern == null) return null;
+      return Glob(pattern);
+    }();
+    final includedFiles = includeGlob
+        .listSync(
+          root: projectDir.path,
+        )
         .whereType<File>()
         .sortedBy((it) => it.path);
 
     final testFileGroupsStatements = <coder.Code>[];
-    for (final file in files) {
+    for (final file in includedFiles) {
       final fileRelativePath = p.relative(
         file.path,
         from: projectDir.path,
       );
-      if (!filter.hasMatch(fileRelativePath)) continue;
+      if (excludeGlob != null && excludeGlob.matches(file.path)) continue;
       final fileContent = file.readAsStringSync();
       final result = parseFile(
         path: file.path,
