@@ -72,7 +72,7 @@ void main() {
               isA<UsageException>().having(
                 (e) => e.message,
                 'message',
-                matches(
+                contains(
                   'pubspec.yaml not found in '
                   '${p.join(currentDirectory.path, projectPath)}',
                 ),
@@ -186,12 +186,12 @@ void main() {}
         );
         expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
         final testFilesWithNoMainFunction = [
-          'test/01/t01_01_test.dart',
-          'test/01/t01_03_test.dart',
-          'test/02/t02_02_test.dart',
-          'test/02/t02_04_test.dart',
-          'test/t02_test.dart',
-          'test/t04_test.dart',
+          p.joinAll(['test', '01', 't01_01_test.dart']),
+          p.joinAll(['test', '01', 't01_03_test.dart']),
+          p.joinAll(['test', '02', 't02_02_test.dart']),
+          p.joinAll(['test', '02', 't02_04_test.dart']),
+          p.joinAll(['test', 't02_test.dart']),
+          p.joinAll(['test', 't04_test.dart']),
         ];
         for (final testFilePath in testFilesWithNoMainFunction) {
           verify(
@@ -202,12 +202,12 @@ void main() {}
           ).called(1);
         }
         final testFilesWithMainFunctionWithParams = [
-          'test/01/t01_02_test.dart',
-          'test/01/t01_04_test.dart',
-          'test/02/t02_01_test.dart',
-          'test/02/t02_03_test.dart',
-          'test/t01_test.dart',
-          'test/t03_test.dart',
+          p.joinAll(['test', '01', 't01_02_test.dart']),
+          p.joinAll(['test', '01', 't01_04_test.dart']),
+          p.joinAll(['test', '02', 't02_01_test.dart']),
+          p.joinAll(['test', '02', 't02_03_test.dart']),
+          p.joinAll(['test', 't01_test.dart']),
+          p.joinAll(['test', 't03_test.dart']),
         ];
         for (final testFilePath in testFilesWithMainFunctionWithParams) {
           verify(
