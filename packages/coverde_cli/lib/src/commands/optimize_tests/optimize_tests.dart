@@ -179,9 +179,13 @@ class OptimizeTestsCommand extends Command<void> {
       final testOn = testOnRegex.firstMatch(fileContent)?.namedGroup('testOn');
       final timeout =
           timeoutRegex.firstMatch(fileContent)?.namedGroup('timeout');
-      final testRelativePath = p.relative(
-        file.path,
-        from: outputFile.parent.path,
+      final testRelativePath = p.posix.joinAll(
+        p.split(
+          p.relative(
+            file.path,
+            from: outputFile.parent.path,
+          ),
+        ),
       );
       final mainFunction = coder.Reference('main', testRelativePath);
       final testFileGroupStatement = const coder.Reference('group').call(
