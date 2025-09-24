@@ -8,7 +8,7 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
-  build: ^2.5.4
+  build: ^4.0.0
   pubspec_parse: ^1.5.0
 
 dev_dependencies:
