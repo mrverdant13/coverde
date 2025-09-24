@@ -1,5 +1,4 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -44,12 +43,10 @@ Remove a set of files and folders.''';
 
   @override
   Future<void> run() async {
-    final shouldAcceptAbsence = checkFlag(
-      flagKey: acceptAbsenceFlag,
-      flagName: 'absence acceptance',
-    );
+    final argResults = this.argResults!;
+    final shouldAcceptAbsence = argResults.flag(acceptAbsenceFlag);
 
-    final paths = argResults!.rest;
+    final paths = argResults.rest;
     if (paths.isEmpty) {
       usageException(
         'A set of file and/or directory paths should be provided.',

@@ -4,7 +4,6 @@ import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/file_line_coverage_details.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -66,18 +65,15 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
   @override
   Future<void> run() async {
+    final argResults = this.argResults!;
     final filePath = () {
-      final rawFilePath = checkOption(
-        optionKey: inputOption,
-        optionName: 'input trace file',
-      );
+      final rawFilePath = argResults.option(inputOption)!;
       return p.absolute(rawFilePath);
     }();
     final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel = checkOption(
-        optionKey: fileCoverageLogLevelFlag,
-        optionName: 'file coverage log level',
-      );
+      final rawFileCoverageLogLevel = argResults.option(
+        fileCoverageLogLevelFlag,
+      )!;
       return FileCoverageLogLevel.values.firstWhere(
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
       );
