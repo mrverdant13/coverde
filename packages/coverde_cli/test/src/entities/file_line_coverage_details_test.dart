@@ -1,3 +1,4 @@
+// Not enforcing const constructors for testing purposes.
 // ignore_for_file: prefer_const_constructors
 
 import 'package:coverde/src/entities/file_line_coverage_details.dart';

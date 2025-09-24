@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 import '../../../utils/mocks.dart';
 
-final _expectedUsage = '''
+final String _expectedUsage = '''
 Optimize tests by gathering them.
 
 Usage: coverde optimize-tests [arguments]

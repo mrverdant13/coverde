@@ -61,5 +61,5 @@ ${lightGray.wrap(packageVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
 ''',
         );
     }
-  } catch (_) {}
+  } on Object catch (_) {}
 }
