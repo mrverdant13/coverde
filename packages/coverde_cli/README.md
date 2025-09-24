@@ -48,10 +48,14 @@ $ dart pub global activate coverde
 
 ### Options
 
-- `--filter`
+- `--include`
 
-  The regex pattern to filter the tests files.\
-  Default value: `test/.*_test.dart`
+  The glob pattern for the tests files to include.\
+  Default value: `test/**_test.dart`
+
+- `--exclude`
+
+  The glob pattern for the tests files to exclude.\
 
 - `--output`
 

@@ -112,7 +112,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
           final messages = [
             () {
-              const filePath = 'lib/source_01.dart';
+              final filePath = p.join('lib', 'source_01.dart');
               final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
               return '$filePath $fileOverview';
             }(),
@@ -153,7 +153,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
           final messages = [
             () {
-              const filePath = 'lib/source_01.dart';
+              final filePath = p.join('lib', 'source_01.dart');
               final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
               return '$filePath $fileOverview';
             }(),
@@ -201,7 +201,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
           final messages = [
             () {
-              const filePath = 'lib/source_01.dart';
+              final filePath = p.join('lib', 'source_01.dart');
               final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
               return '$filePath $fileOverview';
             }(),

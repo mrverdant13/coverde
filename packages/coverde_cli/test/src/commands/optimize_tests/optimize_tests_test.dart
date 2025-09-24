@@ -17,8 +17,9 @@ Optimize tests by gathering them.
 
 Usage: coverde optimize-tests [arguments]
 -h, --help                    Print this usage information.
-    --filter                  The regex pattern to filter the tests files.
-                              (defaults to "test/.*_test.dart")
+    --include                 The glob pattern for the tests files to include.
+                              (defaults to "test/**_test.dart")
+    --exclude                 The glob pattern for the tests files to exclude.
     --output                  The path to the optimized tests file.
                               (defaults to "test/optimized_test.dart")
     --[no-]flutter-goldens    Whether to use golden tests in case of a Flutter package.
@@ -29,7 +30,7 @@ Run "coverde help" to see global options.
     .trim();
 
 void main() {
-  group('$OptimizeTestsCommand', () {
+  group('coverde optimize-tests', () {
     late CommandRunner<void> cmdRunner;
     late MockStdout out;
     late Command<void> command;
@@ -45,209 +46,221 @@ void main() {
       verifyNoMoreInteractions(out);
     });
 
-    test('usage', () {
+    test('| usage', () {
       final subject = command.usage;
       expect(subject, _expectedUsage);
     });
 
-    group('run', () {
-      test('fails when no pubspec.yaml is found', () async {
-        final currentDirectory = Directory.current;
+    test('| fails when no pubspec.yaml is found', () async {
+      final currentDirectory = Directory.current;
+      final projectPath = p.joinAll([
+        'test',
+        'src',
+        'commands',
+        'optimize_tests',
+        'fixtures',
+        'no_pubspec',
+      ]);
+      IOOverrides.runZoned(
+        () {
+          Future<void> action() => cmdRunner.run([
+                command.name,
+              ]);
+          expect(
+            action,
+            throwsA(
+              isA<UsageException>().having(
+                (e) => e.message,
+                'message',
+                contains(
+                  'pubspec.yaml not found in '
+                  '${p.join(currentDirectory.path, projectPath)}',
+                ),
+              ),
+            ),
+          );
+        },
+        getCurrentDirectory: () => Directory(
+          p.join(currentDirectory.path, projectPath),
+        ),
+        stdout: () => out,
+      );
+    });
+
+    test(
+        '| '
+        'generates an empty optimized test file '
+        'when no tests are found in a project', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['flutter', 'dart'];
+      for (final projectType in projectTypes) {
         final projectPath = p.joinAll([
           'test',
           'src',
           'commands',
           'optimize_tests',
           'fixtures',
-          'no_pubspec',
+          '${projectType}_proj_with_no_tests',
         ]);
-        IOOverrides.runZoned(
-          () {
-            Future<void> action() => cmdRunner.run([
-                  'optimize-tests',
-                ]);
-            expect(
-              action,
-              throwsA(
-                isA<UsageException>().having(
-                  (e) => e.message,
-                  'message',
-                  matches(
-                    'pubspec.yaml not found in '
-                    '${p.join(currentDirectory.path, projectPath)}',
-                  ),
-                ),
-              ),
+        await IOOverrides.runZoned(
+          () async {
+            final projectTestsDirectory =
+                Directory(p.join(projectPath, 'test'));
+            if (projectTestsDirectory.existsSync()) {
+              projectTestsDirectory.deleteSync(recursive: true);
+            }
+            await cmdRunner.run([
+              command.name,
+            ]);
+            final optimizedTestFile = File(
+              p.join(projectPath, 'test', 'optimized_test.dart'),
             );
+            final optimizedTestFileContent =
+                optimizedTestFile.readAsStringSync();
+            const expectedOutput = '''
+// ignore_for_file: type=lint
+
+void main() {}
+''';
+            expect(
+              optimizedTestFileContent,
+              expectedOutput,
+              reason: 'no empty optimized test for $projectType project',
+            );
+            expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
           },
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
           stdout: () => out,
         );
-      });
+      }
+    });
 
-      test(
-          'generates an empty optimized test file '
-          'when no tests are found in a project', () async {
-        final currentDirectory = Directory.current;
-        final projectTypes = ['flutter', 'dart'];
-        for (final projectType in projectTypes) {
-          final projectPath = p.joinAll([
-            'test',
-            'src',
-            'commands',
-            'optimize_tests',
-            'fixtures',
-            '${projectType}_proj_with_no_tests',
-          ]);
-          await IOOverrides.runZoned(
-            () async {
-              final projectTestsDirectory =
-                  Directory(p.join(projectPath, 'test'));
-              if (projectTestsDirectory.existsSync()) {
-                projectTestsDirectory.deleteSync(recursive: true);
-              }
-              await cmdRunner.run([
-                'optimize-tests',
-              ]);
-              final optimizedTestFile = File(
-                p.join(projectPath, 'test', 'optimized_test.dart'),
-              );
-              final optimizedTestFileContent =
-                  optimizedTestFile.readAsStringSync();
-              const expectedOutput = '''
+    test(
+        '| '
+        'generates an optimized test file '
+        'ignoring invalid test files', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['flutter', 'dart'];
+      for (final projectType in projectTypes) {
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          '${projectType}_proj_with_invalid_test_files',
+        ]);
+        final optimizedTestFile = File(
+          p.join(projectPath, 'test', 'optimized_test.dart'),
+        );
+        if (optimizedTestFile.existsSync()) {
+          optimizedTestFile.deleteSync(recursive: true);
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              command.name,
+            ]);
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
+
+        final optimizedTestFileContent = optimizedTestFile.readAsStringSync();
+        const expectedOutput = '''
 // ignore_for_file: type=lint
 
 void main() {}
 ''';
-              expect(
-                optimizedTestFileContent,
-                expectedOutput,
-                reason: 'no empty optimized test for $projectType project',
-              );
-              expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
-            },
-            getCurrentDirectory: () => Directory(
-              p.join(currentDirectory.path, projectPath),
+        expect(
+          optimizedTestFileContent,
+          expectedOutput,
+          reason: 'optimized test '
+              'with invalid test files '
+              'for $projectType project',
+        );
+        expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
+        final testFilesWithNoMainFunction = [
+          ['test', '01', 't01_01_test.dart'],
+          ['test', '01', 't01_03_test.dart'],
+          ['test', '02', 't02_02_test.dart'],
+          ['test', '02', 't02_04_test.dart'],
+          ['test', 't02_test.dart'],
+          ['test', 't04_test.dart'],
+        ];
+        for (final testFilePath in testFilesWithNoMainFunction) {
+          verify(
+            () => out.writeln(
+              'Test file ${p.posix.joinAll(testFilePath)} '
+              'does not have a `main` function.',
             ),
-            stdout: () => out,
-          );
+          ).called(1);
         }
-      });
-
-      test(
-          'generates an optimized test file '
-          'ignoring invalid test files', () async {
-        final currentDirectory = Directory.current;
-        final projectTypes = ['flutter', 'dart'];
-        for (final projectType in projectTypes) {
-          final projectPath = p.joinAll([
-            'test',
-            'src',
-            'commands',
-            'optimize_tests',
-            'fixtures',
-            '${projectType}_proj_with_invalid_test_files',
-          ]);
-          await IOOverrides.runZoned(
-            () async {
-              final optimizedTestFile = File(
-                p.join(projectPath, 'test', 'optimized_test.dart'),
-              );
-              if (optimizedTestFile.existsSync()) {
-                optimizedTestFile.deleteSync(recursive: true);
-              }
-              await cmdRunner.run([
-                'optimize-tests',
-              ]);
-              final optimizedTestFileContent =
-                  optimizedTestFile.readAsStringSync();
-              const expectedOutput = '''
-// ignore_for_file: type=lint
-
-void main() {}
-''';
-              expect(
-                optimizedTestFileContent,
-                expectedOutput,
-                reason: 'optimized test '
-                    'with invalid test files '
-                    'for $projectType project',
-              );
-              expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
-              final testFilesWithNoMainFunction = [
-                'test/01/t01_01_test.dart',
-                'test/01/t01_03_test.dart',
-                'test/02/t02_02_test.dart',
-                'test/02/t02_04_test.dart',
-                'test/t02_test.dart',
-                'test/t04_test.dart',
-              ];
-              for (final testFilePath in testFilesWithNoMainFunction) {
-                verify(
-                  () => out.writeln(
-                    'Test file $testFilePath '
-                    'does not have a `main` function.',
-                  ),
-                ).called(1);
-              }
-              final testFilesWithMainFunctionWithParams = [
-                'test/01/t01_02_test.dart',
-                'test/01/t01_04_test.dart',
-                'test/02/t02_01_test.dart',
-                'test/02/t02_03_test.dart',
-                'test/t01_test.dart',
-                'test/t03_test.dart',
-              ];
-              for (final testFilePath in testFilesWithMainFunctionWithParams) {
-                verify(
-                  () => out.writeln(
-                    'Test file $testFilePath '
-                    'has a `main` function with params.',
-                  ),
-                ).called(1);
-              }
-            },
-            getCurrentDirectory: () => Directory(
-              p.join(currentDirectory.path, projectPath),
+        final testFilesWithMainFunctionWithParams = [
+          ['test', '01', 't01_02_test.dart'],
+          ['test', '01', 't01_04_test.dart'],
+          ['test', '02', 't02_01_test.dart'],
+          ['test', '02', 't02_03_test.dart'],
+          ['test', 't01_test.dart'],
+          ['test', 't03_test.dart'],
+        ];
+        for (final testFilePath in testFilesWithMainFunctionWithParams) {
+          verify(
+            () => out.writeln(
+              'Test file ${p.posix.joinAll(testFilePath)} '
+              'has a `main` function with params.',
             ),
-            stdout: () => out,
-          );
+          ).called(1);
         }
-      });
+      }
+    });
 
-      test(
-          'generates an optimized test file '
-          'preserving annotations', () async {
-        final currentDirectory = Directory.current;
-        final projectTypes = ['flutter', 'dart'];
-        for (final projectType in projectTypes) {
-          final projectPath = p.joinAll([
-            'test',
-            'src',
-            'commands',
-            'optimize_tests',
-            'fixtures',
-            '${projectType}_proj_with_annotated_test_files',
-          ]);
-          await IOOverrides.runZoned(
-            () async {
-              final optimizedTestFile = File(
-                p.join(projectPath, 'test', 'optimized_test.dart'),
-              );
-              if (optimizedTestFile.existsSync()) {
-                optimizedTestFile.deleteSync(recursive: true);
-              }
-              await cmdRunner.run([
-                'optimize-tests',
-                '--no-flutter-goldens',
-              ]);
-              final formatter = DartFormatter(
-                languageVersion: DartFormatter.latestLanguageVersion,
-                trailingCommas: TrailingCommas.preserve,
-              );
-              final expectedOutput = formatter.format('''
+    test(
+        '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
+        '| '
+        'generates an optimized test file '
+        'preserving annotations', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['flutter', 'dart'];
+      for (final projectType in projectTypes) {
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          '${projectType}_proj_with_annotated_test_files',
+        ]);
+        final optimizedTestFile = File(
+          p.join(projectPath, 'test', 'optimized_test.dart'),
+        );
+        if (optimizedTestFile.existsSync()) {
+          optimizedTestFile.deleteSync(recursive: true);
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              command.name,
+              '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
+            ]);
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
+
+        final formatter = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+          trailingCommas: TrailingCommas.preserve,
+        );
+        final expectedOutput = formatter.format('''
 // ignore_for_file: deprecated_member_use, type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -344,55 +357,183 @@ void main() {
   );
 }
 ''');
-              expect(
-                optimizedTestFile.existsSync(),
-                isTrue,
-              );
-              expect(
-                optimizedTestFile.readAsStringSync(),
-                expectedOutput,
-                reason: 'optimized test '
-                    'should preserve annotations '
-                    'for $projectType project',
-              );
-            },
-            getCurrentDirectory: () => Directory(
-              p.join(currentDirectory.path, projectPath),
-            ),
-            stdout: () => out,
-          );
-        }
-      });
+        expect(
+          optimizedTestFile.existsSync(),
+          isTrue,
+        );
+        expect(
+          optimizedTestFile.readAsStringSync(),
+          expectedOutput,
+          reason: 'optimized test '
+              'should preserve annotations '
+              'for $projectType project',
+        );
+      }
+    });
 
-      test(
-          'generates an optimized test file '
-          'preserving annotations and '
-          'adding golden tests setup', () async {
-        final currentDirectory = Directory.current;
+    test(
+        '--${OptimizeTestsCommand.excludeOptionName}=<exclude-glob> '
+        '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
+        '| '
+        'generates an optimized test file '
+        'preserving annotations', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['flutter', 'dart'];
+      for (final projectType in projectTypes) {
         final projectPath = p.joinAll([
           'test',
           'src',
           'commands',
           'optimize_tests',
           'fixtures',
-          'flutter_proj_with_annotated_test_files_and_golden_tests',
+          '${projectType}_proj_with_annotated_test_files',
         ]);
+        final optimizedTestFile = File(
+          p.join(projectPath, 'test', 'optimized_test.dart'),
+        );
+        if (optimizedTestFile.existsSync()) {
+          optimizedTestFile.deleteSync(recursive: true);
+        }
+
         await IOOverrides.runZoned(
           () async {
-            final optimizedTestFile = File(
-              p.join(projectPath, 'test', 'optimized_test.dart'),
-            );
-            if (optimizedTestFile.existsSync()) {
-              optimizedTestFile.deleteSync(recursive: true);
-            }
             await cmdRunner.run([
-              'optimize-tests',
+              command.name,
+              '--${OptimizeTestsCommand.excludeOptionName}="**_01_test.dart"',
+              '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
-            final formatter = DartFormatter(
-              languageVersion: DartFormatter.latestLanguageVersion,
-              trailingCommas: TrailingCommas.preserve,
-            );
-            final expectedOutput = formatter.format('''
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
+
+        final formatter = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+          trailingCommas: TrailingCommas.preserve,
+        );
+        final expectedOutput = formatter.format('''
+// ignore_for_file: deprecated_member_use, type=lint
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:test_api/test_api.dart';
+
+import 'on_platform_02_test.dart' as _i1;
+import 'on_platform_03_test.dart' as _i2;
+import 'skip_02_test.dart' as _i3;
+import 'tags_02_test.dart' as _i4;
+import 'test_on_02_test.dart' as _i5;
+import 'test_on_03_test.dart' as _i6;
+import 'timeout_02_test.dart' as _i7;
+import 'timeout_03_test.dart' as _i8;
+import 'timeout_04_test.dart' as _i9;
+
+void main() {
+  group(
+    'on_platform_02_test.dart',
+    _i1.main,
+    onPlatform: {'windows': Timeout.factor(2)},
+  );
+  group(
+    'on_platform_03_test.dart',
+    _i2.main,
+    onPlatform: {
+      'windows': Timeout.factor(2),
+      'safari': Skip('Some skip reason'),
+    },
+  );
+  group(
+    'skip_02_test.dart',
+    _i3.main,
+    skip: 'Skip reason',
+  );
+  group(
+    'tags_02_test.dart',
+    _i4.main,
+    tags: ['tag-1', 'tag-2'],
+  );
+  group(
+    'test_on_02_test.dart',
+    _i5.main,
+    testOn: 'vm',
+  );
+  group(
+    'test_on_03_test.dart',
+    _i6.main,
+    testOn: 'browser && !chrome',
+  );
+  group(
+    'timeout_02_test.dart',
+    _i7.main,
+    timeout: Timeout(Duration(seconds: 45)),
+  );
+  group(
+    'timeout_03_test.dart',
+    _i8.main,
+    timeout: Timeout.factor(1.5),
+  );
+  group(
+    'timeout_04_test.dart',
+    _i9.main,
+    timeout: Timeout.none,
+  );
+}
+''');
+        expect(
+          optimizedTestFile.existsSync(),
+          isTrue,
+        );
+        expect(
+          optimizedTestFile.readAsStringSync(),
+          expectedOutput,
+          reason: 'optimized test '
+              'should preserve annotations '
+              'for $projectType project',
+        );
+      }
+    });
+
+    test(
+        '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
+        '| '
+        'generates an optimized test file '
+        'preserving annotations and '
+        'adding golden tests setup', () async {
+      final currentDirectory = Directory.current;
+      final projectPath = p.joinAll([
+        'test',
+        'src',
+        'commands',
+        'optimize_tests',
+        'fixtures',
+        'flutter_proj_with_annotated_test_files_and_golden_tests',
+      ]);
+      final optimizedTestFile = File(
+        p.join(projectPath, 'test', 'optimized_test.dart'),
+      );
+      if (optimizedTestFile.existsSync()) {
+        optimizedTestFile.deleteSync(recursive: true);
+      }
+
+      await IOOverrides.runZoned(
+        () async {
+          await cmdRunner.run([
+            command.name,
+            '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
+          ]);
+        },
+        getCurrentDirectory: () => Directory(
+          p.join(currentDirectory.path, projectPath),
+        ),
+        stdout: () => out,
+      );
+
+      final formatter = DartFormatter(
+        languageVersion: DartFormatter.latestLanguageVersion,
+        trailingCommas: TrailingCommas.preserve,
+      );
+      final expectedOutput = formatter.format('''
 // ignore_for_file: deprecated_member_use, type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -554,25 +695,18 @@ Iterable<String> get _goldenFilePaths sync* {
       .where((it) => it.endsWith('.png'));
 }
 ''');
-            expect(
-              optimizedTestFile.existsSync(),
-              isTrue,
-            );
-            expect(
-              optimizedTestFile.readAsStringSync(),
-              expectedOutput,
-              reason: 'optimized test '
-                  'should preserve annotations and '
-                  'add golden tests setup '
-                  'for flutter project',
-            );
-          },
-          getCurrentDirectory: () => Directory(
-            p.join(currentDirectory.path, projectPath),
-          ),
-          stdout: () => out,
-        );
-      });
+      expect(
+        optimizedTestFile.existsSync(),
+        isTrue,
+      );
+      expect(
+        optimizedTestFile.readAsStringSync(),
+        expectedOutput,
+        reason: 'optimized test '
+            'should preserve annotations and '
+            'add golden tests setup '
+            'for flutter project',
+      );
     });
   });
 }

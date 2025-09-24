@@ -7,6 +7,7 @@ import 'package:args/command_runner.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -19,9 +20,13 @@ class OptimizeTestsCommand extends Command<void> {
   OptimizeTestsCommand() {
     argParser
       ..addOption(
-        filterOptionName,
-        help: 'The regex pattern to filter the tests files.',
-        defaultsTo: 'test/.*_test.dart',
+        includeOptionName,
+        help: 'The glob pattern for the tests files to include.',
+        defaultsTo: 'test/**_test.dart',
+      )
+      ..addOption(
+        excludeOptionName,
+        help: 'The glob pattern for the tests files to exclude.',
       )
       ..addOption(
         outputOptionName,
@@ -44,8 +49,13 @@ class OptimizeTestsCommand extends Command<void> {
   @override
   String get name => 'optimize-tests';
 
-  /// The name of the option for the regex pattern to filter the tests files.
-  static const filterOptionName = 'filter';
+  /// The name of the option for the glob pattern for the tests files to
+  /// include.
+  static const includeOptionName = 'include';
+
+  /// The name of the option for the glob pattern for the tests files to
+  /// exclude.
+  static const excludeOptionName = 'exclude';
 
   /// The name of the flag for the use of golden tests in case of a Flutter
   /// package.
@@ -102,23 +112,44 @@ class OptimizeTestsCommand extends Command<void> {
     final outputPath = argResults.option(outputOptionName)!;
     final outputFile = File(p.join(projectDir.path, outputPath));
     if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
-    final rawFilter = argResults.option(filterOptionName)!;
-    final filter = RegExp(rawFilter);
-    final files = projectDir
+    final includeGlob = () {
+      final pattern = argResults.option(includeOptionName)!.withoutQuotes;
+      return Glob(pattern, context: p.posix);
+    }();
+    final excludeGlob = () {
+      final pattern = argResults.option(excludeOptionName)?.withoutQuotes;
+      if (pattern == null) return null;
+      return Glob(pattern, context: p.posix);
+    }();
+
+    final fileRelativePaths = projectDir
         .listSync(recursive: true)
         .whereType<File>()
-        .sortedBy((it) => it.path);
+        .sortedBy((it) => it.path)
+        .map((it) {
+      final filePath = p.posix.joinAll(
+        p.split(
+          p.relative(
+            it.path,
+            from: projectDir.path,
+          ),
+        ),
+      );
+      return filePath;
+    });
+
+    final includedFileRelativePaths =
+        fileRelativePaths.where(includeGlob.matches);
+    final validFileRelativePaths = switch (excludeGlob) {
+      null => includedFileRelativePaths,
+      _ => includedFileRelativePaths.whereNot(excludeGlob.matches),
+    };
 
     final testFileGroupsStatements = <coder.Code>[];
-    for (final file in files) {
-      final fileRelativePath = p.relative(
-        file.path,
-        from: projectDir.path,
-      );
-      if (!filter.hasMatch(fileRelativePath)) continue;
-      final fileContent = file.readAsStringSync();
-      final result = parseFile(
-        path: file.path,
+    for (final fileRelativePath in validFileRelativePaths) {
+      final fileContent = File(fileRelativePath).absolute.readAsStringSync();
+      final result = parseString(
+        content: fileContent,
         featureSet: FeatureSet.latestLanguageVersion(),
       );
       final unit = result.unit;
@@ -151,9 +182,13 @@ class OptimizeTestsCommand extends Command<void> {
       final testOn = testOnRegex.firstMatch(fileContent)?.namedGroup('testOn');
       final timeout =
           timeoutRegex.firstMatch(fileContent)?.namedGroup('timeout');
-      final testRelativePath = p.relative(
-        file.path,
-        from: outputFile.parent.path,
+      final testRelativePath = p.posix.joinAll(
+        p.split(
+          p.relative(
+            fileRelativePath,
+            from: outputFile.parent.path,
+          ),
+        ),
       );
       final mainFunction = coder.Reference('main', testRelativePath);
       final testFileGroupStatement = const coder.Reference('group').call(
@@ -308,3 +343,14 @@ Iterable<String> get _goldenFilePaths sync* {
       .where((it) => it.endsWith('.png'));
 }
 ''';
+
+extension on String {
+  String get withoutQuotes {
+    if (length < 2) return this;
+    if ((startsWith('"') && endsWith('"')) ||
+        (startsWith("'") && endsWith("'"))) {
+      return substring(1, length - 1);
+    }
+    return this;
+  }
+}
