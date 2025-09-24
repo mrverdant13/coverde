@@ -5,18 +5,18 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
-      sha256: da0d9209ca76bde579f2da330aeb9df62b6319c834fa7baae052021b0462401f
+      sha256: dd3d2ad434b9510001d089e8de7556d50c834481b9abc2891a0184a8493a19dc
       url: "https://pub.dev"
     source: hosted
-    version: "85.0.0"
+    version: "89.0.0"
   analyzer:
     dependency: transitive
     description:
       name: analyzer
-      sha256: "974859dc0ff5f37bc4313244b3218c791810d03ab3470a579580279ba971a48d"
+      sha256: c22b6e7726d1f9e5db58c7251606076a71ca0dbcf76116675edfadbec0c9e875
       url: "https://pub.dev"
     source: hosted
-    version: "7.7.1"
+    version: "8.2.0"
   ansi_styles:
     dependency: transitive
     description:
@@ -205,10 +205,10 @@ packages:
     dependency: transitive
     description:
       name: dart_style
-      sha256: "8a0e5fba27e8ee025d2ffb4ee820b4e6e2cf5e4246a6b1a477eb66866947e0bb"
+      sha256: c87dfe3d56f183ffe9106a18aebc6db431fc7c98c31a54b952a77f3d54a85697
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.1"
+    version: "3.1.2"
   file:
     dependency: transitive
     description:
@@ -309,10 +309,10 @@ packages:
     dependency: transitive
     description:
       name: lints
-      sha256: c35bb79562d980e9a453fc715854e1ed39e24e7d0297a880ef54e17f9874a9d7
+      sha256: a5e2b223cb7c9c8efdc663ef484fdd95bb243bff242ef5b13e26883547fce9a0
       url: "https://pub.dev"
     source: hosted
-    version: "5.1.1"
+    version: "6.0.0"
   logging:
     dependency: transitive
     description:
@@ -373,10 +373,10 @@ packages:
     dependency: transitive
     description:
       name: mustache_template
-      sha256: a46e26f91445bfb0b60519be280555b06792460b27b19e2b19ad5b9740df5d1c
+      sha256: d9aa84d114368b7f1727b7014b85bb0b234daeafe1518824c82d32703b3964f6
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   node_preamble:
     dependency: transitive
     description:
@@ -397,10 +397,10 @@ packages:
     dependency: transitive
     description:
       name: pana
-      sha256: "43a77d3aca0eb0f89b49030308b3b32745955a4f1bf4875e7b564a12ea9bb6d7"
+      sha256: e3bd09f4aa7eb997ac9d19d6df82781a92fb48917ddb2637b4cb7430e25de735
       url: "https://pub.dev"
     source: hosted
-    version: "0.22.22"
+    version: "0.22.23"
   path:
     dependency: transitive
     description:
@@ -421,10 +421,10 @@ packages:
     dependency: transitive
     description:
       name: pool
-      sha256: "20fe868b6314b322ea036ba325e6fc0711a22948856475e2c2b6306e8ab39c2a"
+      sha256: "978783255c543aa3586a1b3c21f6e9d720eb315376a915872c61ef8b5c20177d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.1"
+    version: "1.5.2"
   process:
     dependency: transitive
     description:
@@ -573,10 +573,10 @@ packages:
     dependency: transitive
     description:
       name: tar
-      sha256: "8e67ab1baa07d3ef2c5d52cfb84e7ed4742799141e9e2ac3d0801a1a7ccb7575"
+      sha256: b2f7bb01fa95e21e7197cd0dc3c087e6e4551c5d698b3e88d6398b2124c566d6
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   term_glyph:
     dependency: transitive
     description:
