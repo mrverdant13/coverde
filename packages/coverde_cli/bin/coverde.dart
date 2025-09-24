@@ -18,7 +18,7 @@ Future<void> main(List<String> arguments) async {
   } on CoverdeException catch (exception) {
     _logError(exception.message);
     exit(exception.code.code);
-  } catch (error, stackTrace) {
+  } on Object catch (error, stackTrace) {
     _logError(error, stackTrace);
     exit(ExitCode.software.code);
   }

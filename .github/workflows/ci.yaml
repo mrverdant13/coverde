@@ -16,15 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Check spelling
-        uses: streetsidesoftware/cspell-action@v5
+        uses: streetsidesoftware/cspell-action@v7
         with:
           config: ./.cspell/cspell.yaml
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.1.0
+        run: dart pub global activate melos 7.1.1
       - name: Initialize melos
         run: melos bs
       - name: Format and analyze
@@ -36,11 +36,11 @@ jobs:
     needs: min-conditions
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.1.0
+        run: dart pub global activate melos 7.1.1
       - name: Initialize melos
         run: melos bs
       - name: Verify up-to-date generated source files
@@ -57,11 +57,11 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.1.0
+        run: dart pub global activate melos 7.1.1
       - name: Install coverage
         run: dart pub global activate coverage 1.15.0
       - name: Install coverde (local version)
@@ -101,11 +101,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.1.0
+        run: dart pub global activate melos 7.1.1
       - name: Initialize melos
         run: melos bs
       - name: Verify pub score
