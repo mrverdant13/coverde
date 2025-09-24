@@ -243,7 +243,7 @@ class OptimizeTestsCommand extends Command<void> {
           if (useFlutterGoldenTests)
             coder.Directive.import(
               'package:flutter_test/flutter_test.dart',
-              hide: const ['group'],
+              hide: const ['group', 'setUp'],
             ),
           if (testFileGroupsStatements.isNotEmpty)
             coder.Directive.import('package:test_api/test_api.dart'),

@@ -540,7 +540,7 @@ void main() {
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart' hide group;
+import 'package:flutter_test/flutter_test.dart' hide group, setUp;
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_01_test.dart' as _i1;
