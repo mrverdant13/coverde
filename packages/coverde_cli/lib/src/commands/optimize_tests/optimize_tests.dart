@@ -9,7 +9,6 @@ import 'package:collection/collection.dart';
 import 'package:coverde/src/utils/command.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
-import 'package:glob/list_local_fs.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -120,33 +119,45 @@ class OptimizeTestsCommand extends Command<void> {
       final pattern = checkOption(
         optionKey: includeOptionName,
         optionName: 'include glob pattern',
-      );
-      return Glob(pattern);
+      ).withoutQuotes;
+      return Glob(pattern, context: p.posix);
     }();
     final excludeGlob = () {
       final pattern = checkOptionalOption(
         optionKey: excludeOptionName,
-      );
+      )?.withoutQuotes;
       if (pattern == null) return null;
-      return Glob(pattern);
+      return Glob(pattern, context: p.posix);
     }();
-    final includedFiles = includeGlob
-        .listSync(
-          root: projectDir.path,
-        )
+
+    final fileRelativePaths = projectDir
+        .listSync(recursive: true)
         .whereType<File>()
-        .sortedBy((it) => it.path);
+        .sortedBy((it) => it.path)
+        .map((it) {
+      final filePath = p.posix.joinAll(
+        p.split(
+          p.relative(
+            it.path,
+            from: projectDir.path,
+          ),
+        ),
+      );
+      return filePath;
+    });
+
+    final includedFileRelativePaths =
+        fileRelativePaths.where(includeGlob.matches);
+    final validFileRelativePaths = switch (excludeGlob) {
+      null => includedFileRelativePaths,
+      _ => includedFileRelativePaths.whereNot(excludeGlob.matches),
+    };
 
     final testFileGroupsStatements = <coder.Code>[];
-    for (final file in includedFiles) {
-      final fileRelativePath = p.relative(
-        file.path,
-        from: projectDir.path,
-      );
-      if (excludeGlob != null && excludeGlob.matches(file.path)) continue;
-      final fileContent = file.readAsStringSync();
-      final result = parseFile(
-        path: file.path,
+    for (final fileRelativePath in validFileRelativePaths) {
+      final fileContent = File(fileRelativePath).absolute.readAsStringSync();
+      final result = parseString(
+        content: fileContent,
         featureSet: FeatureSet.latestLanguageVersion(),
       );
       final unit = result.unit;
@@ -182,7 +193,7 @@ class OptimizeTestsCommand extends Command<void> {
       final testRelativePath = p.posix.joinAll(
         p.split(
           p.relative(
-            file.path,
+            fileRelativePath,
             from: outputFile.parent.path,
           ),
         ),
@@ -342,3 +353,14 @@ Iterable<String> get _goldenFilePaths sync* {
       .where((it) => it.endsWith('.png'));
 }
 ''';
+
+extension on String {
+  String get withoutQuotes {
+    if (length < 2) return this;
+    if ((startsWith('"') && endsWith('"')) ||
+        (startsWith("'") && endsWith("'"))) {
+      return substring(1, length - 1);
+    }
+    return this;
+  }
+}

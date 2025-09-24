@@ -196,7 +196,7 @@ void main() {}
         for (final testFilePath in testFilesWithNoMainFunction) {
           verify(
             () => out.writeln(
-              'Test file ${p.joinAll(testFilePath)} '
+              'Test file ${p.posix.joinAll(testFilePath)} '
               'does not have a `main` function.',
             ),
           ).called(1);
@@ -212,7 +212,7 @@ void main() {}
         for (final testFilePath in testFilesWithMainFunctionWithParams) {
           verify(
             () => out.writeln(
-              'Test file ${p.joinAll(testFilePath)} '
+              'Test file ${p.posix.joinAll(testFilePath)} '
               'has a `main` function with params.',
             ),
           ).called(1);

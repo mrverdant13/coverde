@@ -75,7 +75,7 @@ melos:
       description: Run tests and generate coverage trace file for a selected package in random order.
       run: >
         dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
-        coverde optimize-tests --include='test/**_test.dart' --exclude='**/fixtures/**' --output=test/optimized_test.dart &&
+        coverde optimize-tests --include 'test/**_test.dart' --exclude '**/fixtures/**' --output=test/optimized_test.dart &&
         dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color test/optimized_test.dart &&
         dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
       exec:
