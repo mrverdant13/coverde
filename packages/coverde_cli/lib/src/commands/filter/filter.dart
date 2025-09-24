@@ -1,6 +1,5 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -111,27 +110,12 @@ If an absolute path is found in the coverage trace file, the process will fail.'
 
   @override
   Future<void> run() async {
-    // Retrieve arguments and validate their value and the state they represent.
-    final originPath = checkOption(
-      optionKey: inputOption,
-      optionName: 'input trace file',
-    );
-    final destinationPath = checkOption(
-      optionKey: outputOption,
-      optionName: 'output trace file',
-    );
-    final pathsParent = checkOptionalOption(
-      optionKey: pathsParentOption,
-    );
-    final ignorePatterns = checkMultiOption(
-      multiOptionKey: filtersOption,
-      multiOptionName: 'ignored patterns list',
-    );
-    final shouldOverride = checkOption(
-          optionKey: modeOption,
-          optionName: 'output mode',
-        ) ==
-        'w';
+    final argResults = this.argResults!;
+    final originPath = argResults.option(inputOption)!;
+    final destinationPath = argResults.option(outputOption)!;
+    final pathsParent = argResults.option(pathsParentOption);
+    final ignorePatterns = argResults.multiOption(filtersOption);
+    final shouldOverride = argResults.option(modeOption) == 'w';
 
     final origin = File(originPath);
     final destination = File(destinationPath);

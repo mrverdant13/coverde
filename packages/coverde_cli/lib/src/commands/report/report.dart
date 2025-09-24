@@ -3,7 +3,6 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -115,35 +114,20 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
   @override
   Future<void> run() async {
-    // Retrieve arguments and validate their value and the state they represent.
-    final traceFilePath = checkOption(
-      optionKey: inputOption,
-      optionName: 'input trace file',
-    );
+    final argResults = this.argResults!;
+    final traceFilePath = argResults.option(inputOption)!;
     final reportDirPath = path.joinAll(
       path.split(
-        checkOption(
-          optionKey: outputOption,
-          optionName: 'output report folder',
-        ),
+        argResults.option(outputOption)!,
       ),
     );
-    final mediumString = checkOption(
-      optionKey: mediumOption,
-      optionName: 'medium threshold',
-    );
+    final mediumString = argResults.option(mediumOption)!;
     final medium = double.tryParse(mediumString);
     if (medium == null) usageException('Invalid medium threshold.');
-    final highString = checkOption(
-      optionKey: highOption,
-      optionName: 'high threshold',
-    );
+    final highString = argResults.option(highOption)!;
     final high = double.tryParse(highString);
     if (high == null) usageException('Invalid high threshold.');
-    final shouldLaunch = checkFlag(
-      flagKey: launchFlag,
-      flagName: 'launch',
-    );
+    final shouldLaunch = argResults.flag(launchFlag);
 
     // Report dir path should be absolute.
     final reportDirAbsPath = path.isAbsolute(reportDirPath)

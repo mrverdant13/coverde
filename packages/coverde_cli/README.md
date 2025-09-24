@@ -35,11 +35,43 @@ $ dart pub global activate coverde
 
 # Features
 
+- [**Optimize tests by gathering them**](#coverde-optimize-tests)
 - [**Check coverage value computed from a trace file**](#coverde-check)
 - [**Filter the tested files included in a trace file**](#coverde-filter)
 - [**Remove a set of files and folders**](#coverde-remove)
 - [**Generate HTML coverage report**](#coverde-report)
 - [**Compute and display the coverage value from a trace file**](#coverde-value)
+
+## `coverde optimize-tests`
+
+**Optimize tests by gathering them.**
+
+### Options
+
+- `--include`
+
+  The glob pattern for the tests files to include.\
+  Default value: `test/**_test.dart`
+
+- `--exclude`
+
+  The glob pattern for the tests files to exclude.\
+
+- `--output`
+
+  The path to the optimized tests file.\
+  Default value: `test/optimized_test.dart`
+
+- `--flutter-goldens`
+
+  Whether to use golden tests in case of a Flutter package.\
+  Default value: `true`
+
+### Examples
+
+- `coverde optimize-tests`
+- `coverde optimize-tests --filter='^test\/(?!.*fixtures\/).*_test\.dart' --output=test/optimized_test.dart`
+- `coverde optimize-tests --flutter-goldens=false`
 
 ## `coverde check`
 
@@ -52,13 +84,11 @@ $ dart pub global activate coverde
   Trace file used for the coverage check.\
   Default value: `coverage/lcov.info`
 
-### Flags
+- `--file-coverage-log-level`
 
-- `--verbose` | `-v`
-
-  Whether to print the coverage value.\
-  Use `--no-verbose` to disable this flag.\
-  Default value: _Enabled_
+  The log level for the coverage value for each source file listed in the input trace file.\
+  Default value: `line-content`\
+  Allowed values: `none`, `overview`, `line-numbers`, `line-content`
 
 ### Parameters
 
@@ -71,7 +101,7 @@ $ dart pub global activate coverde
 
 - `coverde check 90`
 - `coverde check -i lcov.info 75`
-- `coverde check 100 --no-verbose`
+- `coverde check 100 --file-coverage-log-level none`
 
 ### Results
 
@@ -210,16 +240,17 @@ $ dart pub global activate coverde
 
 ### Flags
 
-- `--verbose` | `-v`
+- `--file-coverage-log-level`
 
-  Whether to print the coverage value for each source file referenced in the trace file.\
-  Use `--no-verbose` to disable this flag.\
-  Default value: _Enabled_
+  The log level for the coverage value for each source file referenced in the trace file.\
+  Default value: `line-content`\
+  Allowed values: `none`, `overview`, `line-numbers`, `line-content`
 
 ### Examples
 
 - `coverde value`
-- `coverde value -i coverage/trace-file.info --no-verbose`
+- `coverde value -i coverage/trace-file.info --file-coverage-log-level none`
+- `coverde value --file-coverage-log-level line-numbers`
 
 ---
 

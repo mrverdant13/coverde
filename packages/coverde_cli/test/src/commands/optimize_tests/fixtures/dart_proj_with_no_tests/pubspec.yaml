@@ -1,0 +1,4 @@
+name: dart_proj_with_no_tests
+description: A Dart project with no tests.
+publish_to: none
+version: 1.0.0+1

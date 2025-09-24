@@ -1,7 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/entities/file_coverage_log_level.dart';
+import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -9,15 +11,12 @@ import '../../../utils/mocks.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a trace file value computer command''',
+    'coverde value',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
       late ValueCommand valueCmd;
 
-      // ARRANGE
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
@@ -34,11 +33,7 @@ GIVEN a trace file value computer command''',
       );
 
       test(
-        '''
-
-WHEN its description is requested
-THEN a proper abstract should be returned
-''',
+        '| description',
         () {
           // ARRANGE
           const expected = '''
@@ -56,133 +51,307 @@ Compute the coverage value of the LCOV_FILE info file.
       );
 
       test(
-        '''
-
-AND an existing trace file
-AND the disabled option to print coverage data about trace file listed files
-WHEN the the trace file coverage value is requested
-THEN the global value is displayed
-├─ BY logging the relative coverage value in percentage
-├─ AND logging the number of covered lines fo code
-''',
+        '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.none.identifier}''',
         () async {
-          // ARRANGE
-          final directory = Directory.systemTemp.createTempSync();
-          final traceFileContent = '''
-SF:${path.joinAll(['path', 'to', 'source_file.dart'])}
-DA:1,1
-DA:2,0
-DA:3,1
-DA:4,0
-LF:4
-LH:2
-end_of_record
-''';
-          final traceFilePath = path.join(directory.path, 'lcov.info');
-          final traceFileFile = File(traceFilePath)
-            ..createSync()
-            ..writeAsStringSync(traceFileContent);
-
-          expect(traceFileFile.existsSync(), isTrue);
-
-          // ACT
-          await cmdRunner.run([
-            valueCmd.name,
-            '--${ValueCommand.inputOption}',
-            traceFilePath,
-            '--no-${ValueCommand.verboseFlag}',
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'value',
+            'fixtures',
+            'partially_covered_proj',
           ]);
 
-          // ASSERT
-          final verifications = verifyInOrder([
-            () => out.writeln('GLOBAL:'),
-            () => out.writeln('50.00% - 2/4'),
+          await IOOverrides.runZoned(
+            () async {
+              await cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.fileCoverageLogLevelFlag}',
+                FileCoverageLogLevel.none.identifier,
+              ]);
+            },
+            getCurrentDirectory: () => Directory(projectPath),
+          );
+
+          final messages = [
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
           ]);
-          for (final verification in verifications) {
-            verification.called(1);
-          }
-          directory.deleteSync(recursive: true);
         },
       );
 
       test(
-        '''
-
-AND an existing trace file
-AND the enabled option to print coverage data about trace file listed files
-WHEN the the trace file coverage value is requested
-THEN the coverage value for each individual file should be displayed
-AND the global value should be displayed
-├─ BY logging the relative coverage value in percentage
-├─ AND logging the number of covered lines fo code
-''',
+        '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.overview.identifier}''',
         () async {
-          // ARRANGE
-          final directory = Directory.systemTemp.createTempSync();
-          final sourceFileAPath =
-              path.joinAll(['path', 'to', 'source_file_a.dart']);
-          final sourceFileBPath =
-              path.joinAll(['path', 'to', 'source_file_b.dart']);
-          final traceFileContent = '''
-SF:$sourceFileAPath
-DA:1,1
-DA:2,0
-DA:3,1
-DA:4,0
-LF:4
-LH:2
-end_of_record
-SF:$sourceFileBPath
-DA:1,1
-DA:2,0
-DA:3,0
-DA:4,0
-DA:5,0
-LF:5
-LH:1
-end_of_record
-''';
-          final traceFilePath = path.join(directory.path, 'lcov.info');
-          final traceFileFile = File(traceFilePath)
-            ..createSync()
-            ..writeAsStringSync(traceFileContent);
-
-          expect(traceFileFile.existsSync(), isTrue);
-
-          // ACT
-          await cmdRunner.run([
-            valueCmd.name,
-            '--${ValueCommand.inputOption}',
-            traceFilePath,
-            '--${ValueCommand.verboseFlag}',
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'value',
+            'fixtures',
+            'partially_covered_proj',
           ]);
 
-          // ASSERT
-          final verifications = verifyInOrder([
-            () => out.writeln('$sourceFileAPath (50.00% - 2/4)'),
-            () => out.writeln('$sourceFileBPath (20.00% - 1/5)'),
-            () => out.writeln('GLOBAL:'),
-            () => out.writeln('33.33% - 3/9'),
+          await IOOverrides.runZoned(
+            () async {
+              await cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.fileCoverageLogLevelFlag}',
+                FileCoverageLogLevel.overview.identifier,
+              ]);
+            },
+            getCurrentDirectory: () => Directory(projectPath),
+          );
+
+          final messages = [
+            () {
+              final filePath = p.join('lib', 'source_01.dart');
+              final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
+              return '$filePath $fileOverview';
+            }(),
+            '',
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
           ]);
-          for (final verification in verifications) {
-            verification.called(1);
-          }
-          verify(() => out.writeln());
-          directory.deleteSync(recursive: true);
         },
       );
 
       test(
-        '''
+        '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.lineNumbers.identifier}''',
+        () async {
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'value',
+            'fixtures',
+            'partially_covered_proj',
+          ]);
 
-AND a non-existing trace file
-WHEN the the trace file coverage value is requested
-THEN an error indicating the issue should be thrown
-''',
+          await IOOverrides.runZoned(
+            () async {
+              await cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.fileCoverageLogLevelFlag}',
+                FileCoverageLogLevel.lineNumbers.identifier,
+              ]);
+            },
+            getCurrentDirectory: () => Directory(projectPath),
+          );
+
+          final messages = [
+            () {
+              final filePath = p.join('lib', 'source_01.dart');
+              final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
+              return '$filePath $fileOverview';
+            }(),
+            () {
+              final message = wrapWith(
+                'UNCOVERED: 7, 8, 17, 22, 23, 24, 26',
+                [red, styleBold],
+              );
+              return '└ $message';
+            }(),
+            '',
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
+          ]);
+        },
+      );
+
+      test(
+        '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.lineContent.identifier}''',
+        () async {
+          final currentDirectory = Directory.current;
+          final projectPath = p.joinAll([
+            currentDirectory.path,
+            'test',
+            'src',
+            'commands',
+            'value',
+            'fixtures',
+            'partially_covered_proj',
+          ]);
+
+          await IOOverrides.runZoned(
+            () async {
+              await cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.fileCoverageLogLevelFlag}',
+                FileCoverageLogLevel.lineContent.identifier,
+              ]);
+            },
+            getCurrentDirectory: () => Directory(projectPath),
+          );
+
+          final messages = [
+            () {
+              final filePath = p.join('lib', 'source_01.dart');
+              final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
+              return '$filePath $fileOverview';
+            }(),
+            '├  5 | }',
+            '├  6 | ',
+            [
+              '├  ',
+              wrapWith(
+                '7',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                'num subtract(num a, num b) {',
+                [red, styleBold],
+              ),
+            ].join(),
+            [
+              '├  ',
+              wrapWith(
+                '8',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                '  return a - b;',
+                [red, styleBold],
+              ),
+            ].join(),
+            '├  9 | }',
+            '├ 10 | ',
+            [
+              '├ ',
+              wrapWith(
+                '15',
+                [green, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                'num divide(num a, num b) {',
+                [green, styleBold],
+              ),
+            ].join(),
+            [
+              '├ ',
+              wrapWith(
+                '16',
+                [green, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                '  if (b == 0) {',
+                [green, styleBold],
+              ),
+            ].join(),
+            [
+              '├ ',
+              wrapWith(
+                '17',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                "    throw Exception('Division by zero');",
+                [red, styleBold],
+              ),
+            ].join(),
+            '├ 18 |   }',
+            [
+              '├ ',
+              wrapWith(
+                '19',
+                [green, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                '  return a / b;',
+                [green, styleBold],
+              ),
+            ].join(),
+            '├ 20 | }',
+            '├ 21 | ',
+            [
+              '├ ',
+              wrapWith(
+                '22',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                'num modulo(num a, num b) {',
+                [red, styleBold],
+              ),
+            ].join(),
+            [
+              '├ ',
+              wrapWith(
+                '23',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                '  if (b == 0) {',
+                [red, styleBold],
+              ),
+            ].join(),
+            [
+              '├ ',
+              wrapWith(
+                '24',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                "    throw Exception('Division by zero');",
+                [red, styleBold],
+              ),
+            ].join(),
+            '├ 25 |   }',
+            [
+              '├ ',
+              wrapWith(
+                '26',
+                [red, styleBold],
+              ),
+              ' | ',
+              wrapWith(
+                '  return a % b;',
+                [red, styleBold],
+              ),
+            ].join(),
+            '├ 27 | }',
+            '├ 28 | ',
+            '',
+            '',
+            wrapWith('GLOBAL:', [blue, styleBold]),
+            wrapWith('56.25% - 9/16', [blue, styleBold]),
+          ];
+          verifyInOrder([
+            for (final message in messages) () => out.writeln(message),
+          ]);
+        },
+      );
+
+      test(
+        '--${ValueCommand.inputOption} <absent_trace_file_path>',
         () async {
           // ARRANGE
           final directory = Directory.systemTemp.createTempSync();
-          final absentFilePath = path.join(directory.path, 'absent.lcov.info');
+          final absentFilePath = p.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 

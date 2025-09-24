@@ -4,3 +4,4 @@ analyzer:
   exclude:
     - lib/src/assets/**
     - lib/src/utils/cli.data.dart
+    - test/**/fixtures/**

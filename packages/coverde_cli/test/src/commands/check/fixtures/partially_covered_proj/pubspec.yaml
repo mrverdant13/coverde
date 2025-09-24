@@ -1,0 +1,10 @@
+name: partially_covered_proj
+description: A partially covered project.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dev_dependencies:
+  test: any
