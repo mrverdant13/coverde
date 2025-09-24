@@ -5,51 +5,9 @@ updates:
     directory: /
     schedule:
       interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - ci
+    labels: []
   - package-ecosystem: pub
     directory: /
     schedule:
       interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - build
-  - package-ecosystem: pub
-    directory: /packages/coverde_cli/
-    schedule:
-      interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - build
-      - p:coverde
-  - package-ecosystem: pub
-    directory: /packages/package_assets_generator/
-    schedule:
-      interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - build
-      - p:pag
-  - package-ecosystem: pub
-    directory: /packages/package_data_generator/
-    schedule:
-      interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - build
-      - p:pdg
-  - package-ecosystem: pub
-    directory: /packages/pub_score_checker/
-    schedule:
-      interval: daily
-    reviewers:
-      - mrverdant13
-    labels:
-      - build
-      - p:psc
+    labels: []
