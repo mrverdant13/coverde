@@ -64,8 +64,6 @@ jobs:
         run: dart pub global activate melos 7.1.1
       - name: Install coverage
         run: dart pub global activate coverage 1.15.0
-      - name: Install coverde (local version)
-        run: dart pub global activate --source path ./packages/coverde_cli/
       - name: Initialize melos
         run: melos bs
       - name: Run tests, merge tests if needed, and check 100% coverage

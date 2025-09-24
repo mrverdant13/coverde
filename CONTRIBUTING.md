@@ -32,7 +32,6 @@ If you can include screenshots, trace data or any additional context, it could b
 
 - [Dart SDK][dart_link] - min version: 3.5.0
 - [Melos][melos_link] - min version: 7.1.1
-- `coverde` - version: local (installed by executing `dart pub global activate --source path ./packages/coverde_cli/` in the root folder of the local project)
 
 ### Pull Requests
 

@@ -4,6 +4,8 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dev_dependencies:
+  coverde:
+    path: packages/coverde_cli
   melos: ^7.1.1
 
 melos:
@@ -80,8 +82,7 @@ melos:
     t:
       description: Run tests and generate coverage trace file for a selected package in random order.
       run: >
-        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
-        coverde optimize-tests --include 'test/**_test.dart' --exclude '**/fixtures/**' --output=test/optimized_test.dart &&
+        dart run coverde optimize-tests --include 'test/**_test.dart' --exclude '**/fixtures/**' --output=test/optimized_test.dart &&
         dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random --color test/optimized_test.dart &&
         dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH
       exec:
@@ -93,21 +94,19 @@ melos:
       run: melos run t --no-select
     T:ci:
       description: Run tests and generate coverage trace files for all packages in random order.
-      run: melos exec --fail-fast --order-dependents --dir-exists=test -- "coverde optimize-tests --include='test/**_test.dart' --exclude='**/fixtures/**' --output=test/optimized_test.dart && dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random test/optimized_test.dart && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
+      run: melos exec --fail-fast --order-dependents --dir-exists=test -- "dart run coverde optimize-tests --include='test/**_test.dart' --exclude='**/fixtures/**' --output=test/optimized_test.dart && dart test -x ci-only --coverage=coverage -r expanded --test-randomize-ordering-seed random test/optimized_test.dart && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib -b MELOS_PACKAGE_PATH"
 
     MC:
       description: Merge all packages coverage trace files ignoring data related to generated files.
       run: >
-        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
-        coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-        melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.asset\.dart'" &&
-        coverde check -i coverage/filtered.lcov.info 100
+        dart run coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
+        melos exec --file-exists=coverage/lcov.info -- "dart run coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.asset\.dart'" &&
+        dart pub run coverde check -i coverage/filtered.lcov.info 100
 
     R:
       description: Generate HTML coverage report.
       run: >
-        dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/ &&
-        coverde report --input ./coverage/filtered.lcov.info
+        dart run coverde report --input ./coverage/filtered.lcov.info
 
     FA:
       description: Format and analyze.
@@ -143,10 +142,6 @@ melos:
     WF:ci:
       description: Run full CI workflow
       run: melos run S && melos run FA:ci && melos run TMC:ci && melos run P:ci
-
-    activate:
-      description: Activate a selected package.
-      run: dart pub global activate --source path MELOS_ROOT_PATH/packages/coverde_cli/
 
 workspace:
   - packages/coverde_cli/
