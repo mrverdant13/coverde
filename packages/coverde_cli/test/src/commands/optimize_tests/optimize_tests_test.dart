@@ -399,7 +399,7 @@ void main() {
           () async {
             await cmdRunner.run([
               command.name,
-              '--${OptimizeTestsCommand.excludeOptionName}=**_01_test.dart',
+              '--${OptimizeTestsCommand.excludeOptionName}="**_01_test.dart"',
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
