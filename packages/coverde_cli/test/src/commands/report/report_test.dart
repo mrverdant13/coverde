@@ -14,16 +14,19 @@ import 'package:universal_io/io.dart';
 import '../../../utils/mocks.dart';
 
 enum _Project {
-  // ignore: constant_identifier_names
-  fake_project_1,
-  // ignore: constant_identifier_names
-  fake_project_2,
+  fakeProject1('fake_project_1'),
+  fakeProject2('fake_project_2'),
+  ;
+
+  const _Project(this.path);
+
+  final String path;
 }
 
 extension _ExtendedProj on _Project {
   Iterable<String> get relFilePaths {
     switch (this) {
-      case _Project.fake_project_1:
+      case _Project.fakeProject1:
         return [
           'dir_1/file_1.dart.html',
           'dir_1/file_2.dart.html',
@@ -36,7 +39,7 @@ extension _ExtendedProj on _Project {
           'sort_alpha.png',
           'sort_numeric.png',
         ];
-      case _Project.fake_project_2:
+      case _Project.fakeProject2:
         return [
           'models/index.html',
           'models/model_1.dart.html',
@@ -60,7 +63,7 @@ extension on String {
         'commands',
         'report',
         'fixtures',
-        proj.name,
+        proj.path,
         this,
       ]);
 }

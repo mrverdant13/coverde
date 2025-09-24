@@ -83,7 +83,7 @@ Future<void> main(List<String> args) async {
       } else {
         stdout.writeln('✅ The package score is within the tolerance range.');
       }
-    } catch (e) {
+    } on Object catch (e) {
       stderr
         ..writeln('❌ Problem analyzing the package.')
         ..writeln(e);

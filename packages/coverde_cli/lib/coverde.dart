@@ -1,4 +1,4 @@
 /// Coverde CLI package.
-library coverde;
+library;
 
 export 'src/commands/coverde.dart';
