@@ -1,9 +1,9 @@
 // cspell:words posix
 
 import 'package:build/build.dart';
-import 'package:path/path.dart' show posix;
+import 'package:path/path.dart' show Context, posix;
 
-final path = posix;
+final Context path = posix;
 
 class PackageAssetsBuilder implements Builder {
   static const inputDir = 'assets';
@@ -11,11 +11,11 @@ class PackageAssetsBuilder implements Builder {
   static const filePathPlaceholder = '{{}}';
   static const outputExtension = '.asset.dart';
 
-  static final input = path.joinAll([
+  static final String input = path.joinAll([
     inputDir,
     filePathPlaceholder,
   ]);
-  static final output = path.joinAll([
+  static final String output = path.joinAll([
     outputDir,
     '$filePathPlaceholder$outputExtension',
   ]);

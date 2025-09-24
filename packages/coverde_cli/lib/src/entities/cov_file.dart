@@ -79,7 +79,7 @@ class CovFile extends CovElement {
 
   /// {@macro cov_line.tag}
   @visibleForTesting
-  static const lineDataTag = CovLine.tag;
+  static const String lineDataTag = CovLine.tag;
 
   /// The beginning of the line of a trace bloc that contains the [raw] coverage
   /// data about a [source] file.
