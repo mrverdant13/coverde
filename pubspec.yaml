@@ -10,9 +10,15 @@ melos:
   command:
     clean:
       hooks:
-        pre: coverde rm .dart_tool coverage && melos exec -- "coverde rm .dart_tool pubspec_overrides.yaml pubspec.lock coverage"
+        pre: melos run clean
 
   scripts:
+    clean:
+      description: Deep clean-up
+      # Preserves FVM internal folder to avoid re-installing the Flutter SDK when developing locally.
+      run: >
+        git clean --exclude="!.fvm" -dfX MELOS_ROOT_PATH
+
     d:
       description: Install dependencies for a selected package.
       run: dart pub get

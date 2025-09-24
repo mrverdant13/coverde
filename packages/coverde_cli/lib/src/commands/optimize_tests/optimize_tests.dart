@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/command_runner.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
-import 'package:coverde/src/utils/command.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
@@ -102,6 +101,7 @@ class OptimizeTestsCommand extends Command<void> {
 
   @override
   FutureOr<void> run() async {
+    final argResults = this.argResults!;
     final projectDir = Directory.current;
     final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
     if (!pubspecFile.existsSync()) {
@@ -109,23 +109,15 @@ class OptimizeTestsCommand extends Command<void> {
     }
     final pubspecRawContent = pubspecFile.readAsStringSync();
     final pubspec = Pubspec.parse(pubspecRawContent);
-    final outputPath = checkOption(
-      optionKey: outputOptionName,
-      optionName: 'output path',
-    );
+    final outputPath = argResults.option(outputOptionName)!;
     final outputFile = File(p.join(projectDir.path, outputPath));
     if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
     final includeGlob = () {
-      final pattern = checkOption(
-        optionKey: includeOptionName,
-        optionName: 'include glob pattern',
-      ).withoutQuotes;
+      final pattern = argResults.option(includeOptionName)!.withoutQuotes;
       return Glob(pattern, context: p.posix);
     }();
     final excludeGlob = () {
-      final pattern = checkOptionalOption(
-        optionKey: excludeOptionName,
-      )?.withoutQuotes;
+      final pattern = argResults.option(excludeOptionName)?.withoutQuotes;
       if (pattern == null) return null;
       return Glob(pattern, context: p.posix);
     }();
@@ -233,12 +225,10 @@ class OptimizeTestsCommand extends Command<void> {
       final SdkDependency dep => dep.sdk == 'flutter',
       _ => false,
     };
-    final useFlutterGoldenTests = checkFlag(
-          flagKey: useFlutterGoldenTestsFlagName,
-          flagName: 'Flutter golden tests',
-        ) &&
-        isFlutterPackage &&
-        testFileGroupsStatements.isNotEmpty;
+    final useFlutterGoldenTests =
+        argResults.flag(useFlutterGoldenTestsFlagName) &&
+            isFlutterPackage &&
+            testFileGroupsStatements.isNotEmpty;
     final mainFunction = coder.Method.returnsVoid(
       (b) => b
         ..name = 'main'
