@@ -51,7 +51,7 @@ class CovLine {
   final int? checksum;
 
   /// Whether the line of code has been executed in tests.
-  late final hasBeenHit = hitsNumber > 0;
+  late final bool hasBeenHit = hitsNumber > 0;
 
   /// {@template cov_line.tag}
   /// The tag or prefix that identifies a line in a trace file that contains

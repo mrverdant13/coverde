@@ -1,4 +1,4 @@
 /// Package data generator
-library package_data_generator;
+library;
 
 export 'src/package_data_generator.dart';

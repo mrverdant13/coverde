@@ -51,7 +51,7 @@ dev_dependencies:
   package_data_generator:
     path: ../package_data_generator
   test: ^1.26.3
-  very_good_analysis: ^6.0.0
+  very_good_analysis: ^10.0.0
 
 executables:
   coverde:

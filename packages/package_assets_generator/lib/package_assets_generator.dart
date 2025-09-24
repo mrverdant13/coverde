@@ -1,4 +1,4 @@
 /// Package assets generator
-library package_assets_generator;
+library;
 
 export 'src/package_assets_generator.dart';
