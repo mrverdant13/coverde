@@ -1,5 +1,5 @@
-name: flutter_proj_with_annotated_test_files_and_golden_tests
-description: A Flutter project with annotated test files and golden tests.
+name: flutter_proj_with_async_test_entry_points
+description: A Flutter project with async test entry points.
 publish_to: none
 version: 1.0.0+1
 

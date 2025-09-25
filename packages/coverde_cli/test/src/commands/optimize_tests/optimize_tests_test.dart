@@ -224,6 +224,106 @@ void main() {}
         '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
         '| '
         'generates an optimized test file '
+        'with async test entry points', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['dart', 'flutter'];
+      for (final projectType in projectTypes) {
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          '${projectType}_proj_with_async_test_entry_points',
+        ]);
+        final optimizedTestFile = File(
+          p.join(projectPath, 'test', 'optimized_test.dart'),
+        );
+        if (optimizedTestFile.existsSync()) {
+          optimizedTestFile.deleteSync(recursive: true);
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              command.name,
+              '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
+            ]);
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
+
+        final formatter = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+          trailingCommas: TrailingCommas.preserve,
+        );
+        final expectedOutput = formatter.format('''
+// ignore_for_file: deprecated_member_use, type=lint
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:async' show unawaited;
+
+import 'package:test_api/test_api.dart';
+
+import 't00_test.dart' as _i1;
+import 't01_test.dart' as _i2;
+import 't02_test.dart' as _i3;
+import 't03_test.dart' as _i4;
+
+void main() {
+  group(
+    't00_test.dart',
+    _i1.main,
+  );
+  group(
+    't01_test.dart',
+    () => unawaited(Future.sync(_i2.main)),
+  );
+  group(
+    't02_test.dart',
+    () => unawaited(Future.sync(_i3.main)),
+  );
+  group(
+    't03_test.dart',
+    () => unawaited(Future.sync(_i4.main)),
+  );
+}
+''');
+        expect(
+          optimizedTestFile.existsSync(),
+          isTrue,
+        );
+        expect(
+          optimizedTestFile.readAsStringSync(),
+          expectedOutput,
+          reason: 'optimized test '
+              'should generate an optimized test file '
+              'with async test entry points '
+              'for $projectType project',
+        );
+        final testFilesWithAsyncMainFunction = [
+          ['test', 't01_test.dart'],
+          ['test', 't02_test.dart'],
+          ['test', 't03_test.dart'],
+        ];
+        for (final testFilePath in testFilesWithAsyncMainFunction) {
+          verify(
+            () => out.writeln(
+              'Test file ${p.posix.joinAll(testFilePath)} '
+              'has an async `main` function.',
+            ),
+          ).called(1);
+        }
+      }
+    });
+
+    test(
+        '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
+        '| '
+        'generates an optimized test file '
         'preserving annotations', () async {
       final currentDirectory = Directory.current;
       final projectTypes = ['flutter', 'dart'];
@@ -376,6 +476,7 @@ void main() {
         '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName} '
         '| '
         'generates an optimized test file '
+        'excluding files matching the exclude glob '
         'preserving annotations', () async {
       final currentDirectory = Directory.current;
       final projectTypes = ['flutter', 'dart'];
