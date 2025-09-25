@@ -1,0 +1,10 @@
+name: dart_proj_with_async_test_entry_points
+description: A Dart project with async test entry points.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dev_dependencies:
+  test: any

@@ -146,6 +146,7 @@ class OptimizeTestsCommand extends Command<void> {
     };
 
     final testFileGroupsStatements = <coder.Code>[];
+    var hasAsyncEntryPoints = false;
     for (final fileRelativePath in validFileRelativePaths) {
       final fileContent = File(fileRelativePath).absolute.readAsStringSync();
       final result = parseString(
@@ -156,8 +157,9 @@ class OptimizeTestsCommand extends Command<void> {
       final declarations = unit.declarations;
       final functionDeclarations =
           declarations.whereType<FunctionDeclaration>();
-      final mainFunctionDeclaration = functionDeclarations
-          .firstWhereOrNull((declaration) => declaration.name.lexeme == 'main');
+      final mainFunctionDeclaration = functionDeclarations.firstWhereOrNull(
+        (declaration) => declaration.name.lexeme == 'main',
+      );
       if (mainFunctionDeclaration == null) {
         stdout.writeln(
           'Test file $fileRelativePath does not have a `main` function.',
@@ -190,11 +192,34 @@ class OptimizeTestsCommand extends Command<void> {
           ),
         ),
       );
-      final mainFunction = coder.Reference('main', testRelativePath);
+      final testInvocation = () {
+        final mainFunction = coder.Reference('main', testRelativePath);
+        final expression = mainFunctionDeclaration.functionExpression;
+        final mainFunctionIsAsync = () {
+          if (expression.body.isAsynchronous) return true;
+          final returnType = mainFunctionDeclaration.returnType;
+          if (returnType is! NamedType) return false;
+          return returnType.name.lexeme == 'Future';
+        }();
+        if (!mainFunctionIsAsync) return mainFunction;
+        stdout.writeln(
+          'Test file $fileRelativePath has an async `main` function.',
+        );
+        hasAsyncEntryPoints = true;
+        return coder.Method(
+          (b) => b
+            ..lambda = true
+            ..body = const coder.Reference('unawaited').call([
+              const coder.Reference('Future.sync').call([
+                mainFunction,
+              ]),
+            ]).code,
+        ).closure;
+      }();
       final testFileGroupStatement = const coder.Reference('group').call(
         [
           coder.literalString(testRelativePath),
-          mainFunction,
+          testInvocation,
         ],
         {
           if (onPlatform != null)
@@ -240,6 +265,11 @@ class OptimizeTestsCommand extends Command<void> {
     final library = coder.Library(
       (b) => b
         ..directives.addAll([
+          if (hasAsyncEntryPoints)
+            coder.Directive.import(
+              'dart:async',
+              show: const ['unawaited'],
+            ),
           if (useFlutterGoldenTests)
             coder.Directive.import(
               'package:flutter_test/flutter_test.dart',
