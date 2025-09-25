@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 
-Future<void> main() async {
-  test('t03', () async {
+void main() {
+  test('t00', () async {
     // no-op
   });
 }

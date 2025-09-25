@@ -226,7 +226,7 @@ void main() {}
         'generates an optimized test file '
         'with async test entry points', () async {
       final currentDirectory = Directory.current;
-      final projectTypes = ['dart'];
+      final projectTypes = ['dart', 'flutter'];
       for (final projectType in projectTypes) {
         final projectPath = p.joinAll([
           'test',
