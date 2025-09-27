@@ -749,7 +749,7 @@ final class _TestOptimizationAwareGoldenFileComparator
     required this.testOptimizationUnawareGoldenFileComparator,
   });
 
-  final Iterable<String> goldenFilePaths;
+  final List<String> goldenFilePaths;
   final GoldenFileComparator testOptimizationUnawareGoldenFileComparator;
 
   @override
@@ -783,17 +783,18 @@ final class _TestOptimizationAwareGoldenFileComparator
   }
 }
 
-Iterable<String> get _goldenFilePaths sync* {
+List<String> get _goldenFilePaths {
   final comparator = goldenFileComparator;
-  if (comparator is! LocalFileComparator) return;
-  yield* Directory.fromUri(comparator.basedir)
+  if (comparator is! LocalFileComparator) return [];
+  return Directory.fromUri(comparator.basedir)
       .listSync(
         recursive: true,
         followLinks: true,
       )
       .whereType<File>()
       .map((it) => it.path)
-      .where((it) => it.endsWith('.png'));
+      .where((it) => it.endsWith('.png'))
+      .toList();
 }
 ''');
       expect(
