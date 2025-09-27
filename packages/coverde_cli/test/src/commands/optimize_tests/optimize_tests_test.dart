@@ -641,7 +641,7 @@ void main() {
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart' hide group, setUp;
+import 'package:flutter_test/flutter_test.dart' hide group, setUpAll;
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_01_test.dart' as _i1;
@@ -660,7 +660,7 @@ import 'timeout_03_test.dart' as _i13;
 import 'timeout_04_test.dart' as _i14;
 
 void main() {
-  setUp(() {
+  setUpAll(() {
     goldenFileComparator = _TestOptimizationAwareGoldenFileComparator(
       goldenFilePaths: _goldenFilePaths,
       testOptimizationUnawareGoldenFileComparator: goldenFileComparator,

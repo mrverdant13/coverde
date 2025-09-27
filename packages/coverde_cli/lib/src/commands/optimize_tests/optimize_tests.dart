@@ -273,7 +273,7 @@ class OptimizeTestsCommand extends Command<void> {
           if (useFlutterGoldenTests)
             coder.Directive.import(
               'package:flutter_test/flutter_test.dart',
-              hide: const ['group', 'setUp'],
+              hide: const ['group', 'setUpAll'],
             ),
           if (testFileGroupsStatements.isNotEmpty)
             coder.Directive.import('package:test_api/test_api.dart'),
@@ -310,7 +310,7 @@ class OptimizeTestsCommand extends Command<void> {
 }
 
 const _setUpStatement = '''
-setUp(() {
+setUpAll(() {
   goldenFileComparator = _TestOptimizationAwareGoldenFileComparator(
     goldenFilePaths: _goldenFilePaths,
     testOptimizationUnawareGoldenFileComparator: goldenFileComparator,
