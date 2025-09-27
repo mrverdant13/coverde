@@ -641,7 +641,7 @@ void main() {
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart' hide group, setUp;
+import 'package:flutter_test/flutter_test.dart' hide group, setUpAll;
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_01_test.dart' as _i1;
@@ -660,7 +660,7 @@ import 'timeout_03_test.dart' as _i13;
 import 'timeout_04_test.dart' as _i14;
 
 void main() {
-  setUp(() {
+  setUpAll(() {
     goldenFileComparator = _TestOptimizationAwareGoldenFileComparator(
       goldenFilePaths: _goldenFilePaths,
       testOptimizationUnawareGoldenFileComparator: goldenFileComparator,
@@ -749,7 +749,7 @@ final class _TestOptimizationAwareGoldenFileComparator
     required this.testOptimizationUnawareGoldenFileComparator,
   });
 
-  final Iterable<String> goldenFilePaths;
+  final List<String> goldenFilePaths;
   final GoldenFileComparator testOptimizationUnawareGoldenFileComparator;
 
   @override
@@ -783,17 +783,18 @@ final class _TestOptimizationAwareGoldenFileComparator
   }
 }
 
-Iterable<String> get _goldenFilePaths sync* {
+List<String> get _goldenFilePaths {
   final comparator = goldenFileComparator;
-  if (comparator is! LocalFileComparator) return;
-  yield* Directory.fromUri(comparator.basedir)
+  if (comparator is! LocalFileComparator) return [];
+  return Directory.fromUri(comparator.basedir)
       .listSync(
         recursive: true,
         followLinks: true,
       )
       .whereType<File>()
       .map((it) => it.path)
-      .where((it) => it.endsWith('.png'));
+      .where((it) => it.endsWith('.png'))
+      .toList();
 }
 ''');
       expect(
