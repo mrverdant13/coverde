@@ -276,19 +276,27 @@ import 't03_test.dart' as _i4;
 void main() {
   group(
     't00_test.dart',
-    _i1.main,
+    () {
+      _i1.main();
+    },
   );
   group(
     't01_test.dart',
-    () => unawaited(Future.sync(_i2.main)),
+    () {
+      unawaited(Future.sync(_i2.main));
+    },
   );
   group(
     't02_test.dart',
-    () => unawaited(Future.sync(_i3.main)),
+    () {
+      unawaited(Future.sync(_i3.main));
+    },
   );
   group(
     't03_test.dart',
-    () => unawaited(Future.sync(_i4.main)),
+    () {
+      unawaited(Future.sync(_i4.main));
+    },
   );
 }
 ''');
@@ -384,17 +392,23 @@ import 'timeout_04_test.dart' as _i14;
 void main() {
   group(
     'on_platform_01_test.dart',
-    _i1.main,
+    () {
+      _i1.main();
+    },
     onPlatform: {},
   );
   group(
     'on_platform_02_test.dart',
-    _i2.main,
+    () {
+      _i2.main();
+    },
     onPlatform: {'windows': Timeout.factor(2)},
   );
   group(
     'on_platform_03_test.dart',
-    _i3.main,
+    () {
+      _i3.main();
+    },
     onPlatform: {
       'windows': Timeout.factor(2),
       'safari': Skip('Some skip reason'),
@@ -402,57 +416,79 @@ void main() {
   );
   group(
     'skip_01_test.dart',
-    _i4.main,
+    () {
+      _i4.main();
+    },
     skip: true,
   );
   group(
     'skip_02_test.dart',
-    _i5.main,
+    () {
+      _i5.main();
+    },
     skip: 'Skip reason',
   );
   group(
     'tags_01_test.dart',
-    _i6.main,
+    () {
+      _i6.main();
+    },
     tags: [],
   );
   group(
     'tags_02_test.dart',
-    _i7.main,
+    () {
+      _i7.main();
+    },
     tags: ['tag-1', 'tag-2'],
   );
   group(
     'test_on_01_test.dart',
-    _i8.main,
+    () {
+      _i8.main();
+    },
     testOn: '',
   );
   group(
     'test_on_02_test.dart',
-    _i9.main,
+    () {
+      _i9.main();
+    },
     testOn: 'vm',
   );
   group(
     'test_on_03_test.dart',
-    _i10.main,
+    () {
+      _i10.main();
+    },
     testOn: 'browser && !chrome',
   );
   group(
     'timeout_01_test.dart',
-    _i11.main,
+    () {
+      _i11.main();
+    },
     timeout: Timeout(null),
   );
   group(
     'timeout_02_test.dart',
-    _i12.main,
+    () {
+      _i12.main();
+    },
     timeout: Timeout(Duration(seconds: 45)),
   );
   group(
     'timeout_03_test.dart',
-    _i13.main,
+    () {
+      _i13.main();
+    },
     timeout: Timeout.factor(1.5),
   );
   group(
     'timeout_04_test.dart',
-    _i14.main,
+    () {
+      _i14.main();
+    },
     timeout: Timeout.none,
   );
 }
@@ -533,12 +569,16 @@ import 'timeout_04_test.dart' as _i9;
 void main() {
   group(
     'on_platform_02_test.dart',
-    _i1.main,
+    () {
+      _i1.main();
+    },
     onPlatform: {'windows': Timeout.factor(2)},
   );
   group(
     'on_platform_03_test.dart',
-    _i2.main,
+    () {
+      _i2.main();
+    },
     onPlatform: {
       'windows': Timeout.factor(2),
       'safari': Skip('Some skip reason'),
@@ -546,37 +586,51 @@ void main() {
   );
   group(
     'skip_02_test.dart',
-    _i3.main,
+    () {
+      _i3.main();
+    },
     skip: 'Skip reason',
   );
   group(
     'tags_02_test.dart',
-    _i4.main,
+    () {
+      _i4.main();
+    },
     tags: ['tag-1', 'tag-2'],
   );
   group(
     'test_on_02_test.dart',
-    _i5.main,
+    () {
+      _i5.main();
+    },
     testOn: 'vm',
   );
   group(
     'test_on_03_test.dart',
-    _i6.main,
+    () {
+      _i6.main();
+    },
     testOn: 'browser && !chrome',
   );
   group(
     'timeout_02_test.dart',
-    _i7.main,
+    () {
+      _i7.main();
+    },
     timeout: Timeout(Duration(seconds: 45)),
   );
   group(
     'timeout_03_test.dart',
-    _i8.main,
+    () {
+      _i8.main();
+    },
     timeout: Timeout.factor(1.5),
   );
   group(
     'timeout_04_test.dart',
-    _i9.main,
+    () {
+      _i9.main();
+    },
     timeout: Timeout.none,
   );
 }
@@ -641,7 +695,8 @@ void main() {
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart' hide group, setUpAll;
+import 'package:flutter_test/flutter_test.dart' hide group, setUp, tearDown;
+import 'package:path/path.dart' as p;
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_01_test.dart' as _i1;
@@ -660,26 +715,67 @@ import 'timeout_03_test.dart' as _i13;
 import 'timeout_04_test.dart' as _i14;
 
 void main() {
-  setUpAll(() {
-    goldenFileComparator = _TestOptimizationAwareGoldenFileComparator(
-      goldenFilePaths: _goldenFilePaths,
-      testOptimizationUnawareGoldenFileComparator: goldenFileComparator,
-    );
-  });
-
   group(
     'on_platform_01_test.dart',
-    _i1.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i1.main();
+    },
     onPlatform: {},
   );
   group(
     'on_platform_02_test.dart',
-    _i2.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i2.main();
+    },
     onPlatform: {'windows': Timeout.factor(2)},
   );
   group(
     'on_platform_03_test.dart',
-    _i3.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i3.main();
+    },
     onPlatform: {
       'windows': Timeout.factor(2),
       'safari': Skip('Some skip reason'),
@@ -687,114 +783,291 @@ void main() {
   );
   group(
     'skip_01_test.dart',
-    _i4.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i4.main();
+    },
     skip: true,
   );
   group(
     'skip_02_test.dart',
-    _i5.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i5.main();
+    },
     skip: 'Skip reason',
   );
   group(
     'tags_01_test.dart',
-    _i6.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i6.main();
+    },
     tags: [],
   );
   group(
     'tags_02_test.dart',
-    _i7.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i7.main();
+    },
     tags: ['tag-1', 'tag-2'],
   );
   group(
     'test_on_01_test.dart',
-    _i8.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i8.main();
+    },
     testOn: '',
   );
   group(
     'test_on_02_test.dart',
-    _i9.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i9.main();
+    },
     testOn: 'vm',
   );
   group(
     'test_on_03_test.dart',
-    _i10.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i10.main();
+    },
     testOn: 'browser && !chrome',
   );
   group(
     'timeout_01_test.dart',
-    _i11.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i11.main();
+    },
     timeout: Timeout(null),
   );
   group(
     'timeout_02_test.dart',
-    _i12.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i12.main();
+    },
     timeout: Timeout(Duration(seconds: 45)),
   );
   group(
     'timeout_03_test.dart',
-    _i13.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i13.main();
+    },
     timeout: Timeout.factor(1.5),
   );
   group(
     'timeout_04_test.dart',
-    _i14.main,
+    () {
+      late GoldenFileComparator initialGoldenFileComparator;
+
+      setUp(() {
+        initialGoldenFileComparator = goldenFileComparator;
+        goldenFileComparator = _DelegatingGoldenFileComparator(
+          goldensDir: Directory('.'),
+          delegateGoldenFileComparator: initialGoldenFileComparator,
+        );
+      });
+
+      tearDown(() {
+        goldenFileComparator = initialGoldenFileComparator;
+      });
+
+      _i14.main();
+    },
     timeout: Timeout.none,
   );
 }
 
-final class _TestOptimizationAwareGoldenFileComparator
-    extends GoldenFileComparator {
-  _TestOptimizationAwareGoldenFileComparator({
-    required this.goldenFilePaths,
-    required this.testOptimizationUnawareGoldenFileComparator,
+final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
+  _DelegatingGoldenFileComparator({
+    required this.goldensDir,
+    required this.delegateGoldenFileComparator,
   });
 
-  final List<String> goldenFilePaths;
-  final GoldenFileComparator testOptimizationUnawareGoldenFileComparator;
+  final Directory goldensDir;
+  final GoldenFileComparator delegateGoldenFileComparator;
+
+  Uri prependGoldenUri(Uri goldenUri) {
+    return goldenUri.replace(
+      path: p.join(
+        goldensDir.path,
+        goldenUri.path,
+      ),
+    );
+  }
 
   @override
   Future<bool> compare(
     Uint8List imageBytes,
     Uri goldenUri,
-  ) => testOptimizationUnawareGoldenFileComparator.compare(
-    imageBytes,
-    goldenUri,
-  );
+  ) {
+    // Workaround required for web tests,
+    // as they do not use `getTestUri`.
+    final resolvedGoldenUri = isBrowser
+        ? prependGoldenUri(goldenUri)
+        : goldenUri;
+    return delegateGoldenFileComparator.compare(
+      imageBytes,
+      resolvedGoldenUri,
+    );
+  }
 
   @override
   Future<void> update(
     Uri goldenUri,
     Uint8List imageBytes,
-  ) => testOptimizationUnawareGoldenFileComparator.update(
-    goldenUri,
-    imageBytes,
-  );
+  ) {
+    return delegateGoldenFileComparator.update(
+      goldenUri,
+      imageBytes,
+    );
+  }
 
   @override
   Uri getTestUri(
     Uri key,
     int? version,
   ) {
-    final keyString = key.toFilePath();
-    final goldenFilePath = goldenFilePaths.singleWhere(
-      (it) => it.endsWith(keyString),
-    );
-    return Uri.parse(goldenFilePath);
+    final delegateKey = delegateGoldenFileComparator.getTestUri(key, version);
+    final resolvedKey = prependGoldenUri(delegateKey);
+    return resolvedKey;
   }
-}
-
-List<String> get _goldenFilePaths {
-  final comparator = goldenFileComparator;
-  if (comparator is! LocalFileComparator) return [];
-  return Directory.fromUri(comparator.basedir)
-      .listSync(
-        recursive: true,
-        followLinks: true,
-      )
-      .whereType<File>()
-      .map((it) => it.path)
-      .where((it) => it.endsWith('.png'))
-      .toList();
 }
 ''');
       expect(
