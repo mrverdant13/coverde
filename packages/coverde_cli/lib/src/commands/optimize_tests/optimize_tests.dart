@@ -114,7 +114,7 @@ class OptimizeTestsCommand extends Command<void> {
     if (p.basenameWithoutExtension(outputPath).startsWith('.')) {
       stdout.writeln(
         wrapWith(
-          'Beware that tests files starting with a dot may cause issues '
+          'Beware that test files starting with a dot may cause issues '
           'when running them on web platforms.',
           [yellow, styleBold],
         ),
