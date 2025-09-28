@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/optimize_tests/optimize_tests.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -38,6 +39,7 @@ void main() {
     setUp(() {
       cmdRunner = CommandRunner<void>('coverde', 'A tester command runner');
       out = MockStdout();
+      when(() => out.supportsAnsiEscapes).thenReturn(true);
       command = OptimizeTestsCommand();
       cmdRunner.addCommand(command);
     });
@@ -85,6 +87,52 @@ void main() {
         ),
         stdout: () => out,
       );
+    });
+
+    test(
+        '''--${OptimizeTestsCommand.outputOptionName}=<output-path-that-starts-with-a-dot> '''
+        '| '
+        'fails when no pubspec.yaml is found', () async {
+      final currentDirectory = Directory.current;
+      final projectTypes = ['flutter', 'dart'];
+      for (final projectType in projectTypes) {
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          '${projectType}_proj_with_no_tests',
+        ]);
+        final projectTestsDirectory = Directory(p.join(projectPath, 'test'));
+        if (projectTestsDirectory.existsSync()) {
+          projectTestsDirectory.deleteSync(recursive: true);
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              command.name,
+              '--${OptimizeTestsCommand.outputOptionName}=test/.optimized_test.dart',
+            ]);
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
+
+        verify(() => out.supportsAnsiEscapes);
+        verify(
+          () => out.writeln(
+            wrapWith(
+              'Beware that test files starting with a dot may cause issues '
+              'when running them on web platforms.',
+              [yellow, styleBold],
+            ),
+          ),
+        ).called(1);
+      }
     });
 
     test(
