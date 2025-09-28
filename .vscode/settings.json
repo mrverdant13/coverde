@@ -1,0 +1,40 @@
+{
+  "cSpell.import": [
+    "${workspaceRoot}/.cspell/cspell.yaml",
+  ],
+  "yaml.schemas": {
+    "https://json.schemastore.org/pubspec.json": [
+      "pubspec.yaml",
+      "*.pubspec.yaml",
+      "*_pubspec.yaml",
+      "pubspec_*.yaml",
+      "pubspec.*.yaml",
+    ],
+    "https://json.schemastore.org/dart-build": [
+      "build.yaml",
+      "*.build.yaml",
+      "*_build.yaml",
+      "build.*.yaml",
+      "build_*.yaml",
+    ],
+    // HACK: Disable warns and errors for the analysis configuration file.
+    // There is no registered schema for analysis configuration file,
+    // so an empty schema is used to avoid warns and errors.
+    // Besides that, the Dart extension for VSCode already provides
+    // a built-in schema for the analysis configuration file.
+    ".vscode/dummy-yaml-schema.json": [
+      "analysis_options.yaml",
+    ],
+  },
+  "[yaml]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true,
+    },
+  },
+}
