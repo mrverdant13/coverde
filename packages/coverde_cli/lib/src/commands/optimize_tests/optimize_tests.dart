@@ -122,6 +122,13 @@ class OptimizeTestsCommand extends Command<void> {
       return Glob(pattern, context: p.posix);
     }();
 
+    final isFlutterPackage = switch (pubspec.dependencies['flutter']) {
+      final SdkDependency dep => dep.sdk == 'flutter',
+      _ => false,
+    };
+    final useFlutterGoldenTests =
+        argResults.flag(useFlutterGoldenTestsFlagName) && isFlutterPackage;
+
     final fileRelativePaths = projectDir
         .listSync(recursive: true)
         .whereType<File>()
@@ -193,7 +200,6 @@ class OptimizeTestsCommand extends Command<void> {
         ),
       );
       final testInvocation = () {
-        final mainFunction = coder.Reference('main', testRelativePath);
         final expression = mainFunctionDeclaration.functionExpression;
         final mainFunctionIsAsync = () {
           if (expression.body.isAsynchronous) return true;
@@ -201,19 +207,45 @@ class OptimizeTestsCommand extends Command<void> {
           if (returnType is! NamedType) return false;
           return returnType.name.lexeme == 'Future';
         }();
-        if (!mainFunctionIsAsync) return mainFunction;
-        stdout.writeln(
-          'Test file $fileRelativePath has an async `main` function.',
-        );
-        hasAsyncEntryPoints = true;
+        hasAsyncEntryPoints |= mainFunctionIsAsync;
+        final setUpInvocation = () {
+          if (!useFlutterGoldenTests) return null;
+          return coder.Code(
+            '''
+late GoldenFileComparator initialGoldenFileComparator;
+
+setUp(() {
+  initialGoldenFileComparator = goldenFileComparator;
+  goldenFileComparator = _DelegatingGoldenFileComparator(
+    goldensDir: Directory(${coder.literalString(p.dirname(testRelativePath))}),
+    delegateGoldenFileComparator: initialGoldenFileComparator,
+  );
+});
+
+tearDown(() {
+  goldenFileComparator = initialGoldenFileComparator;
+});
+''',
+          );
+        }();
+        final mainInvocation = () {
+          final mainFunction = coder.Reference('main', testRelativePath);
+          if (!mainFunctionIsAsync) return mainFunction.call([]);
+          stdout.writeln(
+            'Test file $fileRelativePath has an async `main` function.',
+          );
+          return const coder.Reference('unawaited').call([
+            const coder.Reference('Future.sync').call([
+              mainFunction,
+            ]),
+          ]);
+        }();
         return coder.Method(
           (b) => b
-            ..lambda = true
-            ..body = const coder.Reference('unawaited').call([
-              const coder.Reference('Future.sync').call([
-                mainFunction,
-              ]),
-            ]).code,
+            ..body = coder.Block.of([
+              if (setUpInvocation != null) setUpInvocation,
+              mainInvocation.statement,
+            ]),
         ).closure;
       }();
       final testFileGroupStatement = const coder.Reference('group').call(
@@ -246,51 +278,52 @@ class OptimizeTestsCommand extends Command<void> {
       ).statement;
       testFileGroupsStatements.add(testFileGroupStatement);
     }
-    final isFlutterPackage = switch (pubspec.dependencies['flutter']) {
-      final SdkDependency dep => dep.sdk == 'flutter',
-      _ => false,
-    };
-    final useFlutterGoldenTests =
-        argResults.flag(useFlutterGoldenTestsFlagName) &&
-            isFlutterPackage &&
-            testFileGroupsStatements.isNotEmpty;
     final mainFunction = coder.Method.returnsVoid(
       (b) => b
         ..name = 'main'
         ..body = coder.Block.of([
-          if (useFlutterGoldenTests) const coder.Code(_setUpStatement),
           ...testFileGroupsStatements,
         ]),
     );
     final library = coder.Library(
-      (b) => b
-        ..directives.addAll([
-          if (hasAsyncEntryPoints)
-            coder.Directive.import(
-              'dart:async',
-              show: const ['unawaited'],
-            ),
-          if (useFlutterGoldenTests)
-            coder.Directive.import(
-              'package:flutter_test/flutter_test.dart',
-              hide: const ['group', 'setUpAll'],
-            ),
-          if (testFileGroupsStatements.isNotEmpty)
+      (b) {
+        if (testFileGroupsStatements.isNotEmpty) {
+          b.directives.addAll([
             coder.Directive.import('package:test_api/test_api.dart'),
-          if (useFlutterGoldenTests) ...[
-            coder.Directive.import('dart:io'),
-            coder.Directive.import('dart:typed_data'),
-          ],
-        ])
-        ..ignoreForFile.addAll([
-          'type=lint',
-          if (testFileGroupsStatements.isNotEmpty) 'deprecated_member_use',
-        ])
-        ..body.addAll([
-          mainFunction,
-          if (useFlutterGoldenTests)
-            const coder.Code(_goldenFileComparatorClassDefinition),
-        ]),
+            if (hasAsyncEntryPoints)
+              coder.Directive.import(
+                'dart:async',
+                show: const ['unawaited'],
+              ),
+            if (useFlutterGoldenTests) ...[
+              coder.Directive.import(
+                'dart:io',
+              ),
+              coder.Directive.import(
+                'dart:typed_data',
+              ),
+              coder.Directive.import(
+                'package:flutter_test/flutter_test.dart',
+                hide: const ['group', 'setUp', 'tearDown'],
+              ),
+              coder.Directive.import(
+                'package:path/path.dart',
+                as: 'p',
+              ),
+            ],
+          ]);
+        }
+        b
+          ..ignoreForFile.addAll([
+            'type=lint',
+            if (testFileGroupsStatements.isNotEmpty) 'deprecated_member_use',
+          ])
+          ..body.addAll([
+            mainFunction,
+            if (testFileGroupsStatements.isNotEmpty && useFlutterGoldenTests)
+              const coder.Code(_goldenFileComparatorClassDefinition),
+          ]);
+      },
     );
     final emitter = coder.DartEmitter.scoped(
       orderDirectives: true,
@@ -309,69 +342,61 @@ class OptimizeTestsCommand extends Command<void> {
   }
 }
 
-const _setUpStatement = '''
-setUpAll(() {
-  goldenFileComparator = _TestOptimizationAwareGoldenFileComparator(
-    goldenFilePaths: _goldenFilePaths,
-    testOptimizationUnawareGoldenFileComparator: goldenFileComparator,
-  );
-});
-''';
-
 const _goldenFileComparatorClassDefinition = '''
-final class _TestOptimizationAwareGoldenFileComparator
-    extends GoldenFileComparator {
-  _TestOptimizationAwareGoldenFileComparator({
-    required this.goldenFilePaths,
-    required this.testOptimizationUnawareGoldenFileComparator,
+final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
+  _DelegatingGoldenFileComparator({
+    required this.goldensDir,
+    required this.delegateGoldenFileComparator,
   });
 
-  final List<String> goldenFilePaths;
-  final GoldenFileComparator testOptimizationUnawareGoldenFileComparator;
+  final Directory goldensDir;
+  final GoldenFileComparator delegateGoldenFileComparator;
+
+  Uri prependGoldenUri(Uri goldenUri) {
+    return goldenUri.replace(
+      path: p.join(
+        goldensDir.path,
+        goldenUri.path,
+      ),
+    );
+  }
 
   @override
   Future<bool> compare(
     Uint8List imageBytes,
     Uri goldenUri,
-  ) => testOptimizationUnawareGoldenFileComparator.compare(
-    imageBytes,
-    goldenUri,
-  );
+  ) {
+    // Workaround required for web tests,
+    // as they do not use `getTestUri`.
+    final resolvedGoldenUri = isBrowser
+        ? prependGoldenUri(goldenUri)
+        : goldenUri;
+    return delegateGoldenFileComparator.compare(
+      imageBytes,
+      resolvedGoldenUri,
+    );
+  }
 
   @override
   Future<void> update(
     Uri goldenUri,
     Uint8List imageBytes,
-  ) => testOptimizationUnawareGoldenFileComparator.update(
-    goldenUri,
-    imageBytes,
-  );
+  ) {
+    return delegateGoldenFileComparator.update(
+      goldenUri,
+      imageBytes,
+    );
+  }
 
   @override
   Uri getTestUri(
     Uri key,
     int? version,
   ) {
-    final keyString = key.toFilePath();
-    final goldenFilePath = goldenFilePaths.singleWhere(
-      (it) => it.endsWith(keyString),
-    );
-    return Uri.parse(goldenFilePath);
+    final delegateKey = delegateGoldenFileComparator.getTestUri(key, version);
+    final resolvedKey = prependGoldenUri(delegateKey);
+    return resolvedKey;
   }
-}
-
-List<String> get _goldenFilePaths {
-  final comparator = goldenFileComparator;
-  if (comparator is! LocalFileComparator) return [];
-  return Directory.fromUri(comparator.basedir)
-      .listSync(
-        recursive: true,
-        followLinks: true,
-      )
-      .whereType<File>()
-      .map((it) => it.path)
-      .where((it) => it.endsWith('.png'))
-      .toList();
 }
 ''';
 
