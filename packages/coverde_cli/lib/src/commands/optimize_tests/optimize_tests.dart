@@ -8,6 +8,7 @@ import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
+import 'package:io/ansi.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -110,6 +111,15 @@ class OptimizeTestsCommand extends Command<void> {
     final pubspecRawContent = pubspecFile.readAsStringSync();
     final pubspec = Pubspec.parse(pubspecRawContent);
     final outputPath = argResults.option(outputOptionName)!;
+    if (p.basenameWithoutExtension(outputPath).startsWith('.')) {
+      stdout.writeln(
+        wrapWith(
+          'Beware that tests files starting with a dot may cause issues '
+          'when running them on web platforms.',
+          [yellow, styleBold],
+        ),
+      );
+    }
     final outputFile = File(p.join(projectDir.path, outputPath));
     if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
     final includeGlob = () {
