@@ -34,223 +34,206 @@ $ dart pub global activate coverde
 ---
 
 # Features
-
-- [**Optimize tests by gathering them**](#coverde-optimize-tests)
-- [**Check coverage value computed from a trace file**](#coverde-check)
-- [**Filter the tested files included in a trace file**](#coverde-filter)
-- [**Remove a set of files and folders**](#coverde-remove)
-- [**Generate HTML coverage report**](#coverde-report)
-- [**Compute and display the coverage value from a trace file**](#coverde-value)
+<!-- CLI FEATURES -->
+- [**Optimize tests by gathering them.**](#coverde-optimize-tests)
+- [**Check the coverage value (%) computed from a trace file.**](#coverde-check)
+- [**Filter a coverage trace file.**](#coverde-filter)
+- [**Generate the coverage report from a trace file.**](#coverde-report)
+- [**Remove a set of files and folders.**](#coverde-remove)
+- [**Compute the coverage value (%) of an info file.**](#coverde-value)
 
 ## `coverde optimize-tests`
 
-**Optimize tests by gathering them.**
+Optimize tests by gathering them.
 
 ### Options
+
+#### Single-options
 
 - `--include`
 
   The glob pattern for the tests files to include.\
-  Default value: `test/**_test.dart`
+  **Default value:** `test/**_test.dart`
 
 - `--exclude`
 
-  The glob pattern for the tests files to exclude.\
+  The glob pattern for the tests files to exclude.
 
 - `--output`
 
   The path to the optimized tests file.\
-  Default value: `test/optimized_test.dart`
+  **Default value:** `test/optimized_test.dart`
+
+#### Flags
 
 - `--flutter-goldens`
 
   Whether to use golden tests in case of a Flutter package.\
-  Default value: `true`
+  **Default value:** _Enabled_
 
-### Examples
-
-- `coverde optimize-tests`
-- `coverde optimize-tests --filter='^test\/(?!.*fixtures\/).*_test\.dart' --output=test/optimized_test.dart`
-- `coverde optimize-tests --flutter-goldens=false`
 
 ## `coverde check`
 
-**Check coverage value computed from a trace file.**
+Check the coverage value (%) computed from a trace file.
+
+The unique argument should be an integer between 0 and 100.\
+This parameter indicates the minimum value for the coverage to be accepted.
 
 ### Options
 
-- `--input` | `-i`
+#### Single-options
+
+- `--input`
 
   Trace file used for the coverage check.\
-  Default value: `coverage/lcov.info`
+  **Default value:** `coverage/lcov.info`
 
 - `--file-coverage-log-level`
 
-  The log level for the coverage value for each source file listed in the input trace file.\
-  Default value: `line-content`\
-  Allowed values: `none`, `overview`, `line-numbers`, `line-content`
-
-### Parameters
-
-- `<min_coverage>`
-
-  An integer between 0 and 100 used as minimum acceptable coverage value.\
-  This value is required.
-
+  The log level for the coverage value for each source file listed in the LCOV_FILE info file.\
+  **Default value:** `line-content`\
+  **Allowed values:**
+    - `none`: Log nothing.
+    - `overview`: Log the overview of the coverage value for the file.
+    - `line-numbers`: Log only the uncovered line numbers.
+    - `line-content`: Log the uncovered line numbers and their content.
 ### Examples
 
-- `coverde check 90`
-- `coverde check -i lcov.info 75`
-- `coverde check 100 --file-coverage-log-level none`
+![coverde check 50](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-50.png)
+![coverde check --file-coverage-log-level line-numbers 100](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-file-coverage-log-level-line-numbers-100.png)
+![coverde check -i coverage/custom.lcov.info --file-coverage-log-level none 75](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
 
-### Results
-
-![Check example (pass)][_docs_coverde_check_example_1]
-
-![Check example (fail)][_docs_coverde_check_example_2]
 
 ## `coverde filter`
 
-**Filter the tested files included in a trace file.**
+Filter a coverage trace file.
+
+Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.\
+The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
+
+All the relative paths in the resulting coverage trace file will be prefixed with PATHS_PARENT, if provided.\
+If an absolute path is found in the coverage trace file, the process will fail.
 
 ### Options
 
-- `--input` | `-i`
+#### Single-options
 
-  Coverage trace file to be filtered.\
-  Default value: `coverage/lcov.info`
+- `--input`
 
-- `--output` | `-o`
+  Origin coverage info file to pick coverage data from.\
+  **Default value:** `coverage/lcov.info`
 
-  Filtered coverage trace file (automatically created if it is absent).\
-  Default value: `coverage/filtered.lcov.info`
+- `--output`
 
-- `--paths-parent` | `-p`
+  Destination coverage info file to dump the resulting coverage data into.\
+  **Default value:** `coverage/filtered.lcov.info`
 
-  Prefix of the resulting filtered paths.\
-  Default value: _Unset_
+- `--paths-parent`
 
-- `--filters` | `-f`
+  Path to be used to prefix all the paths in the resulting coverage trace file.
 
-  Set of comma-separated patterns of the files to be opted out of coverage.\
-  Default value: _Unset_
+- `--mode`
 
-- `--mode` | `-m`
+  The mode in which the OUTPUT_LCOV_FILE can be generated.\
+  **Default value:** `a`\
+  **Allowed values:**
+    - `a`: Append filtered content to the OUTPUT_LCOV_FILE content, if any.
+    - `w`: Override the OUTPUT_LCOV_FILE content, if any, with the filtered content.
 
-  The mode in which the filtered trace file content should be generated.\
-  `a`: append content.\
-  `w`: overwrite content.\
-  Default value: `a` (append content)
+#### Multi-options
 
-### Examples
+- `--filters`
 
-- `coverde filter`
-- `coverde filter -f '\.g\.dart'`
-- `coverde filter -f '\.freezed\.dart' -mode w`
-- `coverde filter -f generated -mode a`
-- `coverde filter -o coverage/trace-file.info`
+  Set of comma-separated path patterns of the files to be ignored.\
+  **Default value:** _None_
 
-## `coverde remove`
-
-**Remove a set of files and folders.**
-
-### Flags
-
-- `--accept-absence`
-
-  Set the command behavior according to a file/folder existence.\
-  If enabled, the command continues and notifies the element absence.\
-  If disabled, the command fails.\
-  Use `--no-accept-absence` to disable this flag.\
-  Default value: _Enabled_
-
-## Parameters
-
-- `<paths>`
-
-  Set of paths to be removed.\
-  Multiple paths can be specified by separating them with a space.\
-  This value is required.
-
-### Examples
-
-- `coverde remove file.txt`
-- `coverde remove path/to/folder/`
-- `coverde remove path/to/another.file.txt path/to/another/folder/ local.folder/`
 
 ## `coverde report`
 
-**Generate HTML coverage report.**
+Generate the coverage report from a trace file.
+
+Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 ### Options
 
-- `--input` | `-i`
+#### Single-options
 
-  Coverage trace file to be used as source for report generation.\
-  Default value: `coverage/lcov.info`
+- `--input`
 
-- `--output` | `-o`
+  Coverage trace file to be used for the coverage report generation.\
+  **Default value:** `coverage/lcov.info`
 
-  Destination folder where the generated report files will be placed.\
-  Default value: `coverage/html/`
+- `--output`
+
+  Destination directory where the generated coverage report will be stored.\
+  **Default value:** `coverage/html/`
 
 - `--medium`
 
-  Medium threshold for coverage value.\
-  Default value: `75`
+  Medium threshold.\
+  **Default value:** `75`
 
 - `--high`
 
-  High threshold for coverage value.\
-  Default value: `90`
+  High threshold.\
+  **Default value:** `90`
 
-> [!NOTE]
-> The report style is dynamically set according to individual, group and global coverage and the `--medium` and `--high` options.
+#### Flags
 
-### Flags
+- `--launch`
 
-- `--launch` | `-l`
+  Launch the generated report in the default browser.
+  (defaults to off)\
+  **Default value:** _Disabled_
 
-  Whether to launch the generated report in the default browser.\
-  Use `--no-launch` to disable this flag.\
-  Default value: _Disabled_
 
-### Examples
+## `coverde remove`
 
-- `coverde report`
-- `coverde report -i coverage/trace-file.info --medium 50`
-- `coverde report -o coverage/report --high 95 -l`
-
-### Results
-
-![Report example (directory)][_docs_coverde_report_example_1]
-
-![Report example (file)][_docs_coverde_report_example_2]
-
-## `coverde value`
-
-**Compute and display the coverage value from a trace file.**
+Remove a set of files and folders.
 
 ### Options
 
-- `--input` | `-i`
+#### Flags
 
-  Coverage trace file to be used for coverage value computation.\
-  Default value: `coverage/lcov.info`
+- `--accept-absence`
 
-### Flags
+  Accept absence of a file or folder.
+  When an element is not present:
+  - If enabled, the command will continue.
+  - If disabled, the command will fail.\
+  **Default value:** _Enabled_
+
+
+## `coverde value`
+
+Compute the coverage value (%) of an info file.
+
+Compute the coverage value of the LCOV_FILE info file.
+
+### Options
+
+#### Single-options
+
+- `--input`
+
+  Coverage info file to be used for the coverage value computation.\
+  **Default value:** `coverage/lcov.info`
 
 - `--file-coverage-log-level`
 
-  The log level for the coverage value for each source file referenced in the trace file.\
-  Default value: `line-content`\
-  Allowed values: `none`, `overview`, `line-numbers`, `line-content`
-
+  The log level for the coverage value for each source file listed in the LCOV_FILE info file.\
+  **Default value:** `line-content`\
+  **Allowed values:**
+    - `none`: Log nothing.
+    - `overview`: Log the overview of the coverage value for the file.
+    - `line-numbers`: Log only the uncovered line numbers.
+    - `line-content`: Log the uncovered line numbers and their content.
 ### Examples
 
-- `coverde value`
-- `coverde value -i coverage/trace-file.info --file-coverage-log-level none`
-- `coverde value --file-coverage-log-level line-numbers`
+![coverde value --file-coverage-log-level line-numbers](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value-file-coverage-log-level-line-numbers.png)
+![coverde value -i coverage/custom.lcov.info --file-coverage-log-level none](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
+![coverde value](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value.png)
+<!-- CLI FEATURES -->
 
 ---
 
