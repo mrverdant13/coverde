@@ -233,6 +233,7 @@ Compute the coverage value of the LCOV_FILE info file.
             ].join(),
             '├  9 | }',
             '├ 10 | ',
+            '├ •• | •••',
             [
               '├ ',
               wrapWith(
