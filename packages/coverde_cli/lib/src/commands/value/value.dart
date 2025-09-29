@@ -126,8 +126,14 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           out.writeln(fileCovData.coverageDataString);
           final sourceLines = fileCovData.source.absolute.readAsLinesSync();
           final sourceLinesCount = sourceLines.length;
+          final lineNumberColumnWidth = '$sourceLinesCount'.length;
           final uncoveredLineRanges = fileCovData.uncoveredLineRanges;
-          for (final uncoveredLineRange in uncoveredLineRanges) {
+          final indexedUncoveredLineRanges = uncoveredLineRanges.indexed;
+          for (final (index, uncoveredLineRange)
+              in indexedUncoveredLineRanges) {
+            if (index > 0) {
+              out.writeln('├ ${'•' * lineNumberColumnWidth} | •••');
+            }
             for (final lineWithStatus in uncoveredLineRange) {
               final FileLineCoverageDetails(
                 :lineNumber,
@@ -140,7 +146,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
                 FileLineCoverageStatus.neutral => <AnsiCode>[],
               };
               final lineNumberSegment = wrapWith(
-                '$lineNumber'.padLeft('$sourceLinesCount'.length),
+                '$lineNumber'.padLeft(lineNumberColumnWidth),
                 styles,
               );
               final contentSegment = wrapWith(
@@ -170,7 +176,7 @@ extension on CovFile {
   }
 
   Iterable<Iterable<FileLineCoverageDetails>> get uncoveredLineRanges {
-    const maxGap = 4;
+    const maxGap = 5;
     const surroundingLines = 2;
     final sourceLines = source.absolute.readAsLinesSync();
     final sourceLinesCount = sourceLines.length;

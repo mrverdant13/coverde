@@ -28,14 +28,14 @@ void _logError(Object error, [Object? stackTrace]) {
   stderr.writeln(
     wrapWith(
       error.toString(),
-      [backgroundBlack, lightRed, styleBold],
+      [lightRed, styleBold],
     ),
   );
   if (stackTrace != null) {
     stderr.writeln(
       wrapWith(
         stackTrace.toString(),
-        [backgroundBlack, lightRed],
+        [lightRed],
       ),
     );
   }
