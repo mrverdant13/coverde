@@ -227,30 +227,4 @@ extension on String {
     );
     return markdownLines.join('\n');
   }
-
-  String get asSlug {
-    return toLowerCase()
-        .trim()
-        // Remove accents/diacritics
-        .replaceAllMapped(
-          // cspell:disable
-          RegExp('[àáâãäçèéêëìíîïñòóôõöùúûüýÿ]'),
-          (match) {
-            const from = 'àáâãäçèéêëìíîïñòóôõöùúûüýÿ';
-            const to = 'aaaaaceeeeiiiinooooouuuuyy';
-            return to[from.indexOf(match[0]!)];
-          },
-          // cspell:enable
-        )
-        // Replace special chars with hyphens
-        .replaceAll(RegExp(r'[^\w\s-]'), '-')
-        // Replace whitespace with single hyphen
-        .replaceAll(RegExp(r'\s+'), '-')
-        // Replace underscores with hyphens
-        .replaceAll('_', '-')
-        // Remove consecutive hyphens
-        .replaceAll(RegExp('-+'), '-')
-        // Remove leading/trailing hyphens
-        .replaceAll(RegExp(r'^-+|-+$'), '');
-  }
 }
