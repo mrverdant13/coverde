@@ -20,39 +20,17 @@ Future<void> main(List<String> args) async {
 
   final parser = ArgParser(allowTrailingOptions: false)
     ..addOption(
-      'readme-output',
+      'readme',
       mandatory: true,
     )
-    ..addMultiOption(
-      'termshot-commands',
-      allowed: [for (final command in commands) command.name],
-    )
     ..addOption(
-      'termshot-output',
-    )
-    ..addOption(
-      'termshot-working-directory',
+      'terminal-examples-dir',
     );
   final argResults = parser.parse(args);
-  final outputPath = argResults.option('readme-output')!;
-  final termshotCommands = argResults.multiOption('termshot-commands');
-  final termshotOutputPath = argResults.option('termshot-output');
-  final termshotWorkingDirectory =
-      argResults.option('termshot-working-directory');
-  if (termshotCommands.isNotEmpty && termshotOutputPath == null) {
-    throw ArgumentError(
-      'termshot-output is required '
-      'when termshot-commands is provided',
-    );
-  }
-  if (termshotCommands.isNotEmpty && termshotWorkingDirectory == null) {
-    throw ArgumentError(
-      'termshot-working-directory is required '
-      'when termshot-commands is provided',
-    );
-  }
+  final readmePath = argResults.option('readme')!;
+  final terminalExamplesDirPath = argResults.option('terminal-examples-dir');
 
-  final readmeFile = File(outputPath);
+  final readmeFile = File(readmePath);
   final initialReadmeContent = readmeFile.readAsStringSync();
 
   const featuresToken = '<!-- CLI FEATURES -->';
@@ -66,74 +44,46 @@ Future<void> main(List<String> args) async {
     throw StateError('Features section not found in root readme');
   }
 
+  final terminalExampleFiles = terminalExamplesDirPath == null
+      ? <File>[]
+      : Directory(terminalExamplesDirPath).listSync().whereType<File>();
+
   final features = await Future.wait([
     for (final command in commands)
       Future(() async {
+        final commandInvocation = '${runner.executableName} ${command.name}';
         final detailsBuffer = StringBuffer();
         final overview = [
           '- [**${command.summary}**]',
-          '(#${'${runner.executableName} ${command.name}'.paramCase})',
+          '(#${commandInvocation.paramCase})',
         ].join();
         detailsBuffer
-          ..writeln('## `${runner.executableName} ${command.name}`')
+          ..writeln('## `$commandInvocation`')
           ..writeln()
           ..writeln(command.asMarkdownMultiline);
-        final examplesCommands = termshotCommands.contains(command.name)
-            ? examplesByCommand[command.name] ?? <String>[]
-            : <String>[];
-        await () async {
-          final exampleResults = await Future.wait([
-            if (termshotOutputPath != null)
-              for (final exampleCommand in examplesCommands)
-                Future(() async {
-                  final fullCommand = [
-                    runner.executableName,
-                    command.name,
-                    if (exampleCommand.isNotEmpty) exampleCommand,
-                  ].join(' ');
-                  final imageFileName = p.setExtension(
-                    fullCommand.asSlug,
-                    '.png',
-                  );
-                  final imageFilePath = p.joinAll([
-                    termshotOutputPath,
-                    imageFileName,
-                  ]);
-                  final [executable, ...arguments] = [
-                    'termshot',
-                    '--show-cmd',
-                    '--filename',
-                    imageFilePath,
-                    '--',
-                    ...fullCommand.split(' '),
-                  ];
-                  await Process.run(
-                    executable,
-                    arguments,
-                    workingDirectory: termshotWorkingDirectory,
-                  );
-                  return (
-                    fullCommand: fullCommand,
-                    imageFilePath: imageFilePath,
-                  );
-                }),
-          ]);
-          final validExampleResults = exampleResults.nonNulls;
-          if (validExampleResults.isEmpty) return null;
+        final commandExampleFiles = terminalExampleFiles.where(
+          (file) {
+            final name = p.basenameWithoutExtension(file.path);
+            final extension = p.extension(file.path);
+            return name.startsWith(commandInvocation.paramCase) &&
+                extension == '.png';
+          },
+        );
+        if (commandExampleFiles.isNotEmpty) {
           detailsBuffer
             ..writeln('### Examples')
             ..writeln();
-          for (final exampleResult in validExampleResults) {
-            final imageRelativePath = p.relative(
-              exampleResult.imageFilePath,
-              from: p.dirname(outputPath),
+          for (final commandExampleFile in commandExampleFiles) {
+            final referenceableExamplePath = p.relative(
+              commandExampleFile.path,
+              from: p.dirname(readmePath),
             );
             detailsBuffer.writeln(
-              '![${exampleResult.fullCommand}]'
-              '(${p.url.joinAll([gitUrl, imageRelativePath])})',
+              '![${p.basename(commandExampleFile.path)}]'
+              '(${p.url.joinAll([gitUrl, referenceableExamplePath])})',
             );
           }
-        }();
+        }
         return (
           overview: overview,
           details: detailsBuffer.toString(),
@@ -304,39 +254,3 @@ extension on String {
         .replaceAll(RegExp(r'^-+|-+$'), '');
   }
 }
-
-const Map<String, List<String>> examplesByCommand = {
-  'optimize-tests': [
-    "--exclude='test/**/fixtures/**' --output=test/optimized_tests.dart",
-    "--include='test/**/some_feature/**_test.dart' --output=test/optimized_tests.dart",
-    '--no-flutter-goldens',
-    '',
-  ],
-  'check': [
-    '50',
-    '--file-coverage-log-level line-numbers 100',
-    '-i coverage/custom.lcov.info --file-coverage-log-level none 75',
-  ],
-  'filter': [
-    '',
-    "-f '.g.dart'",
-    "-f '.freezed.dart' --mode w",
-    '-f generated --mode a',
-    '-o coverage/trace-file.info',
-  ],
-  'report': [
-    '',
-    '-i coverage/trace-file.info --medium 50',
-    '-o coverage/report --high 95 -l',
-  ],
-  'remove': [
-    'file.txt',
-    'path/to/folder/',
-    'path/to/another.file.txt path/to/another/folder/ local.folder/',
-  ],
-  'value': [
-    '--file-coverage-log-level line-numbers',
-    '-i coverage/custom.lcov.info --file-coverage-log-level none',
-    '',
-  ],
-};

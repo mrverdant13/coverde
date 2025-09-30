@@ -99,9 +99,9 @@ This parameter indicates the minimum value for the coverage to be accepted.
     - `line-content`: Log the uncovered line numbers and their content.
 ### Examples
 
-![coverde check 50](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-50.png)
-![coverde check --file-coverage-log-level line-numbers 100](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-file-coverage-log-level-line-numbers-100.png)
-![coverde check -i coverage/custom.lcov.info --file-coverage-log-level none 75](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
+![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
+![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
+![coverde-check-file-coverage-log-level-line-numbers-100.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
 
 
 ## `coverde filter`
@@ -230,9 +230,9 @@ Compute the coverage value of the LCOV_FILE info file.
     - `line-content`: Log the uncovered line numbers and their content.
 ### Examples
 
-![coverde value --file-coverage-log-level line-numbers](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value-file-coverage-log-level-line-numbers.png)
-![coverde value -i coverage/custom.lcov.info --file-coverage-log-level none](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
-![coverde value](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/gen/coverde-value.png)
+![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
+![coverde-value-file-coverage-log-level-line-numbers.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
+![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 <!-- CLI FEATURES -->
 
 ---
