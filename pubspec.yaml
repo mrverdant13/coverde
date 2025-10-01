@@ -9,6 +9,10 @@ dev_dependencies:
   melos: ^7.1.1
 
 melos:
+  categories:
+    tools:
+      - tools/**
+
   command:
     clean:
       hooks:
