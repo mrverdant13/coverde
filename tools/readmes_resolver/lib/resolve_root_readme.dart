@@ -138,8 +138,13 @@ extension on Iterable<Option> {
         _ => null,
       };
       if (typeHeading == null) {
-        stdout.writeln('Unknown option type: $type');
-        continue;
+        throw UnsupportedError(
+          'Unknown option type encountered: $type.\n'
+          'Please update the asMarkdownMultiline extension in resolve_root_readme.dart '
+          'to handle this new option type. This error prevents incomplete or incorrect '
+          'documentation output. If you recently updated the args package or introduced '
+          'a new OptionType, ensure it is handled here.'
+        );
       }
       buf
         ..writeln('#### $typeHeading')
