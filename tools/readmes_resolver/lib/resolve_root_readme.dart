@@ -140,10 +140,11 @@ extension on Iterable<Option> {
       if (typeHeading == null) {
         throw UnsupportedError(
           'Unknown option type encountered: $type.\n'
-          'Please update the asMarkdownMultiline extension in resolve_root_readme.dart '
-          'to handle this new option type. This error prevents incomplete or incorrect '
-          'documentation output. If you recently updated the args package or introduced '
-          'a new OptionType, ensure it is handled here.'
+          'Please update the asMarkdownMultiline extension in '
+          '`resolve_root_readme.dart` to handle this new option type.\n'
+          'This error prevents incomplete or incorrect documentation output.\n'
+          'If you recently updated the args package or introduced a new '
+          'OptionType, ensure it is handled here.',
         );
       }
       buf
