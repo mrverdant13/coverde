@@ -1,0 +1,8 @@
+/.dart_tool/**
+/coverage/**
+/pubspec.lock
+/test/optimized_test.dart
+/test/optimized_tests.dart
+
+!/coverage/custom.lcov.info
+!/coverage/lcov.info

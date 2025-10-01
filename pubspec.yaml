@@ -9,6 +9,10 @@ dev_dependencies:
   melos: ^7.1.1
 
 melos:
+  categories:
+    tools:
+      - tools/**
+
   command:
     clean:
       hooks:
@@ -143,8 +147,15 @@ melos:
       description: Run full CI workflow
       run: melos run S && melos run FA:ci && melos run TMC:ci && melos run P:ci
 
+    # Documentation
+    docs.root:
+      description: Resolve root README file
+      run: >
+        dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/browser/ --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/
+
 workspace:
   - packages/coverde_cli/
   - packages/package_assets_generator/
   - packages/package_data_generator/
   - packages/pub_score_checker/
+  - tools/readmes_resolver/

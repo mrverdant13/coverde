@@ -1,0 +1,7 @@
+include: package:very_good_analysis/analysis_options.yaml
+analyzer:
+  exclude:
+    - lib/sample_project/**
+linter:
+  rules:
+    public_member_api_docs: false

@@ -6,3 +6,5 @@ lcov
 melos
 mrverdant13
 pubspec
+recase
+termshot

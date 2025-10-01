@@ -1,0 +1,44 @@
+name: resolve_readmes
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/resolve_readmes.yaml
+      - packages/coverde_cli/README.md
+      - melos.yaml
+      - README.md
+      - tools/readmes_resolver/**
+
+jobs:
+  resolve-root-readme:
+    name: Resolve root README
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        run: dart pub global activate melos 7.1.1
+      - name: Initialize READMEs resolver
+        run: melos bs --scope=readmes_resolver
+      - name: Resolve root README file
+        run: melos run docs.root
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: main
+          add-paths: |
+            ./README.md
+          branch: docs/update-root-readme
+          commit-message: "docs: update root README"
+          title: "docs: update root README"
+          body: Update root README.
+          delete-branch: true
+          author: Coverde Bot <coverde.bot@users.noreply.github.com>
+          committer: Coverde Bot <coverde.bot@users.noreply.github.com>
+          assignees: mrverdant13
+          reviewers: mrverdant13
