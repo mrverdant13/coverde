@@ -8,6 +8,7 @@ import 'package:coverde/coverde.dart' as coverde;
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart' as recase;
 
+// TODO(mrverdant13): Resolve or pass the git URL as an argument.
 const gitUrl =
     '''https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli''';
 
