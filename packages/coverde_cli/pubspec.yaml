@@ -11,13 +11,13 @@ topics:
   - lcov
 screenshots:
   - description: Coverage report example (directory)
-    path: doc/report_directory_example.png
+    path: doc/browser/coverde-report-dir.png
   - description: Coverage report example (file)
-    path: doc/report_file_example.png
-  - description: Coverage check example (passing)
-    path: doc/check_result_pass.png
-  - description: Coverage check example (failing)
-    path: doc/check_result_fail.png
+    path: doc/browser/coverde-report-file.png
+  - description: Coverage check example
+    path: doc/terminal/coverde-check-50.png
+  - description: Coverage value example
+    path: doc/terminal/coverde-value-file-coverage-log-level-line-numbers.png
 resolution: workspace
 
 environment:
