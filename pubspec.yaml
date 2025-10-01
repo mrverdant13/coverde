@@ -147,7 +147,7 @@ melos:
     docs.root:
       description: Resolve root README file
       run: >
-        dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md --terminal-examples-dir=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/
+        dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/browser/ --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/
 
 workspace:
   - packages/coverde_cli/

@@ -97,6 +97,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
     - `overview`: Log the overview of the coverage value for the file.
     - `line-numbers`: Log only the uncovered line numbers.
     - `line-content`: Log the uncovered line numbers and their content.
+
 ### Examples
 
 ![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
@@ -186,6 +187,11 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
   (defaults to off)\
   **Default value:** _Disabled_
 
+### Examples
+
+![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
+![coverde-report-file.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-file.png)
+
 
 ## `coverde remove`
 
@@ -228,6 +234,7 @@ Compute the coverage value of the LCOV_FILE info file.
     - `overview`: Log the overview of the coverage value for the file.
     - `line-numbers`: Log only the uncovered line numbers.
     - `line-content`: Log the uncovered line numbers and their content.
+
 ### Examples
 
 ![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)

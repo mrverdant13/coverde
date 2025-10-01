@@ -23,12 +23,12 @@ Future<void> main(List<String> args) async {
       'readme',
       mandatory: true,
     )
-    ..addOption(
-      'terminal-examples-dir',
+    ..addMultiOption(
+      'example-dirs',
     );
   final argResults = parser.parse(args);
   final readmePath = argResults.option('readme')!;
-  final terminalExamplesDirPath = argResults.option('terminal-examples-dir');
+  final exampleDirPaths = argResults.multiOption('example-dirs');
 
   final readmeFile = File(readmePath);
   final initialReadmeContent = readmeFile.readAsStringSync();
@@ -44,9 +44,9 @@ Future<void> main(List<String> args) async {
     throw StateError('Features section not found in root readme');
   }
 
-  final terminalExampleFiles = terminalExamplesDirPath == null
-      ? <File>[]
-      : Directory(terminalExamplesDirPath).listSync().whereType<File>();
+  final exampleFiles = exampleDirPaths
+      .map((path) => Directory(path).listSync().whereType<File>())
+      .expand((it) => it);
 
   final features = await Future.wait([
     for (final command in commands)
@@ -61,7 +61,7 @@ Future<void> main(List<String> args) async {
           ..writeln('## `$commandInvocation`')
           ..writeln()
           ..writeln(command.asMarkdownMultiline);
-        final commandExampleFiles = terminalExampleFiles.where(
+        final commandExampleFiles = exampleFiles.where(
           (file) {
             final name = p.basenameWithoutExtension(file.path);
             final extension = p.extension(file.path);
@@ -71,6 +71,7 @@ Future<void> main(List<String> args) async {
         );
         if (commandExampleFiles.isNotEmpty) {
           detailsBuffer
+            ..writeln()
             ..writeln('### Examples')
             ..writeln();
           for (final commandExampleFile in commandExampleFiles) {
