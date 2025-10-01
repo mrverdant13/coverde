@@ -172,7 +172,7 @@ extension on Option {
       final bool defaults => '_${defaults ? 'Enabled' : 'Disabled'}_',
       final List<String> defaults when defaults.isEmpty => '_None_',
       final List<String> defaults =>
-        '`${defaults.map((value) => '`$value`').join(', ')}`',
+        defaults.map((value) => '`$value`').join(', '),
       final defaults => '`$defaults`',
     };
 
