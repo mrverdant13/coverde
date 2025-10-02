@@ -8,19 +8,15 @@ import 'package:universal_io/io.dart';
 class RmCommand extends CoverdeCommand {
   /// {@macro rm_cmd}
   RmCommand({Stdout? out}) : _out = out ?? stdout {
-    argParser
-          ..addSeparator('[paths]')
-          ..addFlag(
-            acceptAbsenceFlag,
-            help: '''
+    argParser.addFlag(
+      acceptAbsenceFlag,
+      help: '''
 Accept absence of a file or folder.
 When an element is not present:
 - If enabled, the command will continue.
 - If disabled, the command will fail.''',
-            defaultsTo: true,
-          )
-        //
-        ;
+      defaultsTo: true,
+    );
   }
 
   final Stdout _out;
@@ -38,12 +34,6 @@ Remove a set of files and folders.''';
 
   @override
   List<String> get aliases => ['rm'];
-
-  @override
-  String get invocation => super.invocation.replaceAll(
-        '[arguments]',
-        '[${params.identifier}]',
-      );
 
   @override
   CoverdeCommandParams get params => CoverdeCommandParams(
