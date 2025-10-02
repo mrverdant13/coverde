@@ -87,7 +87,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     if (args.length > 1) usageException('Too many arguments.');
     final coverageThresholdStr = args.firstOrNull;
     if (coverageThresholdStr == null) {
-      usageException('Missing minimum coverage threshold.');
+      throw ArgumentError('Missing minimum coverage threshold.');
     }
     final maybeCoverageThreshold = double.tryParse(coverageThresholdStr);
     if (maybeCoverageThreshold == null) {
