@@ -46,7 +46,7 @@ $ dart pub global activate coverde
 
 Optimize tests by gathering them.
 
-### Options
+### Arguments
 
 #### Single-options
 
@@ -79,7 +79,7 @@ Check the coverage value (%) computed from a trace file.
 The unique argument should be an integer between 0 and 100.\
 This parameter indicates the minimum value for the coverage to be accepted.
 
-### Options
+### Arguments
 
 #### Single-options
 
@@ -90,7 +90,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 - `--file-coverage-log-level`
 
-  The log level for the coverage value for each source file listed in the LCOV_FILE info file.\
+  The log level for the coverage value for each source file listed in the `input` info file.\
   **Default value:** `line-content`\
   **Allowed values:**
     - `none`: Log nothing.
@@ -98,10 +98,16 @@ This parameter indicates the minimum value for the coverage to be accepted.
     - `line-numbers`: Log only the uncovered line numbers.
     - `line-content`: Log the uncovered line numbers and their content.
 
+#### Parameters
+
+- `min-coverage`
+
+  The minimum coverage value to be accepted. It should be an integer between 0 and 100.
+
 ### Examples
 
-![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
 ![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
+![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
 ![coverde-check-file-coverage-log-level-line-numbers-100.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
 
 
@@ -115,7 +121,7 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
 All the relative paths in the resulting coverage trace file will be prefixed with PATHS_PARENT, if provided.\
 If an absolute path is found in the coverage trace file, the process will fail.
 
-### Options
+### Arguments
 
 #### Single-options
 
@@ -155,7 +161,7 @@ Generate the coverage report from a trace file.
 
 Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
-### Options
+### Arguments
 
 #### Single-options
 
@@ -189,15 +195,15 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 ### Examples
 
-![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
 ![coverde-report-file.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-file.png)
+![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
 
 
 ## `coverde remove`
 
 Remove a set of files and folders.
 
-### Options
+### Arguments
 
 #### Flags
 
@@ -209,6 +215,12 @@ Remove a set of files and folders.
   - If disabled, the command will fail.\
   **Default value:** _Enabled_
 
+#### Parameters
+
+- `paths`
+
+  Set of file and/or directory paths to be removed.
+
 
 ## `coverde value`
 
@@ -216,7 +228,7 @@ Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the LCOV_FILE info file.
 
-### Options
+### Arguments
 
 #### Single-options
 
@@ -237,9 +249,9 @@ Compute the coverage value of the LCOV_FILE info file.
 
 ### Examples
 
+![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 ![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
 ![coverde-value-file-coverage-log-level-line-numbers.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
-![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 <!-- CLI FEATURES -->
 
 ---
