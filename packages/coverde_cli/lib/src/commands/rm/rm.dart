@@ -1,11 +1,11 @@
-import 'package:args/command_runner.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template rm_cmd}
 /// A generic subcommand to remove a set of files and/or folders.
 /// {@endtemplate}
-class RmCommand extends Command<void> {
+class RmCommand extends CoverdeCommand {
   /// {@macro rm_cmd}
   RmCommand({Stdout? out}) : _out = out ?? stdout {
     argParser.addFlag(
@@ -36,9 +36,9 @@ Remove a set of files and folders.''';
   List<String> get aliases => ['rm'];
 
   @override
-  String get invocation => super.invocation.replaceAll(
-        '[arguments]',
-        '[paths]',
+  CoverdeCommandParams get params => CoverdeCommandParams(
+        identifier: 'paths',
+        description: 'Set of file and/or directory paths to be removed.',
       );
 
   @override

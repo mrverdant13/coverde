@@ -1,6 +1,5 @@
-import 'package:args/command_runner.dart';
-import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/trace_file.dart';
@@ -12,22 +11,21 @@ import 'package:universal_io/io.dart';
 /// {@template check_cmd}
 /// A command to check the minimum coverage value from a trace file.
 /// {@endtemplate}
-class CheckCommand extends Command<void> {
+class CheckCommand extends CoverdeCommand {
   /// {@macro check_cmd}
   CheckCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
       ..addOption(
-        inputOption,
-        abbr: inputOption[0],
+        inputOptionName,
+        abbr: inputOptionAbbreviation,
         help: '''
 Trace file used for the coverage check.''',
-        valueHelp: _inputHelpValue,
         defaultsTo: 'coverage/lcov.info',
       )
       ..addOption(
-        fileCoverageLogLevelFlag,
+        fileCoverageLogLevelOptionName,
         help: '''
-The log level for the coverage value for each source file listed in the $_inputHelpValue info file.''',
+The log level for the coverage value for each source file listed in the `$inputOptionName` info file.''',
         allowedHelp: {
           for (final logLevel in FileCoverageLogLevel.values)
             logLevel.identifier: logLevel.help,
@@ -38,15 +36,18 @@ The log level for the coverage value for each source file listed in the $_inputH
 
   final Stdout _out;
 
-  static const _inputHelpValue = 'LCOV_FILE';
-
   /// Option name for the trace file whose coverage value should be checked.
   @visibleForTesting
-  static const inputOption = 'input';
+  static const inputOptionName = 'input';
+
+  /// Option abbreviation for the trace file whose coverage value should be
+  /// checked.
+  @visibleForTesting
+  static const inputOptionAbbreviation = 'i';
 
   /// Option name for the log level for the coverage value for each source file.
   @visibleForTesting
-  static const fileCoverageLogLevelFlag = 'file-coverage-log-level';
+  static const fileCoverageLogLevelOptionName = 'file-coverage-log-level';
 
   @override
   String get description => '''
@@ -59,12 +60,10 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
   String get name => 'check';
 
   @override
-  List<String> get aliases => [name[0]];
-
-  @override
-  String get invocation => super.invocation.replaceAll(
-        '[arguments]',
-        '[min-coverage]',
+  CoverdeCommandParams get params => CoverdeCommandParams(
+        identifier: 'min-coverage',
+        description: 'The minimum coverage value to be accepted. '
+            'It should be an integer between 0 and 100.',
       );
 
   @override
@@ -72,13 +71,13 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     final argResults = this.argResults!;
     final filePath = () {
       final rawFilePath = argResults.option(
-        inputOption,
+        inputOptionName,
       )!;
       return p.absolute(rawFilePath);
     }();
     final fileCoverageLogLevel = () {
       final rawFileCoverageLogLevel = argResults.option(
-        fileCoverageLogLevelFlag,
+        fileCoverageLogLevelOptionName,
       )!;
       return FileCoverageLogLevel.values.firstWhere(
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
@@ -88,11 +87,11 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     if (args.length > 1) usageException('Too many arguments.');
     final coverageThresholdStr = args.firstOrNull;
     if (coverageThresholdStr == null) {
-      usageException('Missing minimum coverage threshold.');
+      throw ArgumentError('Missing minimum coverage threshold.');
     }
     final maybeCoverageThreshold = double.tryParse(coverageThresholdStr);
     if (maybeCoverageThreshold == null) {
-      usageException('Invalid minimum coverage threshold.');
+      throw ArgumentError('Invalid minimum coverage threshold.');
     }
     final coverageThreshold = maybeCoverageThreshold.checkedAsCoverage(
       valueName: 'coverage threshold',

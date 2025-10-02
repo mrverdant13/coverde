@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - .github/workflows/resolve_readmes.yaml
-      - packages/coverde_cli/README.md
+      - packages/coverde_cli/**
       - melos.yaml
       - README.md
       - tools/readmes_resolver/**

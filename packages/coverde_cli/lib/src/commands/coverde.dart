@@ -1,32 +1,16 @@
-import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/check/check.dart';
-import 'package:coverde/src/commands/filter/filter.dart';
-import 'package:coverde/src/commands/optimize_tests/optimize_tests.dart';
-import 'package:coverde/src/commands/report/report.dart';
-import 'package:coverde/src/commands/rm/rm.dart';
-import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/commands/coverde_command_runner.dart';
 import 'package:coverde/src/utils/package_data.dart';
 import 'package:io/ansi.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:universal_io/io.dart';
 
-@internal
-final runner = CommandRunner<void>(
-  packageName,
-  'A set of commands that encapsulate coverage-related functionalities.',
-) //
-  ..addCommand(OptimizeTestsCommand())
-  ..addCommand(CheckCommand())
-  ..addCommand(FilterCommand())
-  ..addCommand(ReportCommand())
-  ..addCommand(RmCommand())
-  ..addCommand(ValueCommand());
+export 'coverde_command.dart';
+export 'coverde_command_runner.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
 Future<void> coverde(List<String> args) async {
-  await runner.run(args);
+  await CoverdeCommandRunner().run(args);
   await _checkUpdates();
 }
 
