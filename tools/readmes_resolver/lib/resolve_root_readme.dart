@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-import 'package:coverde/coverde.dart' as coverde;
+import 'package:coverde/coverde.dart';
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart' as recase;
 
@@ -13,11 +12,8 @@ const gitUrl =
     '''https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli''';
 
 Future<void> main(List<String> args) async {
-  // Accessing the internal runner is required to access its details.
-  // ignore: invalid_use_of_internal_member
-  final runner = coverde.runner;
-  final commands =
-      runner.commands.values.where((command) => command.name != 'help').toSet();
+  final runner = CoverdeCommandRunner();
+  final commands = runner.featureCommands.values.toSet();
 
   final parser = ArgParser(allowTrailingOptions: false)
     ..addOption(
@@ -107,15 +103,27 @@ $featuresToken
   readmeFile.writeAsStringSync(readmeContentWithFeatures);
 }
 
-extension on Command<dynamic> {
+extension on CoverdeCommand {
   String get asMarkdownMultiline {
     final buf = StringBuffer()..writeln(description.asMarkdownMultiline);
     final optionsAsMarkdownMultiline =
         argParser.options.values.asMarkdownMultiline;
+    final paramsAsMarkdownMultiline = params?.asMarkdownMultiline;
+    if (optionsAsMarkdownMultiline != null ||
+        paramsAsMarkdownMultiline != null) {
+      buf
+        ..writeln()
+        ..writeln('### Arguments');
+    }
     if (optionsAsMarkdownMultiline != null) {
       buf
         ..writeln()
         ..writeln(optionsAsMarkdownMultiline);
+    }
+    if (paramsAsMarkdownMultiline != null) {
+      buf
+        ..writeln()
+        ..writeln(paramsAsMarkdownMultiline);
     }
     return buf.toString().trim();
   }
@@ -127,9 +135,6 @@ extension on Iterable<Option> {
     final options = where((option) => option.name != 'help');
     if (options.isEmpty) return null;
     final optionGroups = options.groupListsBy((option) => option.type);
-    buf
-      ..writeln('### Options')
-      ..writeln();
     for (final MapEntry(key: type, value: options) in optionGroups.entries) {
       if (options.isEmpty) continue;
       final typeHeading = switch (type) {
@@ -157,6 +162,18 @@ extension on Iterable<Option> {
           ..writeln();
       }
     }
+    return buf.toString().trim();
+  }
+}
+
+extension on CoverdeCommandParams {
+  String get asMarkdownMultiline {
+    final buf = StringBuffer()
+      ..writeln('#### Parameters')
+      ..writeln()
+      ..writeln('- `$identifier`')
+      ..writeln()
+      ..writeln(description.asMarkdownMultiline.indent(2));
     return buf.toString().trim();
   }
 }
