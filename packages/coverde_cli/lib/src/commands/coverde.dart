@@ -95,7 +95,7 @@ abstract class CoverdeCommand extends Command<void> {
             '[$identifier]',
           ),
       null => super.invocation.replaceAll(
-            r'\w*[arguments]',
+            r'\s*\[arguments\]',
             '',
           ),
     };
