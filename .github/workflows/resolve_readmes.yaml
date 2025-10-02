@@ -1,4 +1,4 @@
-name: resolve_readmes
+name: Resolve READMEs
 
 on:
   workflow_dispatch: {}
@@ -13,8 +13,8 @@ on:
       - tools/readmes_resolver/**
 
 jobs:
-  resolve-root-readme:
-    name: Resolve root README
+  resolve-cli-readme:
+    name: Resolve CLI README
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -25,18 +25,18 @@ jobs:
         run: dart pub global activate melos 7.1.1
       - name: Initialize READMEs resolver
         run: melos bs --scope=readmes_resolver
-      - name: Resolve root README file
-        run: melos run docs.root
+      - name: Resolve CLI README file
+        run: melos run docs.cli
       - name: Create PR
         uses: peter-evans/create-pull-request@v7
         with:
           base: main
           add-paths: |
-            ./README.md
-          branch: docs/update-root-readme
-          commit-message: "docs: update root README"
-          title: "docs: update root README"
-          body: Update root README.
+            ./packages/coverde_cli/README.md
+          branch: docs/update-cli-readme
+          commit-message: "docs: update CLI README"
+          title: "docs: update CLI README"
+          body: Update CLI README.
           delete-branch: true
           author: Coverde Bot <coverde.bot@users.noreply.github.com>
           committer: Coverde Bot <coverde.bot@users.noreply.github.com>
