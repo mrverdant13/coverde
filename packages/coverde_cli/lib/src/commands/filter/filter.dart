@@ -1,4 +1,4 @@
-import 'package:args/command_runner.dart';
+import 'package:coverde/coverde.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -7,7 +7,7 @@ import 'package:universal_io/io.dart';
 /// {@template filter_cmd}
 /// A command to filter coverage info files.
 /// {@endtemplate}
-class FilterCommand extends Command<void> {
+class FilterCommand extends CoverdeCommand {
   /// {@macro filter_cmd}
   FilterCommand({Stdout? out}) : _out = out ?? stdout {
     argParser

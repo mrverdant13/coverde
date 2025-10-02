@@ -1,22 +1,26 @@
-import 'package:args/command_runner.dart';
+import 'package:coverde/coverde.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template rm_cmd}
 /// A generic subcommand to remove a set of files and/or folders.
 /// {@endtemplate}
-class RmCommand extends Command<void> {
+class RmCommand extends CoverdeCommand {
   /// {@macro rm_cmd}
   RmCommand({Stdout? out}) : _out = out ?? stdout {
-    argParser.addFlag(
-      acceptAbsenceFlag,
-      help: '''
+    argParser
+          ..addSeparator('[paths]')
+          ..addFlag(
+            acceptAbsenceFlag,
+            help: '''
 Accept absence of a file or folder.
 When an element is not present:
 - If enabled, the command will continue.
 - If disabled, the command will fail.''',
-      defaultsTo: true,
-    );
+            defaultsTo: true,
+          )
+        //
+        ;
   }
 
   final Stdout _out;
@@ -38,7 +42,13 @@ Remove a set of files and folders.''';
   @override
   String get invocation => super.invocation.replaceAll(
         '[arguments]',
-        '[paths]',
+        '[${params.identifier}]',
+      );
+
+  @override
+  CoverdeCommandParams get params => CoverdeCommandParams(
+        identifier: 'paths',
+        description: 'Set of file and/or directory paths to be removed.',
       );
 
   @override

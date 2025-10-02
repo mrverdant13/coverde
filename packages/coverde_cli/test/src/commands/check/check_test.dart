@@ -54,7 +54,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
       );
 
       test(
-        '''--${CheckCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.none.identifier} '''
+        '''--${CheckCommand.fileCoverageLogLevelOptionName}=${FileCoverageLogLevel.none.identifier} '''
         '''<min_coverage> '''
         '''| meets the minimum coverage''',
         () async {
@@ -73,7 +73,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
             () async {
               await cmdRunner.run([
                 checkCmd.name,
-                '--${CheckCommand.fileCoverageLogLevelFlag}',
+                '--${CheckCommand.fileCoverageLogLevelOptionName}',
                 FileCoverageLogLevel.none.identifier,
                 '${50}',
               ]);
@@ -119,7 +119,7 @@ THEN the trace file coverage should be checked and disapproved
                 () async {
                   await cmdRunner.run([
                     checkCmd.name,
-                    '--${CheckCommand.fileCoverageLogLevelFlag}',
+                    '--${CheckCommand.fileCoverageLogLevelOptionName}',
                     FileCoverageLogLevel.none.identifier,
                     '${75}',
                   ]);
@@ -157,7 +157,7 @@ THEN an error indicating the issue should be thrown
           // ACT
           Future<void> action() => cmdRunner.run([
                 checkCmd.name,
-                '--${CheckCommand.inputOption}',
+                '--${CheckCommand.inputOptionName}',
                 absentFilePath,
                 '$minCoverage',
               ]);
@@ -180,7 +180,7 @@ THEN an error indicating the issue should be thrown
           Future<void> action() => cmdRunner.run([checkCmd.name]);
 
           // ASSERT
-          expect(action, throwsA(isA<UsageException>()));
+          expect(action, throwsArgumentError);
         },
       );
 
@@ -202,7 +202,7 @@ THEN an error indicating the issue should be thrown
               ]);
 
           // ASSERT
-          expect(action, throwsA(isA<UsageException>()));
+          expect(action, throwsArgumentError);
         },
       );
     },

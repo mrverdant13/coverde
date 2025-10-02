@@ -1,5 +1,5 @@
-import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
+import 'package:coverde/coverde.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/file_line_coverage_details.dart';
@@ -12,7 +12,7 @@ import 'package:universal_io/io.dart';
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
 /// {@endtemplate}
-class ValueCommand extends Command<void> {
+class ValueCommand extends CoverdeCommand {
   /// {@macro filter_cmd}
   ValueCommand({Stdout? out}) : _out = out ?? stdout {
     argParser
@@ -73,7 +73,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     final fileCoverageLogLevel = () {
       final rawFileCoverageLogLevel = argResults.option(
         fileCoverageLogLevelFlag,
-      )!;
+      );
       return FileCoverageLogLevel.values.firstWhere(
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
       );

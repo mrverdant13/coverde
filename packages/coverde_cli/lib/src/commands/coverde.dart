@@ -7,26 +7,13 @@ import 'package:coverde/src/commands/rm/rm.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/utils/package_data.dart';
 import 'package:io/ansi.dart';
-import 'package:meta/meta.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:universal_io/io.dart';
-
-@internal
-final runner = CommandRunner<void>(
-  packageName,
-  'A set of commands that encapsulate coverage-related functionalities.',
-) //
-  ..addCommand(OptimizeTestsCommand())
-  ..addCommand(CheckCommand())
-  ..addCommand(FilterCommand())
-  ..addCommand(ReportCommand())
-  ..addCommand(RmCommand())
-  ..addCommand(ValueCommand());
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
 Future<void> coverde(List<String> args) async {
-  await runner.run(args);
+  await CoverdeCommandRunner().run(args);
   await _checkUpdates();
 }
 
@@ -65,4 +52,69 @@ ${lightGray.wrap(packageVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
         );
     }
   } on Object catch (_) {}
+}
+
+/// {@template coverde_cli.coverde_command_runner}
+/// The runner for the coverde command.
+/// {@endtemplate}
+class CoverdeCommandRunner extends CommandRunner<void> {
+  /// {@macro coverde_cli.coverde_command_runner}
+  CoverdeCommandRunner()
+      : super(
+          packageName,
+          'A set of commands that '
+          'encapsulate coverage-related functionalities.',
+        ) {
+    addCommand(OptimizeTestsCommand());
+    addCommand(CheckCommand());
+    addCommand(FilterCommand());
+    addCommand(ReportCommand());
+    addCommand(RmCommand());
+    addCommand(ValueCommand());
+  }
+
+  /// The commands that encapsulate actual functionality.
+  Map<String, CoverdeCommand> get featureCommands => {
+        for (final MapEntry(:key, :value) in super.commands.entries)
+          if (value is CoverdeCommand) key: value,
+      };
+}
+
+/// {@template coverde_cli.coverde_command}
+/// A base coverde command.
+/// {@endtemplate}
+abstract class CoverdeCommand extends Command<void> {
+  /// The parameters for the command.
+  CoverdeCommandParams? get params => null;
+
+  @override
+  String get invocation {
+    return switch (params) {
+      CoverdeCommandParams(:final identifier) => super.invocation.replaceAll(
+            '[arguments]',
+            '[$identifier]',
+          ),
+      null => super.invocation.replaceAll(
+            r'\w*[arguments]',
+            '',
+          ),
+    };
+  }
+}
+
+/// {@template coverde_cli.coverde_command_params}
+/// The parameters for a [CoverdeCommand].
+/// {@endtemplate}
+class CoverdeCommandParams {
+  /// {@macro coverde_cli.coverde_command_params}
+  CoverdeCommandParams({
+    required this.identifier,
+    required this.description,
+  });
+
+  /// The identifier for the command parameters.
+  final String identifier;
+
+  /// The description for the command parameters.
+  final String description;
 }
