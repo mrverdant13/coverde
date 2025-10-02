@@ -1,7 +1,7 @@
-import 'package:args/command_runner.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -12,7 +12,7 @@ import 'package:universal_io/io.dart';
 /// {@template report_cmd}
 /// A command to generate the coverage report from a given trace file.
 /// {@endtemplate}
-class ReportCommand extends Command<void> {
+class ReportCommand extends CoverdeCommand {
   /// {@macro report_cmd}
   ReportCommand({
     Stdout? out,
