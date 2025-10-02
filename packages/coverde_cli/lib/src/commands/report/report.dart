@@ -1,7 +1,7 @@
-import 'package:coverde/coverde.dart';
 import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';

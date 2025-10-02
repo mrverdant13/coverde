@@ -1,4 +1,4 @@
-import 'package:coverde/coverde.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 

@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/coverde.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/file_line_coverage_details.dart';

@@ -1,5 +1,5 @@
-import 'package:coverde/coverde.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/trace_file.dart';

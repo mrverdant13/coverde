@@ -5,7 +5,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
-import 'package:coverde/coverde.dart';
+import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
 import 'package:io/ansi.dart';
