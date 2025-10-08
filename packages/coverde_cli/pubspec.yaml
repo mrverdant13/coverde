@@ -47,9 +47,9 @@ dev_dependencies:
   csslib: ^1.0.2
   mocktail: ^1.0.4
   package_assets_generator:
-    path: ../package_assets_generator
+    path: ../../tools/package_assets_generator/
   package_data_generator:
-    path: ../package_data_generator
+    path: ../../tools/package_data_generator/
   test: ^1.26.3
   very_good_analysis: ^10.0.0
 
