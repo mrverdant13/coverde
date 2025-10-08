@@ -128,7 +128,7 @@ melos:
 
     p:
       description: Check pub score for a selected package.
-      run: dart run MELOS_ROOT_PATH/packages/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20
+      run: dart run MELOS_ROOT_PATH/tools/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20
       exec:
         concurrency: 1
       packageFilters:
@@ -138,7 +138,7 @@ melos:
       run: melos run p --no-select
     P:ci:
       description: Check pub score.
-      run: melos exec --fail-fast --scope="coverde*" -- "dart run MELOS_ROOT_PATH/packages/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20"
+      run: melos exec --fail-fast --scope="coverde*" -- "dart run MELOS_ROOT_PATH/tools/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20"
 
     WF:
       description: Run full local workflow
@@ -155,7 +155,7 @@ melos:
 
 workspace:
   - packages/coverde_cli/
-  - packages/package_assets_generator/
-  - packages/package_data_generator/
-  - packages/pub_score_checker/
+  - tools/package_assets_generator/
+  - tools/package_data_generator/
+  - tools/pub_score_checker/
   - tools/readmes_resolver/
