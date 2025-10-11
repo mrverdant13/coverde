@@ -11,7 +11,9 @@ dev_dependencies:
 melos:
   categories:
     tools:
-      - tools/**
+      - ./tools/**
+    e2e:
+      - ./**/e2e/**
 
   command:
     clean:
@@ -155,6 +157,7 @@ melos:
 
 workspace:
   - packages/coverde_cli/
+  - packages/coverde_cli/e2e/
   - tools/package_assets_generator/
   - tools/package_data_generator/
   - tools/pub_score_checker/

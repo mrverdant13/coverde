@@ -1,0 +1,14 @@
+name: coverde_cli_e2e
+description: End to End tests for package:coverde_cli
+version: 0.1.0+1
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.5.0
+
+dev_dependencies:
+  coverde:
+    path: ../
+  path: ^1.9.1
+  test: ^1.26.3
