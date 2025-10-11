@@ -133,9 +133,13 @@ class OptimizeTestsCommand extends CoverdeCommand {
     }();
 
     final isFlutterPackage = switch (pubspec.dependencies['flutter']) {
-      final SdkDependency dep => dep.sdk == 'flutter',
-      _ => false,
-    };
+          final SdkDependency dep => dep.sdk == 'flutter',
+          _ => false,
+        } ||
+        switch (pubspec.devDependencies['flutter_test']) {
+          final SdkDependency dep => dep.sdk == 'flutter',
+          _ => false,
+        };
     final useFlutterGoldenTests =
         argResults.flag(useFlutterGoldenTestsFlagName) && isFlutterPackage;
 
