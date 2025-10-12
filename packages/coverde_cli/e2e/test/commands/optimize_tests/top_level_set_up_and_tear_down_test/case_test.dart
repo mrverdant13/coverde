@@ -49,7 +49,7 @@ void main() {
           );
         }();
         final stderrMessages = <String>[];
-        await (
+        final (exitCode, _) = await (
           process.exitCode,
           process.stderr.forEach((data) {
             final message = utf8.decode(data);
@@ -83,7 +83,7 @@ void main() {
           );
         }();
         final stderrMessages = <String>[];
-        await (
+        final (exitCode, _) = await (
           process.exitCode,
           process.stderr.forEach((data) {
             final message = utf8.decode(data);
@@ -148,7 +148,7 @@ void main() {
         }();
         final stdoutMessages = <String>[];
         final stderrMessages = <String>[];
-        await (
+        final (exitCode, _, _) = await (
           process.exitCode,
           process.stdout.forEach((data) {
             final message = utf8.decode(data);
@@ -197,7 +197,7 @@ void main() {
         }();
         final stdoutMessages = <String>[];
         final stderrMessages = <String>[];
-        await (
+        final (exitCode, _, _) = await (
           process.exitCode,
           process.stdout.forEach((data) {
             final message = utf8.decode(data);
