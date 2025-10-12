@@ -704,39 +704,41 @@ void main() {
         'preserving annotations and '
         'adding golden tests setup', () async {
       final currentDirectory = Directory.current;
-      final projectPath = p.joinAll([
-        'test',
-        'src',
-        'commands',
-        'optimize_tests',
-        'fixtures',
-        'flutter_proj_with_annotated_test_files_and_golden_tests',
-      ]);
-      final optimizedTestFile = File(
-        p.join(projectPath, 'test', 'optimized_test.dart'),
-      );
-      if (optimizedTestFile.existsSync()) {
-        optimizedTestFile.deleteSync(recursive: true);
-      }
+      final projectTypes = ['explicit', 'implicit'];
+      for (final projectType in projectTypes) {
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          '''${projectType}_flutter_proj_with_annotated_test_files_and_golden_tests''',
+        ]);
+        final optimizedTestFile = File(
+          p.join(projectPath, 'test', 'optimized_test.dart'),
+        );
+        if (optimizedTestFile.existsSync()) {
+          optimizedTestFile.deleteSync(recursive: true);
+        }
 
-      await IOOverrides.runZoned(
-        () async {
-          await cmdRunner.run([
-            command.name,
-            '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
-          ]);
-        },
-        getCurrentDirectory: () => Directory(
-          p.join(currentDirectory.path, projectPath),
-        ),
-        stdout: () => out,
-      );
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              command.name,
+              '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
+            ]);
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+          stdout: () => out,
+        );
 
-      final formatter = DartFormatter(
-        languageVersion: DartFormatter.latestLanguageVersion,
-        trailingCommas: TrailingCommas.preserve,
-      );
-      final expectedOutput = formatter.format('''
+        final formatter = DartFormatter(
+          languageVersion: DartFormatter.latestLanguageVersion,
+          trailingCommas: TrailingCommas.preserve,
+        );
+        final expectedOutput = formatter.format('''
 // ignore_for_file: deprecated_member_use, type=lint
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
@@ -1118,18 +1120,22 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
   }
 }
 ''');
-      expect(
-        optimizedTestFile.existsSync(),
-        isTrue,
-      );
-      expect(
-        optimizedTestFile.readAsStringSync(),
-        expectedOutput,
-        reason: 'optimized test '
-            'should preserve annotations and '
-            'add golden tests setup '
-            'for flutter project',
-      );
+        expect(
+          optimizedTestFile.existsSync(),
+          isTrue,
+          reason: 'optimized test '
+              'should exist '
+              'for $projectType flutter project',
+        );
+        expect(
+          optimizedTestFile.readAsStringSync(),
+          expectedOutput,
+          reason: 'optimized test '
+              'should preserve annotations and '
+              'add golden tests setup '
+              'for $projectType flutter project',
+        );
+      }
     });
   });
 }

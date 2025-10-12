@@ -1,3 +1,4 @@
 # Allowed words for CI files
 codecov
 mrverdant13
+subosito

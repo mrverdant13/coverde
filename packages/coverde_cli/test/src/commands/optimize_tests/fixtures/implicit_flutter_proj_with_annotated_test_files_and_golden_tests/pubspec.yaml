@@ -1,0 +1,11 @@
+name: implicit_flutter_proj_with_annotated_test_files_and_golden_tests
+description: An Implicit Flutter project with annotated test files and golden tests.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,0 +1,31 @@
+name: E2E testing
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  e2e:
+    name: E2E testing
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+      - name: Install melos
+        run: dart pub global activate melos 7.1.1
+      - name: Initialize E2E tests
+        run: melos bs --category=e2e
+      - name: Run E2E tests
+        run: melos run test.e2e.all

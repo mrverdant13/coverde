@@ -1,0 +1,7 @@
+reporter: compact
+
+tags:
+  e2e:
+    skip: Should be run manually
+
+timeout: 5m
