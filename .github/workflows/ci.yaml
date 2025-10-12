@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch: {}
 
 jobs:
   min-conditions:
@@ -89,7 +90,9 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: filtered.lcov.info
+          disable_search: true
+          directory: ./coverage/
+          files: ./filtered.lcov.info
           fail_ci_if_error: true
           verbose: true
 
