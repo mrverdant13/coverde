@@ -109,6 +109,9 @@ melos:
       exec:
         concurrency: 1
         orderDependents: true
+    test.e2e.all:
+      description: Run E2E tests for all packages
+      run: melos run test.e2e --no-select
     T:
       description: Run tests and generate coverage trace files for all packages in random order.
       run: melos run t --no-select
