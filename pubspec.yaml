@@ -100,7 +100,7 @@ melos:
       run: >
         git clean -dfX .
         &&
-        dart test --run-skipped -t e2e
+        dart test --run-skipped --tags e2e --reporter compact
       packageFilters:
         category:
           - e2e
