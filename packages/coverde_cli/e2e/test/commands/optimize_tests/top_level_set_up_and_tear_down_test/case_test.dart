@@ -13,12 +13,12 @@ void main() {
       (
         caseName: 'dart',
         projectDirName: 'dart_project',
-        testCommand: 'dart test --no-color',
+        testCommand: 'dart test --no-color --reporter compact',
       ),
       (
         caseName: 'flutter',
         projectDirName: 'flutter_project',
-        testCommand: 'flutter test',
+        testCommand: 'flutter test --reporter compact',
       ),
     ];
     final currentDirectory = Directory.current;
