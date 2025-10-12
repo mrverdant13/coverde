@@ -9,7 +9,6 @@ import 'package:test/test.dart';
 
 void main() {
   test('Top level `setUp` and `tearDown`', () async {
-    expect(true, isTrue);
     const testCases = [
       (
         caseName: 'dart',
