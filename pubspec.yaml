@@ -13,7 +13,7 @@ melos:
     tools:
       - ./tools/**
     e2e:
-      - ./**/e2e/**
+      - "**/e2e"
 
   command:
     clean:
@@ -95,6 +95,20 @@ melos:
         orderDependents: true
       packageFilters:
         dirExists: test
+    test.e2e:
+      description: Run E2E tests
+      run: >
+        git clean -dfX .
+        &&
+        dart test --run-skipped -t e2e --reporter expanded
+      packageFilters:
+        category:
+          - e2e
+        dirExists:
+          - test
+      exec:
+        concurrency: 1
+        orderDependents: true
     T:
       description: Run tests and generate coverage trace files for all packages in random order.
       run: melos run t --no-select

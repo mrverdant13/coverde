@@ -9,6 +9,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('Top level `setUp` and `tearDown`', () async {
+    expect(true, isTrue);
     const testCases = [
       (
         caseName: 'dart',
@@ -24,7 +25,7 @@ void main() {
     final currentDirectory = Directory.current;
     for (final testCase in testCases) {
       final (:caseName, :projectDirName, :testCommand) = testCase;
-      final projectDirectoryPath = p.joinAll([
+      final projectDirPath = p.joinAll([
         currentDirectory.path,
         'test',
         'commands',
@@ -43,7 +44,7 @@ void main() {
           return Process.start(
             command,
             arguments,
-            workingDirectory: projectDirectoryPath,
+            workingDirectory: projectDirPath,
             runInShell: true,
           );
         }();
@@ -67,8 +68,53 @@ void main() {
         );
       }
 
+      {
+        // Install dependencies
+        final process = await () async {
+          final [
+            command,
+            ...arguments,
+          ] = '$caseName pub get'.split(' ');
+          return Process.start(
+            command,
+            arguments,
+            workingDirectory: projectDirPath,
+            runInShell: true,
+          );
+        }();
+        final stderrMessages = <String>[];
+        await (
+          process.exitCode,
+          process.stderr.forEach((data) {
+            final message = utf8.decode(data);
+            stderrMessages.add(message);
+          }),
+        ).wait;
+        expect(
+          exitCode,
+          0,
+          reason: 'dependencies should be installed ($caseName project)',
+        );
+        expect(
+          stderrMessages,
+          isEmpty,
+          reason: 'there should be no stderr messages ($caseName project)',
+        );
+      }
+
+      {
+        // Generate _test.dart files from _test.dart.tmp files
+        final files = Directory(projectDirPath)
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('_test.dart.tmp'));
+        for (final file in files) {
+          file.copySync(file.path.replaceAll('_test.dart.tmp', '_test.dart'));
+        }
+      }
+
       final optimizedTestFilePath = p.joinAll([
-        projectDirectoryPath,
+        projectDirPath,
         'test',
         'optimized_test.dart',
       ]);
@@ -96,7 +142,7 @@ void main() {
           return Process.start(
             command,
             arguments,
-            workingDirectory: projectDirectoryPath,
+            workingDirectory: projectDirPath,
             runInShell: true,
           );
         }();
@@ -145,7 +191,7 @@ void main() {
           return Process.start(
             command,
             arguments,
-            workingDirectory: projectDirectoryPath,
+            workingDirectory: projectDirPath,
             runInShell: true,
           );
         }();

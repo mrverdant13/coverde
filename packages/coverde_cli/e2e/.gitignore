@@ -9,6 +9,7 @@
 # Testing and coverage
 /coverage/
 /**/optimized_test.dart
+/**/fixtures/**/*_test.dart
 
 # Melos
 /melos_coverde.iml
