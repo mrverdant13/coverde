@@ -308,7 +308,7 @@ Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [codefactor_badge]: https://www.codefactor.io/repository/github/mrverdant13/coverde/badge
 [codefactor_link]: https://www.codefactor.io/repository/github/mrverdant13/coverde
-[dart_ci_badge]: https://github.com/mrverdant13/coverde/workflows/Dart%20CI/badge.svg
+[dart_ci_badge]: https://github.com/mrverdant13/coverde/actions/workflows/ci.yaml/badge.svg?branch=main
 [dart_ci_link]: https://github.com/mrverdant13/coverde/actions?query=workflow%3A%22Dart+CI%22
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
