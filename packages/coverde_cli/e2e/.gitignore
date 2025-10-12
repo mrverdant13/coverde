@@ -1,0 +1,16 @@
+# See https://www.dartlang.org/guides/libraries/private-files
+
+# Files and directories created by pub
+/.dart_tool/
+/.packages
+/build/
+/pubspec.lock
+
+# Testing and coverage
+/coverage/
+/**/optimized_test.dart
+/**/fixtures/**/*_test.dart
+
+# Melos
+/melos_coverde.iml
+/.idea/

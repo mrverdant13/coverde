@@ -11,7 +11,9 @@ dev_dependencies:
 melos:
   categories:
     tools:
-      - tools/**
+      - ./tools/**
+    e2e:
+      - "**/e2e"
 
   command:
     clean:
@@ -93,6 +95,23 @@ melos:
         orderDependents: true
       packageFilters:
         dirExists: test
+    test.e2e:
+      description: Run E2E tests
+      run: >
+        git clean -dfX .
+        &&
+        dart test --run-skipped -t e2e --reporter expanded
+      packageFilters:
+        category:
+          - e2e
+        dirExists:
+          - test
+      exec:
+        concurrency: 1
+        orderDependents: true
+    test.e2e.all:
+      description: Run E2E tests for all packages
+      run: melos run test.e2e --no-select
     T:
       description: Run tests and generate coverage trace files for all packages in random order.
       run: melos run t --no-select
@@ -132,13 +151,13 @@ melos:
       exec:
         concurrency: 1
       packageFilters:
-        scope: coverde*
+        scope: coverde
     P:
       description: Check pub score.
       run: melos run p --no-select
     P:ci:
       description: Check pub score.
-      run: melos exec --fail-fast --scope="coverde*" -- "dart run MELOS_ROOT_PATH/tools/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20"
+      run: melos exec --fail-fast --scope="coverde" -- "dart run MELOS_ROOT_PATH/tools/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20"
 
     WF:
       description: Run full local workflow
@@ -155,6 +174,7 @@ melos:
 
 workspace:
   - packages/coverde_cli/
+  - packages/coverde_cli/e2e/
   - tools/package_assets_generator/
   - tools/package_data_generator/
   - tools/pub_score_checker/
