@@ -118,8 +118,7 @@ Filter a coverage trace file.
 Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.\
 The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
 
-All the relative paths in the resulting coverage trace file will be prefixed with PATHS_PARENT, if provided.\
-If an absolute path is found in the coverage trace file, the process will fail.
+All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
 
 ### Arguments
 
@@ -135,9 +134,9 @@ If an absolute path is found in the coverage trace file, the process will fail.
   Destination coverage info file to dump the resulting coverage data into.\
   **Default value:** `coverage/filtered.lcov.info`
 
-- `--paths-parent`
+- `--base-directory`
 
-  Path to be used to prefix all the paths in the resulting coverage trace file.
+  Base directory relative to which trace file source paths are resolved.
 
 - `--mode`
 
