@@ -1,0 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  Widget buildSubject({
+    required Color color,
+  }) {
+    return ColoredBox(
+      color: color,
+      child: SizedBox.square(
+        dimension: 100,
+      ),
+    );
+  }
+
+  testWidgets('dummy golden test (red)', (tester) async {
+    await tester.pumpWidget(buildSubject(color: Colors.red));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(ColoredBox),
+      matchesGoldenFile('dummy_golden_test_red.png'),
+    );
+  });
+
+  testWidgets('dummy golden test (blue)', (tester) async {
+    await tester.pumpWidget(buildSubject(color: Colors.blue));
+    await tester.pumpAndSettle();
+    await expectLater(
+      find.byType(ColoredBox),
+      matchesGoldenFile('dummy_golden_test_blue.png'),
+    );
+  });
+}
