@@ -27,11 +27,10 @@ Destination coverage info file to dump the resulting coverage data into.''',
         valueHelp: _outputHelpValue,
       )
       ..addOption(
-        pathsParentOption,
-        abbr: pathsParentOption[0],
+        baseDirectoryOptionName,
+        abbr: baseDirectoryOptionAbbreviation,
         help: '''
-Path to be used to prefix all the paths in the resulting coverage trace file.''',
-        valueHelp: _pathsParentHelpValue,
+Base directory relative to which trace file source paths are resolved.''',
       )
       ..addMultiOption(
         filtersOption,
@@ -56,7 +55,6 @@ Set of comma-separated path patterns of the files to be ignored.''',
 
   static const _inputHelpValue = 'INPUT_LCOV_FILE';
   static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
-  static const _pathsParentHelpValue = 'PATHS_PARENT';
   static const _filtersHelpValue = 'FILTERS';
   static const _modeHelpValue = 'MODE';
   static const _outModeAllowedHelp = {
@@ -78,12 +76,15 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
   @visibleForTesting
   static const outputOption = 'output';
 
-  /// Option name for the paths parent to be used to prefix all the paths in the
-  /// resulting coverage trace file.
-  ///
-  /// This option is optional.
+  /// Option name for the base directory relative to which trace file source
+  /// paths are resolved.
   @visibleForTesting
-  static const pathsParentOption = 'paths-parent';
+  static const baseDirectoryOptionName = 'base-directory';
+
+  /// Option abbreviation for the base directory relative to which trace file
+  /// source paths are resolved.
+  @visibleForTesting
+  static const baseDirectoryOptionAbbreviation = 'b';
 
   /// Option name for the resulting filtered trace file.
   @visibleForTesting
@@ -96,8 +97,7 @@ Filter a coverage trace file.
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
 The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.
 
-All the relative paths in the resulting coverage trace file will be prefixed with $_pathsParentHelpValue, if provided.
-If an absolute path is found in the coverage trace file, the process will fail.''';
+All the relative paths in the resulting coverage trace file will be resolved relative to the <$baseDirectoryOptionName>, if provided.''';
 
   @override
   String get name => 'filter';
@@ -113,7 +113,7 @@ If an absolute path is found in the coverage trace file, the process will fail.'
     final argResults = this.argResults!;
     final originPath = argResults.option(inputOption)!;
     final destinationPath = argResults.option(outputOption)!;
-    final pathsParent = argResults.option(pathsParentOption);
+    final baseDirectory = argResults.option(baseDirectoryOptionName);
     final ignorePatterns = argResults.multiOption(filtersOption);
     final shouldOverride = argResults.option(modeOption) == 'w';
 
@@ -145,21 +145,16 @@ If an absolute path is found in the coverage trace file, the process will fail.'
       if (shouldBeIgnored) {
         _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
       } else {
-        if (path.isAbsolute(fileCovData.source.path) && pathsParent != null) {
-          usageException(
-            'The `$pathsParentOption` option cannot be used with trace files '
-            'that contain absolute paths.',
-          );
-        }
-        final raw = pathsParent == null
-            ? fileCovData.raw
-            : fileCovData.raw.replaceFirst(
-                RegExp(r'^SF:(.*)$', multiLine: true),
-                'SF:${path.joinAll([
-                      ...path.split(pathsParent),
-                      fileCovData.source.path,
-                    ])}',
-              );
+        final raw = switch (baseDirectory) {
+          null => fileCovData.raw,
+          final String baseDirectory => fileCovData.raw.replaceFirst(
+              RegExp(r'^SF:(.*)$', multiLine: true),
+              'SF:${path.relative(
+                fileCovData.source.path,
+                from: baseDirectory,
+              )}',
+            ),
+        };
         acceptedSrcFilesRawData.add(raw);
       }
     }

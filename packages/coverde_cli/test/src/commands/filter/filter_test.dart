@@ -50,8 +50,7 @@ Filter a coverage trace file.
 Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.
 The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
 
-All the relative paths in the resulting coverage trace file will be prefixed with PATHS_PARENT, if provided.
-If an absolute path is found in the coverage trace file, the process will fail.
+All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
 ''';
 
           // ACT
@@ -302,7 +301,7 @@ THEN a filtered trace file should be created
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
-          final pathsPrefix = path.join('root', 'parent');
+          final baseDirectory = path.join('root', 'parent');
           final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = path.join(
             directory.path,
@@ -338,8 +337,10 @@ LH:1
 end_of_record
 '''
               .trim();
-          final originalFileContent =
-              '$acceptedSourceFileData\n$ignoredSourceFileData';
+          final originalFileContent = '''
+$acceptedSourceFileData
+$ignoredSourceFileData
+''';
           final originalFile = File(originalFilePath)
             ..createSync()
             ..writeAsStringSync(originalFileContent);
@@ -370,8 +371,8 @@ end_of_record
             originalFilePath,
             '--${FilterCommand.outputOption}',
             filteredFilePath,
-            '--${FilterCommand.pathsParentOption}',
-            pathsPrefix,
+            '--${FilterCommand.baseDirectoryOptionName}',
+            baseDirectory,
             '--${FilterCommand.filtersOption}',
             patterns.join(','),
           ]);
@@ -381,7 +382,7 @@ end_of_record
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
           final expectedFilteredFileContent = '''
-SF:${path.join(pathsPrefix, acceptedSourceFilePath)}
+SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
@@ -416,15 +417,16 @@ AND a trace file content to filter
 AND a set of patterns to be filtered
 AND a path to be used as prefix for the tested file paths
 WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-AND no filtered file should be created
+THEN a filtered trace file should be created
+├─ BY resolving the source file paths relative to the <base-directory>
 ''',
         () async {
           // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
-          final pathsPrefix = path.join('root', 'parent');
+          final baseDirectory = path.join('root', 'parent');
+          final patternsRegex = patterns.map(RegExp.new);
           final originalFilePath = path.join(
             directory.path,
             'original.info',
@@ -443,11 +445,11 @@ AND no filtered file should be created
             'to',
             'ignored_source_file.dart',
           ]);
-          final forbiddenSourceFilePath = path.joinAll([
+          final absoluteSourceFilePath = path.joinAll([
             if (Platform.isWindows) 'C:' else '/',
             'path',
             'to',
-            'forbidden_source_file.dart',
+            'absolute_source_file.dart',
           ]);
           final acceptedSourceFileData = '''
 SF:$acceptedSourceFilePath
@@ -465,8 +467,8 @@ LH:1
 end_of_record
 '''
               .trim();
-          final forbiddenSourceFileData = '''
-SF:$forbiddenSourceFilePath
+          final absoluteSourceFileData = '''
+SF:$absoluteSourceFilePath
 DA:1,1
 LF:1
 LH:1
@@ -476,7 +478,7 @@ end_of_record
           final originalFileContent = '''
 $acceptedSourceFileData
 $ignoredSourceFileData
-$forbiddenSourceFileData
+$absoluteSourceFileData
 ''';
           final originalFile = File(originalFilePath)
             ..createSync()
@@ -490,29 +492,64 @@ $forbiddenSourceFileData
           );
           final originalFileIncludeFileThatMatchPatterns =
               originalTraceFile.includeFileThatMatchPatterns(patterns);
+          final filesDataToBeRemoved =
+              originalTraceFile.sourceFilesCovData.where(
+            (d) => patternsRegex.any(
+              (r) => r.hasMatch(d.source.path),
+            ),
+          );
 
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isFalse);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           // ACT
-          Future<void> action() => cmdRunner.run([
-                filterCmd.name,
-                '--${FilterCommand.inputOption}',
-                originalFilePath,
-                '--${FilterCommand.outputOption}',
-                filteredFilePath,
-                '--${FilterCommand.pathsParentOption}',
-                pathsPrefix,
-                '--${FilterCommand.filtersOption}',
-                patterns.join(','),
-              ]);
+          await cmdRunner.run([
+            filterCmd.name,
+            '--${FilterCommand.inputOption}',
+            originalFilePath,
+            '--${FilterCommand.outputOption}',
+            filteredFilePath,
+            '--${FilterCommand.baseDirectoryOptionName}',
+            baseDirectory,
+            '--${FilterCommand.filtersOption}',
+            patterns.join(','),
+          ]);
 
           // ASSERT
           expect(originalFile.existsSync(), isTrue);
-          expect(filteredFile.existsSync(), isFalse);
-          expect(action, throwsA(isA<UsageException>()));
-          verify(() => out.writeln(any()));
+          expect(filteredFile.existsSync(), isTrue);
+          final filteredFileContent = filteredFile.readAsStringSync();
+          final expectedFilteredFileContent = '''
+SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
+DA:1,1
+LF:1
+LH:1
+end_of_record
+SF:${path.relative(absoluteSourceFilePath, from: baseDirectory)}
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final filteredTraceFile = TraceFile.parse(filteredFileContent);
+          final expectedTraceFile =
+              TraceFile.parse(expectedFilteredFileContent);
+          final filteredFileIncludeFileThatMatchPatterns =
+              filteredTraceFile.includeFileThatMatchPatterns(patterns);
+          expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+          expect(
+            filteredTraceFile,
+            expectedTraceFile,
+            reason: 'Error: Non-matching trace files.',
+          );
+          for (final fileData in filesDataToBeRemoved) {
+            final path = fileData.source.path;
+            verify(
+              () => out.writeln('<$path> coverage data ignored.'),
+            ).called(1);
+          }
         },
       );
 

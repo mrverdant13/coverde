@@ -267,7 +267,7 @@ merge-trace-files:
   description: Merge all packages coverage trace files ignoring data related to generated files.
   run: >
     coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-    melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.g\.dart'"
+    melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --base-directory MELOS_ROOT_PATH --filters '\.g\.dart'"
 ```
 
 `merge-trace-files` is the melos script that merges the coverage trace file of all tested packages contained within the project

@@ -123,7 +123,7 @@ melos:
       description: Merge all packages coverage trace files ignoring data related to generated files.
       run: >
         dart run coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-        melos exec --file-exists=coverage/lcov.info -- "dart run coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --paths-parent MELOS_PACKAGE_PATH --filters '\.asset\.dart'" &&
+        melos exec --file-exists=coverage/lcov.info -- "dart run coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --base-directory MELOS_ROOT_PATH --filters '\.asset\.dart'" &&
         dart pub run coverde check -i coverage/filtered.lcov.info 100
 
     R:
