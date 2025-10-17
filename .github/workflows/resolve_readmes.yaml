@@ -22,7 +22,7 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.1.1
+        run: dart pub global activate melos 7.2.0
       - name: Initialize READMEs resolver
         run: melos bs --scope=readmes_resolver
       - name: Resolve CLI README file
