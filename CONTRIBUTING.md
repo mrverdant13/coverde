@@ -31,7 +31,7 @@ If you can include screenshots, trace data or any additional context, it could b
 ### Pre-requisites
 
 - [Dart SDK][dart_link] - min version: 3.5.0
-- [Melos][melos_link] - min version: 7.1.1
+- [Melos][melos_link] - min version: 7.2.0
 
 ### Pull Requests
 
