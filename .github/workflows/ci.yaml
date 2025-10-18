@@ -110,4 +110,6 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Verify local pub score
-        run: echo $(melos run pub-score.local | awk -F "coverde:" '{print $2}') >> $GITHUB_STEP_SUMMARY
+        run: melos run pub-score.local
+      - name: Set step summary
+        run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >> $GITHUB_STEP_SUMMARY

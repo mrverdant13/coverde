@@ -394,7 +394,7 @@ packages:
     source: hosted
     version: "2.2.0"
   pana:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: pana
       sha256: bbad5a3e085fcc2475f08fe1240041e25d74482da80d9af00bc17cce99989e29
