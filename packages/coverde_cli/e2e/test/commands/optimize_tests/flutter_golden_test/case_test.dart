@@ -16,7 +16,7 @@ void main() {
         projectDirName: 'flutter_project',
         testCommand: 'flutter test --reporter compact',
       ),
-      if (Platform.isWindows)
+      if (!Platform.isWindows)
         // `--platform chrome` fails on Windows
         // Possibly related to https://github.com/flutter/flutter/issues/171436
         (
