@@ -7,6 +7,7 @@ dev_dependencies:
   coverde:
     path: packages/coverde_cli
   melos: ^7.2.0
+  pana: ^0.22.24
 
 melos:
   categories:
@@ -145,6 +146,13 @@ melos:
       description: Run tests, generate unified coverage trace file and check minimum coverage.
       run: melos run T:ci && melos run MC
 
+    pub-score.local:
+      description: Check local pub score for a selected package.
+      run: dart run pana --exit-code-threshold 0 MELOS_PACKAGE_PATH
+      exec:
+        concurrency: 1
+      packageFilters:
+        scope: coverde
     p:
       description: Check pub score for a selected package.
       run: dart run MELOS_ROOT_PATH/tools/pub_score_checker/lib/main.dart MELOS_PACKAGE_PATH 20

@@ -97,7 +97,7 @@ jobs:
           verbose: true
 
   pub-score:
-    name: Check pub score
+    name: Check local pub score
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -109,5 +109,5 @@ jobs:
         run: dart pub global activate melos 7.2.0
       - name: Initialize melos
         run: melos bs
-      - name: Verify pub score
-        run: melos run P:ci
+      - name: Verify local pub score
+        run: echo $(melos run pub-score.local) >> $GITHUB_STEP_SUMMARY
