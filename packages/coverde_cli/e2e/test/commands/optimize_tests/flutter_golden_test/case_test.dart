@@ -9,19 +9,22 @@ import 'package:test/test.dart';
 
 void main() {
   test('Flutter golden test', () async {
-    const testCases = [
+    final testCases = [
       (
         caseName: 'flutter (platform: _default_)',
         sdkCommand: 'flutter',
         projectDirName: 'flutter_project',
         testCommand: 'flutter test --reporter compact',
       ),
-      (
-        caseName: 'flutter (platform: Chrome)',
-        sdkCommand: 'flutter',
-        projectDirName: 'flutter_project',
-        testCommand: 'flutter test --reporter compact --platform chrome',
-      ),
+      if (Platform.isWindows)
+        // `--platform chrome` fails on Windows
+        // Possibly related to https://github.com/flutter/flutter/issues/171436
+        (
+          caseName: 'flutter (platform: Chrome)',
+          sdkCommand: 'flutter',
+          projectDirName: 'flutter_project',
+          testCommand: 'flutter test --reporter compact --platform chrome',
+        ),
     ];
     final currentDirectory = Directory.current;
     for (final testCase in testCases) {
