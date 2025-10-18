@@ -8,7 +8,8 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
-  pana: 0.22.24 # Using the latest version of `pana` to ensure that the package score computation method is also up-to-date.
+  args: ^2.7.0
+  pana: ^0.22.24
 
 dev_dependencies:
   very_good_analysis: ^10.0.0
