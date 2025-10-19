@@ -97,7 +97,7 @@ jobs:
           verbose: true
 
   pub-score:
-    name: Check pub score
+    name: Check local pub score
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -109,5 +109,16 @@ jobs:
         run: dart pub global activate melos 7.2.0
       - name: Initialize melos
         run: melos bs
-      - name: Verify pub score
-        run: melos run P:ci
+      - name: Install dependencies
+        run: sudo apt-get install -y webp
+      - name: Verify local pub score
+        id: local-pub-score-check
+        run: |
+          set +e
+          melos run pub-score.local
+          echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
+      - name: Set step summary
+        run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >> $GITHUB_STEP_SUMMARY
+      - name: Fail if local pub score check failed
+        if: steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT != 0
+        run: exit 1
