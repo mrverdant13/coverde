@@ -110,6 +110,10 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Verify local pub score
-        run: melos run pub-score.local
+        id: local-pub-score-check
+        run: (melos run pub-score.local); echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
       - name: Set step summary
         run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >> $GITHUB_STEP_SUMMARY
+      - name: Fail if local pub score check failed
+        if: steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT != 0
+        run: exit 1
