@@ -2,3 +2,4 @@
 codecov
 mrverdant13
 subosito
+webp
