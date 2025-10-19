@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   args: ^2.7.0
+  logging: ^1.3.0
   pana: ^0.22.24
 
 dev_dependencies:
