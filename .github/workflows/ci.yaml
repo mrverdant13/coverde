@@ -70,7 +70,7 @@ jobs:
       - name: Run tests, merge tests if needed, and check 100% coverage
         run: melos run TMC:ci
       - name: Update coverage trace file as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: matrix.os == 'ubuntu-latest'
         with:
           name: filtered.lcov.info
