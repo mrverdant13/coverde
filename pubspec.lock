@@ -397,10 +397,10 @@ packages:
     dependency: transitive
     description:
       name: pana
-      sha256: bbad5a3e085fcc2475f08fe1240041e25d74482da80d9af00bc17cce99989e29
+      sha256: "1ee9fda4f460d97e4adee459022847d1462e678d1e791e39b14d88424b3821ef"
       url: "https://pub.dev"
     source: hosted
-    version: "0.22.24"
+    version: "0.23.1"
   path:
     dependency: transitive
     description:
@@ -585,14 +585,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.1"
-  tar:
-    dependency: transitive
-    description:
-      name: tar
-      sha256: b2f7bb01fa95e21e7197cd0dc3c087e6e4551c5d698b3e88d6398b2124c566d6
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   term_glyph:
     dependency: transitive
     description:
