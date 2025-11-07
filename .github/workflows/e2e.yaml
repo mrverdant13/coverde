@@ -24,7 +24,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
       - name: Install melos
-        run: dart pub global activate melos 7.2.0
+        run: dart pub global activate melos 7.3.0
       - name: Initialize E2E tests
         run: melos bs --category=e2e
       - name: Run E2E tests
