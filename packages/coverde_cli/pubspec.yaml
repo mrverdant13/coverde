@@ -24,7 +24,7 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dependencies:
-  analyzer: ^8.4.0
+  analyzer: ^8.4.1
   args: ^2.7.0
   code_builder: ^4.11.0
   collection: ^1.19.1
@@ -42,7 +42,7 @@ dependencies:
 dev_dependencies:
   build: ^4.0.2
   build_config: ^1.2.0
-  build_runner: ^2.9.0
+  build_runner: ^2.10.1
   build_verify: ^3.1.1
   csslib: ^1.0.2
   mocktail: ^1.0.4
