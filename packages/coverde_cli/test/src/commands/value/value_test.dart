@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
+import '../../../helpers/test_files.dart';
 import '../../../utils/mocks.dart';
 
 void main() {
@@ -63,6 +64,10 @@ Compute the coverage value of the LCOV_FILE info file.
             'fixtures',
             'partially_covered_proj',
           ]);
+          final projectDir = Directory(projectPath);
+
+          generateTestFromTemplate(projectDir);
+          addTearDown(() => deleteTestFiles(projectDir));
 
           await IOOverrides.runZoned(
             () async {
@@ -98,6 +103,10 @@ Compute the coverage value of the LCOV_FILE info file.
             'fixtures',
             'partially_covered_proj',
           ]);
+          final projectDir = Directory(projectPath);
+
+          generateTestFromTemplate(projectDir);
+          addTearDown(() => deleteTestFiles(projectDir));
 
           await IOOverrides.runZoned(
             () async {
@@ -139,6 +148,10 @@ Compute the coverage value of the LCOV_FILE info file.
             'fixtures',
             'partially_covered_proj',
           ]);
+          final projectDir = Directory(projectPath);
+
+          generateTestFromTemplate(projectDir);
+          addTearDown(() => deleteTestFiles(projectDir));
 
           await IOOverrides.runZoned(
             () async {
@@ -187,6 +200,10 @@ Compute the coverage value of the LCOV_FILE info file.
             'fixtures',
             'partially_covered_proj',
           ]);
+          final projectDir = Directory(projectPath);
+
+          generateTestFromTemplate(projectDir);
+          addTearDown(() => deleteTestFiles(projectDir));
 
           await IOOverrides.runZoned(
             () async {
