@@ -5,6 +5,48 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
+  group('$TraceFile', () {
+    TraceFile buildTraceFile(int covFilesCount) {
+      Iterable<MapEntry<int, int>> buildCovLinesEntries(int linesCount) {
+        return Iterable.generate(
+          linesCount,
+          (idx) => MapEntry(idx + 1, idx),
+        );
+      }
+
+      String buildRawCovFileString(int linesCount) {
+        final buf = StringBuffer()
+          ..writeln('SF:${path.joinAll([
+                'path',
+                'to',
+                'source.${linesCount + 1}.file',
+              ])}');
+        final covLinesEntries = buildCovLinesEntries(linesCount + 1);
+        for (final covLineEntry in covLinesEntries) {
+          buf.writeln('DA:${covLineEntry.key},${covLineEntry.value}');
+        }
+        buf.writeln('end_of_record');
+        return buf.toString();
+      }
+
+      final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
+          .map(CovFile.parse);
+
+      final traceFile = TraceFile(
+        sourceFilesCovData: covFiles,
+      );
+
+      return traceFile;
+    }
+
+    group('isEmpty', () {
+      test('| returns `true` when no source files coverage data is found', () {
+        final traceFile = buildTraceFile(0);
+        expect(traceFile.isEmpty, isTrue);
+      });
+    });
+  });
+
   // ARRANGE
   const covFilesCount = 10;
 

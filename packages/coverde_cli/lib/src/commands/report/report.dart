@@ -2,6 +2,7 @@ import 'package:coverde/src/assets/report_style.css.asset.dart';
 import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
 import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/commands/coverde_command.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -150,6 +151,12 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     // Parse trace file data.
     final traceFileData = TraceFile.parse(traceFileContent);
+
+    if (traceFileData.isEmpty) {
+      throw CovFileFormatException(
+        message: 'No coverage data found in the trace file.',
+      );
+    }
 
     // Build cov report base tree.
     final covTree = traceFileData.asTree
