@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/check/check.dart';
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
@@ -93,6 +94,38 @@ This parameter indicates the minimum value for the coverage to be accepted.
           verifyInOrder([
             for (final message in messages) () => out.writeln(message),
           ]);
+        },
+      );
+
+      test(
+        '''--${CheckCommand.inputOptionName}=<empty_trace_file> '''
+        '''<min_coverage> '''
+        '''| fails when trace file is empty''',
+        () async {
+          final emptyTraceFilePath = p.joinAll([
+            'test',
+            'src',
+            'commands',
+            'check',
+            'fixtures',
+            'empty.lcov.info',
+          ]);
+          Future<void> action() => cmdRunner.run([
+                checkCmd.name,
+                '--${CheckCommand.inputOptionName}',
+                emptyTraceFilePath,
+                '${50}',
+              ]);
+          expect(
+            action,
+            throwsA(
+              isA<CovFileFormatException>().having(
+                (e) => e.message,
+                'message',
+                'No coverage data found in the trace file.',
+              ),
+            ),
+          );
         },
       );
 

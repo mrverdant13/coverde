@@ -54,6 +54,9 @@ class TraceFile extends CovComputable {
   UnmodifiableListView<CovFile> get sourceFilesCovData =>
       UnmodifiableListView<CovFile>(_sourceFilesCovData);
 
+  /// Whether the trace file is empty.
+  bool get isEmpty => _sourceFilesCovData.isEmpty;
+
   @override
   int get linesHit => _sourceFilesCovData.map((e) => e.linesHit).sum;
 
