@@ -11,6 +11,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../../../helpers/test_files.dart';
 import '../../../utils/mocks.dart';
 
 final String _expectedUsage = '''
@@ -200,12 +201,21 @@ void main() {}
           'fixtures',
           '${projectType}_proj_with_invalid_test_files',
         ]);
+        final projectDir = Directory(
+          p.joinAll([
+            currentDirectory.path,
+            projectPath,
+          ]),
+        );
         final optimizedTestFile = File(
           p.join(projectPath, 'test', 'optimized_test.dart'),
         );
         if (optimizedTestFile.existsSync()) {
           optimizedTestFile.deleteSync(recursive: true);
         }
+
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
         await IOOverrides.runZoned(
           () async {
@@ -284,12 +294,21 @@ void main() {}
           'fixtures',
           '${projectType}_proj_with_async_test_entry_points',
         ]);
+        final projectDir = Directory(
+          p.joinAll([
+            currentDirectory.path,
+            projectPath,
+          ]),
+        );
         final optimizedTestFile = File(
           p.join(projectPath, 'test', 'optimized_test.dart'),
         );
         if (optimizedTestFile.existsSync()) {
           optimizedTestFile.deleteSync(recursive: true);
         }
+
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
         await IOOverrides.runZoned(
           () async {
@@ -392,12 +411,21 @@ void main() {
           'fixtures',
           '${projectType}_proj_with_annotated_test_files',
         ]);
+        final projectDir = Directory(
+          p.joinAll([
+            currentDirectory.path,
+            projectPath,
+          ]),
+        );
         final optimizedTestFile = File(
           p.join(projectPath, 'test', 'optimized_test.dart'),
         );
         if (optimizedTestFile.existsSync()) {
           optimizedTestFile.deleteSync(recursive: true);
         }
+
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
         await IOOverrides.runZoned(
           () async {
@@ -573,12 +601,21 @@ void main() {
           'fixtures',
           '${projectType}_proj_with_annotated_test_files',
         ]);
+        final projectDir = Directory(
+          p.joinAll([
+            currentDirectory.path,
+            projectPath,
+          ]),
+        );
         final optimizedTestFile = File(
           p.join(projectPath, 'test', 'optimized_test.dart'),
         );
         if (optimizedTestFile.existsSync()) {
           optimizedTestFile.deleteSync(recursive: true);
         }
+
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
         await IOOverrides.runZoned(
           () async {
@@ -714,12 +751,21 @@ void main() {
           'fixtures',
           '''${projectType}_flutter_proj_with_annotated_test_files_and_golden_tests''',
         ]);
+        final projectDir = Directory(
+          p.joinAll([
+            currentDirectory.path,
+            projectPath,
+          ]),
+        );
         final optimizedTestFile = File(
           p.join(projectPath, 'test', 'optimized_test.dart'),
         );
         if (optimizedTestFile.existsSync()) {
           optimizedTestFile.deleteSync(recursive: true);
         }
+
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
         await IOOverrides.runZoned(
           () async {

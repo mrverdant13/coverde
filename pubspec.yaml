@@ -20,10 +20,10 @@ melos:
   command:
     clean:
       hooks:
-        pre: melos run clean
+        pre: melos run --include-private .clean
 
   scripts:
-    clean:
+    .clean:
       description: Deep clean-up
       # Preserves FVM internal folder to avoid re-installing the Flutter SDK when developing locally.
       run: >

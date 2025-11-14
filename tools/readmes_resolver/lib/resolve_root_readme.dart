@@ -184,8 +184,6 @@ extension on Option {
       ..writeln('- `--$name`')
       ..writeln();
 
-    // Type check is intended here.
-    // ignore: switch_on_type
     final defaultValueString = switch (defaultsTo) {
       null => null,
       final bool defaults => '_${defaults ? 'Enabled' : 'Disabled'}_',
