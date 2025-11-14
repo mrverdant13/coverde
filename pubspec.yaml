@@ -181,4 +181,3 @@ workspace:
   - tools/package_data_generator/
   - tools/pub_score_checker/
   - tools/readmes_resolver/
-  - tools/rename_test_files/
