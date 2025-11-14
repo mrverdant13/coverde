@@ -5,6 +5,7 @@ import 'dart:io';
 ///
 /// The template files are kept unchanged.
 void generateTestFromTemplate(Directory directory) {
+  if (!directory.existsSync()) return;
   final files = directory
       .listSync(recursive: true)
       .whereType<File>()
@@ -21,6 +22,7 @@ void generateTestFromTemplate(Directory directory) {
 
 /// Deletes all `*_test.dart` files in the given directory.
 void deleteTestFiles(Directory directory) {
+  if (!directory.existsSync()) return;
   final files = directory
       .listSync(recursive: true)
       .whereType<File>()
