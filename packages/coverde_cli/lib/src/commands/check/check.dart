@@ -1,6 +1,7 @@
 import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:coverde/src/utils/coverage.dart';
@@ -109,6 +110,12 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     // Split coverage data by the end of record prefix, which indirectly splits
     // the info by file.
     final traceFile = TraceFile.parse(fileContent);
+
+    if (traceFile.isEmpty) {
+      throw CovFileFormatException(
+        message: 'No coverage data found in the trace file.',
+      );
+    }
 
     ValueCommand.logCoverage(
       out: _out,

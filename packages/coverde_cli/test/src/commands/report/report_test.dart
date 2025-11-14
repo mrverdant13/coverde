@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:mocktail/mocktail.dart';
@@ -71,6 +72,55 @@ extension on String {
 class MockProcessManager extends Mock implements ProcessManager {}
 
 void main() {
+  group('coverde report', () {
+    late CommandRunner<void> cmdRunner;
+    late MockStdout out;
+    late ReportCommand reportCmd;
+
+    setUp(() {
+      cmdRunner = CommandRunner<void>('test', 'A tester command runner');
+      out = MockStdout();
+      reportCmd = ReportCommand(out: out);
+      cmdRunner.addCommand(reportCmd);
+    });
+
+    tearDown(() {
+      verifyNoMoreInteractions(out);
+    });
+
+    test(
+        '''--${ReportCommand.inputOption}=<empty_trace_file> '''
+        '''| fails when trace file is empty''', () async {
+      final emptyTraceFilePath = path.joinAll([
+        'test',
+        'src',
+        'commands',
+        'report',
+        'fixtures',
+        'empty.lcov.info',
+      ]);
+      final emptyTraceFile = File(emptyTraceFilePath);
+      expect(emptyTraceFile.existsSync(), isTrue);
+
+      Future<void> action() => cmdRunner.run([
+            reportCmd.name,
+            '--${ReportCommand.inputOption}',
+            emptyTraceFilePath,
+          ]);
+
+      expect(
+        action,
+        throwsA(
+          isA<CovFileFormatException>().having(
+            (e) => e.message,
+            'message',
+            'No coverage data found in the trace file.',
+          ),
+        ),
+      );
+    });
+  });
+
   test(
     '''
 

@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
@@ -48,6 +49,37 @@ Compute the coverage value of the LCOV_FILE info file.
 
           // ASSERT
           expect(result.trim(), expected.trim());
+        },
+      );
+
+      test(
+        '''--${ValueCommand.inputOption}=<empty_trace_file>'''
+        ''' | fails when trace file is empty''',
+        () async {
+          final emptyTraceFilePath = p.joinAll([
+            'test',
+            'src',
+            'commands',
+            'value',
+            'fixtures',
+            'empty.lcov.info',
+          ]);
+
+          Future<void> action() => cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.inputOption}',
+                emptyTraceFilePath,
+              ]);
+          expect(
+            action,
+            throwsA(
+              isA<CovFileFormatException>().having(
+                (e) => e.message,
+                'message',
+                'No coverage data found in the trace file.',
+              ),
+            ),
+          );
         },
       );
 
