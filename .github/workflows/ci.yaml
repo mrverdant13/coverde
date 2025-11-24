@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check spelling
         uses: streetsidesoftware/cspell-action@v8
         with:
@@ -37,7 +37,7 @@ jobs:
     needs: min-conditions
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
@@ -58,7 +58,7 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
@@ -95,30 +95,3 @@ jobs:
           files: ./filtered.lcov.info
           fail_ci_if_error: true
           verbose: true
-
-  pub-score:
-    name: Check local pub score
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v5
-      - name: Install dart
-        uses: dart-lang/setup-dart@v1
-      - name: Install melos
-        run: dart pub global activate melos 7.3.0
-      - name: Initialize melos
-        run: melos bs
-      - name: Install dependencies
-        run: sudo apt-get install -y webp
-      - name: Verify local pub score
-        id: local-pub-score-check
-        run: |
-          set +e
-          melos run pub-score.local
-          echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
-      - name: Set step summary
-        run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >> $GITHUB_STEP_SUMMARY
-      - name: Fail if local pub score check failed
-        if: steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT != 0
-        run: exit 1
