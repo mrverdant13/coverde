@@ -1,0 +1,60 @@
+name: Check local Pub.dev score for Coverde CLI
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - main
+    paths:
+      - packages/coverde_cli/**
+      - tools/pub_score_checker/**
+      - .github/workflows/check_local_pub_score.yaml
+      - melos.yaml
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  check-local-pub-score:
+    name: Check local Pub.dev score for Coverde CLI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        run: dart pub global activate melos 7.3.0
+      - name: Initialize melos
+        run: melos bs
+      - name: Verify local Pub.dev score
+        id: local-pub-score-check
+        run: |
+          set +e
+          melos run pub-score.local
+          echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
+      - name: Set step summary
+        run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >> $GITHUB_STEP_SUMMARY
+      - name: Finish workflow if local pub score is valid
+        if: steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT == 0
+        run: exit 0
+      - name: Check if an issue already exists
+        id: existing-issue-check
+        run: |
+          set +e
+          issueNumber=$(gh issue list --search "bug(coverde-cli): local Pub.dev score is not valid" --state open --json number | jq -r '.[0].number')
+          echo "Issue number: $issueNumber"
+          echo "issue_number=$issueNumber" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create or update issue
+        uses: peter-evans/create-issue-from-file@v6
+        with:
+          title: "bug(coverde-cli): local Pub.dev score is not valid"
+          content-filepath: packages/coverde_cli/.dart_tool/local_pub_score.md
+          labels: |
+            triage
+            p:coverde
+          assignees: mrverdant13
+          issue-number: ${{ steps.existing-issue-check.outputs.issue_number }}

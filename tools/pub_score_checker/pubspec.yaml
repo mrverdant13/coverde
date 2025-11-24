@@ -14,3 +14,6 @@ dependencies:
 
 dev_dependencies:
   very_good_analysis: ^10.0.0
+
+executables:
+  pub_score_checker: pub_score_checker
