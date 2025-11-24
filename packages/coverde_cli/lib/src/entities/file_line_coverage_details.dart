@@ -3,13 +3,19 @@ import 'package:meta/meta.dart';
 /// The coverage status of a line of code.
 enum FileLineCoverageStatus {
   /// The line is a covered testable line.
-  covered,
+  covered('C'),
 
   /// The line is an uncovered testable line.
-  uncovered,
+  uncovered('U'),
 
   /// The line is not a testable line.
-  neutral,
+  neutral(' '),
+  ;
+
+  const FileLineCoverageStatus(this.marker);
+
+  /// A single-character marker that represents the coverage status.
+  final String marker;
 }
 
 /// {@template coverde_cli.file_line_coverage_details}
