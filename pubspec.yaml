@@ -149,7 +149,7 @@ melos:
 
     pub-score.remote:
       description: Check pub score for a selected package.
-      run: dart run pub_score_checker:check_pub_score remote --package-name MELOS_PACKAGE_NAME --threshold 0 --markdown-output MELOS_PACKAGE_PATH/.dart_tool/remote_pub_score.md
+      run: dart run pub_score_checker check_pub_score remote --package-name MELOS_PACKAGE_NAME --threshold 0 --markdown-output MELOS_PACKAGE_PATH/.dart_tool/remote_pub_score.md
       exec:
         concurrency: 1
       packageFilters:
