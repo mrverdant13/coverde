@@ -43,7 +43,7 @@ jobs:
         id: existing-issue-check
         run: |
           set +e
-          issueNumber = $(gh issue list --search "bug(coverde-cli): local Pub.dev score is not valid" --state open --json number | jq -r '.[0].number')
+          issueNumber=$(gh issue list --search "bug(coverde-cli): local Pub.dev score is not valid" --state open --json number | jq -r '.[0].number')
           echo "Issue number: $issueNumber"
           echo "issue_number=$issueNumber" >> "$GITHUB_OUTPUT"
       - name: Create or update issue
