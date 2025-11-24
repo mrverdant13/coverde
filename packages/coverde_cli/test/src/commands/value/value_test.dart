@@ -248,143 +248,103 @@ Compute the coverage value of the LCOV_FILE info file.
             getCurrentDirectory: () => Directory(projectPath),
           );
 
+          const lineNumberColumnWidth = 2;
+          String expectLine({
+            required String marker,
+            required int lineNumber,
+            required String content,
+            List<AnsiCode> styles = const [],
+          }) {
+            return [
+              '├ ',
+              wrapWith(marker, styles),
+              ' ',
+              wrapWith(
+                '$lineNumber'.padLeft(lineNumberColumnWidth),
+                styles,
+              ),
+              ' | ',
+              wrapWith(content, styles),
+            ].join();
+          }
+
           final messages = [
             () {
               final filePath = p.join('lib', 'source_01.dart');
               final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
               return '$filePath $fileOverview';
             }(),
-            '├  5 | }',
-            '├  6 | ',
-            [
-              '├  ',
-              wrapWith(
-                '7',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                'num subtract(num a, num b) {',
-                [red, styleBold],
-              ),
-            ].join(),
-            [
-              '├  ',
-              wrapWith(
-                '8',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                '  return a - b;',
-                [red, styleBold],
-              ),
-            ].join(),
-            '├  9 | }',
-            '├ 10 | ',
-            '├ •• | •••',
-            [
-              '├ ',
-              wrapWith(
-                '15',
-                [green, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                'num divide(num a, num b) {',
-                [green, styleBold],
-              ),
-            ].join(),
-            [
-              '├ ',
-              wrapWith(
-                '16',
-                [green, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                '  if (b == 0) {',
-                [green, styleBold],
-              ),
-            ].join(),
-            [
-              '├ ',
-              wrapWith(
-                '17',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                "    throw Exception('Division by zero');",
-                [red, styleBold],
-              ),
-            ].join(),
-            '├ 18 |   }',
-            [
-              '├ ',
-              wrapWith(
-                '19',
-                [green, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                '  return a / b;',
-                [green, styleBold],
-              ),
-            ].join(),
-            '├ 20 | }',
-            '├ 21 | ',
-            [
-              '├ ',
-              wrapWith(
-                '22',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                'num modulo(num a, num b) {',
-                [red, styleBold],
-              ),
-            ].join(),
-            [
-              '├ ',
-              wrapWith(
-                '23',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                '  if (b == 0) {',
-                [red, styleBold],
-              ),
-            ].join(),
-            [
-              '├ ',
-              wrapWith(
-                '24',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                "    throw Exception('Division by zero');",
-                [red, styleBold],
-              ),
-            ].join(),
-            '├ 25 |   }',
-            [
-              '├ ',
-              wrapWith(
-                '26',
-                [red, styleBold],
-              ),
-              ' | ',
-              wrapWith(
-                '  return a % b;',
-                [red, styleBold],
-              ),
-            ].join(),
-            '├ 27 | }',
-            '├ 28 | ',
+            expectLine(marker: ' ', lineNumber: 5, content: '}'),
+            expectLine(marker: ' ', lineNumber: 6, content: ''),
+            expectLine(
+              marker: 'U',
+              lineNumber: 7,
+              content: 'num subtract(num a, num b) {',
+              styles: const [red, styleBold],
+            ),
+            expectLine(
+              marker: 'U',
+              lineNumber: 8,
+              content: '  return a - b;',
+              styles: const [red, styleBold],
+            ),
+            expectLine(marker: ' ', lineNumber: 9, content: '}'),
+            expectLine(marker: ' ', lineNumber: 10, content: ''),
+            '├   •• | •••',
+            expectLine(
+              marker: 'C',
+              lineNumber: 15,
+              content: 'num divide(num a, num b) {',
+              styles: const [green, styleBold],
+            ),
+            expectLine(
+              marker: 'C',
+              lineNumber: 16,
+              content: '  if (b == 0) {',
+              styles: const [green, styleBold],
+            ),
+            expectLine(
+              marker: 'U',
+              lineNumber: 17,
+              content: "    throw Exception('Division by zero');",
+              styles: const [red, styleBold],
+            ),
+            expectLine(marker: ' ', lineNumber: 18, content: '  }'),
+            expectLine(
+              marker: 'C',
+              lineNumber: 19,
+              content: '  return a / b;',
+              styles: const [green, styleBold],
+            ),
+            expectLine(marker: ' ', lineNumber: 20, content: '}'),
+            expectLine(marker: ' ', lineNumber: 21, content: ''),
+            expectLine(
+              marker: 'U',
+              lineNumber: 22,
+              content: 'num modulo(num a, num b) {',
+              styles: const [red, styleBold],
+            ),
+            expectLine(
+              marker: 'U',
+              lineNumber: 23,
+              content: '  if (b == 0) {',
+              styles: const [red, styleBold],
+            ),
+            expectLine(
+              marker: 'U',
+              lineNumber: 24,
+              content: "    throw Exception('Division by zero');",
+              styles: const [red, styleBold],
+            ),
+            expectLine(marker: ' ', lineNumber: 25, content: '  }'),
+            expectLine(
+              marker: 'U',
+              lineNumber: 26,
+              content: '  return a % b;',
+              styles: const [red, styleBold],
+            ),
+            expectLine(marker: ' ', lineNumber: 27, content: '}'),
+            expectLine(marker: ' ', lineNumber: 28, content: ''),
             '',
             '',
             wrapWith('GLOBAL:', [blue, styleBold]),

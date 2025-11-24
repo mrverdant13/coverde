@@ -139,7 +139,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           for (final (index, uncoveredLineRange)
               in indexedUncoveredLineRanges) {
             if (index > 0) {
-              out.writeln('├ ${'•' * lineNumberColumnWidth} | •••');
+              out.writeln('├   ${'•' * lineNumberColumnWidth} | •••');
             }
             for (final lineWithStatus in uncoveredLineRange) {
               final FileLineCoverageDetails(
@@ -152,6 +152,10 @@ Compute the coverage value of the $_inputHelpValue info file.''';
                 FileLineCoverageStatus.uncovered => [red, styleBold],
                 FileLineCoverageStatus.neutral => <AnsiCode>[],
               };
+              final markerSegment = wrapWith(
+                status.marker,
+                styles,
+              );
               final lineNumberSegment = wrapWith(
                 '$lineNumber'.padLeft(lineNumberColumnWidth),
                 styles,
@@ -160,7 +164,9 @@ Compute the coverage value of the $_inputHelpValue info file.''';
                 content,
                 styles,
               );
-              out.writeln('├ $lineNumberSegment | $contentSegment');
+              out.writeln(
+                '├ $markerSegment $lineNumberSegment | $contentSegment',
+              );
             }
           }
           out.writeln();
