@@ -8,10 +8,25 @@ const defaultHostedUrl = 'https://pub.dev';
 
 class PubScoreCheckerCommandRunner extends CommandRunner<void> {
   PubScoreCheckerCommandRunner()
-      : super('check-pub-score', 'Check the pub score of a package') {
-    addCommand(RemoteCommand());
-    addCommand(LocalCommand());
+      : super(
+          'pub_score_checker',
+          'Check the pub score of a package',
+        ) {
+    addCommand(CheckPubScoreCommand());
   }
+}
+
+final class CheckPubScoreCommand extends Command<void> {
+  CheckPubScoreCommand() {
+    addSubcommand(LocalCommand());
+    addSubcommand(RemoteCommand());
+  }
+
+  @override
+  String get description => 'Check the pub score of a package';
+
+  @override
+  String get name => 'check_pub_score';
 }
 
 abstract class PubScoreCheckerCommand extends Command<void> {
