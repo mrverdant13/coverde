@@ -43,7 +43,7 @@ jobs:
         run: |
           issueNumber=$(\
             gh issue list \
-              --search "${{ env.ISSUE_TITLE }}" \
+              --search "${{ env.ISSUE_SEARCH_TERM }}" \
               --state open \
               --limit 1 \
               --json number \
@@ -64,5 +64,6 @@ jobs:
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          ISSUE_SEARCH_TERM: "bug coverde-cli local Pub.dev score is not valid"
           ISSUE_TITLE: "bug(coverde-cli): local Pub.dev score is not valid"
           ISSUE_BODY_FILEPATH: packages/coverde_cli/.dart_tool/local_pub_score.md
