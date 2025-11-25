@@ -126,10 +126,7 @@ void main() {
     });
 
     test(
-      '''
-
-A trace file report generator command should be instantiable
-''',
+      '| can be instantiated',
       () {
         final result = ReportCommand();
 

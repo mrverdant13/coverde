@@ -118,7 +118,7 @@ void main() {
     );
 
     test(
-      'linesFound'
+      'linesFound '
       '| returns total number of found lines',
       () async {
         const expectedLinesFound = (covFilesCount * (covFilesCount + 1)) / 2;
