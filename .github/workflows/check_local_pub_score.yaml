@@ -52,12 +52,12 @@ jobs:
           if [[ -n $issueNumber ]]; then
             echo "Issue already exists: $issueNumber"
             gh issue edit $issueNumber \
-              --body-file ${{ env.ISSUE_BODY_FILEPATH }}
+              --body-file "${{ env.ISSUE_BODY_FILEPATH }}"
           else
             echo "Issue does not exist"
             gh issue create \
               --title "${{ env.ISSUE_TITLE }}" \
-              --body-file ${{ env.ISSUE_BODY_FILEPATH }} \
+              --body-file "${{ env.ISSUE_BODY_FILEPATH }}" \
               --label "triage" \
               --label "p:coverde" \
               --assignee "mrverdant13"
