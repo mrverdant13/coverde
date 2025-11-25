@@ -6,13 +6,8 @@ import 'package:test/test.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a minimum coverage exception
-├─ THAT includes a minimum coverage value
-├─ AND holds a trace file''',
+    '$MinCoverageException',
     () {
-      // ARRANGE
       const minCoverage = 90.0;
       final traceFileContent = '''
 SF:${path.join('path', 'to', 'source_file.dart')}
@@ -32,40 +27,30 @@ end_of_record
       );
 
       test(
-        '''
-WHEN its exit code is requested
-THEN the software code should be returned
-''',
+        'code '
+        '| returns software exit code',
         () {
-          // ACT
           final result = exception.code;
 
-          // ASSERT
           expect(result, ExitCode.software);
         },
       );
 
       test(
-        '''
-WHEN its string representation is requested
-THEN a string holding the exception details should be returned
-├─ BY including the expected coverage value
-├─ AND including the actual coverage value
-''',
+        'toString() '
+        '| returns string representation '
+        'including expected and actual coverage values',
         () {
-          // ACT
           final result = exception.toString();
-
-          // ASSERT
           expect(
-            result.contains(
+            result,
+            contains(
               'Expected min coverage: ${minCoverage.toStringAsFixed(2)}',
             ),
-            isTrue,
           );
           expect(
-            result.contains('Actual coverage: ${traceFile.coverageString}'),
-            isTrue,
+            result,
+            contains('Actual coverage: ${traceFile.coverageString}'),
           );
         },
       );

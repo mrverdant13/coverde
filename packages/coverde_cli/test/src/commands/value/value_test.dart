@@ -37,17 +37,14 @@ void main() {
       test(
         '| description',
         () {
-          // ARRANGE
           const expected = '''
 Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the LCOV_FILE info file.
 ''';
 
-          // ACT
           final result = valueCmd.description;
 
-          // ASSERT
           expect(result.trim(), expected.trim());
         },
       );
@@ -359,20 +356,17 @@ Compute the coverage value of the LCOV_FILE info file.
       test(
         '--${ValueCommand.inputOption} <absent_trace_file_path>',
         () async {
-          // ARRANGE
           final directory = Directory.systemTemp.createTempSync();
           final absentFilePath = p.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 
-          // ACT
           Future<void> action() => cmdRunner.run([
                 valueCmd.name,
                 '--${ValueCommand.inputOption}',
                 absentFilePath,
               ]);
 
-          // ASSERT
           expect(action, throwsA(isA<UsageException>()));
           directory.deleteSync(recursive: true);
         },

@@ -4,37 +4,26 @@ import 'package:test/test.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a cov-file format exception''',
+    '$CovFileFormatException',
     () {
-      // ARRANGE
       final exception = CovFileFormatException(message: 'A message.');
 
       test(
-        '''
-WHEN its exit code is requested
-THEN the data code should be returned
-''',
+        'code '
+        '| returns data exit code',
         () {
-          // ACT
           final result = exception.code;
 
-          // ASSERT
           expect(result, ExitCode.data);
         },
       );
 
       test(
-        '''
-WHEN its string representation is requested
-THEN a string holding the exception details should be returned
-''',
+        'toString() '
+        '| string representation includes exception message',
         () {
-          // ACT
           final result = exception.toString();
 
-          // ASSERT
           expect(result, 'A message.');
         },
       );
