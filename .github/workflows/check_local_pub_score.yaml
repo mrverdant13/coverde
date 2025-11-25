@@ -58,8 +58,8 @@ jobs:
             gh issue create \
               --title "${{ env.ISSUE_TITLE }}" \
               --body-file ${{ env.ISSUE_BODY_FILEPATH }} \
-              --label "triage"
-              --label "p:coverde"
+              --label "triage" \
+              --label "p:coverde" \
               --assignee "@mrverdant13"
           fi
         env:
