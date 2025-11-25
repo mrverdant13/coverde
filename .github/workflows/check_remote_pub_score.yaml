@@ -41,7 +41,7 @@ jobs:
           echo "Issue number: $issueNumber"
           echo "issue_number=$issueNumber" >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
       - name: Create or update issue
         uses: peter-evans/create-issue-from-file@v6
         with:
