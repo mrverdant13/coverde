@@ -54,7 +54,7 @@ jobs:
               --body-file ${{ env.ISSUE_BODY_FILEPATH }} \
               --label "triage" \
               --label "p:coverde" \
-              --assignee "@mrverdant13"
+              --assignee "mrverdant13"
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
