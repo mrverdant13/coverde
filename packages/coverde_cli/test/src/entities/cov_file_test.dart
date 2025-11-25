@@ -6,87 +6,65 @@ import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 void main() {
-  // ARRANGE
-  final sourcePath = path.joinAll(['path', 'to', 'source.file']);
-  final covLinesEntries = Iterable.generate(
-    32,
-    (idx) => MapEntry(idx + 1, idx + 1),
-  );
-  final rawCovFileData = '''
+  group('$CovFile', () {
+    final sourcePath = path.joinAll(['path', 'to', 'source.file']);
+    final covLinesEntries = Iterable.generate(
+      32,
+      (idx) => MapEntry(idx + 1, idx + 1),
+    );
+    final rawCovFileData = '''
 SF:$sourcePath
 ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.value}').join('\n')}''';
-  final covLines = covLinesEntries.map(
-    (covLineEntry) => CovLine(
-      lineNumber: covLineEntry.key,
-      hitsNumber: covLineEntry.value,
-      checksum: null,
-    ),
-  );
-  final covFile = CovFile(
-    source: File(sourcePath),
-    raw: rawCovFileData,
-    covLines: covLines,
-  );
+    final covLines = covLinesEntries.map(
+      (covLineEntry) => CovLine(
+        lineNumber: covLineEntry.key,
+        hitsNumber: covLineEntry.value,
+        checksum: null,
+      ),
+    );
+    final covFile = CovFile(
+      source: File(sourcePath),
+      raw: rawCovFileData,
+      covLines: covLines,
+    );
 
-  test(
-    '''
+    test(
+      '| supports value comparison',
+      () {
+        final sameCovFile = CovFile(
+          source: File(sourcePath),
+          raw: rawCovFileData,
+          covLines: covLines,
+        );
 
-GIVEN two file coverage data instances
-├─ THAT hold the same data
-WHEN they are compared with each other
-THEN a positive result should be returned
-''',
-    () {
-      final sameCovFile = CovFile(
-        source: File(sourcePath),
-        raw: rawCovFileData,
-        covLines: covLines,
-      );
+        final valueComparisonResult = covFile == sameCovFile;
+        final hashComparisonResult = covFile.hashCode == sameCovFile.hashCode;
 
-      // ACT
-      final valueComparisonResult = covFile == sameCovFile;
-      final hashComparisonResult = covFile.hashCode == sameCovFile.hashCode;
+        expect(valueComparisonResult, isTrue);
+        expect(hashComparisonResult, isTrue);
+      },
+    );
 
-      // ASSERT
-      expect(valueComparisonResult, isTrue);
-      expect(hashComparisonResult, isTrue);
-    },
-  );
+    test(
+      '| parses valid string representation',
+      () async {
+        final result = CovFile.parse(rawCovFileData);
 
-  test(
-    '''
+        expect(result, covFile);
+      },
+    );
 
-GIVEN a valid string representation of a file coverage data
-WHEN the string is parsed
-THEN a file coverage data instance should be returned
-''',
-    () async {
-      // ACT
-      final result = CovFile.parse(rawCovFileData);
-
-      // ASSERT
-      expect(result, covFile);
-    },
-  );
-
-  test(
-    '''
-
-GIVEN an invalid string representation of a file coverage data
-WHEN the string is parsed
-THEN an exception should be thrown
-''',
-    () async {
-      // ARRANGE
-      const rawCovFileString = '''
+    test(
+      '| throws exception when parsing invalid string representation',
+      () async {
+        const rawCovFileString = '''
 DA:1,3
 DA:3,5''';
 
-      // ACT
-      void action() => CovFile.parse(rawCovFileString);
+        void action() => CovFile.parse(rawCovFileString);
 
-      // ASSERT
-      expect(action, throwsA(isA<CovFileFormatException>()));
-    },
-  );
+        expect(action, throwsA(isA<CovFileFormatException>()));
+      },
+    );
+  });
 }
