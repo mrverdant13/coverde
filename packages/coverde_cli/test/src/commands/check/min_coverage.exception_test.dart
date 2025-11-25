@@ -30,10 +30,8 @@ end_of_record
         'code '
         '| returns software exit code',
         () {
-          // ACT
           final result = exception.code;
 
-          // ASSERT
           expect(result, ExitCode.software);
         },
       );
@@ -43,10 +41,7 @@ end_of_record
         '| returns string representation '
         'including expected and actual coverage values',
         () {
-          // ACT
           final result = exception.toString();
-
-          // ASSERT
           expect(
             result,
             contains(

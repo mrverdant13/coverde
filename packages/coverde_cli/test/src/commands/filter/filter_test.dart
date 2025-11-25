@@ -36,7 +36,6 @@ void main() {
       test(
         '| description',
         () {
-          // ARRANGE
           const expected = '''
 Filter a coverage trace file.
 
@@ -46,10 +45,8 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
 All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
 ''';
 
-          // ACT
           final result = filterCmd.description;
 
-          // ASSERT
           expect(result.trim(), expected.trim());
         },
       );
@@ -60,7 +57,6 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         '--${FilterCommand.filtersOption}=<patterns> '
         '| filters trace file',
         () async {
-          // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
@@ -124,7 +120,6 @@ end_of_record
           expect(filteredFile.existsSync(), isFalse);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-          // ACT
           await cmdRunner.run([
             filterCmd.name,
             '--${FilterCommand.inputOption}',
@@ -135,7 +130,6 @@ end_of_record
             patterns.join(','),
           ]);
 
-          // ASSERT
           const splitter = LineSplitter();
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
@@ -166,7 +160,6 @@ end_of_record
         '--${FilterCommand.filtersOption}=<patterns> '
         '| filters trace file with absolute paths',
         () async {
-          // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
@@ -232,7 +225,6 @@ end_of_record
           expect(filteredFile.existsSync(), isFalse);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-          // ACT
           await cmdRunner.run([
             filterCmd.name,
             '--${FilterCommand.inputOption}',
@@ -243,7 +235,6 @@ end_of_record
             patterns.join(','),
           ]);
 
-          // ASSERT
           const splitter = LineSplitter();
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
@@ -275,7 +266,6 @@ end_of_record
         '--${FilterCommand.filtersOption}=<patterns> '
         '| filters trace file and resolves relative paths',
         () async {
-          // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
@@ -342,7 +332,6 @@ $ignoredSourceFileData
           expect(filteredFile.existsSync(), isFalse);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-          // ACT
           await cmdRunner.run([
             filterCmd.name,
             '--${FilterCommand.inputOption}',
@@ -355,7 +344,6 @@ $ignoredSourceFileData
             patterns.join(','),
           ]);
 
-          // ASSERT
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
@@ -395,7 +383,6 @@ end_of_record
         '| filters trace file and resolves relative paths '
         '(including absolute paths)',
         () async {
-          // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
@@ -477,7 +464,6 @@ $absoluteSourceFileData
           expect(filteredFile.existsSync(), isFalse);
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-          // ACT
           await cmdRunner.run([
             filterCmd.name,
             '--${FilterCommand.inputOption}',
@@ -490,7 +476,6 @@ $absoluteSourceFileData
             patterns.join(','),
           ]);
 
-          // ASSERT
           expect(originalFile.existsSync(), isTrue);
           expect(filteredFile.existsSync(), isTrue);
           final filteredFileContent = filteredFile.readAsStringSync();
@@ -532,7 +517,6 @@ end_of_record
         '--${FilterCommand.filtersOption}=<patterns> '
         '| fails when trace file does not exist',
         () async {
-          // ARRANGE
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
           const patterns = <String>['ignored_source'];
@@ -543,7 +527,6 @@ end_of_record
           final absentFile = File(absentFilePath);
           expect(absentFile.existsSync(), isFalse);
 
-          // ACT
           Future<void> action() => cmdRunner.run([
                 filterCmd.name,
                 '--${FilterCommand.inputOption}',
@@ -552,7 +535,6 @@ end_of_record
                 patterns.join(','),
               ]);
 
-          // ASSERT
           expect(action, throwsA(isA<UsageException>()));
         },
       );

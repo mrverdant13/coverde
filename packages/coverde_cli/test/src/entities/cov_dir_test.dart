@@ -36,18 +36,15 @@ void main() {
           elements: nestedCovElements,
         );
 
-        // ACT
         final valueComparisonResult = covDir == sameCovDir;
         final hashComparisonResult = covDir.hashCode == sameCovDir.hashCode;
 
-        // ASSERT
         expect(valueComparisonResult, isTrue);
         expect(hashComparisonResult, isTrue);
       },
     );
 
     {
-      // ARRANGE
       final covFiles = [
         CovFile(
           source: File(
@@ -218,10 +215,8 @@ void main() {
           test(
             '| creates coverage data tree structure',
             () {
-              // ACT
               final result = CovDir.tree(covFiles: covFiles);
 
-              // ASSERT
               expect(result, tree);
             },
           );
@@ -230,7 +225,6 @@ void main() {
             '| returns empty coverage folder '
             'when base folder does not contain coverage file data',
             () {
-              // ARRANGE
               final baseDirPath = path.joinAll([
                 'other',
                 'dir',
@@ -240,13 +234,11 @@ void main() {
                 elements: const [],
               );
 
-              // ACT
               final result = CovDir.subtree(
                 baseDirPath: baseDirPath,
                 coveredFiles: covFiles,
               );
 
-              // ASSERT
               expect(result, expectedSubtree);
             },
           );
@@ -256,7 +248,6 @@ void main() {
       test(
         '| returns formatted string representation',
         () {
-          // ARRANGE
           final expectedTreeString = '''
 Node: ${path.joinAll([
                 'test',
@@ -310,10 +301,8 @@ Node: ${path.joinAll([
 │
 ''';
 
-          // ACT
           final result = tree.toString();
 
-          // ASSERT
           const splitter = LineSplitter();
           expect(
             splitter.convert(result).map((line) => line.trim()),

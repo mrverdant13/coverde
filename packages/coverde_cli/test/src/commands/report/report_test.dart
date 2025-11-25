@@ -131,10 +131,8 @@ void main() {
 A trace file report generator command should be instantiable
 ''',
       () {
-        // ACT
         final result = ReportCommand();
 
-        // ASSERT
         expect(result, isNotNull);
       },
     );
@@ -142,17 +140,14 @@ A trace file report generator command should be instantiable
     test(
       '| description',
       () {
-        // ARRANGE
         const expected = '''
 Generate the coverage report from a trace file.
 
 Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 ''';
 
-        // ACT
         final result = reportCmd.description;
 
-        // ASSERT
         expect(result.trim(), expected.trim());
       },
     );
@@ -165,7 +160,6 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
           '--${ReportCommand.launchFlag} '
           '| generates HTML report and launches browser for ${proj.name}',
           () async {
-            // ARRANGE
             final traceFilePath = path.joinAll([
               'coverage',
               // cspell: disable-next-line
@@ -191,7 +185,6 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
             expect(traceFileFile.existsSync(), isTrue);
 
-            // ACT
             await cmdRunner.run([
               reportCmd.name,
               '--${ReportCommand.inputOption}',
@@ -201,7 +194,6 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
               '--${ReportCommand.launchFlag}',
             ]);
 
-            // ASSERT
             expect(reportDir.existsSync(), isTrue);
             for (final relFilePath in proj.relFilePaths) {
               final resultFile = File(
@@ -299,7 +291,6 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.inputOption}=<absent_file> '
       '| fails when trace file does not exist',
       () async {
-        // ARRANGE
         final absentFilePath = path.joinAll([
           'test',
           'src',
@@ -311,14 +302,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         final absentFile = File(absentFilePath);
         expect(absentFile.existsSync(), isFalse);
 
-        // ACT
         Future<void> action() => cmdRunner.run([
               reportCmd.name,
               '--${ReportCommand.inputOption}',
               absentFilePath,
             ]);
 
-        // ASSERT
         expect(action, throwsA(isA<UsageException>()));
       },
     );
@@ -327,17 +316,14 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.mediumOption}=<invalid> '
       '| fails when medium threshold is invalid',
       () async {
-        // ARRANGE
         const invalidMediumThreshold = 'medium';
 
-        // ACT
         Future<void> action() => cmdRunner.run([
               reportCmd.name,
               '--${ReportCommand.mediumOption}',
               invalidMediumThreshold,
             ]);
 
-        // ASSERT
         expect(action, throwsA(isA<UsageException>()));
       },
     );
@@ -346,17 +332,14 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.highOption}=<invalid> '
       '| fails when high threshold is invalid',
       () async {
-        // ARRANGE
         const invalidHighThreshold = 'high';
 
-        // ACT
         Future<void> action() => cmdRunner.run([
               reportCmd.name,
               '--${ReportCommand.highOption}',
               invalidHighThreshold,
             ]);
 
-        // ASSERT
         expect(action, throwsA(isA<UsageException>()));
       },
     );

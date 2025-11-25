@@ -12,10 +12,8 @@ void main() {
         'code '
         '| returns data exit code',
         () {
-          // ACT
           final result = exception.code;
 
-          // ASSERT
           expect(result, ExitCode.data);
         },
       );
@@ -24,10 +22,8 @@ void main() {
         'toString() '
         '| string representation includes exception message',
         () {
-          // ACT
           final result = exception.toString();
 
-          // ASSERT
           expect(result, 'A message.');
         },
       );

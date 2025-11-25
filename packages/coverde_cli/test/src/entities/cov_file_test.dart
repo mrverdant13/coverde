@@ -7,7 +7,6 @@ import 'package:universal_io/io.dart';
 
 void main() {
   group('$CovFile', () {
-    // ARRANGE
     final sourcePath = path.joinAll(['path', 'to', 'source.file']);
     final covLinesEntries = Iterable.generate(
       32,
@@ -38,11 +37,9 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
           covLines: covLines,
         );
 
-        // ACT
         final valueComparisonResult = covFile == sameCovFile;
         final hashComparisonResult = covFile.hashCode == sameCovFile.hashCode;
 
-        // ASSERT
         expect(valueComparisonResult, isTrue);
         expect(hashComparisonResult, isTrue);
       },
@@ -51,10 +48,8 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
     test(
       '| parses valid string representation',
       () async {
-        // ACT
         final result = CovFile.parse(rawCovFileData);
 
-        // ASSERT
         expect(result, covFile);
       },
     );
@@ -62,15 +57,12 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
     test(
       '| throws exception when parsing invalid string representation',
       () async {
-        // ARRANGE
         const rawCovFileString = '''
 DA:1,3
 DA:3,5''';
 
-        // ACT
         void action() => CovFile.parse(rawCovFileString);
 
-        // ASSERT
         expect(action, throwsA(isA<CovFileFormatException>()));
       },
     );

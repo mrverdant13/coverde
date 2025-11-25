@@ -6,7 +6,6 @@ void main() {
     test(
       '| supports value comparison',
       () {
-        // ARRANGE
         const lineNumber = 10;
         const hitsNumber = 24;
         final sourceFileCovData = CovLine(
@@ -20,13 +19,11 @@ void main() {
           checksum: null,
         );
 
-        // ACT
         final valueComparisonResult =
             sourceFileCovData == sameSourceFileCovData;
         final hashComparisonResult =
             sourceFileCovData.hashCode == sameSourceFileCovData.hashCode;
 
-        // ASSERT
         expect(valueComparisonResult, isTrue);
         expect(hashComparisonResult, isTrue);
       },
@@ -37,7 +34,6 @@ void main() {
         '| parses valid string representation '
         '${hasLineDataTag ? 'with' : 'without'} line data tag',
         () async {
-          // ARRANGE
           const lineNumber = 43;
           const hitsNumber = 64;
           final covLineString =
@@ -48,10 +44,8 @@ void main() {
             checksum: null,
           );
 
-          // ACT
           final result = CovLine.parse(covLineString);
 
-          // ASSERT
           expect(result, expectedCovLine);
         },
       );

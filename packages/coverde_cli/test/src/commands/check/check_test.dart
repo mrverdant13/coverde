@@ -20,7 +20,6 @@ void main() {
       late MockStdout out;
       late CheckCommand checkCmd;
 
-      // ARRANGE
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
@@ -39,7 +38,6 @@ void main() {
       test(
         '| description',
         () {
-          // ARRANGE
           const expected = '''
 Check the coverage value (%) computed from a trace file.
 
@@ -47,10 +45,8 @@ The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.
 ''';
 
-          // ACT
           final result = checkCmd.description;
 
-          // ASSERT
           expect(result.trim(), expected.trim());
         },
       );
@@ -173,14 +169,12 @@ This parameter indicates the minimum value for the coverage to be accepted.
         '<min_coverage> '
         '| fails when trace file does not exist',
         () async {
-          // ARRANGE
           final directory = Directory.systemTemp.createTempSync();
           final absentFilePath = p.join(directory.path, 'absent.lcov.info');
           final absentFile = File(absentFilePath);
           const minCoverage = 50;
           expect(absentFile.existsSync(), isFalse);
 
-          // ACT
           Future<void> action() => cmdRunner.run([
                 checkCmd.name,
                 '--${CheckCommand.inputOptionName}',
@@ -188,7 +182,6 @@ This parameter indicates the minimum value for the coverage to be accepted.
                 '$minCoverage',
               ]);
 
-          // ASSERT
           expect(action, throwsA(isA<UsageException>()));
           directory.deleteSync(recursive: true);
         },
@@ -197,10 +190,8 @@ This parameter indicates the minimum value for the coverage to be accepted.
       test(
         '| fails when no minimum expected coverage value',
         () async {
-          // ACT
           Future<void> action() => cmdRunner.run([checkCmd.name]);
 
-          // ASSERT
           expect(action, throwsArgumentError);
         },
       );
@@ -208,16 +199,13 @@ This parameter indicates the minimum value for the coverage to be accepted.
       test(
         '<non-numeric> | fails when minimum coverage value is non-numeric',
         () async {
-          // ARRANGE
           const invalidMinCoverage = 'str';
 
-          // ACT
           Future<void> action() => cmdRunner.run([
                 checkCmd.name,
                 invalidMinCoverage,
               ]);
 
-          // ASSERT
           expect(action, throwsArgumentError);
         },
       );

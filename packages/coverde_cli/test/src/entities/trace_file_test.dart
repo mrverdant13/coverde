@@ -44,7 +44,6 @@ void main() {
       });
     });
 
-    // ARRANGE
     const covFilesCount = 10;
 
     final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
@@ -61,17 +60,14 @@ void main() {
     test(
       '| supports value comparison',
       () {
-        // ARRANGE
         final sameTraceFile = TraceFile(
           sourceFilesCovData: covFiles,
         );
 
-        // ACT
         final valueComparisonResult = traceFile == sameTraceFile;
         final hashComparisonResult =
             traceFile.hashCode == sameTraceFile.hashCode;
 
-        // ASSERT
         expect(valueComparisonResult, isTrue);
         expect(hashComparisonResult, isTrue);
       },
@@ -80,12 +76,10 @@ void main() {
     test(
       '| parses valid string representation',
       () async {
-        // ACT
         final result = TraceFile.parse(
           traceFileString,
         );
 
-        // ASSERT
         expect(result, traceFile);
       },
     );
@@ -94,10 +88,7 @@ void main() {
       'sourceFilesCovData '
       '| returns source files coverage data',
       () async {
-        // ACT
         final result = traceFile.sourceFilesCovData;
-
-        // ASSERT
 
         expect(result, isA<UnmodifiableListView<CovFile>>());
         expect(result.length, covFiles.length);
@@ -118,13 +109,10 @@ void main() {
       'linesHit '
       '| returns total number of hit lines',
       () async {
-        // ARRANGE
         const expectedLinesHit = (covFilesCount * (covFilesCount - 1)) / 2;
 
-        // ACT
         final result = traceFile.linesHit;
 
-        // ASSERT
         expect(result, expectedLinesHit);
       },
     );
@@ -133,13 +121,10 @@ void main() {
       'linesFound'
       '| returns total number of found lines',
       () async {
-        // ARRANGE
         const expectedLinesFound = (covFilesCount * (covFilesCount + 1)) / 2;
 
-        // ACT
         final result = traceFile.linesFound;
 
-        // ASSERT
         expect(result, expectedLinesFound);
       },
     );
