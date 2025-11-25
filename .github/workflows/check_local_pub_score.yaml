@@ -51,7 +51,7 @@ jobs:
               --json number \
               --jq '.[0].number // empty'
             )
-          if [[ ${{ steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT }} == 0 ]]; then
+          if [[ "${{ steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT }}" == "0" ]]; then
             if [[ -n $issueNumber ]]; then
               echo "Issue already exists: $issueNumber"
               gh issue close $issueNumber --comment "Local Pub.dev score is valid"
