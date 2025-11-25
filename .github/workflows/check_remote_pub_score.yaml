@@ -22,6 +22,8 @@ jobs:
         run: dart pub global activate melos 7.3.0
       - name: Initialize melos
         run: melos bs
+      - name: Install dependencies
+        run: sudo apt-get install -y webp
       - name: Verify remote Pub.dev score
         id: remote-pub-score-check
         run: |
@@ -30,9 +32,6 @@ jobs:
           echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
       - name: Set step summary
         run: echo "$(cat packages/coverde_cli/.dart_tool/remote_pub_score.md)" >> $GITHUB_STEP_SUMMARY
-      - name: Finish workflow if remote pub score is valid
-        if: steps.remote-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT == 0
-        run: exit 0
       - name: Create or update issue
         run: |
           issueNumber=$(\
@@ -43,18 +42,25 @@ jobs:
               --json number \
               --jq '.[0].number // empty'
             )
-          if [[ -n $issueNumber ]]; then
-            echo "Issue already exists: $issueNumber"
-            gh issue edit $issueNumber \
-              --body-file "${{ env.ISSUE_BODY_FILEPATH }}"
+          if [[ "${{ steps.remote-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT }}" == "0" ]]; then
+            if [[ -n $issueNumber ]]; then
+              echo "Issue already exists: $issueNumber"
+              gh issue close $issueNumber --comment "Remote Pub.dev score is valid"
+            fi
           else
-            echo "Issue does not exist"
-            gh issue create \
-              --title "${{ env.ISSUE_TITLE }}" \
-              --body-file "${{ env.ISSUE_BODY_FILEPATH }}" \
-              --label "triage" \
-              --label "p:coverde" \
-              --assignee "mrverdant13"
+            if [[ -n $issueNumber ]]; then
+              echo "Issue already exists: $issueNumber"
+              gh issue edit $issueNumber \
+                --body-file "${{ env.ISSUE_BODY_FILEPATH }}"
+            else
+              echo "Issue does not exist"
+              gh issue create \
+                --title "${{ env.ISSUE_TITLE }}" \
+                --body-file "${{ env.ISSUE_BODY_FILEPATH }}" \
+                --label "triage" \
+                --label "p:coverde" \
+                --assignee "mrverdant13"
+            fi
           fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
