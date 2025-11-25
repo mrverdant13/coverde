@@ -51,8 +51,6 @@ For commits, this repo follows the [Conventional Commits Specification][conventi
 
 To easily check if these conditions are satisfied, you can use a collection of melos scripts defined in the same [`melos` configuration][_docs_pubspec_file].
 
-**To run the entire overhaul workflow according to requirements, run `melos run WF`**
-
 [_docs_pubspec_file]: https://github.com/mrverdant13/coverde/blob/main/pubspec.yaml
 [conventional_commit_specification_link]: https://www.conventionalcommits.org/en/v1.0.0/
 [dart_link]: https://dart.dev/
