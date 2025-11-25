@@ -75,12 +75,17 @@ void main() {
   group('coverde report', () {
     late CommandRunner<void> cmdRunner;
     late MockStdout out;
+    late MockProcessManager processManager;
     late ReportCommand reportCmd;
 
     setUp(() {
       cmdRunner = CommandRunner<void>('test', 'A tester command runner');
       out = MockStdout();
-      reportCmd = ReportCommand(out: out);
+      processManager = MockProcessManager();
+      reportCmd = ReportCommand(
+        out: out,
+        processManager: processManager,
+      );
       cmdRunner.addCommand(reportCmd);
     });
 
@@ -119,281 +124,241 @@ void main() {
         ),
       );
     });
-  });
 
-  test(
-    '''
+    test(
+      '''
 
 A trace file report generator command should be instantiable
 ''',
-    () {
-      // ACT
-      final result = ReportCommand();
+      () {
+        // ACT
+        final result = ReportCommand();
 
-      // ASSERT
-      expect(result, isNotNull);
-    },
-  );
+        // ASSERT
+        expect(result, isNotNull);
+      },
+    );
 
-  group(
-    '''
-
-GIVEN a trace file report generator command''',
-    () {
-      late CommandRunner<void> cmdRunner;
-      late MockStdout out;
-      late MockProcessManager processManager;
-      late ReportCommand reportCmd;
-
-      // ARRANGE
-      setUp(
-        () {
-          cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          out = MockStdout();
-          processManager = MockProcessManager();
-          reportCmd = ReportCommand(
-            out: out,
-            processManager: processManager,
-          );
-          cmdRunner.addCommand(reportCmd);
-        },
-      );
-
-      test(
-        '''
-
-WHEN its description is requested
-THEN a proper abstract should be returned
-''',
-        () {
-          // ARRANGE
-          const expected = '''
+    test(
+      '| description',
+      () {
+        // ARRANGE
+        const expected = '''
 Generate the coverage report from a trace file.
 
 Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 ''';
 
-          // ACT
-          final result = reportCmd.description;
+        // ACT
+        final result = reportCmd.description;
 
-          // ASSERT
-          expect(result.trim(), expected.trim());
-        },
-      );
+        // ASSERT
+        expect(result.trim(), expected.trim());
+      },
+    );
 
-      {
-        for (final proj in _Project.values) {
-          test(
-            '''
+    {
+      for (final proj in _Project.values) {
+        test(
+          '--${ReportCommand.inputOption}=<trace_file> '
+          '--${ReportCommand.outputOption}=<report_dir> '
+          '--${ReportCommand.launchFlag} '
+          '| generates HTML report and launches browser for ${proj.name}',
+          () async {
+            // ARRANGE
+            final traceFilePath = path.joinAll([
+              'coverage',
+              // cspell: disable-next-line
+              if (Platform.isWindows) 'windows' else 'posix',
+              'lcov.info',
+            ]).fixturePath(proj: proj);
+            final traceFileFile = File(traceFilePath);
+            const resultDirName = 'result';
+            const expectedDirName = 'expected';
+            final reportDirPath = resultDirName.fixturePath(proj: proj);
+            final reportDir = Directory(reportDirPath);
+            const listEquality = ListEquality<int>();
+            when(
+              () => processManager.run(
+                any(),
+                runInShell: any(named: 'runInShell'),
+              ),
+            ).thenAnswer(
+              (_) async => Future.value(
+                ProcessResult(0, 0, '', ''),
+              ),
+            );
 
-AND an existing trace file <${proj.name}>
-WHEN the command is invoked
-THEN a coverage report should be launched
-├─ BY generating an HTML report
-├─ AND launching it in a browser
-''',
-            () async {
-              // ARRANGE
-              final traceFilePath = path.joinAll([
-                'coverage',
-                // cspell: disable-next-line
-                if (Platform.isWindows) 'windows' else 'posix',
-                'lcov.info',
-              ]).fixturePath(proj: proj);
-              final traceFileFile = File(traceFilePath);
-              const resultDirName = 'result';
-              const expectedDirName = 'expected';
-              final reportDirPath = resultDirName.fixturePath(proj: proj);
-              final reportDir = Directory(reportDirPath);
-              const listEquality = ListEquality<int>();
-              when(
-                () => processManager.run(
-                  any(),
-                  runInShell: any(named: 'runInShell'),
-                ),
-              ).thenAnswer(
-                (_) async => Future.value(
-                  ProcessResult(0, 0, '', ''),
-                ),
+            expect(traceFileFile.existsSync(), isTrue);
+
+            // ACT
+            await cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.outputOption}',
+              reportDirPath,
+              '--${ReportCommand.launchFlag}',
+            ]);
+
+            // ASSERT
+            expect(reportDir.existsSync(), isTrue);
+            for (final relFilePath in proj.relFilePaths) {
+              final resultFile = File(
+                path
+                    .join(
+                      resultDirName,
+                      relFilePath,
+                    )
+                    .fixturePath(proj: proj),
               );
-
-              expect(traceFileFile.existsSync(), isTrue);
-
-              // ACT
-              await cmdRunner.run([
-                reportCmd.name,
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-                '--${ReportCommand.outputOption}',
-                reportDirPath,
-                '--${ReportCommand.launchFlag}',
-              ]);
-
-              // ASSERT
-              expect(reportDir.existsSync(), isTrue);
-              for (final relFilePath in proj.relFilePaths) {
-                final resultFile = File(
-                  path
-                      .join(
-                        resultDirName,
-                        relFilePath,
-                      )
-                      .fixturePath(proj: proj),
+              final expectedFile = File(
+                path
+                    .join(
+                      expectedDirName,
+                      relFilePath,
+                    )
+                    .fixturePath(proj: proj),
+              );
+              if (relFilePath.endsWith('png')) {
+                final result = resultFile.readAsBytesSync();
+                final expected = expectedFile.readAsBytesSync();
+                final haveSameContent = listEquality.equals(result, expected);
+                expect(
+                  haveSameContent,
+                  isTrue,
+                  reason: 'Non-matching (bytes) file <$relFilePath>',
                 );
-                final expectedFile = File(
-                  path
-                      .join(
-                        expectedDirName,
-                        relFilePath,
-                      )
-                      .fixturePath(proj: proj),
-                );
-                if (relFilePath.endsWith('png')) {
-                  final result = resultFile.readAsBytesSync();
-                  final expected = expectedFile.readAsBytesSync();
-                  final haveSameContent = listEquality.equals(result, expected);
+              } else {
+                final result = resultFile.readAsStringSync();
+                final expected = expectedFile.readAsStringSync();
+                const splitter = LineSplitter();
+                if (relFilePath.endsWith('html')) {
+                  const lastTraceFileModificationDateSelector =
+                      '.lastTraceFileModificationDate';
+                  final resultHtml = Document.html(result);
+                  final expectedHtml = Document.html(expected);
+                  resultHtml
+                      .querySelector(lastTraceFileModificationDateSelector)
+                      ?.remove();
+                  expectedHtml
+                      .querySelector(lastTraceFileModificationDateSelector)
+                      ?.remove();
                   expect(
-                    haveSameContent,
-                    isTrue,
-                    reason: 'Non-matching (bytes) file <$relFilePath>',
+                    splitter
+                        .convert(resultHtml.outerHtml)
+                        .map((line) => line.trim()),
+                    splitter
+                        .convert(expectedHtml.outerHtml)
+                        .map((line) => line.trim()),
+                    reason: 'Error: Non-matching (html) file <$relFilePath>',
+                  );
+                } else if (relFilePath.endsWith('css')) {
+                  final resultCss = css.parse(result);
+                  final expectedCss = css.parse(expected);
+                  expect(
+                    splitter.convert(resultCss.toDebugString()),
+                    splitter.convert(expectedCss.toDebugString()),
+                    reason: 'Error: Non-matching (css) file <$relFilePath>',
                   );
                 } else {
-                  final result = resultFile.readAsStringSync();
-                  final expected = expectedFile.readAsStringSync();
-                  const splitter = LineSplitter();
-                  if (relFilePath.endsWith('html')) {
-                    const lastTraceFileModificationDateSelector =
-                        '.lastTraceFileModificationDate';
-                    final resultHtml = Document.html(result);
-                    final expectedHtml = Document.html(expected);
-                    resultHtml
-                        .querySelector(lastTraceFileModificationDateSelector)
-                        ?.remove();
-                    expectedHtml
-                        .querySelector(lastTraceFileModificationDateSelector)
-                        ?.remove();
-                    expect(
-                      splitter
-                          .convert(resultHtml.outerHtml)
-                          .map((line) => line.trim()),
-                      splitter
-                          .convert(expectedHtml.outerHtml)
-                          .map((line) => line.trim()),
-                      reason: 'Error: Non-matching (html) file <$relFilePath>',
-                    );
-                  } else if (relFilePath.endsWith('css')) {
-                    final resultCss = css.parse(result);
-                    final expectedCss = css.parse(expected);
-                    expect(
-                      splitter.convert(resultCss.toDebugString()),
-                      splitter.convert(expectedCss.toDebugString()),
-                      reason: 'Error: Non-matching (css) file <$relFilePath>',
-                    );
-                  } else {
-                    expect(
-                      splitter.convert(result),
-                      splitter.convert(expected),
-                      reason: '''
+                  expect(
+                    splitter.convert(result),
+                    splitter.convert(expected),
+                    reason: '''
 Error: Non-matching (plain text) file <$relFilePath>''',
-                    );
-                  }
+                  );
                 }
               }
-              verify(
-                () => processManager.run(
-                  any(
-                    that: containsAllInOrder(
-                      <Matcher>[
-                        equals(launchCommands[Platform.operatingSystem]),
-                        contains(path.join(reportDirPath, 'index.html')),
-                      ],
-                    ),
+            }
+            verify(
+              () => processManager.run(
+                any(
+                  that: containsAllInOrder(
+                    <Matcher>[
+                      equals(launchCommands[Platform.operatingSystem]),
+                      contains(path.join(reportDirPath, 'index.html')),
+                    ],
                   ),
-                  runInShell: true,
                 ),
-              ).called(1);
-            },
-          );
-        }
+                runInShell: true,
+              ),
+            ).called(1);
+            verify(
+              () => out.writeln(any()),
+            ).called(3);
+            verify(
+              () => out.write(any()),
+            ).called(1);
+          },
+        );
       }
+    }
 
-      test(
-        '''
+    test(
+      '--${ReportCommand.inputOption}=<absent_file> '
+      '| fails when trace file does not exist',
+      () async {
+        // ARRANGE
+        final absentFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'absent.lcov.info',
+        ]);
+        final absentFile = File(absentFilePath);
+        expect(absentFile.existsSync(), isFalse);
 
-AND a non-existing trace file
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-''',
-        () async {
-          // ARRANGE
-          final absentFilePath = path.joinAll([
-            'test',
-            'src',
-            'commands',
-            'report',
-            'fixtures',
-            'absent.lcov.info',
-          ]);
-          final absentFile = File(absentFilePath);
-          expect(absentFile.existsSync(), isFalse);
+        // ACT
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              absentFilePath,
+            ]);
 
-          // ACT
-          Future<void> action() => cmdRunner.run([
-                reportCmd.name,
-                '--${ReportCommand.inputOption}',
-                absentFilePath,
-              ]);
+        // ASSERT
+        expect(action, throwsA(isA<UsageException>()));
+      },
+    );
 
-          // ASSERT
-          expect(action, throwsA(isA<UsageException>()));
-        },
-      );
+    test(
+      '--${ReportCommand.mediumOption}=<invalid> '
+      '| fails when medium threshold is invalid',
+      () async {
+        // ARRANGE
+        const invalidMediumThreshold = 'medium';
 
-      test(
-        '''
+        // ACT
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.mediumOption}',
+              invalidMediumThreshold,
+            ]);
 
-AND an invalid medium threshold
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-''',
-        () async {
-          // ARRANGE
-          const invalidMediumThreshold = 'medium';
+        // ASSERT
+        expect(action, throwsA(isA<UsageException>()));
+      },
+    );
 
-          // ACT
-          Future<void> action() => cmdRunner.run([
-                reportCmd.name,
-                '--${ReportCommand.mediumOption}',
-                invalidMediumThreshold,
-              ]);
+    test(
+      '--${ReportCommand.highOption}=<invalid> '
+      '| fails when high threshold is invalid',
+      () async {
+        // ARRANGE
+        const invalidHighThreshold = 'high';
 
-          // ASSERT
-          expect(action, throwsA(isA<UsageException>()));
-        },
-      );
+        // ACT
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.highOption}',
+              invalidHighThreshold,
+            ]);
 
-      test(
-        '''
-
-AND an invalid high threshold
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-''',
-        () async {
-          // ARRANGE
-          const invalidHighThreshold = 'high';
-
-          // ACT
-          Future<void> action() => cmdRunner.run([
-                reportCmd.name,
-                '--${ReportCommand.highOption}',
-                invalidHighThreshold,
-              ]);
-
-          // ASSERT
-          expect(action, throwsA(isA<UsageException>()));
-        },
-      );
-    },
-  );
+        // ASSERT
+        expect(action, throwsA(isA<UsageException>()));
+      },
+    );
+  });
 }

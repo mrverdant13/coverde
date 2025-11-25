@@ -9,15 +9,12 @@ import '../../../utils/mocks.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a filesystem element remover command''',
+    'coverde rm',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
       late RmCommand rmCmd;
 
-      // ARRANGE
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
@@ -34,11 +31,7 @@ GIVEN a filesystem element remover command''',
       );
 
       test(
-        '''
-
-WHEN its description is requested
-THEN a proper abstract should be returned
-''',
+        '| description',
         () {
           // ARRANGE
           const expected = '''
@@ -54,12 +47,8 @@ Remove a set of files and folders.
       );
 
       test(
-        '''
-
-AND an existing file to remove
-WHEN the command is invoked
-THEN the file should be removed
-''',
+        '<existing_file> '
+        '| removes existing file',
         () async {
           // ARRANGE
           final filePath = path.joinAll(['coverage', 'existing.file']);
@@ -79,14 +68,9 @@ THEN the file should be removed
       );
 
       test(
-        '''
-
-AND a non-existing file to remove
-AND the requirement for the file to exist
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-AND the file should remain inexistent
-''',
+        '--no-${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_file> '
+        '| fails when file does not exist',
         () async {
           // ARRANGE
           final filePath = path.joinAll(['coverage', 'non-existing.file']);
@@ -107,14 +91,9 @@ AND the file should remain inexistent
       );
 
       test(
-        '''
-
-AND a non-existing file to remove
-AND no requirement for the file to exist
-WHEN the command is invoked
-THEN a message indicating the issue should be shown
-AND the file should remain inexistent
-''',
+        '--${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_file> '
+        '| shows message when file does not exist',
         () async {
           // ARRANGE
           final filePath = path.joinAll(['coverage', 'non-existing.file']);
@@ -138,12 +117,8 @@ AND the file should remain inexistent
       );
 
       test(
-        '''
-
-AND an existing directory to remove
-WHEN the command is invoked
-THEN the directory should be removed
-''',
+        '<existing_directory> '
+        '| removes existing directory',
         () async {
           // ARRANGE
           final dirPath = path.joinAll(['coverage', 'existing.dir']);
@@ -163,14 +138,9 @@ THEN the directory should be removed
       );
 
       test(
-        '''
-
-AND a non-existing directory to remove
-AND the requirement for the directory to exist
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-AND the directory should remain inexistent
-''',
+        '--no-${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_directory> '
+        '| fails when directory does not exist',
         () async {
           // ARRANGE
           final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
@@ -191,14 +161,9 @@ AND the directory should remain inexistent
       );
 
       test(
-        '''
-
-AND a non-existing directory to remove
-AND no requirement for the directory to exist
-WHEN the command is invoked
-THEN a message indicating the issue should be shown
-AND the directory should remain inexistent
-''',
+        '--${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_directory> '
+        '| shows message when directory does not exist',
         () async {
           // ARRANGE
           final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
@@ -222,12 +187,7 @@ AND the directory should remain inexistent
       );
 
       test(
-        '''
-
-AND no element to remove
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-''',
+        '| fails when no elements to remove',
         () {
           // ACT
           Future<void> action() => cmdRunner.run([rmCmd.name]);

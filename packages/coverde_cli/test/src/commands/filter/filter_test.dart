@@ -12,15 +12,12 @@ import '../../../utils/mocks.dart';
 
 void main() {
   group(
-    '''
-
-GIVEN a trace file filterer command''',
+    'coverde filter',
     () {
       late CommandRunner<void> cmdRunner;
       late MockStdout out;
       late FilterCommand filterCmd;
 
-      // ARRANGE
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
@@ -37,11 +34,7 @@ GIVEN a trace file filterer command''',
       );
 
       test(
-        '''
-
-WHEN its description is requested
-THEN a proper abstract should be returned
-''',
+        '| description',
         () {
           // ARRANGE
           const expected = '''
@@ -62,15 +55,10 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       );
 
       test(
-        '''
-
-AND an existing trace file to filter
-├─ THAT does not contain any absolute path
-AND a set of patterns to be filtered
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY dumping the filtered content to the default destination
-''',
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file',
         () async {
           // ARRANGE
           final directory =
@@ -173,15 +161,10 @@ end_of_record
       );
 
       test(
-        '''
-
-AND an existing trace file to filter
-├─ THAT contains at least one absolute path
-AND a set of patterns to be filtered
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY dumping the filtered content to the default destination
-''',
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file with absolute paths',
         () async {
           // ARRANGE
           final directory =
@@ -286,16 +269,11 @@ end_of_record
       );
 
       test(
-        '''
-
-AND an existing trace file to filter
-├─ THAT does not contain any absolute path
-AND a set of patterns to be filtered
-AND a path to be used as prefix for the tested file paths
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY dumping the filtered content to the default destination
-''',
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file and resolves relative paths',
         () async {
           // ARRANGE
           final directory =
@@ -410,16 +388,12 @@ end_of_record
       );
 
       test(
-        '''
-
-AND a trace file content to filter
-├─ THAT contains at least one absolute path
-AND a set of patterns to be filtered
-AND a path to be used as prefix for the tested file paths
-WHEN the command is invoked
-THEN a filtered trace file should be created
-├─ BY resolving the source file paths relative to the <base-directory>
-''',
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file and resolves relative paths '
+        '(including absolute paths)',
         () async {
           // ARRANGE
           final directory =
@@ -554,13 +528,9 @@ end_of_record
       );
 
       test(
-        '''
-
-AND a non-existing trace file to filter
-AND a set of patterns to be filtered
-WHEN the command is invoked
-THEN an error indicating the issue should be thrown
-''',
+        '--${FilterCommand.inputOption}=<absent_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| fails when trace file does not exist',
         () async {
           // ARRANGE
           final directory =

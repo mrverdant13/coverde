@@ -43,127 +43,105 @@ void main() {
         expect(traceFile.isEmpty, isTrue);
       });
     });
-  });
 
-  // ARRANGE
-  const covFilesCount = 10;
+    // ARRANGE
+    const covFilesCount = 10;
 
-  final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
-      .map(CovFile.parse);
+    final covFiles = Iterable.generate(covFilesCount, buildRawCovFileString)
+        .map(CovFile.parse);
 
-  final traceFile = TraceFile(
-    sourceFilesCovData: covFiles,
-  );
-  final traceFileString = Iterable.generate(
-    covFilesCount,
-    buildRawCovFileString,
-  ).join('\n');
+    final traceFile = TraceFile(
+      sourceFilesCovData: covFiles,
+    );
+    final traceFileString = Iterable.generate(
+      covFilesCount,
+      buildRawCovFileString,
+    ).join('\n');
 
-  test(
-    '''
+    test(
+      '| supports value comparison',
+      () {
+        // ARRANGE
+        final sameTraceFile = TraceFile(
+          sourceFilesCovData: covFiles,
+        );
 
-GIVEN two trace file instances
-├─ THAT hold the same data
-WHEN they are compared with each other
-THEN a positive result should be returned
-''',
-    () {
-      // ARRANGE
-      final sameTraceFile = TraceFile(
-        sourceFilesCovData: covFiles,
-      );
+        // ACT
+        final valueComparisonResult = traceFile == sameTraceFile;
+        final hashComparisonResult =
+            traceFile.hashCode == sameTraceFile.hashCode;
 
-      // ACT
-      final valueComparisonResult = traceFile == sameTraceFile;
-      final hashComparisonResult = traceFile.hashCode == sameTraceFile.hashCode;
+        // ASSERT
+        expect(valueComparisonResult, isTrue);
+        expect(hashComparisonResult, isTrue);
+      },
+    );
 
-      // ASSERT
-      expect(valueComparisonResult, isTrue);
-      expect(hashComparisonResult, isTrue);
-    },
-  );
+    test(
+      '| parses valid string representation',
+      () async {
+        // ACT
+        final result = TraceFile.parse(
+          traceFileString,
+        );
 
-  test(
-    '''
+        // ASSERT
+        expect(result, traceFile);
+      },
+    );
 
-GIVEN a valid string representation of a trace file
-WHEN the string is parsed
-THEN a trace file instance should be returned
-''',
-    () async {
-      // ACT
-      final result = TraceFile.parse(
-        traceFileString,
-      );
+    test(
+      'sourceFilesCovData '
+      '| returns source files coverage data',
+      () async {
+        // ACT
+        final result = traceFile.sourceFilesCovData;
 
-      // ASSERT
-      expect(result, traceFile);
-    },
-  );
+        // ASSERT
 
-  test(
-    '''
-
-GIVEN a trace file instance
-WHEN source files coverage data is requested
-THEN its actual collection of source files coverage data is returned
-''',
-    () async {
-      // ACT
-      final result = traceFile.sourceFilesCovData;
-
-      // ASSERT
-
-      expect(result, isA<UnmodifiableListView<CovFile>>());
-      expect(result.length, covFiles.length);
-      expect(
-        result,
-        predicate<UnmodifiableListView<CovFile>>(
-          (r) => r.foldIndexed(
-            true,
-            (idx, containSameElements, element) =>
-                containSameElements && element == covFiles.elementAt(idx),
+        expect(result, isA<UnmodifiableListView<CovFile>>());
+        expect(result.length, covFiles.length);
+        expect(
+          result,
+          predicate<UnmodifiableListView<CovFile>>(
+            (r) => r.foldIndexed(
+              true,
+              (idx, containSameElements, element) =>
+                  containSameElements && element == covFiles.elementAt(idx),
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
-  test(
-    '''
+    test(
+      'linesHit '
+      '| returns total number of hit lines',
+      () async {
+        // ARRANGE
+        const expectedLinesHit = (covFilesCount * (covFilesCount - 1)) / 2;
 
-GIVEN a trace file instance
-WHEN its total number of hit lines is requested
-THEN the actual value should be returned
-''',
-    () async {
-      // ARRANGE
-      const expectedLinesHit = (covFilesCount * (covFilesCount - 1)) / 2;
+        // ACT
+        final result = traceFile.linesHit;
 
-      // ACT
-      final result = traceFile.linesHit;
+        // ASSERT
+        expect(result, expectedLinesHit);
+      },
+    );
 
-      // ASSERT
-      expect(result, expectedLinesHit);
-    },
-  );
+    test(
+      'linesFound'
+      '| returns total number of found lines',
+      () async {
+        // ARRANGE
+        const expectedLinesFound = (covFilesCount * (covFilesCount + 1)) / 2;
 
-  test(
-    '''
+        // ACT
+        final result = traceFile.linesFound;
 
-GIVEN a trace file instance
-WHEN its total number of found lines is requested
-THEN the actual value should be returned
-''',
-    () async {
-      // ARRANGE
-      const expectedLinesFound = (covFilesCount * (covFilesCount + 1)) / 2;
-
-      // ACT
-      final result = traceFile.linesFound;
-
-      // ASSERT
-      expect(result, expectedLinesFound);
-    },
-  );
+        // ASSERT
+        expect(result, expectedLinesFound);
+      },
+    );
+  });
 }
