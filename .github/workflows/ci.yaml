@@ -29,7 +29,7 @@ jobs:
       - name: Initialize melos
         run: melos bs
       - name: Format and analyze
-        run: melos run FA:ci
+        run: melos run format.ci && melos run analyze.ci
 
   src-gen:
     name: Ensure up-to-date source generation
@@ -63,12 +63,10 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Install melos
         run: dart pub global activate melos 7.3.0
-      - name: Install coverage
-        run: dart pub global activate coverage 1.15.0
       - name: Initialize melos
         run: melos bs
       - name: Run tests, merge tests if needed, and check 100% coverage
-        run: melos run TMC:ci
+        run: melos run test.ci && melos run coverage.merge && melos run coverage.check
       - name: Update coverage trace file as artifact
         uses: actions/upload-artifact@v5
         if: matrix.os == 'ubuntu-latest'
