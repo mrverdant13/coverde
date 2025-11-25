@@ -33,22 +33,30 @@ jobs:
       - name: Finish workflow if remote pub score is valid
         if: steps.remote-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT == 0
         run: exit 0
-      - name: Check if an issue already exists
-        id: existing-issue-check
+      - name: Create or update issue
         run: |
-          set +e
-          issueNumber=$(gh issue list --search "bug(coverde-cli): remote Pub.dev score is not valid" --state open --json number | jq -r '.[0].number')
-          echo "Issue number: $issueNumber"
-          echo "issue_number=$issueNumber" >> "$GITHUB_OUTPUT"
+          issueNumber=$(\
+            gh issue list \
+              --search "${{ env.ISSUE_TITLE }}" \
+              --state open \
+              --limit 1 \
+              --json number \
+              --jq '.[0].number // empty'
+            )
+          if [[ -n $issueNumber ]]; then
+            echo "Issue already exists: $issueNumber"
+            gh issue edit $issueNumber \
+              --body-file ${{ env.ISSUE_BODY_FILEPATH }}
+          else
+            echo "Issue does not exist"
+            gh issue create \
+              --title "${{ env.ISSUE_TITLE }}" \
+              --body-file ${{ env.ISSUE_BODY_FILEPATH }} \
+              --label "triage"
+              --label "p:coverde"
+              --assignee "@mrverdant13"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - name: Create or update issue
-        uses: peter-evans/create-issue-from-file@v6
-        with:
-          title: "bug(coverde-cli): remote Pub.dev score is not valid"
-          content-filepath: packages/coverde_cli/.dart_tool/remote_pub_score.md
-          labels: |
-            triage
-            p:coverde
-          assignees: mrverdant13
-          issue-number: ${{ steps.existing-issue-check.outputs.issue_number }}
+          ISSUE_TITLE: "bug(coverde-cli): remote Pub.dev score is not valid"
+          ISSUE_BODY_FILEPATH: packages/coverde_cli/.dart_tool/remote_pub_score.md
