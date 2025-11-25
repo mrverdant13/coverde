@@ -28,15 +28,15 @@ melos:
       description: Deep clean-up
       # Preserves FVM internal folder to avoid re-installing the Flutter SDK when developing locally.
       run: >
-        git clean \
-          -dfX \
-          MELOS_ROOT_PATH
+        git clean
+        -dfX
+        MELOS_ROOT_PATH
 
     gen:
       description: Run code generation for a package
       run: >
-        dart run build_runner build \
-          --delete-conflicting-outputs
+        dart run build_runner build
+        --delete-conflicting-outputs
       exec:
         concurrency: 1
         failFast: true
@@ -51,21 +51,21 @@ melos:
     gen.all.fast:
       description: Run code generation for all packages (multi-threaded)
       run: >
-        melos exec \
-          --depends-on=build_runner \
-          --order-dependents \
-          -- "\
-            dart run build_runner build \
-              --delete-conflicting-outputs\
-          "
+        melos exec
+        --depends-on=build_runner
+        --order-dependents
+        -- "
+        dart run build_runner build
+        --delete-conflicting-outputs
+        "
 
     spellcheck:
       description: Run spell checking for the entire project
       run: >
-        cspell lint \
-          --config ./.cspell/cspell.yaml \
-          --no-progress \
-          "MELOS_ROOT_PATH/**"
+        cspell lint
+        --config ./.cspell/cspell.yaml
+        --no-progress
+        "MELOS_ROOT_PATH/**"
 
     format:
       description: Format a package
@@ -88,26 +88,26 @@ melos:
     test:
       description: Run tests and generate coverage trace file for a package
       run: >
-        dart run coverde optimize-tests \
-          --exclude '**/fixtures/**' \
-          --include 'test/**_test.dart' \
-          --output=test/optimized_test.dart \
+        dart run coverde optimize-tests
+        --exclude '**/fixtures/**'
+        --include 'test/**_test.dart'
+        --output=test/optimized_test.dart
         &&
-        dart test \
-          --color \
-          --coverage=coverage \
-          --exclude-tags ci-only \
-          --reporter expanded \
-          --test-randomize-ordering-seed random \
-          test/optimized_test.dart \
+        dart test
+        --color
+        --coverage=coverage
+        --exclude-tags ci-only
+        --reporter expanded
+        --test-randomize-ordering-seed random
+        test/optimized_test.dart
         &&
-        dart run coverage:format_coverage \
-          --base-directory MELOS_PACKAGE_PATH \
-          --check-ignore \
-          --in=coverage \
-          --lcov \
-          --out=coverage/lcov.info \
-          --report-on=lib
+        dart run coverage:format_coverage
+        --base-directory MELOS_PACKAGE_PATH
+        --check-ignore
+        --in=coverage
+        --lcov
+        --out=coverage/lcov.info
+        --report-on=lib
       exec:
         concurrency: 1
         orderDependents: true
@@ -116,17 +116,17 @@ melos:
           - test
         dirExists:
           - test
-    test.e2e:
+    test.e2e: # TODO: Test
       description: Run E2E tests
       run: >
-        git clean \
-          -dfX \
-          .
+        git clean
+        -dfX
+        .
         &&
-        dart test \
-          --run-skipped \
-          --tags e2e \
-          e2e
+        dart test
+        --run-skipped
+        --tags e2e
+        e2e
       packageFilters:
         category:
           - e2e
@@ -146,68 +146,68 @@ melos:
     test.ci:
       description: Run tests for all packages (CI)
       run: >
-        melos exec \
-          --depends-on=test \
-          --dir-exists=test \
-          --fail-fast \
-          --order-dependents \
-          -- "\
-            dart run coverde optimize-tests \
-              --exclude='**/fixtures/**' \
-              --include='test/**_test.dart' \
-              --output=test/optimized_test.dart \
-            && \
-            dart test \
-              --coverage=coverage \
-              --exclude-tags ci-only \
-              --reporter expanded \
-              --test-randomize-ordering-seed random \
-              test/optimized_test.dart \
-            && \
-            dart run coverage:format_coverage \
-              --base-directory MELOS_PACKAGE_PATH \
-              --check-ignore \
-              --in=coverage \
-              --lcov \
-              --out=coverage/lcov.info \
-              --report-on=lib \
-          "
+        melos exec
+        --depends-on=test
+        --dir-exists=test
+        --fail-fast
+        --order-dependents
+        -- "
+        dart run coverde optimize-tests
+        --exclude='**/fixtures/**'
+        --include='test/**_test.dart'
+        --output=test/optimized_test.dart
+        &&
+        dart test
+        --coverage=coverage
+        --exclude-tags ci-only
+        --reporter expanded
+        --test-randomize-ordering-seed random
+        test/optimized_test.dart
+        &&
+        dart run coverage:format_coverage
+        --base-directory MELOS_PACKAGE_PATH
+        --check-ignore
+        --in=coverage
+        --lcov
+        --out=coverage/lcov.info
+        --report-on=lib
+        "
     coverage.merge:
       description: Merge all packages coverage trace files
       run: >
-        dart run coverde rm \
-          MELOS_ROOT_PATH/coverage/filtered.lcov.info \
+        dart run coverde rm
+        MELOS_ROOT_PATH/coverage/filtered.lcov.info
         &&
-        melos exec \
-          --file-exists=coverage/lcov.info \
-          -- "\
-            dart run coverde filter \
-              --base-directory MELOS_ROOT_PATH \
-              --filters '\.asset\.dart'\
-              --input coverage/lcov.info \
-              --output MELOS_ROOT_PATH/coverage/filtered.lcov.info \
-            "
+        melos exec
+        --file-exists=coverage/lcov.info
+        --
+        "
+        dart run coverde filter
+        --base-directory MELOS_ROOT_PATH
+        --filters '\.asset\.dart'
+        --input coverage/lcov.info
+        --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+        "
     coverage.check:
       description: Check test coverage
       run: >
-        dart run coverde check \
-          --input MELOS_ROOT_PATH/coverage/filtered.lcov.info \
-          100
+        dart run coverde check
+        --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
+        100
     coverage.report:
       description: Generate HTML coverage report
       run: >
-        dart run coverde report \
-          --input MELOS_ROOT_PATH/coverage/filtered.lcov.info \
-          --output MELOS_ROOT_PATH/coverage/html/
+        dart run coverde report
+        --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
+        --output MELOS_ROOT_PATH/coverage/html/
 
     pub-score.remote:
       description: Check pub score for a selected package.
       run: >
-        dart run pub_score_checker \
-          check_pub_score remote \
-            --markdown-output MELOS_PACKAGE_PATH/.dart_tool/remote_pub_score.md \
-            --package-name MELOS_PACKAGE_NAME \
-            --threshold 0
+        dart run pub_score_checker check_pub_score remote
+        --markdown-output MELOS_PACKAGE_PATH/.dart_tool/remote_pub_score.md
+        --package-name MELOS_PACKAGE_NAME
+        --threshold 0
       exec:
         concurrency: 1
       packageFilters:
@@ -215,11 +215,10 @@ melos:
     pub-score.local:
       description: Check pub score for a selected package.
       run: >
-        dart run pub_score_checker \
-          check_pub_score local \
-            --markdown-output MELOS_PACKAGE_PATH/.dart_tool/local_pub_score.md \
-            --package-path MELOS_PACKAGE_PATH \
-            --threshold 0
+        dart run pub_score_checker check_pub_score local
+        --markdown-output MELOS_PACKAGE_PATH/.dart_tool/local_pub_score.md
+        --package-path MELOS_PACKAGE_PATH
+        --threshold 0
       exec:
         concurrency: 1
       packageFilters:
@@ -229,10 +228,10 @@ melos:
     docs.cli:
       description: Resolve CLI README file
       run: >
-        dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart \
-          --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/browser/ \
-          --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/ \
-          --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md
+        dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart
+        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/browser/
+        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/
+        --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md
 
 workspace:
   - packages/coverde_cli/
