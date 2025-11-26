@@ -1,9 +1,16 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/trace_file.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:universal_io/universal_io.dart';
+
+class MockFile extends Mock implements File {}
 
 Iterable<MapEntry<int, int>> buildCovLinesEntries(int linesCount) {
   return Iterable.generate(
@@ -74,16 +81,41 @@ void main() {
       },
     );
 
-    test(
-      '| parses valid string representation',
-      () async {
-        final result = TraceFile.parse(
-          traceFileString,
-        );
+    group('parse', () {
+      test(
+        '| parses valid string representation',
+        () async {
+          final result = TraceFile.parse(
+            traceFileString,
+          );
 
-        expect(result, traceFile);
-      },
-    );
+          expect(result, traceFile);
+        },
+      );
+
+      test(
+        '| throws $CovFileFormatException when a block has no source file tag',
+        () async {
+          const invalidBlock = 'DA:1,1\nend_of_record\n';
+
+          void action() => TraceFile.parse(invalidBlock);
+
+          expect(action, throwsA(isA<CovFileFormatException>()));
+        },
+      );
+
+      test(
+        '| throws $FormatException when a line entry is malformed',
+        () async {
+          const malformedBlock =
+              'SF:some/file.dart\nDA:not_an_int,1\nend_of_record\n';
+
+          void action() => TraceFile.parse(malformedBlock);
+
+          expect(action, throwsA(isA<FormatException>()));
+        },
+      );
+    });
 
     test(
       'sourceFilesCovData '
@@ -229,6 +261,76 @@ DA:1,1
 
           // Should handle incomplete block at end
           expect(result.sourceFilesCovData.length, 2);
+        },
+      );
+
+      test(
+        '| propagates $CovFileFormatException '
+        'when a block has no source file tag',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          const content = 'DA:1,1\nend_of_record\n';
+          final tempFile = File(path.join(tempDir.path, 'invalid_no_sf.info'))
+            ..writeAsStringSync(content);
+
+          Future<void> action() async => TraceFile.parseStreaming(tempFile);
+
+          await expectLater(
+            action,
+            throwsA(isA<CovFileFormatException>()),
+          );
+        },
+      );
+
+      test(
+        '| propagates $FormatException '
+        'when a line entry is malformed',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          const content = 'SF:some/file.dart\nDA:not_an_int,1\nend_of_record\n';
+          final tempFile = File(path.join(tempDir.path, 'invalid_da_line.info'))
+            ..writeAsStringSync(content);
+
+          Future<void> action() async => TraceFile.parseStreaming(tempFile);
+
+          await expectLater(
+            action,
+            throwsA(isA<FormatException>()),
+          );
+        },
+      );
+
+      test(
+        '| propagates file stream error',
+        () async {
+          final fileStream = StreamController<List<int>>();
+          addTearDown(fileStream.close);
+          final file = MockFile();
+          when(file.openRead).thenAnswer((_) => fileStream.stream);
+
+          Future<void> action() async => TraceFile.parseStreaming(file);
+
+          unawaited(expectLater(action, throwsA('error')));
+
+          fileStream
+            ..add(
+              utf8.encode('SF:some/file_1.dart\nDA:1,1\nend_of_record\n'),
+            )
+            ..add(
+              utf8.encode('SF:some/file_2.dart'),
+            )
+            ..add(
+              utf8.encode('\n'),
+            )
+            ..add(
+              utf8.encode('DA:1,1\nend_of_record\n'),
+            )
+            ..add(
+              utf8.encode('SF:some/file_3.dart'),
+            )
+            ..addError('error');
         },
       );
     });

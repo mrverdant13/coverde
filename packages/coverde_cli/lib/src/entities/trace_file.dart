@@ -60,20 +60,25 @@ class TraceFile extends CovComputable {
     final currentBlockBuffer = StringBuffer();
     final completer = Completer<void>();
 
-    final linesSubscription = lines.listen(
+    late final StreamSubscription<String> linesSubscription;
+    linesSubscription = lines.listen(
       (line) {
-        final trimmedLine = line.trim();
-        if (trimmedLine.isEmpty) return;
-        currentBlockBuffer.writeln(line);
+        try {
+          final trimmedLine = line.trim();
+          if (trimmedLine.isEmpty) return;
+          currentBlockBuffer.writeln(line);
 
-        // Check if we've reached the end of a record block
-        if (trimmedLine == CovFile.endOfRecordTag) {
-          final blockContent = currentBlockBuffer.toString().trim();
-          if (blockContent.isNotEmpty) {
-            final covFile = CovFile.parse(blockContent);
-            if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
+          // Check if we've reached the end of a record block
+          if (trimmedLine == CovFile.endOfRecordTag) {
+            final blockContent = currentBlockBuffer.toString().trim();
+            if (blockContent.isNotEmpty) {
+              final covFile = CovFile.parse(blockContent);
+              if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
+            }
+            currentBlockBuffer.clear();
           }
-          currentBlockBuffer.clear();
+        } catch (error, stackTrace) {
+          completer.completeError(error, stackTrace);
         }
       },
       onDone: () {
@@ -86,10 +91,16 @@ class TraceFile extends CovComputable {
         }
         completer.complete();
       },
+      onError: (Object error, StackTrace stackTrace) {
+        completer.completeError(error, stackTrace);
+      },
       cancelOnError: true,
     );
-    await completer.future;
-    await linesSubscription.cancel();
+    try {
+      await completer.future;
+    } finally {
+      await linesSubscription.cancel();
+    }
 
     return TraceFile(sourceFilesCovData: sourceFilesCovData);
   }
