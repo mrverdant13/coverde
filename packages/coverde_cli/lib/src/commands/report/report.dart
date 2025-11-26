@@ -167,11 +167,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       );
     }
 
-    // Get trace file content.
-    final traceFileContent = traceFile.readAsStringSync().trim();
-
-    // Parse trace file data.
-    final traceFileData = TraceFile.parse(traceFileContent);
+    final traceFileData = await TraceFile.parseStreaming(traceFile);
 
     if (traceFileData.isEmpty) {
       throw CovFileFormatException(
