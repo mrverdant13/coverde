@@ -159,6 +159,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       }
     }
 
+    destination.parent.createSync(recursive: true);
     final finalContent = acceptedSrcFilesRawData.join('\n');
 
     RandomAccessFile? raf;
