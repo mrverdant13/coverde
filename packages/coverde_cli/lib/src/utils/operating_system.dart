@@ -25,7 +25,7 @@ enum OperatingSystem {
 
 String? _debugOperatingSystemIdentifier;
 
-/// The overrode operating system identifier for debugging purposes.
+/// The overridden operating system identifier for debugging purposes.
 @visibleForTesting
 String? get debugOperatingSystemIdentifier => _debugOperatingSystemIdentifier;
 
