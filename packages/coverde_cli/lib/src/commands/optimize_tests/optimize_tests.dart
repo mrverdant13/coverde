@@ -119,7 +119,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
     }
     final outputFile = File(p.join(projectDir.path, outputPath));
-    if (outputFile.existsSync()) outputFile.deleteSync(recursive: true);
+    if (outputFile.existsSync()) outputFile.deleteSync();
     final includeGlob = () {
       final pattern = argResults.option(includeOptionName)!.withoutQuotes;
       return Glob(pattern, context: p.posix);

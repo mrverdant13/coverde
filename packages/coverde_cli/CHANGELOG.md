@@ -5,12 +5,14 @@
 - **FIX**: use platform-dependent path handling (#82).
 - **FIX**: validate regex patterns in `filter` command (#212).
 - **FIX**: validate threshold values in `report` command (#212).
+- **FIX**: proper file deletions (#221)
 - **FEAT**: use Dart 3.5.0 as minimum SDK version (#114).
 - **FEAT**: add `optimize-tests` command (#115).
 - **FEAT**: add `file-coverage-log-level` option to `check` and `value` commands (#118).
 - **FEAT**: add file locking to `filter` command to prevent race conditions when multiple processes write to the same output file (#211).
-- **REFACTOR**: use `mason_logger` package for logging (#216).
 - **PERF**: use streaming parser for trace files (#217).
+- **REFACTOR**: use `mason_logger` package for logging (#216).
+- **REFACTOR**: deterministic OS detection (#219)
 
 ## 0.2.0+2
 
