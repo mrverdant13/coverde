@@ -82,7 +82,7 @@ Remove a set of files and folders.''';
           if (isDryRun) {
             logger.info('[DRY RUN] Would remove file: <$elementPath>');
           } else {
-            File(elementPath).deleteSync(recursive: true);
+            File(elementPath).deleteSync();
           }
         case FileSystemEntityType.notFound:
           final message = 'The <$elementPath> element does not exist.';
