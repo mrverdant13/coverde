@@ -575,6 +575,7 @@ end_of_record
           ];
           final directory =
               Directory.systemTemp.createTempSync('coverde-filter-test-');
+          addTearDown(() => directory.delete(recursive: true));
           final inputFilePath = path.join(
             directory.path,
             'input.info',
