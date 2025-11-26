@@ -87,12 +87,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       usageException('The trace file located at `$filePath` does not exist.');
     }
 
-    // Get coverage info.
-    final fileContent = file.readAsStringSync().trim();
-
-    // Split coverage data by the end of record prefix, which indirectly splits
-    // the info by file.
-    final traceFile = TraceFile.parse(fileContent);
+    final traceFile = await TraceFile.parseStreaming(file);
 
     if (traceFile.isEmpty) {
       throw CovFileFormatException(

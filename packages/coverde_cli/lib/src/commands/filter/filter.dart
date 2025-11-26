@@ -139,11 +139,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       }
     }
 
-    // Get initial package coverage data.
-    final initialContent = origin.readAsStringSync().trim();
-
-    // Parse trace file.
-    final traceFile = TraceFile.parse(initialContent);
+    final traceFile = await TraceFile.parseStreaming(origin);
     final acceptedSrcFilesRawData = <String>{};
 
     // For each file coverage data.

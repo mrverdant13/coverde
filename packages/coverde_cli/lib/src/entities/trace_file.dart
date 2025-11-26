@@ -1,8 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/cov_base.dart';
 import 'package:coverde/src/entities/cov_dir.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:meta/meta.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template trace_file}
 /// # Trace File Data
@@ -25,6 +29,9 @@ class TraceFile extends CovComputable {
   /// file coverage data block.
   ///
   /// {@macro trace_file}
+  ///
+  /// **Note:** This method loads the entire content into memory.\
+  /// For large files, consider using [parseStreaming] instead.
   factory TraceFile.parse(String traceFileContent) {
     final filesCovDataStr = traceFileContent
         .split(CovFile.endOfRecordTag)
@@ -37,6 +44,54 @@ class TraceFile extends CovComputable {
     return TraceFile(
       sourceFilesCovData: sourceFilesCovData,
     );
+  }
+
+  /// Create a trace file instance by parsing a file using streaming.
+  ///
+  /// This method processes the file line-by-line, which is more
+  /// memory-efficient for large trace files compared to [TraceFile.parse].
+  ///
+  /// {@macro trace_file}
+  static Future<TraceFile> parseStreaming(File file) async {
+    final sourceFilesCovData = <CovFile>[];
+    final lines =
+        file.openRead().transform(utf8.decoder).transform(const LineSplitter());
+
+    final currentBlockBuffer = StringBuffer();
+    final completer = Completer<void>();
+
+    final linesSubscription = lines.listen(
+      (line) {
+        final trimmedLine = line.trim();
+        if (trimmedLine.isEmpty) return;
+        currentBlockBuffer.writeln(line);
+
+        // Check if we've reached the end of a record block
+        if (trimmedLine == CovFile.endOfRecordTag) {
+          final blockContent = currentBlockBuffer.toString().trim();
+          if (blockContent.isNotEmpty) {
+            final covFile = CovFile.parse(blockContent);
+            if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
+          }
+          currentBlockBuffer.clear();
+        }
+      },
+      onDone: () {
+        if (currentBlockBuffer.isNotEmpty) {
+          final blockContent = currentBlockBuffer.toString().trim();
+          if (blockContent.isNotEmpty) {
+            final covFile = CovFile.parse(blockContent);
+            if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
+          }
+        }
+        completer.complete();
+      },
+      cancelOnError: true,
+    );
+    await completer.future;
+    await linesSubscription.cancel();
+
+    return TraceFile(sourceFilesCovData: sourceFilesCovData);
   }
 
   final Iterable<CovFile> _sourceFilesCovData;

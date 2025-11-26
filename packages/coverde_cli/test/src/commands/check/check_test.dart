@@ -154,7 +154,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
                 getCurrentDirectory: () => Directory(projectPath),
               );
 
-          expect(action, throwsA(isA<MinCoverageException>()));
+          await expectLater(action, throwsA(isA<MinCoverageException>()));
           final messages = [
             wrapWith('GLOBAL:', [blue, styleBold]),
             wrapWith('56.25% - 9/16', [blue, styleBold]),

@@ -10,6 +10,7 @@
 - **FEAT**: add `file-coverage-log-level` option to `check` and `value` commands (#118).
 - **FEAT**: add file locking to `filter` command to prevent race conditions when multiple processes write to the same output file (#211).
 - **REFACTOR**: use `mason_logger` package for logging (#216).
+- **PERF**: use streaming parser for trace files (#217).
 
 ## 0.2.0+2
 

@@ -3,6 +3,7 @@ import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+import 'package:universal_io/universal_io.dart';
 
 Iterable<MapEntry<int, int>> buildCovLinesEntries(int linesCount) {
   return Iterable.generate(
@@ -128,5 +129,108 @@ void main() {
         expect(result, expectedLinesFound);
       },
     );
+
+    group('parseStreaming', () {
+      test(
+        '| parses valid file and produces same result as parse',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final tempFile = File(path.join(tempDir.path, 'trace.info'))
+            ..writeAsStringSync(traceFileString);
+
+          final result = await TraceFile.parseStreaming(tempFile);
+
+          expect(result, traceFile);
+        },
+      );
+
+      test(
+        '| handles empty file',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final tempFile = File(path.join(tempDir.path, 'empty.info'))
+            ..writeAsStringSync('');
+
+          final result = await TraceFile.parseStreaming(tempFile);
+
+          expect(result.isEmpty, isTrue);
+        },
+      );
+
+      test(
+        '| handles file with only whitespace',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final tempFile = File(path.join(tempDir.path, 'whitespace.info'))
+            ..writeAsStringSync('   \n\n  \n  ');
+
+          final result = await TraceFile.parseStreaming(tempFile);
+
+          expect(result.isEmpty, isTrue);
+        },
+      );
+
+      test(
+        '| handles file with multiple blocks',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final multiBlockContent = '''
+${buildRawCovFileString(5)}
+${buildRawCovFileString(10)}
+${buildRawCovFileString(3)}
+''';
+          final tempFile = File(path.join(tempDir.path, 'multi.info'))
+            ..writeAsStringSync(multiBlockContent);
+
+          final result = await TraceFile.parseStreaming(tempFile);
+          final expected = TraceFile.parse(multiBlockContent);
+
+          expect(result, expected);
+        },
+      );
+
+      test(
+        '| handles large file efficiently',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          // Create a file with many blocks (simulating large trace file)
+          final largeContent =
+              Iterable.generate(100, buildRawCovFileString).join('\n');
+          final tempFile = File(path.join(tempDir.path, 'large.info'))
+            ..writeAsStringSync(largeContent);
+
+          final result = await TraceFile.parseStreaming(tempFile);
+          final expected = TraceFile.parse(largeContent);
+
+          expect(result.sourceFilesCovData.length, 100);
+          expect(result, expected);
+        },
+      );
+
+      test(
+        '| handles file with no end_of_record at end gracefully',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final contentWithoutEnd = '''
+${buildRawCovFileString(5)}
+SF:incomplete/file.dart
+DA:1,1
+''';
+          final tempFile = File(path.join(tempDir.path, 'incomplete.info'))
+            ..writeAsStringSync(contentWithoutEnd);
+
+          final result = await TraceFile.parseStreaming(tempFile);
+
+          // Should handle incomplete block at end
+          expect(result.sourceFilesCovData.length, 2);
+        },
+      );
+    });
   });
 }
