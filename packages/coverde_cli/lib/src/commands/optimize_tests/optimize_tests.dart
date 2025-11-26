@@ -8,7 +8,6 @@ import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
-import 'package:io/ansi.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -18,7 +17,9 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class OptimizeTestsCommand extends CoverdeCommand {
   /// {@macro optimize_tests_cmd}
-  OptimizeTestsCommand() {
+  OptimizeTestsCommand({
+    super.logger,
+  }) {
     argParser
       ..addOption(
         includeOptionName,
@@ -112,12 +113,9 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final pubspec = Pubspec.parse(pubspecRawContent);
     final outputPath = argResults.option(outputOptionName)!;
     if (p.basenameWithoutExtension(outputPath).startsWith('.')) {
-      stdout.writeln(
-        wrapWith(
-          'Beware that test files starting with a dot may cause issues '
-          'when running them on web platforms.',
-          [yellow, styleBold],
-        ),
+      logger.warn(
+        'Beware that test files starting with a dot may cause issues '
+        'when running them on web platforms.',
       );
     }
     final outputFile = File(p.join(projectDir.path, outputPath));
@@ -182,7 +180,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
         (declaration) => declaration.name.lexeme == 'main',
       );
       if (mainFunctionDeclaration == null) {
-        stdout.writeln(
+        logger.warn(
           'Test file $fileRelativePath does not have a `main` function.',
         );
         continue;
@@ -193,7 +191,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
         null => false,
       };
       if (mainFunctionHasParams) {
-        stdout.writeln(
+        logger.warn(
           'Test file $fileRelativePath has a `main` function with params.',
         );
         continue;
@@ -245,7 +243,7 @@ tearDown(() {
         final mainInvocation = () {
           final mainFunction = coder.Reference('main', testRelativePath);
           if (!mainFunctionIsAsync) return mainFunction.call([]);
-          stdout.writeln(
+          logger.warn(
             'Test file $fileRelativePath has an async `main` function.',
           );
           return const coder.Reference('unawaited').call([

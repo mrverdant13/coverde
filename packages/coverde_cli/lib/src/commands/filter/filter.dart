@@ -9,7 +9,9 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class FilterCommand extends CoverdeCommand {
   /// {@macro filter_cmd}
-  FilterCommand({Stdout? out}) : _out = out ?? stdout {
+  FilterCommand({
+    super.logger,
+  }) {
     argParser
       ..addOption(
         inputOption,
@@ -52,8 +54,6 @@ Each pattern must be a valid regex expression. Invalid patterns will cause the c
         defaultsTo: _outModeAllowedHelp.keys.first,
       );
   }
-
-  final Stdout _out;
 
   static const _inputHelpValue = 'INPUT_LCOV_FILE';
   static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
@@ -155,7 +155,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
       // Conditionally include file coverage data.
       if (shouldBeIgnored) {
-        _out.writeln('<${fileCovData.source.path}> coverage data ignored.');
+        logger.detail('<${fileCovData.source.path}> coverage data ignored.');
       } else {
         final raw = switch (baseDirectory) {
           null => fileCovData.raw,

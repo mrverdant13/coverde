@@ -14,7 +14,9 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class CheckCommand extends CoverdeCommand {
   /// {@macro check_cmd}
-  CheckCommand({Stdout? out}) : _out = out ?? stdout {
+  CheckCommand({
+    super.logger,
+  }) {
     argParser
       ..addOption(
         inputOptionName,
@@ -34,8 +36,6 @@ The log level for the coverage value for each source file listed in the `$inputO
         defaultsTo: FileCoverageLogLevel.lineContent.identifier,
       );
   }
-
-  final Stdout _out;
 
   /// Option name for the trace file whose coverage value should be checked.
   @visibleForTesting
@@ -118,7 +118,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     }
 
     ValueCommand.logCoverage(
-      out: _out,
+      logger: logger,
       traceFile: traceFile,
       fileCoverageLogLevel: fileCoverageLogLevel,
     );

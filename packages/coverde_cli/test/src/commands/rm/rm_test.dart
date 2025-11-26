@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/rm/rm.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -12,21 +13,21 @@ void main() {
     'coverde rm',
     () {
       late CommandRunner<void> cmdRunner;
-      late MockStdout out;
+      late Logger logger;
       late RmCommand rmCmd;
 
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          out = MockStdout();
-          rmCmd = RmCommand(out: out);
+          logger = MockLogger();
+          rmCmd = RmCommand(logger: logger);
           cmdRunner.addCommand(rmCmd);
         },
       );
 
       tearDown(
         () {
-          verifyNoMoreInteractions(out);
+          verifyNoMoreInteractions(logger);
         },
       );
 
@@ -50,7 +51,6 @@ Remove a set of files and folders.
           final filePath = path.joinAll(['coverage', 'existing.file']);
           final file = File(filePath);
           await file.create(recursive: true);
-          when(() => out.writeln(any<String>())).thenReturn(null);
           expect(file.existsSync(), isTrue);
 
           await cmdRunner.run([
@@ -59,7 +59,7 @@ Remove a set of files and folders.
           ]);
 
           verify(
-            () => out.writeln('[DRY RUN] Would remove file: <$filePath>'),
+            () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
           ).called(1);
           expect(file.existsSync(), isTrue);
         },
@@ -113,7 +113,6 @@ Remove a set of files and folders.
           final filePath = path.joinAll(['coverage', 'existing.file']);
           final file = File(filePath);
           await file.create(recursive: true);
-          when(() => out.writeln(any<String>())).thenReturn(null);
           expect(file.existsSync(), isTrue);
 
           await cmdRunner.run([
@@ -123,7 +122,7 @@ Remove a set of files and folders.
           ]);
 
           verify(
-            () => out.writeln('[DRY RUN] Would remove file: <$filePath>'),
+            () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
           ).called(1);
           expect(file.existsSync(), isTrue);
         },
@@ -136,7 +135,6 @@ Remove a set of files and folders.
         () async {
           final filePath = path.joinAll(['coverage', 'non-existing.file']);
           final file = File(filePath);
-          when(() => out.writeln(any<String>())).thenReturn(null);
           expect(file.existsSync(), isFalse);
 
           await cmdRunner.run([
@@ -146,7 +144,7 @@ Remove a set of files and folders.
           ]);
 
           verify(
-            () => out.writeln('The <$filePath> element does not exist.'),
+            () => logger.info('The <$filePath> element does not exist.'),
           ).called(1);
           expect(file.existsSync(), isFalse);
         },
@@ -159,7 +157,6 @@ Remove a set of files and folders.
           final dirPath = path.joinAll(['coverage', 'existing.dir']);
           final dir = Directory(dirPath);
           await dir.create(recursive: true);
-          when(() => out.writeln(any<String>())).thenReturn(null);
           expect(dir.existsSync(), isTrue);
 
           await cmdRunner.run([
@@ -168,7 +165,7 @@ Remove a set of files and folders.
           ]);
 
           verify(
-            () => out.writeln('[DRY RUN] Would remove dir:  <$dirPath>'),
+            () => logger.info('[DRY RUN] Would remove dir:  <$dirPath>'),
           ).called(1);
           expect(dir.existsSync(), isTrue);
         },
@@ -221,7 +218,6 @@ Remove a set of files and folders.
         () async {
           final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
           final dir = File(dirPath);
-          when(() => out.writeln(any<String>())).thenReturn(null);
           expect(dir.existsSync(), isFalse);
 
           await cmdRunner.run([
@@ -231,7 +227,7 @@ Remove a set of files and folders.
           ]);
 
           verify(
-            () => out.writeln('The <$dirPath> element does not exist.'),
+            () => logger.info('The <$dirPath> element does not exist.'),
           ).called(1);
           expect(dir.existsSync(), isFalse);
         },

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/filter/filter.dart';
 import 'package:coverde/src/entities/trace_file.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -15,21 +16,21 @@ void main() {
     'coverde filter',
     () {
       late CommandRunner<void> cmdRunner;
-      late MockStdout out;
+      late Logger logger;
       late FilterCommand filterCmd;
 
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          out = MockStdout();
-          filterCmd = FilterCommand(out: out);
+          logger = MockLogger();
+          filterCmd = FilterCommand(logger: logger);
           cmdRunner.addCommand(filterCmd);
         },
       );
 
       tearDown(
         () {
-          verifyNoMoreInteractions(out);
+          verifyNoMoreInteractions(logger);
         },
       );
 
@@ -147,7 +148,7 @@ end_of_record
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(
-              () => out.writeln('<$path> coverage data ignored.'),
+              () => logger.detail('<$path> coverage data ignored.'),
             ).called(1);
           }
           directory.deleteSync(recursive: true);
@@ -252,7 +253,7 @@ end_of_record
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(
-              () => out.writeln('<$path> coverage data ignored.'),
+              () => logger.detail('<$path> coverage data ignored.'),
             ).called(1);
           }
           directory.deleteSync(recursive: true);
@@ -369,7 +370,7 @@ end_of_record
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(
-              () => out.writeln('<$path> coverage data ignored.'),
+              () => logger.detail('<$path> coverage data ignored.'),
             ).called(1);
           }
         },
@@ -506,7 +507,7 @@ end_of_record
           for (final fileData in filesDataToBeRemoved) {
             final path = fileData.source.path;
             verify(
-              () => out.writeln('<$path> coverage data ignored.'),
+              () => logger.detail('<$path> coverage data ignored.'),
             ).called(1);
           }
         },

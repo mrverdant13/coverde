@@ -1,4 +1,4 @@
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:universal_io/io.dart';
 
-class MockStdout extends Mock implements Stdout {}
+class MockLogger extends Mock implements Logger {}

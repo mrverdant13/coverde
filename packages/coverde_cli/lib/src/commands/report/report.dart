@@ -16,10 +16,9 @@ import 'package:universal_io/io.dart';
 class ReportCommand extends CoverdeCommand {
   /// {@macro report_cmd}
   ReportCommand({
-    Stdout? out,
+    super.logger,
     ProcessManager? processManager,
-  })  : _out = out ?? stdout,
-        _processManager = processManager ?? const LocalProcessManager() {
+  }) : _processManager = processManager ?? const LocalProcessManager() {
     argParser
       ..addOption(
         inputOption,
@@ -73,7 +72,6 @@ Must be a number between 0 and 100, and must be greater than the medium threshol
       );
   }
 
-  final Stdout _out;
   final ProcessManager _processManager;
 
   static const _inputHelpValue = 'TRACE_FILE';
@@ -219,21 +217,22 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
 
-    _out
-      ..writeln(covTree)
+    logger.info('$covTree');
+
+    final reportLocationMessage = StringBuffer()
       ..write(
         wrapWith(
           'Report location: ',
           [blue, styleBold],
         ),
       )
-      ..writeln(
+      ..write(
         wrapWith(
           reportIndexAbsPath,
           [blue, styleBold, styleUnderlined],
         ),
-      )
-      ..writeln();
+      );
+    logger.info('$reportLocationMessage\n');
 
     if (shouldLaunch) {
       final launchCommand = launchCommands[Platform.operatingSystem];
