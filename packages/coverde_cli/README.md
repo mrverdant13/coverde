@@ -211,6 +211,13 @@ Remove a set of files and folders.
 
 #### Flags
 
+- `--dry-run`
+
+  Preview what would be deleted without actually deleting.
+  When enabled (default), the command will list what would be deleted but not perform the deletion.
+  When disabled, the command will actually delete the specified files and folders.\
+  **Default value:** _Enabled_
+
 - `--accept-absence`
 
   Accept absence of a file or folder.
