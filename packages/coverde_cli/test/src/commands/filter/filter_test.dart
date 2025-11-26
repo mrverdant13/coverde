@@ -543,7 +543,7 @@ end_of_record
         '--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
         '--${FilterCommand.modeOption}=<mode> '
-        '| appends filtered content to existing output file',
+        '| filters trace file and handles different modes',
         () async {
           final existingContent = '''
 SF:existing.dart
