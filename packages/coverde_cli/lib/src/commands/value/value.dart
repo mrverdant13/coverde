@@ -6,6 +6,7 @@ import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/entities/file_line_coverage_details.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:io/ansi.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -15,7 +16,9 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class ValueCommand extends CoverdeCommand {
   /// {@macro filter_cmd}
-  ValueCommand({Stdout? out}) : _out = out ?? stdout {
+  ValueCommand({
+    super.logger,
+  }) {
     argParser
       ..addOption(
         inputOption,
@@ -36,8 +39,6 @@ The log level for the coverage value for each source file listed in the $_inputH
         defaultsTo: FileCoverageLogLevel.lineContent.identifier,
       );
   }
-
-  final Stdout _out;
 
   static const _inputHelpValue = 'LCOV_FILE';
 
@@ -100,7 +101,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     }
 
     logCoverage(
-      out: _out,
+      logger: logger,
       traceFile: traceFile,
       fileCoverageLogLevel: fileCoverageLogLevel,
     );
@@ -108,7 +109,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
   /// Log coverage values.
   static void logCoverage({
-    required Stdout out,
+    required Logger logger,
     required TraceFile traceFile,
     required FileCoverageLogLevel fileCoverageLogLevel,
   }) {
@@ -117,20 +118,20 @@ Compute the coverage value of the $_inputHelpValue info file.''';
         break;
       case FileCoverageLogLevel.overview:
         for (final fileCovData in traceFile.sourceFilesCovData) {
-          out.writeln(fileCovData.coverageDataString);
+          logger.info(fileCovData.coverageDataString);
         }
       case FileCoverageLogLevel.lineNumbers:
         for (final fileCovData in traceFile.sourceFilesCovData) {
-          out.writeln(fileCovData.coverageDataString);
+          logger.info(fileCovData.coverageDataString);
           final uncoveredLineNumbers = fileCovData.uncoveredLineNumbers;
           if (uncoveredLineNumbers.isNotEmpty) {
             final message = 'UNCOVERED: ${uncoveredLineNumbers.join(', ')}';
-            out.writeln('└ ${wrapWith(message, [red, styleBold])}');
+            logger.info('└ ${wrapWith(message, [red, styleBold])}');
           }
         }
       case FileCoverageLogLevel.lineContent:
         for (final fileCovData in traceFile.sourceFilesCovData) {
-          out.writeln(fileCovData.coverageDataString);
+          logger.info(fileCovData.coverageDataString);
           final sourceLines = fileCovData.source.absolute.readAsLinesSync();
           final sourceLinesCount = sourceLines.length;
           final lineNumberColumnWidth = '$sourceLinesCount'.length;
@@ -139,7 +140,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           for (final (index, uncoveredLineRange)
               in indexedUncoveredLineRanges) {
             if (index > 0) {
-              out.writeln('├   ${'•' * lineNumberColumnWidth} | •••');
+              logger.info('├   ${'•' * lineNumberColumnWidth} | •••');
             }
             for (final lineWithStatus in uncoveredLineRange) {
               final FileLineCoverageDetails(
@@ -164,20 +165,20 @@ Compute the coverage value of the $_inputHelpValue info file.''';
                 content,
                 styles,
               );
-              out.writeln(
+              logger.info(
                 '├ $markerSegment $lineNumberSegment | $contentSegment',
               );
             }
           }
-          out.writeln();
+          logger.info('');
         }
     }
-    if (fileCoverageLogLevel != FileCoverageLogLevel.none) out.writeln();
+    if (fileCoverageLogLevel != FileCoverageLogLevel.none) logger.info('');
 
     // Show resulting coverage.
-    out
-      ..writeln(wrapWith('GLOBAL:', [blue, styleBold]))
-      ..writeln(wrapWith(traceFile.coverageDataString, [blue, styleBold]));
+    logger
+      ..info(wrapWith('GLOBAL:', [blue, styleBold]))
+      ..info(wrapWith(traceFile.coverageDataString, [blue, styleBold]));
   }
 }
 

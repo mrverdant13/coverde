@@ -1,9 +1,18 @@
 import 'package:args/command_runner.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 /// {@template coverde_cli.coverde_command}
 /// A base coverde command.
 /// {@endtemplate}
 abstract class CoverdeCommand extends Command<void> {
+  /// {@macro coverde_cli.coverde_command}
+  CoverdeCommand({
+    Logger? logger,
+  }) : logger = logger ?? Logger();
+
+  /// Shared logger instance for commands.
+  final Logger logger;
+
   /// The parameters for the command.
   CoverdeCommandParams? get params => null;
 

@@ -2,37 +2,42 @@ import 'package:args/command_runner.dart';
 import 'package:coverde/coverde.dart' show coverde;
 import 'package:coverde/src/entities/coverde.exception.dart';
 import 'package:io/ansi.dart';
-import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:universal_io/io.dart';
 
-Future<void> main(List<String> arguments) async {
+Future<void> main(List<String> args) async {
+  final logger = Logger();
   try {
-    return await coverde(arguments);
+    return await coverde(args: args, logger: logger);
   } on UsageException catch (exception) {
-    _logError(exception.message);
-    stdout
-      ..writeln()
-      ..writeln(exception.usage)
-      ..writeln();
+    _logError(logger, exception.message);
+    logger
+      ..info('')
+      ..info(exception.usage)
+      ..info('');
     exit(ExitCode.usage.code);
   } on CoverdeException catch (exception) {
-    _logError(exception.message);
+    _logError(logger, exception.message);
     exit(exception.code.code);
   } on Object catch (error, stackTrace) {
-    _logError(error, stackTrace);
+    _logError(logger, error, stackTrace);
     exit(ExitCode.software.code);
   }
 }
 
-void _logError(Object error, [Object? stackTrace]) {
-  stderr.writeln(
+void _logError(
+  Logger logger,
+  Object error, [
+  Object? stackTrace,
+]) {
+  logger.err(
     wrapWith(
       error.toString(),
       [lightRed, styleBold],
     ),
   );
   if (stackTrace != null) {
-    stderr.writeln(
+    logger.err(
       wrapWith(
         stackTrace.toString(),
         [lightRed],

@@ -6,6 +6,7 @@ import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
@@ -86,23 +87,23 @@ class MockProcessManager extends Mock implements ProcessManager {}
 void main() {
   group('coverde report', () {
     late CommandRunner<void> cmdRunner;
-    late MockStdout out;
+    late Logger logger;
     late MockProcessManager processManager;
     late ReportCommand reportCmd;
 
     setUp(() {
       cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-      out = MockStdout();
+      logger = MockLogger();
       processManager = MockProcessManager();
       reportCmd = ReportCommand(
-        out: out,
+        logger: logger,
         processManager: processManager,
       );
       cmdRunner.addCommand(reportCmd);
     });
 
     tearDown(() {
-      verifyNoMoreInteractions(out);
+      verifyNoMoreInteractions(logger);
     });
 
     test(
@@ -285,11 +286,8 @@ Error: Non-matching (plain text) file <$relFilePath>''',
               ),
             ).called(1);
             verify(
-              () => out.writeln(any()),
-            ).called(3);
-            verify(
-              () => out.write(any()),
-            ).called(1);
+              () => logger.info(any()),
+            ).called(2);
           },
         );
       }

@@ -3,6 +3,7 @@ import 'package:coverde/src/commands/value/value.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:io/ansi.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -16,21 +17,21 @@ void main() {
     'coverde value',
     () {
       late CommandRunner<void> cmdRunner;
-      late MockStdout out;
+      late Logger logger;
       late ValueCommand valueCmd;
 
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          out = MockStdout();
-          valueCmd = ValueCommand(out: out);
+          logger = MockLogger();
+          valueCmd = ValueCommand(logger: logger);
           cmdRunner.addCommand(valueCmd);
         },
       );
 
       tearDown(
         () {
-          verifyNoMoreInteractions(out);
+          verifyNoMoreInteractions(logger);
         },
       );
 
@@ -114,7 +115,7 @@ Compute the coverage value of the LCOV_FILE info file.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );
@@ -159,7 +160,7 @@ Compute the coverage value of the LCOV_FILE info file.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );
@@ -211,7 +212,7 @@ Compute the coverage value of the LCOV_FILE info file.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );
@@ -348,7 +349,7 @@ Compute the coverage value of the LCOV_FILE info file.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );

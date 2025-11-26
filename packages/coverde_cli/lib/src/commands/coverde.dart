@@ -1,20 +1,23 @@
 import 'package:coverde/src/commands/coverde_command_runner.dart';
 import 'package:coverde/src/utils/package_data.dart';
 import 'package:io/ansi.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
-import 'package:universal_io/io.dart';
 
 export 'coverde_command.dart';
 export 'coverde_command_runner.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
-Future<void> coverde(List<String> args) async {
-  await CoverdeCommandRunner().run(args);
-  await _checkUpdates();
+Future<void> coverde({
+  required List<String> args,
+  required Logger logger,
+}) async {
+  await CoverdeCommandRunner(logger: logger).run(args);
+  await _checkUpdates(logger);
 }
 
-Future<void> _checkUpdates() async {
+Future<void> _checkUpdates(Logger logger) async {
   try {
     final updater = PubUpdater();
     final latestVersion = await updater.getLatestVersion(packageName);
@@ -34,9 +37,9 @@ ${lightGray.wrap(packageVersion)} \u2192 ${lightGreen.wrap(latestVersion)}''';
           boxLength - latestVersion.length - packageVersion.length - 3;
       final versionsMessagePadding =
           ' ' * (totalVersionsMessagePaddingLength ~/ 2);
-      stdout
-        ..writeln()
-        ..writeln(
+      logger
+        ..info('')
+        ..info(
           '''
 ┏${'━' * boxLength}┓
 ┃${' ' * boxLength}┃

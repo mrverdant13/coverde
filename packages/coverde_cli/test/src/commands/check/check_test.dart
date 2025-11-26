@@ -4,6 +4,7 @@ import 'package:coverde/src/commands/check/min_coverage.exception.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:io/ansi.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -17,21 +18,21 @@ void main() {
     'coverde check',
     () {
       late CommandRunner<void> cmdRunner;
-      late MockStdout out;
+      late Logger logger;
       late CheckCommand checkCmd;
 
       setUp(
         () {
           cmdRunner = CommandRunner<void>('test', 'A tester command runner');
-          out = MockStdout();
-          checkCmd = CheckCommand(out: out);
+          logger = MockLogger();
+          checkCmd = CheckCommand(logger: logger);
           cmdRunner.addCommand(checkCmd);
         },
       );
 
       tearDown(
         () {
-          verifyNoMoreInteractions(out);
+          verifyNoMoreInteractions(logger);
         },
       );
 
@@ -88,7 +89,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );
@@ -159,7 +160,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
             wrapWith('56.25% - 9/16', [blue, styleBold]),
           ];
           verifyInOrder([
-            for (final message in messages) () => out.writeln(message),
+            for (final message in messages) () => logger.info(message),
           ]);
         },
       );

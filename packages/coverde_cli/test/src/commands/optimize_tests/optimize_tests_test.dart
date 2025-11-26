@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/optimize_tests/optimize_tests.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:io/ansi.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -34,19 +34,18 @@ Run "coverde help" to see global options.
 void main() {
   group('coverde optimize-tests', () {
     late CommandRunner<void> cmdRunner;
-    late MockStdout out;
+    late Logger logger;
     late Command<void> command;
 
     setUp(() {
       cmdRunner = CommandRunner<void>('coverde', 'A tester command runner');
-      out = MockStdout();
-      when(() => out.supportsAnsiEscapes).thenReturn(true);
-      command = OptimizeTestsCommand();
+      logger = MockLogger();
+      command = OptimizeTestsCommand(logger: logger);
       cmdRunner.addCommand(command);
     });
 
     tearDown(() {
-      verifyNoMoreInteractions(out);
+      verifyNoMoreInteractions(logger);
     });
 
     test('| usage', () {
@@ -86,7 +85,6 @@ void main() {
         getCurrentDirectory: () => Directory(
           p.join(currentDirectory.path, projectPath),
         ),
-        stdout: () => out,
       );
     });
 
@@ -120,17 +118,12 @@ void main() {
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
-        verify(() => out.supportsAnsiEscapes);
         verify(
-          () => out.writeln(
-            wrapWith(
-              'Beware that test files starting with a dot may cause issues '
-              'when running them on web platforms.',
-              [yellow, styleBold],
-            ),
+          () => logger.warn(
+            'Beware that test files starting with a dot may cause issues '
+            'when running them on web platforms.',
           ),
         ).called(1);
       }
@@ -181,7 +174,6 @@ void main() {}
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
       }
     });
@@ -226,7 +218,6 @@ void main() {}
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
         final optimizedTestFileContent = optimizedTestFile.readAsStringSync();
@@ -253,7 +244,7 @@ void main() {}
         ];
         for (final testFilePath in testFilesWithNoMainFunction) {
           verify(
-            () => out.writeln(
+            () => logger.warn(
               'Test file ${p.posix.joinAll(testFilePath)} '
               'does not have a `main` function.',
             ),
@@ -269,7 +260,7 @@ void main() {}
         ];
         for (final testFilePath in testFilesWithMainFunctionWithParams) {
           verify(
-            () => out.writeln(
+            () => logger.warn(
               'Test file ${p.posix.joinAll(testFilePath)} '
               'has a `main` function with params.',
             ),
@@ -320,7 +311,6 @@ void main() {}
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
         final formatter = DartFormatter(
@@ -386,7 +376,7 @@ void main() {
         ];
         for (final testFilePath in testFilesWithAsyncMainFunction) {
           verify(
-            () => out.writeln(
+            () => logger.warn(
               'Test file ${p.posix.joinAll(testFilePath)} '
               'has an async `main` function.',
             ),
@@ -437,7 +427,6 @@ void main() {
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
         final formatter = DartFormatter(
@@ -628,7 +617,6 @@ void main() {
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
         final formatter = DartFormatter(
@@ -777,7 +765,6 @@ void main() {
           getCurrentDirectory: () => Directory(
             p.join(currentDirectory.path, projectPath),
           ),
-          stdout: () => out,
         );
 
         final formatter = DartFormatter(

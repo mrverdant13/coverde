@@ -7,7 +7,9 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class RmCommand extends CoverdeCommand {
   /// {@macro rm_cmd}
-  RmCommand({Stdout? out}) : _out = out ?? stdout {
+  RmCommand({
+    super.logger,
+  }) {
     argParser
       ..addFlag(
         dryRunFlag,
@@ -27,8 +29,6 @@ When an element is not present:
         defaultsTo: true,
       );
   }
-
-  final Stdout _out;
 
   /// Flag to define whether to preview deletions without actually deleting.
   @visibleForTesting
@@ -74,20 +74,20 @@ Remove a set of files and folders.''';
       switch (elementType) {
         case FileSystemEntityType.directory:
           if (isDryRun) {
-            _out.writeln('[DRY RUN] Would remove dir:  <$elementPath>');
+            logger.info('[DRY RUN] Would remove dir:  <$elementPath>');
           } else {
             Directory(elementPath).deleteSync(recursive: true);
           }
         case FileSystemEntityType.file:
           if (isDryRun) {
-            _out.writeln('[DRY RUN] Would remove file: <$elementPath>');
+            logger.info('[DRY RUN] Would remove file: <$elementPath>');
           } else {
             File(elementPath).deleteSync(recursive: true);
           }
         case FileSystemEntityType.notFound:
           final message = 'The <$elementPath> element does not exist.';
           if (shouldAcceptAbsence) {
-            _out.writeln(message);
+            logger.info(message);
           } else {
             usageException(message);
           }
