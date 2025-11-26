@@ -303,13 +303,13 @@ DA:1,1
       );
 
       test(
-        '| propagates $FormatException '
+        '| propagates $CovFileFormatException '
         'when the last block is incomplete and malformed',
         () async {
           final tempDir = Directory.systemTemp.createTempSync();
           addTearDown(() => tempDir.deleteSync(recursive: true));
           const content = 'SF:some/file_1.dart\nDA:1,1\nend_of_record\n'
-              'SF:some/file_2.dart\nDA:1,1\nDA:not_an_int,1\n';
+              'some/file_2.dart\nDA:1,1\nDA:not_an_int,1\n';
           final tempFile =
               File(path.join(tempDir.path, 'invalid_last_block.info'))
                 ..writeAsStringSync(content);
@@ -318,7 +318,7 @@ DA:1,1
 
           await expectLater(
             action,
-            throwsA(isA<FormatException>()),
+            throwsA(isA<CovFileFormatException>()),
           );
         },
       );
