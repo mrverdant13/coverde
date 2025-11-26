@@ -5,7 +5,7 @@
 - **FIX**: use platform-dependent path handling (#82).
 - **FIX**: validate regex patterns in `filter` command (#212).
 - **FIX**: validate threshold values in `report` command (#212).
-- **FIX**: proper file deletions (#221)
+- **FIX**: proper file deletions (#221).
 - **FEAT**: use Dart 3.5.0 as minimum SDK version (#114).
 - **FEAT**: add `optimize-tests` command (#115).
 - **FEAT**: add `file-coverage-log-level` option to `check` and `value` commands (#118).
