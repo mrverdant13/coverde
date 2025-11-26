@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:coverde/src/utils/operating_system.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('operatingSystem', () {
+    test('returns actual OS', () async {
+      expect(operatingSystem.identifier, equals(Platform.operatingSystem));
+    });
+
     test('returns linux', () async {
       debugOperatingSystemIdentifier = OperatingSystem.linux.identifier;
       addTearDown(() => debugOperatingSystemIdentifier = null);
