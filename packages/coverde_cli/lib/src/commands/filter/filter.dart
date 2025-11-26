@@ -36,7 +36,9 @@ Base directory relative to which trace file source paths are resolved.''',
         filtersOption,
         abbr: filtersOption[0],
         help: '''
-Set of comma-separated path patterns of the files to be ignored.''',
+Set of comma-separated path patterns of the files to be ignored.
+
+Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.''',
         defaultsTo: [],
         valueHelp: _filtersHelpValue,
       )
@@ -124,6 +126,19 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       usageException('The trace file located at `$originPath` does not exist.');
     }
 
+    // Validate regex patterns before use.
+    final validatedPatterns = <RegExp>[];
+    for (final ignorePattern in ignorePatterns) {
+      try {
+        validatedPatterns.add(RegExp(ignorePattern));
+      } on FormatException catch (e) {
+        usageException(
+          'Invalid regex pattern in --$filtersOption: `$ignorePattern`. '
+          'Error: ${e.message}',
+        );
+      }
+    }
+
     // Get initial package coverage data.
     final initialContent = origin.readAsStringSync().trim();
 
@@ -134,11 +149,8 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     // For each file coverage data.
     for (final fileCovData in traceFile.sourceFilesCovData) {
       // Check if file should be ignored according to matching patterns.
-      final shouldBeIgnored = ignorePatterns.any(
-        (ignorePattern) {
-          final regexp = RegExp(ignorePattern);
-          return regexp.hasMatch(fileCovData.source.path);
-        },
+      final shouldBeIgnored = validatedPatterns.any(
+        (regexp) => regexp.hasMatch(fileCovData.source.path),
       );
 
       // Conditionally include file coverage data.

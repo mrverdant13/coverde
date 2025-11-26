@@ -541,6 +541,91 @@ end_of_record
 
       test(
         '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.filtersOption}=<invalid_regex> '
+        '| fails when regex pattern is invalid',
+        () async {
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          addTearDown(() => directory.delete(recursive: true));
+          final traceFilePath = path.join(directory.path, 'test.info');
+          File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync('''
+SF:test.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+''');
+          const invalidPattern = '[invalid'; // Missing closing bracket
+
+          Future<void> action() => cmdRunner.run([
+                filterCmd.name,
+                '--${FilterCommand.inputOption}',
+                traceFilePath,
+                '--${FilterCommand.filtersOption}',
+                invalidPattern,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<UsageException>().having(
+                (e) => e.message,
+                'message',
+                contains(
+                  'Invalid regex pattern in --filters: `[invalid`',
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.filtersOption}=<multiple_invalid_patterns> '
+        '| fails when any regex pattern is invalid',
+        () async {
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          addTearDown(() => directory.delete(recursive: true));
+          final traceFilePath = path.join(directory.path, 'test.info');
+          File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync('''
+SF:test.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+''');
+          const validPattern = 'test';
+          const invalidPattern = '(unclosed'; // Invalid regex
+
+          Future<void> action() => cmdRunner.run([
+                filterCmd.name,
+                '--${FilterCommand.inputOption}',
+                traceFilePath,
+                '--${FilterCommand.filtersOption}',
+                '$validPattern,$invalidPattern',
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<UsageException>().having(
+                (e) => e.message,
+                'message',
+                contains('Invalid regex pattern in --filters: `(unclosed`'),
+              ),
+            ),
+          );
+        },
+      );
+
+      test(
+        '--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
         '--${FilterCommand.modeOption}=<mode> '
         '| filters trace file and handles different modes',
