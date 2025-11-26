@@ -83,12 +83,10 @@ class TraceFile extends CovComputable {
         }
       },
       onDone: () {
-        if (currentBlockBuffer.isNotEmpty) {
-          final blockContent = currentBlockBuffer.toString().trim();
-          if (blockContent.isNotEmpty) {
-            final covFile = CovFile.parse(blockContent);
-            if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
-          }
+        final blockContent = currentBlockBuffer.toString().trim();
+        if (blockContent.isNotEmpty) {
+          final covFile = CovFile.parse(blockContent);
+          if (covFile.linesFound > 0) sourceFilesCovData.add(covFile);
         }
         if (completer.isCompleted) return;
         completer.complete();
