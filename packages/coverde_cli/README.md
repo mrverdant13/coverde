@@ -270,7 +270,7 @@ This can be achieved by defining a melos script as follows:
 merge-trace-files:
   description: Merge all packages coverage trace files ignoring data related to generated files.
   run: >
-    coverde rm MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
+    coverde rm --no-dry-run MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
     melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --base-directory MELOS_ROOT_PATH --filters '\.g\.dart'"
 ```
 

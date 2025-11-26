@@ -175,6 +175,7 @@ melos:
       description: Merge all packages coverage trace files
       run: >
         dart run coverde rm
+        --no-dry-run
         MELOS_ROOT_PATH/coverage/filtered.lcov.info
         &&
         melos exec
