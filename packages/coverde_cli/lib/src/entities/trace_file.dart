@@ -78,6 +78,7 @@ class TraceFile extends CovComputable {
             currentBlockBuffer.clear();
           }
         } catch (error, stackTrace) {
+          unawaited(linesSubscription.cancel());
           if (completer.isCompleted) return;
           completer.completeError(error, stackTrace);
         }
