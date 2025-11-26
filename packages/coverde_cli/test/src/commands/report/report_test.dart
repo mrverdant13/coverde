@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/report/report.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
+import 'package:coverde/src/utils/operating_system.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -277,7 +278,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
                 any(
                   that: containsAllInOrder(
                     <Matcher>[
-                      equals(launchCommands[Platform.operatingSystem]),
+                      equals(operatingSystem.launchCommand),
                       contains(p.join(reportDirPath, 'index.html')),
                     ],
                   ),
@@ -582,5 +583,13 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         );
       },
     );
+  });
+
+  group('LaunchingOperatingSystem', () {
+    test('| launchCommand', () {
+      expect(OperatingSystem.linux.launchCommand, equals('xdg-open'));
+      expect(OperatingSystem.macos.launchCommand, equals('open'));
+      expect(OperatingSystem.windows.launchCommand, equals('start'));
+    });
   });
 }
