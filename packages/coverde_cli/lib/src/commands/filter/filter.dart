@@ -161,13 +161,24 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
     final finalContent = acceptedSrcFilesRawData.join('\n');
 
-    // Generate destination file and its content.
-    destination
-      ..createSync(recursive: true)
-      ..writeAsStringSync(
-        '$finalContent\n',
+    RandomAccessFile? raf;
+    try {
+      raf = await destination.open(
         mode: shouldOverride ? FileMode.write : FileMode.append,
-        flush: true,
       );
+      await raf.lock(
+        FileLock.blockingExclusive,
+      );
+      if (!shouldOverride) {
+        final length = await raf.length();
+        await raf.setPosition(length);
+        if (length > 0) await raf.writeString('\n');
+      }
+      await raf.writeString(finalContent);
+      await raf.flush();
+    } finally {
+      await raf?.unlock();
+      await raf?.close();
+    }
   }
 }

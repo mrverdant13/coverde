@@ -1,10 +1,11 @@
 ## Unreleased
 
+- **BREAKING FEAT**: use `base-directory` option instead of `paths-parent` option in `filter` command (#158).
 - **FIX**: use platform-dependent path handling (#82).
 - **FEAT**: use Dart 3.5.0 as minimum SDK version (#114).
 - **FEAT**: add `optimize-tests` command (#115).
 - **FEAT**: add `file-coverage-log-level` option to `check` and `value` commands (#118).
-- **BREAKING FEAT**: use `base-directory` option instead of `paths-parent` option in `filter` command (#158).
+- **FEAT**: add file locking to `filter` command to prevent race conditions when multiple processes write to the same output file (#211).
 
 ## 0.2.0+2
 

@@ -80,13 +80,15 @@ The `TraceFile.parse()` method loads the entire file content into memory and spl
 
 **Recommendation:** Consider streaming parsing for large files or add memory-efficient processing options.
 
-### 7. **Race Condition in Filter Command**
+### 7. **Race Condition in Filter Command** ✅ **ADDRESSED**
 **Severity: Low**
 **Location:** `lib/src/commands/filter/filter.dart:165-171`
 
 When using append mode (`mode: 'a'`), if multiple processes run the filter command simultaneously, there could be race conditions writing to the same file.
 
 **Recommendation:** Add file locking or atomic write operations for append mode.
+
+**Status:** ✅ **RESOLVED** - File locking has been implemented using `FileLock.blockingExclusive` in the filter command. The implementation uses `RandomAccessFile` with proper locking to prevent race conditions when multiple processes write to the same output file. This ensures thread-safe file operations in both append and override modes. See CHANGELOG.md entry for details (#211).
 
 ### 8. **Missing Input Validation for Threshold Values**
 **Severity: Low**
@@ -333,6 +335,9 @@ Analyze uncovered code and suggest test cases or areas needing more tests.
 ---
 
 ## Summary
+
+### Recently Addressed Issues ✅
+1. **Race Condition in Filter Command** - File locking implemented using `FileLock.blockingExclusive` to prevent race conditions when multiple processes write to the same output file (#211).
 
 ### Critical Issues to Address
 1. Add error handling for file operations
