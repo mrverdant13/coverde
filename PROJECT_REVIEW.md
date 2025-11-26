@@ -161,7 +161,7 @@ Convert synchronous file operations to async operations for better performance a
 - Document performance characteristics
 
 ### 8. **Logging**
-- Add structured logging instead of direct `stdout.writeln()`
+- Add structured logging instead of direct `stdout` operations
 - Support different log levels (debug, info, warn, error)
 - Add option to suppress verbose output
 
