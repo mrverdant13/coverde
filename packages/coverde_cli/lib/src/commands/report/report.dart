@@ -56,14 +56,18 @@ Low: 0 <= coverage < $_mediumHelpValue''',
       ..addOption(
         mediumOption,
         help: '''
-Medium threshold.''',
+Medium threshold.
+
+Must be a number between 0 and 100, and must be less than the high threshold.''',
         valueHelp: _mediumHelpValue,
         defaultsTo: '75',
       )
       ..addOption(
         highOption,
         help: '''
-High threshold.''',
+High threshold.
+
+Must be a number between 0 and 100, and must be greater than the medium threshold.''',
         valueHelp: _highHelpValue,
         defaultsTo: '90',
       );

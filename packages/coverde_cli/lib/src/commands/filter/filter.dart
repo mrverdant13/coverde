@@ -36,7 +36,9 @@ Base directory relative to which trace file source paths are resolved.''',
         filtersOption,
         abbr: filtersOption[0],
         help: '''
-Set of comma-separated path patterns of the files to be ignored.''',
+Set of comma-separated path patterns of the files to be ignored.
+
+Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.''',
         defaultsTo: [],
         valueHelp: _filtersHelpValue,
       )
