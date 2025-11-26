@@ -165,12 +165,14 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     RandomAccessFile? raf;
     try {
       raf = await destination.open(
-        mode: shouldOverride ? FileMode.write : FileMode.append,
+        mode: shouldOverride ? FileMode.writeOnly : FileMode.append,
       );
       await raf.lock(
         FileLock.blockingExclusive,
       );
-      if (!shouldOverride) {
+      if (shouldOverride) {
+        await raf.truncate(0);
+      } else {
         final length = await raf.length();
         await raf.setPosition(length);
         if (length > 0) await raf.writeString('\n');
