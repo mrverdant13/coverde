@@ -7,7 +7,7 @@ import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
@@ -22,6 +22,18 @@ enum _Project {
   const _Project(this.path);
 
   final String path;
+
+  String get traceFilePath => p.joinAll([
+        'test',
+        'src',
+        'commands',
+        'report',
+        'fixtures',
+        path,
+        'coverage',
+        if (Platform.isWindows) 'windows' else 'posix',
+        'lcov.info',
+      ]);
 }
 
 extension _ExtendedProj on _Project {
@@ -58,7 +70,7 @@ extension on String {
   String fixturePath({
     required _Project proj,
   }) =>
-      path.joinAll([
+      p.joinAll([
         'test',
         'src',
         'commands',
@@ -96,7 +108,7 @@ void main() {
     test(
         '''--${ReportCommand.inputOption}=<empty_trace_file> '''
         '''| fails when trace file is empty''', () async {
-      final emptyTraceFilePath = path.joinAll([
+      final emptyTraceFilePath = p.joinAll([
         'test',
         'src',
         'commands',
@@ -157,7 +169,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
           '--${ReportCommand.launchFlag} '
           '| generates HTML report and launches browser for ${proj.name}',
           () async {
-            final traceFilePath = path.joinAll([
+            final traceFilePath = p.joinAll([
               'coverage',
               if (Platform.isWindows) 'windows' else 'posix',
               'lcov.info',
@@ -193,7 +205,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
             expect(reportDir.existsSync(), isTrue);
             for (final relFilePath in proj.relFilePaths) {
               final resultFile = File(
-                path
+                p
                     .join(
                       resultDirName,
                       relFilePath,
@@ -201,7 +213,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
                     .fixturePath(proj: proj),
               );
               final expectedFile = File(
-                path
+                p
                     .join(
                       expectedDirName,
                       relFilePath,
@@ -265,7 +277,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
                   that: containsAllInOrder(
                     <Matcher>[
                       equals(launchCommands[Platform.operatingSystem]),
-                      contains(path.join(reportDirPath, 'index.html')),
+                      contains(p.join(reportDirPath, 'index.html')),
                     ],
                   ),
                 ),
@@ -287,7 +299,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.inputOption}=<absent_file> '
       '| fails when trace file does not exist',
       () async {
-        final absentFilePath = path.joinAll([
+        final absentFilePath = p.joinAll([
           'test',
           'src',
           'commands',
@@ -312,34 +324,8 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.mediumOption}=<invalid> '
       '| fails when medium threshold is invalid',
       () async {
-        const invalidMediumThreshold = 'medium';
-
-        Future<void> action() => cmdRunner.run([
-              reportCmd.name,
-              '--${ReportCommand.mediumOption}',
-              invalidMediumThreshold,
-            ]);
-
-        expect(action, throwsA(isA<UsageException>()));
-      },
-    );
-
-    test(
-      '--${ReportCommand.mediumOption}=<invalid> '
-      '| fails when medium threshold is invalid',
-      () async {
         const invalidMediumThreshold = 'invalid';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -369,17 +355,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when medium threshold is negative',
       () async {
         const negativeMediumThreshold = '-1';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -412,17 +388,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when medium threshold exceeds 100',
       () async {
         const over100MediumThreshold = '101';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -455,17 +421,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when high threshold is invalid',
       () async {
         const invalidHighThreshold = 'invalid';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -495,17 +451,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when high threshold is negative',
       () async {
         const negativeHighThreshold = '-1';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -538,17 +484,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when high threshold exceeds 100',
       () async {
         const over100HighThreshold = '101';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -583,17 +519,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       () async {
         const mediumThreshold = '75';
         const highThreshold = '50'; // Lower than medium
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
@@ -629,17 +555,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '| fails when medium threshold equals high threshold',
       () async {
         const threshold = '75';
-        final traceFilePath = path.joinAll([
-          'test',
-          'src',
-          'commands',
-          'report',
-          'fixtures',
-          'fake_project_1',
-          'coverage',
-          if (Platform.isWindows) 'windows' else 'posix',
-          'lcov.info',
-        ]);
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
         final traceFile = File(traceFilePath);
         expect(traceFile.existsSync(), isTrue);
 
