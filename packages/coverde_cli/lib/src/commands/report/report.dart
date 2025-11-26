@@ -4,6 +4,7 @@ import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
 import 'package:coverde/src/commands/coverde_command.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/utils/operating_system.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -41,6 +42,7 @@ Destination directory where the generated coverage report will be stored.''',
         abbr: launchFlag[0],
         help: '''
 Launch the generated report in the default browser.
+This option is only supported on desktop platforms.
 (defaults to off)''',
       )
       ..addSeparator(
@@ -50,7 +52,8 @@ These options provide reference coverage values for the HTML report styling.
 
 High: $_highHelpValue <= coverage <= 100
 Medium: $_mediumHelpValue <= coverage < $_highHelpValue
-Low: 0 <= coverage < $_mediumHelpValue''',
+Low: 0 <= coverage < $_mediumHelpValue
+''',
       )
       ..addOption(
         mediumOption,
@@ -231,20 +234,23 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     logger.info('$reportLocationMessage\n');
 
     if (shouldLaunch) {
-      final launchCommand = launchCommands[Platform.operatingSystem];
+      final launchCommand = operatingSystem.launchCommand;
       await _processManager.run(
-        [launchCommand!, reportIndexAbsPath],
+        [launchCommand, reportIndexAbsPath],
         runInShell: true,
       );
     }
   }
 }
 
-/// A linked map of commands to launch the report in the browser by its platform
-/// name.
-@visibleForTesting
-const launchCommands = {
-  'macos': 'open',
-  'linux': 'xdg-open',
-  'windows': 'start',
-};
+/// Extension methods for [OperatingSystem]s.
+extension LaunchingOperatingSystem on OperatingSystem {
+  /// The command to launch the report in the browser.
+  String get launchCommand {
+    return switch (this) {
+      OperatingSystem.linux => 'xdg-open',
+      OperatingSystem.macos => 'open',
+      OperatingSystem.windows => 'start',
+    };
+  }
+}
