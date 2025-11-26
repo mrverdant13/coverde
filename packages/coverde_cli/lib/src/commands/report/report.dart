@@ -42,7 +42,7 @@ Destination directory where the generated coverage report will be stored.''',
         abbr: launchFlag[0],
         help: '''
 Launch the generated report in the default browser.
-This option is only supported on Linux and macOS.
+This option is only supported on desktop platforms.
 (defaults to off)''',
       )
       ..addSeparator(
