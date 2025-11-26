@@ -149,7 +149,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
 - `--filters`
 
-  Set of comma-separated path patterns of the files to be ignored.\
+  Set of comma-separated path patterns of the files to be ignored.
+  
+  Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
   **Default value:** _None_
 
 
@@ -175,12 +177,16 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 - `--medium`
 
-  Medium threshold.\
+  Medium threshold.
+  
+  Must be a number between 0 and 100, and must be less than the high threshold.\
   **Default value:** `75`
 
 - `--high`
 
-  High threshold.\
+  High threshold.
+  
+  Must be a number between 0 and 100, and must be greater than the medium threshold.\
   **Default value:** `90`
 
 #### Flags
