@@ -124,10 +124,29 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     );
     final mediumString = argResults.option(mediumOption)!;
     final medium = double.tryParse(mediumString);
-    if (medium == null) usageException('Invalid medium threshold.');
+    if (medium == null) {
+      usageException('Invalid medium threshold.');
+    }
+    if (medium < 0 || medium > 100) {
+      usageException(
+        'Medium threshold must be between 0 and 100 (got $medium).',
+      );
+    }
     final highString = argResults.option(highOption)!;
     final high = double.tryParse(highString);
-    if (high == null) usageException('Invalid high threshold.');
+    if (high == null) {
+      usageException('Invalid high threshold.');
+    }
+    if (high < 0 || high > 100) {
+      usageException(
+        'High threshold must be between 0 and 100 (got $high).',
+      );
+    }
+    if (medium >= high) {
+      usageException(
+        'Medium threshold ($medium) must be less than high threshold ($high).',
+      );
+    }
     final shouldLaunch = argResults.flag(launchFlag);
 
     // Report dir path should be absolute.

@@ -159,7 +159,6 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
           () async {
             final traceFilePath = path.joinAll([
               'coverage',
-              // cspell: disable-next-line
               if (Platform.isWindows) 'windows' else 'posix',
               'lcov.info',
             ]).fixturePath(proj: proj);
@@ -326,18 +325,347 @@ Error: Non-matching (plain text) file <$relFilePath>''',
     );
 
     test(
-      '--${ReportCommand.highOption}=<invalid> '
-      '| fails when high threshold is invalid',
+      '--${ReportCommand.mediumOption}=<invalid> '
+      '| fails when medium threshold is invalid',
       () async {
-        const invalidHighThreshold = 'high';
+        const invalidMediumThreshold = 'invalid';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
               reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.mediumOption}',
+              invalidMediumThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid medium threshold.'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.mediumOption}=<negative> '
+      '| fails when medium threshold is negative',
+      () async {
+        const negativeMediumThreshold = '-1';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.mediumOption}',
+              negativeMediumThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'Medium threshold must be between 0 and 100 '
+                '(got -1.0).',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.mediumOption}=<over_100> '
+      '| fails when medium threshold exceeds 100',
+      () async {
+        const over100MediumThreshold = '101';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.mediumOption}',
+              over100MediumThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'Medium threshold must be between 0 and 100 '
+                '(got 101.0).',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.highOption}=<invalid> '
+      '| fails when high threshold is invalid',
+      () async {
+        const invalidHighThreshold = 'invalid';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
               '--${ReportCommand.highOption}',
               invalidHighThreshold,
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid high threshold.'),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.highOption}=<negative> '
+      '| fails when high threshold is negative',
+      () async {
+        const negativeHighThreshold = '-1';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.highOption}',
+              negativeHighThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'High threshold must be between 0 and 100 '
+                '(got -1.0).',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.highOption}=<over_100> '
+      '| fails when high threshold exceeds 100',
+      () async {
+        const over100HighThreshold = '101';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.highOption}',
+              over100HighThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'High threshold must be between 0 and 100 '
+                '(got 101.0).',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.mediumOption}=<value> '
+      '--${ReportCommand.highOption}=<lower_value> '
+      '| fails when medium threshold is greater than high threshold',
+      () async {
+        const mediumThreshold = '75';
+        const highThreshold = '50'; // Lower than medium
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.mediumOption}',
+              mediumThreshold,
+              '--${ReportCommand.highOption}',
+              highThreshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'Medium threshold (75.0) '
+                'must be less than high threshold (50.0).',
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '--${ReportCommand.mediumOption}=<value> '
+      '--${ReportCommand.highOption}=<same_value> '
+      '| fails when medium threshold equals high threshold',
+      () async {
+        const threshold = '75';
+        final traceFilePath = path.joinAll([
+          'test',
+          'src',
+          'commands',
+          'report',
+          'fixtures',
+          'fake_project_1',
+          'coverage',
+          if (Platform.isWindows) 'windows' else 'posix',
+          'lcov.info',
+        ]);
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
+
+        Future<void> action() => cmdRunner.run([
+              reportCmd.name,
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.mediumOption}',
+              threshold,
+              '--${ReportCommand.highOption}',
+              threshold,
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                'Medium threshold (75.0) '
+                'must be less than high threshold (75.0).',
+              ),
+            ),
+          ),
+        );
       },
     );
   });
