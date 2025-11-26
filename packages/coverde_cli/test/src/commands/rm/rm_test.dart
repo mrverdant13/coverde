@@ -45,7 +45,30 @@ Remove a set of files and folders.
 
       test(
         '<existing_file> '
-        '| removes existing file',
+        '| previews deletion in dry-run mode (default)',
+        () async {
+          final filePath = path.joinAll(['coverage', 'existing.file']);
+          final file = File(filePath);
+          await file.create(recursive: true);
+          when(() => out.writeln(any<String>())).thenReturn(null);
+          expect(file.existsSync(), isTrue);
+
+          await cmdRunner.run([
+            rmCmd.name,
+            filePath,
+          ]);
+
+          verify(
+            () => out.writeln('[DRY RUN] Would remove file: <$filePath>'),
+          ).called(1);
+          expect(file.existsSync(), isTrue);
+        },
+      );
+
+      test(
+        '--no-${RmCommand.dryRunFlag} '
+        '<existing_file> '
+        '| removes existing file when dry-run is disabled',
         () async {
           final filePath = path.joinAll(['coverage', 'existing.file']);
           final file = File(filePath);
@@ -54,6 +77,7 @@ Remove a set of files and folders.
 
           await cmdRunner.run([
             rmCmd.name,
+            '--no-${RmCommand.dryRunFlag}',
             filePath,
           ]);
 
@@ -82,6 +106,30 @@ Remove a set of files and folders.
       );
 
       test(
+        '--${RmCommand.dryRunFlag} '
+        '<existing_file> '
+        '| explicitly enables dry-run mode',
+        () async {
+          final filePath = path.joinAll(['coverage', 'existing.file']);
+          final file = File(filePath);
+          await file.create(recursive: true);
+          when(() => out.writeln(any<String>())).thenReturn(null);
+          expect(file.existsSync(), isTrue);
+
+          await cmdRunner.run([
+            rmCmd.name,
+            '--${RmCommand.dryRunFlag}',
+            filePath,
+          ]);
+
+          verify(
+            () => out.writeln('[DRY RUN] Would remove file: <$filePath>'),
+          ).called(1);
+          expect(file.existsSync(), isTrue);
+        },
+      );
+
+      test(
         '--${RmCommand.acceptAbsenceFlag} '
         '<non-existing_file> '
         '| shows message when file does not exist',
@@ -106,7 +154,30 @@ Remove a set of files and folders.
 
       test(
         '<existing_directory> '
-        '| removes existing directory',
+        '| previews deletion in dry-run mode (default)',
+        () async {
+          final dirPath = path.joinAll(['coverage', 'existing.dir']);
+          final dir = Directory(dirPath);
+          await dir.create(recursive: true);
+          when(() => out.writeln(any<String>())).thenReturn(null);
+          expect(dir.existsSync(), isTrue);
+
+          await cmdRunner.run([
+            rmCmd.name,
+            dirPath,
+          ]);
+
+          verify(
+            () => out.writeln('[DRY RUN] Would remove dir:  <$dirPath>'),
+          ).called(1);
+          expect(dir.existsSync(), isTrue);
+        },
+      );
+
+      test(
+        '--no-${RmCommand.dryRunFlag} '
+        '<existing_directory> '
+        '| removes existing directory when dry-run is disabled',
         () async {
           final dirPath = path.joinAll(['coverage', 'existing.dir']);
           final dir = Directory(dirPath);
@@ -115,6 +186,7 @@ Remove a set of files and folders.
 
           await cmdRunner.run([
             rmCmd.name,
+            '--no-${RmCommand.dryRunFlag}',
             dirPath,
           ]);
 

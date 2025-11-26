@@ -1,6 +1,7 @@
 ## Unreleased
 
 - **BREAKING FEAT**: use `base-directory` option instead of `paths-parent` option in `filter` command (#158).
+- **BREAKING FEAT**: add `--dry-run` flag to `remove` command to preview deletions without actually deleting (#214).
 - **FIX**: use platform-dependent path handling (#82).
 - **FIX**: validate regex patterns in `filter` command (#212).
 - **FIX**: validate threshold values in `report` command (#212).
