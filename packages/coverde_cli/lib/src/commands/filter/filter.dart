@@ -159,15 +159,29 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       }
     }
 
+    destination.parent.createSync(recursive: true);
     final finalContent = acceptedSrcFilesRawData.join('\n');
 
-    // Generate destination file and its content.
-    destination
-      ..createSync(recursive: true)
-      ..writeAsStringSync(
-        '$finalContent\n',
-        mode: shouldOverride ? FileMode.write : FileMode.append,
-        flush: true,
+    RandomAccessFile? raf;
+    try {
+      raf = await destination.open(
+        mode: shouldOverride ? FileMode.writeOnly : FileMode.append,
       );
+      await raf.lock(
+        FileLock.blockingExclusive,
+      );
+      if (shouldOverride) {
+        await raf.truncate(0);
+      } else {
+        final length = await raf.length();
+        await raf.setPosition(length);
+        if (length > 0) await raf.writeString('\n');
+      }
+      await raf.writeString(finalContent);
+      await raf.flush();
+    } finally {
+      await raf?.unlock();
+      await raf?.close();
+    }
   }
 }

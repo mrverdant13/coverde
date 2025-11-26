@@ -538,6 +538,86 @@ end_of_record
           expect(action, throwsA(isA<UsageException>()));
         },
       );
+
+      test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.modeOption}=<mode> '
+        '| filters trace file and handles different modes',
+        () async {
+          final existingContent = '''
+SF:existing.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final newContent = '''
+SF:new.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+'''
+              .trim();
+          final testCases = [
+            (
+              mode: 'a',
+              outputFileName: 'a.lcov.info',
+              expectedContent: '$existingContent\n$newContent',
+            ),
+            (
+              mode: 'w',
+              outputFileName: 'w.lcov.info',
+              expectedContent: newContent,
+            ),
+          ];
+          final directory =
+              Directory.systemTemp.createTempSync('coverde-filter-test-');
+          addTearDown(() => directory.delete(recursive: true));
+          final inputFilePath = path.join(
+            directory.path,
+            'input.info',
+          );
+          File(inputFilePath)
+            ..createSync()
+            ..writeAsStringSync(newContent);
+
+          for (final testCase in testCases) {
+            final outputFilePath = path.join(
+              directory.path,
+              testCase.outputFileName,
+            );
+            File(outputFilePath)
+              ..createSync()
+              ..writeAsStringSync(existingContent);
+
+            await cmdRunner.run([
+              filterCmd.name,
+              '--${FilterCommand.inputOption}',
+              inputFilePath,
+              '--${FilterCommand.outputOption}',
+              outputFilePath,
+              '--${FilterCommand.modeOption}',
+              testCase.mode,
+            ]);
+
+            expect(
+              File(outputFilePath).existsSync(),
+              isTrue,
+              reason: 'Output file does not exist '
+                  '(mode: ${testCase.mode}).',
+            );
+            expect(
+              File(outputFilePath).readAsStringSync(),
+              testCase.expectedContent,
+              reason: 'Filtered file content does not match '
+                  '(mode: ${testCase.mode}).',
+            );
+          }
+        },
+      );
     },
   );
 }
