@@ -194,6 +194,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 - `--launch`
 
   Launch the generated report in the default browser.
+  This option is only supported on desktop platforms.
   (defaults to off)\
   **Default value:** _Disabled_
 
