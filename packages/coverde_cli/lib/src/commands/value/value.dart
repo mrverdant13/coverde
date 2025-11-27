@@ -32,6 +32,7 @@ Coverage info file to be used for the coverage value computation.''',
         fileCoverageLogLevelFlag,
         help: '''
 The log level for the coverage value for each source file listed in the $_inputHelpValue info file.''',
+        allowed: FileCoverageLogLevel.values.map((level) => level.identifier),
         allowedHelp: {
           for (final logLevel in FileCoverageLogLevel.values)
             logLevel.identifier: logLevel.help,
@@ -77,6 +78,8 @@ Compute the coverage value of the $_inputHelpValue info file.''';
         fileCoverageLogLevelFlag,
       );
       return FileCoverageLogLevel.values.firstWhere(
+        // It is safe to look up the log level by identifier because the allowed
+        // values are validated by the args parser.
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
       );
     }();

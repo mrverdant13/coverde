@@ -355,6 +355,40 @@ Compute the coverage value of the LCOV_FILE info file.
       );
 
       test(
+        '--${ValueCommand.fileCoverageLogLevelFlag}=<invalid> '
+        '| fails when --${ValueCommand.fileCoverageLogLevelFlag} is invalid',
+        () async {
+          const invalidLogLevel = 'invalid-log-level';
+          final directory = Directory.systemTemp.createTempSync();
+          final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+          File(traceFilePath).createSync(recursive: true);
+          addTearDown(() => directory.deleteSync(recursive: true));
+
+          Future<void> action() => cmdRunner.run([
+                valueCmd.name,
+                '--${ValueCommand.inputOption}',
+                traceFilePath,
+                '--${ValueCommand.fileCoverageLogLevelFlag}',
+                invalidLogLevel,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<UsageException>().having(
+                (e) => e.message,
+                'message',
+                contains(
+                  '"invalid-log-level" is not an allowed value '
+                  'for option "--file-coverage-log-level"',
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      test(
         '--${ValueCommand.inputOption} <absent_trace_file_path>',
         () async {
           final directory = Directory.systemTemp.createTempSync();
