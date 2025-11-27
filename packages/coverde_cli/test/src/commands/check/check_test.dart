@@ -189,6 +189,44 @@ This parameter indicates the minimum value for the coverage to be accepted.
       );
 
       test(
+        '--${CheckCommand.fileCoverageLogLevelOptionName}=<invalid> '
+        '<min_coverage> '
+        '| fails when --${CheckCommand.fileCoverageLogLevelOptionName} '
+        'is invalid',
+        () async {
+          const invalidLogLevel = 'invalid-log-level';
+          final directory = Directory.systemTemp.createTempSync();
+          final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+          File(traceFilePath).createSync(recursive: true);
+          addTearDown(() => directory.deleteSync(recursive: true));
+          const minCoverage = 50;
+
+          Future<void> action() => cmdRunner.run([
+                checkCmd.name,
+                '--${CheckCommand.inputOptionName}',
+                traceFilePath,
+                '--${CheckCommand.fileCoverageLogLevelOptionName}',
+                invalidLogLevel,
+                '$minCoverage',
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<UsageException>().having(
+                (e) => e.message,
+                'message',
+                contains(
+                  '"invalid-log-level" is not an allowed value '
+                  'for option "--file-coverage-log-level"',
+                ),
+              ),
+            ),
+          );
+        },
+      );
+
+      test(
         '| fails when no minimum expected coverage value',
         () async {
           Future<void> action() => cmdRunner.run([checkCmd.name]);

@@ -29,6 +29,7 @@ Trace file used for the coverage check.''',
         fileCoverageLogLevelOptionName,
         help: '''
 The log level for the coverage value for each source file listed in the `$inputOptionName` info file.''',
+        allowed: FileCoverageLogLevel.values.map((level) => level.identifier),
         allowedHelp: {
           for (final logLevel in FileCoverageLogLevel.values)
             logLevel.identifier: logLevel.help,
@@ -81,6 +82,8 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
         fileCoverageLogLevelOptionName,
       )!;
       return FileCoverageLogLevel.values.firstWhere(
+        // It is safe to look up the log level by identifier because the allowed
+        // values are validated by the args parser.
         (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
       );
     }();
