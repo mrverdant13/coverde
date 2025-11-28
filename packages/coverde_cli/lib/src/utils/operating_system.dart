@@ -1,27 +1,6 @@
-import 'package:collection/collection.dart';
 import 'package:coverde/src/utils/execution_mode.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/universal_io.dart';
-
-/// {@template operating_system}
-/// The operating system of the current machine.
-/// {@endtemplate}
-enum OperatingSystem {
-  /// Linux
-  linux('linux'),
-
-  /// macOS
-  macos('macos'),
-
-  /// Windows
-  windows('windows'),
-  ;
-
-  const OperatingSystem(this.identifier);
-
-  /// The identifier of the operating system.
-  final String identifier;
-}
 
 String? _debugOperatingSystemIdentifier;
 
@@ -42,25 +21,13 @@ set debugOperatingSystemIdentifier(String? value) {
   _debugOperatingSystemIdentifier = value;
 }
 
-/// The operating system of the current machine.
+/// The operating system identifier of the current machine.
 @pragma('vm:platform-const')
 @pragma('vm:prefer-inline')
 @pragma('dart2js:prefer-inline')
-OperatingSystem get operatingSystem {
-  OperatingSystem? operatingSystem;
-  operatingSystem = [
-    ...OperatingSystem.values,
-    null,
-  ].firstWhere(
-    (e) => e?.identifier == Platform.operatingSystem,
-  );
+String get operatingSystemIdentifier {
   if (isDebugMode && debugOperatingSystemIdentifier != null) {
-    operatingSystem = OperatingSystem.values.firstWhereOrNull(
-      (e) => e.identifier == debugOperatingSystemIdentifier,
-    );
+    return debugOperatingSystemIdentifier!;
   }
-  if (operatingSystem != null) return operatingSystem;
-  throw UnsupportedError(
-    'Unsupported operating system: ${Platform.operatingSystem}',
-  );
+  return Platform.operatingSystem;
 }

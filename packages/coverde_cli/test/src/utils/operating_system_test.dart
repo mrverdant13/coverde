@@ -6,33 +6,25 @@ import 'package:test/test.dart';
 void main() {
   group('operatingSystem', () {
     test('returns actual OS', () async {
-      expect(operatingSystem.identifier, equals(Platform.operatingSystem));
+      expect(operatingSystemIdentifier, equals(Platform.operatingSystem));
     });
 
     test('returns linux', () async {
-      debugOperatingSystemIdentifier = OperatingSystem.linux.identifier;
+      debugOperatingSystemIdentifier = 'linux';
       addTearDown(() => debugOperatingSystemIdentifier = null);
-      expect(operatingSystem, equals(OperatingSystem.linux));
+      expect(operatingSystemIdentifier, equals('linux'));
     });
 
     test('returns macos', () async {
-      debugOperatingSystemIdentifier = OperatingSystem.macos.identifier;
+      debugOperatingSystemIdentifier = 'macos';
       addTearDown(() => debugOperatingSystemIdentifier = null);
-      expect(operatingSystem, equals(OperatingSystem.macos));
+      expect(operatingSystemIdentifier, equals('macos'));
     });
 
     test('returns windows', () async {
-      debugOperatingSystemIdentifier = OperatingSystem.windows.identifier;
+      debugOperatingSystemIdentifier = 'windows';
       addTearDown(() => debugOperatingSystemIdentifier = null);
-      expect(operatingSystem, equals(OperatingSystem.windows));
-    });
-
-    test(
-        'throws $UnsupportedError '
-        'when unsupported operating system', () async {
-      debugOperatingSystemIdentifier = 'unsupported';
-      addTearDown(() => debugOperatingSystemIdentifier = null);
-      expect(() => operatingSystem, throwsA(isA<UnsupportedError>()));
+      expect(operatingSystemIdentifier, equals('windows'));
     });
   });
 }

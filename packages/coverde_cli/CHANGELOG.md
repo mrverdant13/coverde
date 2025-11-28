@@ -13,7 +13,7 @@
 - **FEAT**: add file locking to `filter` command to prevent race conditions when multiple processes write to the same output file (#211).
 - **PERF**: use streaming parser for trace files (#217).
 - **REFACTOR**: use `mason_logger` package for logging (#216).
-- **REFACTOR**: deterministic OS detection (#219).
+- **REFACTOR**: deterministic OS detection (#219, #223).
 
 ## 0.2.0+2
 

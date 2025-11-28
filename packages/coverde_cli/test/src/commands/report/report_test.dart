@@ -278,7 +278,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
                 any(
                   that: containsAllInOrder(
                     <Matcher>[
-                      equals(operatingSystem.launchCommand),
+                      equals(launchCommands[operatingSystemIdentifier]),
                       contains(p.join(reportDirPath, 'index.html')),
                     ],
                   ),
@@ -585,11 +585,19 @@ Error: Non-matching (plain text) file <$relFilePath>''',
     );
   });
 
-  group('LaunchingOperatingSystem', () {
-    test('| launchCommand', () {
-      expect(OperatingSystem.linux.launchCommand, equals('xdg-open'));
-      expect(OperatingSystem.macos.launchCommand, equals('open'));
-      expect(OperatingSystem.windows.launchCommand, equals('start'));
+  group('launchCommands', () {
+    test('| contains commands for all supported platforms', () {
+      expect(launchCommands['linux'], equals('xdg-open'));
+      expect(launchCommands['macos'], equals('open'));
+      expect(launchCommands['windows'], equals('start'));
+    });
+
+    test('| returns null for unsupported platforms', () {
+      expect(launchCommands['unsupported'], isNull);
+    });
+
+    test('| returns the command for the current platform', () {
+      expect(launchCommands[operatingSystemIdentifier], isNotNull);
     });
   });
 }
