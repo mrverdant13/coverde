@@ -234,7 +234,13 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     logger.info('$reportLocationMessage\n');
 
     if (shouldLaunch) {
-      final launchCommand = operatingSystem.launchCommand;
+      final launchCommand = launchCommands[operatingSystemIdentifier];
+      if (launchCommand == null) {
+        logger.warn(
+          '''Browser launch is not supported on $operatingSystemIdentifier platform.''',
+        );
+        return;
+      }
       await _processManager.run(
         [launchCommand, reportIndexAbsPath],
         runInShell: true,
@@ -243,14 +249,10 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
   }
 }
 
-/// Extension methods for [OperatingSystem]s.
-extension LaunchingOperatingSystem on OperatingSystem {
-  /// The command to launch the report in the browser.
-  String get launchCommand {
-    return switch (this) {
-      OperatingSystem.linux => 'xdg-open',
-      OperatingSystem.macos => 'open',
-      OperatingSystem.windows => 'start',
-    };
-  }
-}
+/// The commands to launch the browser on different platforms.
+@visibleForTesting
+const launchCommands = {
+  'linux': 'xdg-open',
+  'macos': 'open',
+  'windows': 'start',
+};
