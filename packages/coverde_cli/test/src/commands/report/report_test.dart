@@ -298,7 +298,8 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       '--${ReportCommand.inputOption}=<trace_file> '
       '--${ReportCommand.outputOption}=<report_dir> '
       '--${ReportCommand.launchFlag} '
-      '| generates HTML report and warns when launch is not supported for platform',
+      '| generates HTML report and warns '
+      'when launch is not supported for platform',
       () async {
         // Set to an unsupported platform
         debugOperatingSystemIdentifier = 'android';
