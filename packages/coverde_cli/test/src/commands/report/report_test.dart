@@ -295,6 +295,61 @@ Error: Non-matching (plain text) file <$relFilePath>''',
     }
 
     test(
+      '--${ReportCommand.inputOption}=<trace_file> '
+      '--${ReportCommand.outputOption}=<report_dir> '
+      '--${ReportCommand.launchFlag} '
+      '| generates HTML report and warns when launch is not supported for platform',
+      () async {
+        // Set to an unsupported platform
+        debugOperatingSystemIdentifier = 'android';
+        addTearDown(() => debugOperatingSystemIdentifier = null);
+
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
+        final traceFileFile = File(traceFilePath);
+        const resultDirName = 'result';
+        final reportDirPath =
+            resultDirName.fixturePath(proj: _Project.fakeProject1);
+        final reportDir = Directory(reportDirPath);
+
+        expect(traceFileFile.existsSync(), isTrue);
+
+        await cmdRunner.run([
+          reportCmd.name,
+          '--${ReportCommand.inputOption}',
+          traceFilePath,
+          '--${ReportCommand.outputOption}',
+          reportDirPath,
+          '--${ReportCommand.launchFlag}',
+        ]);
+
+        // Report should still be generated
+        expect(reportDir.existsSync(), isTrue);
+        final reportIndexFile = File(
+          p.join(reportDirPath, 'index.html'),
+        );
+        expect(reportIndexFile.existsSync(), isTrue);
+
+        // Should log warning about unsupported platform
+        verify(
+          () => logger.warn(
+            'Browser launch is not supported on android platform.',
+          ),
+        ).called(1);
+        verify(
+          () => logger.info(
+            any(),
+          ),
+        ).called(2);
+        verifyNever(
+          () => processManager.run(
+            any(),
+            runInShell: any(named: 'runInShell'),
+          ),
+        );
+      },
+    );
+
+    test(
       '--${ReportCommand.inputOption}=<absent_file> '
       '| fails when trace file does not exist',
       () async {

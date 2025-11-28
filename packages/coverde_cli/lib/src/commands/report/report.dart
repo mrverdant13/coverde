@@ -236,13 +236,9 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     if (shouldLaunch) {
       final launchCommand = launchCommands[operatingSystemIdentifier];
       if (launchCommand == null) {
-        logger
-          ..warn(
-            '''Browser launch is not supported on $operatingSystemIdentifier platform.''',
-          )
-          ..info(
-            'Please open the report manually: $reportIndexAbsPath',
-          );
+        logger.warn(
+          '''Browser launch is not supported on $operatingSystemIdentifier platform.''',
+        );
         return;
       }
       await _processManager.run(
