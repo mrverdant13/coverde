@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/filter/filter.dart';
-import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
@@ -15,16 +15,13 @@ void main() {
   group(
     'coverde filter',
     () {
-      late CommandRunner<void> cmdRunner;
       late Logger logger;
-      late FilterCommand filterCmd;
+      late CoverdeCommandRunner cmdRunner;
 
       setUp(
         () {
-          cmdRunner = CommandRunner<void>('test', 'A tester command runner');
           logger = MockLogger();
-          filterCmd = FilterCommand(logger: logger);
-          cmdRunner.addCommand(filterCmd);
+          cmdRunner = CoverdeCommandRunner(logger: logger);
         },
       );
 
@@ -46,7 +43,7 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
 All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
 ''';
 
-          final result = filterCmd.description;
+          final result = FilterCommand().description;
 
           expect(result.trim(), expected.trim());
         },
@@ -122,7 +119,7 @@ end_of_record
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           await cmdRunner.run([
-            filterCmd.name,
+            'filter',
             '--${FilterCommand.inputOption}',
             originalFilePath,
             '--${FilterCommand.outputOption}',
@@ -227,7 +224,7 @@ end_of_record
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           await cmdRunner.run([
-            filterCmd.name,
+            'filter',
             '--${FilterCommand.inputOption}',
             originalFilePath,
             '--${FilterCommand.outputOption}',
@@ -334,7 +331,7 @@ $ignoredSourceFileData
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           await cmdRunner.run([
-            filterCmd.name,
+            'filter',
             '--${FilterCommand.inputOption}',
             originalFilePath,
             '--${FilterCommand.outputOption}',
@@ -466,7 +463,7 @@ $absoluteSourceFileData
           expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
           await cmdRunner.run([
-            filterCmd.name,
+            'filter',
             '--${FilterCommand.inputOption}',
             originalFilePath,
             '--${FilterCommand.outputOption}',
@@ -529,7 +526,7 @@ end_of_record
           expect(absentFile.existsSync(), isFalse);
 
           Future<void> action() => cmdRunner.run([
-                filterCmd.name,
+                'filter',
                 '--${FilterCommand.inputOption}',
                 absentFilePath,
                 '--${FilterCommand.filtersOption}',
@@ -561,7 +558,7 @@ end_of_record
           const invalidPattern = '[invalid'; // Missing closing bracket
 
           Future<void> action() => cmdRunner.run([
-                filterCmd.name,
+                'filter',
                 '--${FilterCommand.inputOption}',
                 traceFilePath,
                 '--${FilterCommand.filtersOption}',
@@ -605,7 +602,7 @@ end_of_record
           const invalidPattern = '(unclosed'; // Invalid regex
 
           Future<void> action() => cmdRunner.run([
-                filterCmd.name,
+                'filter',
                 '--${FilterCommand.inputOption}',
                 traceFilePath,
                 '--${FilterCommand.filtersOption}',
@@ -680,7 +677,7 @@ end_of_record
               ..writeAsStringSync(existingContent);
 
             await cmdRunner.run([
-              filterCmd.name,
+              'filter',
               '--${FilterCommand.inputOption}',
               inputFilePath,
               '--${FilterCommand.outputOption}',

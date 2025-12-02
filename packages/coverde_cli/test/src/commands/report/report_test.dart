@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-import 'package:coverde/src/commands/report/report.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/utils/operating_system.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:csslib/parser.dart' as css;
 import 'package:html/dom.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -87,20 +87,17 @@ class MockProcessManager extends Mock implements ProcessManager {}
 
 void main() {
   group('coverde report', () {
-    late CommandRunner<void> cmdRunner;
     late Logger logger;
     late MockProcessManager processManager;
-    late ReportCommand reportCmd;
+    late CoverdeCommandRunner cmdRunner;
 
     setUp(() {
-      cmdRunner = CommandRunner<void>('test', 'A tester command runner');
       logger = MockLogger();
       processManager = MockProcessManager();
-      reportCmd = ReportCommand(
+      cmdRunner = CoverdeCommandRunner(
         logger: logger,
         processManager: processManager,
       );
-      cmdRunner.addCommand(reportCmd);
     });
 
     tearDown(() {
@@ -122,7 +119,7 @@ void main() {
       expect(emptyTraceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            reportCmd.name,
+            'report',
             '--${ReportCommand.inputOption}',
             emptyTraceFilePath,
           ]);
@@ -157,7 +154,7 @@ Generate the coverage report from a trace file.
 Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 ''';
 
-        final result = reportCmd.description;
+        final result = ReportCommand().description;
 
         expect(result.trim(), expected.trim());
       },
@@ -196,7 +193,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
             expect(traceFileFile.existsSync(), isTrue);
 
             await cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.outputOption}',
@@ -315,7 +312,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFileFile.existsSync(), isTrue);
 
         await cmdRunner.run([
-          reportCmd.name,
+          'report',
           '--${ReportCommand.inputOption}',
           traceFilePath,
           '--${ReportCommand.outputOption}',
@@ -366,7 +363,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(absentFile.existsSync(), isFalse);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               absentFilePath,
             ]);
@@ -385,7 +382,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.mediumOption}',
@@ -415,7 +412,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.mediumOption}',
@@ -448,7 +445,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.mediumOption}',
@@ -481,7 +478,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.highOption}',
@@ -511,7 +508,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.highOption}',
@@ -544,7 +541,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.highOption}',
@@ -579,7 +576,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.mediumOption}',
@@ -615,7 +612,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(traceFile.existsSync(), isTrue);
 
         Future<void> action() => cmdRunner.run([
-              reportCmd.name,
+              'report',
               '--${ReportCommand.inputOption}',
               traceFilePath,
               '--${ReportCommand.mediumOption}',

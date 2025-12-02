@@ -1,6 +1,6 @@
 // cspell:words nbsp
 
-import 'package:coverde/src/assets/folder_report_row_template.html.asset.dart';
+import 'package:coverde/src/assets/assets.dart';
 import 'package:html/dom.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';

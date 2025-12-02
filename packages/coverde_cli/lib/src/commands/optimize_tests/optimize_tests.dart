@@ -5,7 +5,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
-import 'package:coverde/src/commands/coverde_command.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
@@ -17,9 +17,7 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class OptimizeTestsCommand extends CoverdeCommand {
   /// {@macro optimize_tests_cmd}
-  OptimizeTestsCommand({
-    super.logger,
-  }) {
+  OptimizeTestsCommand() {
     argParser
       ..addOption(
         includeOptionName,

@@ -1,4 +1,4 @@
-import 'package:coverde/src/entities/coverde.exception.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:io/io.dart';
 
 /// {@template cov_file_format_exception}

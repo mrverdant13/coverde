@@ -1,22 +1,18 @@
-import 'package:coverde/src/commands/check/min_coverage.exception.dart';
-import 'package:coverde/src/commands/coverde_command.dart';
-import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/entities/file_coverage_log_level.dart';
-import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/coverage.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
+
+export 'min_coverage.exception.dart';
 
 /// {@template check_cmd}
 /// A command to check the minimum coverage value from a trace file.
 /// {@endtemplate}
 class CheckCommand extends CoverdeCommand {
   /// {@macro check_cmd}
-  CheckCommand({
-    super.logger,
-  }) {
+  CheckCommand() {
     argParser
       ..addOption(
         inputOptionName,

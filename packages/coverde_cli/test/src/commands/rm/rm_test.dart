@@ -1,5 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/rm/rm.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
@@ -12,16 +12,13 @@ void main() {
   group(
     'coverde rm',
     () {
-      late CommandRunner<void> cmdRunner;
       late Logger logger;
-      late RmCommand rmCmd;
+      late CoverdeCommandRunner cmdRunner;
 
       setUp(
         () {
-          cmdRunner = CommandRunner<void>('test', 'A tester command runner');
           logger = MockLogger();
-          rmCmd = RmCommand(logger: logger);
-          cmdRunner.addCommand(rmCmd);
+          cmdRunner = CoverdeCommandRunner(logger: logger);
         },
       );
 
@@ -38,7 +35,7 @@ void main() {
 Remove a set of files and folders.
 ''';
 
-          final result = rmCmd.description;
+          final result = RmCommand().description;
 
           expect(result.trim(), expected.trim());
         },
@@ -54,7 +51,7 @@ Remove a set of files and folders.
           expect(file.existsSync(), isTrue);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             filePath,
           ]);
 
@@ -76,7 +73,7 @@ Remove a set of files and folders.
           expect(file.existsSync(), isTrue);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             '--no-${RmCommand.dryRunFlag}',
             filePath,
           ]);
@@ -95,7 +92,7 @@ Remove a set of files and folders.
           expect(file.existsSync(), isFalse);
 
           Future<void> action() => cmdRunner.run([
-                rmCmd.name,
+                'remove',
                 filePath,
                 '--no-${RmCommand.acceptAbsenceFlag}',
               ]);
@@ -116,7 +113,7 @@ Remove a set of files and folders.
           expect(file.existsSync(), isTrue);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             '--${RmCommand.dryRunFlag}',
             filePath,
           ]);
@@ -138,7 +135,7 @@ Remove a set of files and folders.
           expect(file.existsSync(), isFalse);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             filePath,
             '--${RmCommand.acceptAbsenceFlag}',
           ]);
@@ -160,7 +157,7 @@ Remove a set of files and folders.
           expect(dir.existsSync(), isTrue);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             dirPath,
           ]);
 
@@ -182,7 +179,7 @@ Remove a set of files and folders.
           expect(dir.existsSync(), isTrue);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             '--no-${RmCommand.dryRunFlag}',
             dirPath,
           ]);
@@ -201,7 +198,7 @@ Remove a set of files and folders.
           expect(dir.existsSync(), isFalse);
 
           Future<void> action() => cmdRunner.run([
-                rmCmd.name,
+                'remove',
                 dirPath,
                 '--no-${RmCommand.acceptAbsenceFlag}',
               ]);
@@ -221,7 +218,7 @@ Remove a set of files and folders.
           expect(dir.existsSync(), isFalse);
 
           await cmdRunner.run([
-            rmCmd.name,
+            'remove',
             dirPath,
             '--${RmCommand.acceptAbsenceFlag}',
           ]);
@@ -236,7 +233,9 @@ Remove a set of files and folders.
       test(
         '| fails when no elements to remove',
         () {
-          Future<void> action() => cmdRunner.run([rmCmd.name]);
+          Future<void> action() => cmdRunner.run([
+                'remove',
+              ]);
 
           expect(action, throwsA(isA<UsageException>()));
         },

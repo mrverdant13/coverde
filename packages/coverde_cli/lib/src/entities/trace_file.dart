@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:coverde/src/entities/cov_base.dart';
-import 'package:coverde/src/entities/cov_dir.dart';
-import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 

@@ -1,14 +1,10 @@
-import 'package:coverde/src/assets/report_style.css.asset.dart';
-import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
-import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
-import 'package:coverde/src/commands/coverde_command.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/entities/trace_file.dart';
-import 'package:coverde/src/utils/operating_system.dart';
+import 'package:coverde/src/assets/assets.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:process/process.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template report_cmd}
@@ -16,10 +12,7 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class ReportCommand extends CoverdeCommand {
   /// {@macro report_cmd}
-  ReportCommand({
-    super.logger,
-    ProcessManager? processManager,
-  }) : _processManager = processManager ?? const LocalProcessManager() {
+  ReportCommand() {
     argParser
       ..addOption(
         inputOption,
@@ -74,8 +67,6 @@ Must be a number between 0 and 100, and must be greater than the medium threshol
         defaultsTo: '90',
       );
   }
-
-  final ProcessManager _processManager;
 
   static const _inputHelpValue = 'TRACE_FILE';
   static const _outputHelpValue = 'REPORT_DIR';
@@ -241,7 +232,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
         );
         return;
       }
-      await _processManager.run(
+      await processManager.run(
         [launchCommand, reportIndexAbsPath],
         runInShell: true,
       );

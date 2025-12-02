@@ -1,6 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/check/check.dart';
-import 'package:coverde/src/commands/check/min_coverage.exception.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:io/ansi.dart';
@@ -17,16 +16,13 @@ void main() {
   group(
     'coverde check',
     () {
-      late CommandRunner<void> cmdRunner;
       late Logger logger;
-      late CheckCommand checkCmd;
+      late CoverdeCommandRunner cmdRunner;
 
       setUp(
         () {
-          cmdRunner = CommandRunner<void>('test', 'A tester command runner');
           logger = MockLogger();
-          checkCmd = CheckCommand(logger: logger);
-          cmdRunner.addCommand(checkCmd);
+          cmdRunner = CoverdeCommandRunner(logger: logger);
         },
       );
 
@@ -46,7 +42,7 @@ The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.
 ''';
 
-          final result = checkCmd.description;
+          final result = CheckCommand().description;
 
           expect(result.trim(), expected.trim());
         },
@@ -75,7 +71,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
           await IOOverrides.runZoned(
             () async {
               await cmdRunner.run([
-                checkCmd.name,
+                'check',
                 '--${CheckCommand.fileCoverageLogLevelOptionName}',
                 FileCoverageLogLevel.none.identifier,
                 '${50}',
@@ -108,7 +104,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
             'empty.lcov.info',
           ]);
           Future<void> action() => cmdRunner.run([
-                checkCmd.name,
+                'check',
                 '--${CheckCommand.inputOptionName}',
                 emptyTraceFilePath,
                 '${50}',
@@ -145,7 +141,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
           Future<void> action() => IOOverrides.runZoned(
                 () async {
                   await cmdRunner.run([
-                    checkCmd.name,
+                    'check',
                     '--${CheckCommand.fileCoverageLogLevelOptionName}',
                     FileCoverageLogLevel.none.identifier,
                     '${75}',
@@ -177,7 +173,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
           expect(absentFile.existsSync(), isFalse);
 
           Future<void> action() => cmdRunner.run([
-                checkCmd.name,
+                'check',
                 '--${CheckCommand.inputOptionName}',
                 absentFilePath,
                 '$minCoverage',
@@ -202,7 +198,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
           const minCoverage = 50;
 
           Future<void> action() => cmdRunner.run([
-                checkCmd.name,
+                'check',
                 '--${CheckCommand.inputOptionName}',
                 traceFilePath,
                 '--${CheckCommand.fileCoverageLogLevelOptionName}',
@@ -229,7 +225,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
       test(
         '| fails when no minimum expected coverage value',
         () async {
-          Future<void> action() => cmdRunner.run([checkCmd.name]);
+          Future<void> action() => cmdRunner.run(['check']);
 
           expect(action, throwsArgumentError);
         },
@@ -241,7 +237,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
           const invalidMinCoverage = 'str';
 
           Future<void> action() => cmdRunner.run([
-                checkCmd.name,
+                'check',
                 invalidMinCoverage,
               ]);
 

@@ -13,7 +13,7 @@ const gitUrl =
 
 Future<void> main(List<String> args) async {
   final runner = CoverdeCommandRunner();
-  final commands = runner.featureCommands.values.toSet();
+  final commands = runner.featureCommands.toSet();
 
   final parser = ArgParser(allowTrailingOptions: false)
     ..addOption(

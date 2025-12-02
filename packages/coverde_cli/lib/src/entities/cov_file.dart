@@ -1,10 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/assets/file_report_line_template.html.asset.dart';
-import 'package:coverde/src/assets/file_report_template.html.asset.dart';
-import 'package:coverde/src/assets/report_style.css.asset.dart';
-import 'package:coverde/src/entities/cov_base.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/entities/cov_line.dart';
+import 'package:coverde/src/assets/assets.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;

@@ -2,6 +2,6 @@ include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
   exclude:
-    - lib/src/assets/**
+    - lib/src/assets/*.asset.dart
     - lib/src/utils/cli.data.dart
     - test/**/fixtures/**

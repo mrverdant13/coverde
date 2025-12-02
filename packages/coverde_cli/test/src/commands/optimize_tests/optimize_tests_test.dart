@@ -4,7 +4,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
-import 'package:coverde/src/commands/optimize_tests/optimize_tests.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
@@ -33,15 +33,12 @@ Run "coverde help" to see global options.
 
 void main() {
   group('coverde optimize-tests', () {
-    late CommandRunner<void> cmdRunner;
     late Logger logger;
-    late Command<void> command;
+    late CoverdeCommandRunner cmdRunner;
 
     setUp(() {
-      cmdRunner = CommandRunner<void>('coverde', 'A tester command runner');
       logger = MockLogger();
-      command = OptimizeTestsCommand(logger: logger);
-      cmdRunner.addCommand(command);
+      cmdRunner = CoverdeCommandRunner(logger: logger);
     });
 
     tearDown(() {
@@ -49,7 +46,7 @@ void main() {
     });
 
     test('| usage', () {
-      final subject = command.usage;
+      final subject = cmdRunner.commands['optimize-tests']!.usage;
       expect(subject, _expectedUsage);
     });
 
@@ -66,7 +63,7 @@ void main() {
       IOOverrides.runZoned(
         () {
           Future<void> action() => cmdRunner.run([
-                command.name,
+                'optimize-tests',
               ]);
           expect(
             action,
@@ -111,7 +108,7 @@ void main() {
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
               '--${OptimizeTestsCommand.outputOptionName}=test/.optimized_test.dart',
             ]);
           },
@@ -152,7 +149,7 @@ void main() {
               projectTestsDirectory.deleteSync(recursive: true);
             }
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
             ]);
             final optimizedTestFile = File(
               p.join(projectPath, 'test', 'optimized_test.dart'),
@@ -212,7 +209,7 @@ void main() {}
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
             ]);
           },
           getCurrentDirectory: () => Directory(
@@ -304,7 +301,7 @@ void main() {}
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
@@ -420,7 +417,7 @@ void main() {
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
@@ -609,7 +606,7 @@ void main() {
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
               '--${OptimizeTestsCommand.excludeOptionName}="**_01_test.dart"',
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
@@ -758,7 +755,7 @@ void main() {
         await IOOverrides.runZoned(
           () async {
             await cmdRunner.run([
-              command.name,
+              'optimize-tests',
               '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
