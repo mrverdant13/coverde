@@ -1,5 +1,4 @@
-import 'package:coverde/src/entities/coverde.exception.dart';
-import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:io/io.dart';
 
 /// {@template min_cov_exception}

@@ -1,17 +1,14 @@
 import 'package:args/command_runner.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:process/process.dart';
 
 /// {@template coverde_cli.coverde_command}
 /// A base coverde command.
 /// {@endtemplate}
 abstract class CoverdeCommand extends Command<void> {
   /// {@macro coverde_cli.coverde_command}
-  CoverdeCommand({
-    Logger? logger,
-  }) : logger = logger ?? Logger();
-
-  /// Shared logger instance for commands.
-  final Logger logger;
+  CoverdeCommand();
 
   /// The parameters for the command.
   CoverdeCommandParams? get params => null;
@@ -29,6 +26,15 @@ abstract class CoverdeCommand extends Command<void> {
           ),
     };
   }
+
+  @override
+  CoverdeCommandRunner get runner => super.runner! as CoverdeCommandRunner;
+
+  /// The logger for the command.
+  Logger get logger => runner.logger;
+
+  /// The process manager for the command.
+  ProcessManager get processManager => runner.processManager;
 }
 
 /// {@template coverde_cli.coverde_command_params}

@@ -1,5 +1,5 @@
-import 'package:coverde/src/commands/coverde_command.dart';
-import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -9,9 +9,7 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class FilterCommand extends CoverdeCommand {
   /// {@macro filter_cmd}
-  FilterCommand({
-    super.logger,
-  }) {
+  FilterCommand() {
     argParser
       ..addOption(
         inputOption,

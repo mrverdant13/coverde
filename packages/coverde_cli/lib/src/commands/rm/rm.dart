@@ -1,4 +1,4 @@
-import 'package:coverde/src/commands/coverde_command.dart';
+import 'package:coverde/src/commands/commands.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -7,9 +7,7 @@ import 'package:universal_io/io.dart';
 /// {@endtemplate}
 class RmCommand extends CoverdeCommand {
   /// {@macro rm_cmd}
-  RmCommand({
-    super.logger,
-  }) {
+  RmCommand() {
     argParser
       ..addFlag(
         dryRunFlag,

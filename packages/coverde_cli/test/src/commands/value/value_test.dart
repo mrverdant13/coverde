@@ -1,7 +1,6 @@
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/value/value.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/entities/file_coverage_log_level.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
@@ -16,16 +15,13 @@ void main() {
   group(
     'coverde value',
     () {
-      late CommandRunner<void> cmdRunner;
       late Logger logger;
-      late ValueCommand valueCmd;
+      late CoverdeCommandRunner cmdRunner;
 
       setUp(
         () {
-          cmdRunner = CommandRunner<void>('test', 'A tester command runner');
           logger = MockLogger();
-          valueCmd = ValueCommand(logger: logger);
-          cmdRunner.addCommand(valueCmd);
+          cmdRunner = CoverdeCommandRunner(logger: logger);
         },
       );
 
@@ -44,7 +40,7 @@ Compute the coverage value (%) of an info file.
 Compute the coverage value of the LCOV_FILE info file.
 ''';
 
-          final result = valueCmd.description;
+          final result = ValueCommand().description;
 
           expect(result.trim(), expected.trim());
         },
@@ -64,7 +60,7 @@ Compute the coverage value of the LCOV_FILE info file.
           ]);
 
           Future<void> action() => cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.inputOption}',
                 emptyTraceFilePath,
               ]);
@@ -102,7 +98,7 @@ Compute the coverage value of the LCOV_FILE info file.
           await IOOverrides.runZoned(
             () async {
               await cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.fileCoverageLogLevelFlag}',
                 FileCoverageLogLevel.none.identifier,
               ]);
@@ -141,7 +137,7 @@ Compute the coverage value of the LCOV_FILE info file.
           await IOOverrides.runZoned(
             () async {
               await cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.fileCoverageLogLevelFlag}',
                 FileCoverageLogLevel.overview.identifier,
               ]);
@@ -186,7 +182,7 @@ Compute the coverage value of the LCOV_FILE info file.
           await IOOverrides.runZoned(
             () async {
               await cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.fileCoverageLogLevelFlag}',
                 FileCoverageLogLevel.lineNumbers.identifier,
               ]);
@@ -238,7 +234,7 @@ Compute the coverage value of the LCOV_FILE info file.
           await IOOverrides.runZoned(
             () async {
               await cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.fileCoverageLogLevelFlag}',
                 FileCoverageLogLevel.lineContent.identifier,
               ]);
@@ -365,7 +361,7 @@ Compute the coverage value of the LCOV_FILE info file.
           addTearDown(() => directory.deleteSync(recursive: true));
 
           Future<void> action() => cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.inputOption}',
                 traceFilePath,
                 '--${ValueCommand.fileCoverageLogLevelFlag}',
@@ -397,7 +393,7 @@ Compute the coverage value of the LCOV_FILE info file.
           expect(absentFile.existsSync(), isFalse);
 
           Future<void> action() => cmdRunner.run([
-                valueCmd.name,
+                'value',
                 '--${ValueCommand.inputOption}',
                 absentFilePath,
               ]);

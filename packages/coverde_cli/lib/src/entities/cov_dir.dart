@@ -1,10 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/assets/folder_report_template.html.asset.dart';
-import 'package:coverde/src/assets/report_style.css.asset.dart';
-import 'package:coverde/src/assets/sort_alpha.png.asset.dart';
-import 'package:coverde/src/assets/sort_numeric.png.asset.dart';
-import 'package:coverde/src/entities/cov_base.dart';
-import 'package:coverde/src/entities/cov_file.dart';
+import 'package:coverde/src/assets/assets.dart';
+import 'package:coverde/src/entities/entities.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;

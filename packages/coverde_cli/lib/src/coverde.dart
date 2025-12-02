@@ -1,11 +1,8 @@
-import 'package:coverde/src/commands/coverde_command_runner.dart';
-import 'package:coverde/src/utils/package_data.dart';
+import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
-
-export 'coverde_command.dart';
-export 'coverde_command_runner.dart';
 
 /// The command invocation function that provides coverage-related
 /// functionalities.
