@@ -9,6 +9,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:universal_io/universal_io.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 /// {@template coverde_cli.package_version_manager}
 /// A manager for checking and updating the version of a package.
@@ -18,21 +19,6 @@ class PackageVersionManager {
   const PackageVersionManager({
     required this.dependencies,
   });
-
-  /// A regex to match the entry of a package in the package lock file.
-  static final packageLockEntryPattern = RegExp(
-    r'''^ {4}dependency:\s*["']?direct main["']?$.*? {6}name:\s*(?<packageName>[a-zA-Z_][a-zA-Z0-9_]*)$.*? {6}url:\s*["']?https:\/\/pub\.dev["']?$.*? {4}source:\s*["']?hosted["']?$.*? {4}version:\s*["']?(?<packageVersion>[^"'\n]+)["']?$''',
-    multiLine: true,
-    dotAll: true,
-  );
-
-  /// A regex to match the version constraint of the Dart SDK in the package
-  /// lock file.
-  static final dartVersionConstraintRegex = RegExp(
-    r'''^sdks:(?:.|\n)*?dart:\s*["']?(?<versionConstraint>[^"'\n]+)["']?''',
-    multiLine: true,
-    dotAll: true,
-  );
 
   /// The internal dependencies.
   final PackageVersionManagerDependencies dependencies;
@@ -69,18 +55,25 @@ class PackageVersionManager {
     if (!lockFile.existsSync()) return null;
     if (!FileSystemEntity.isFileSync(globalLockFilePath)) return null;
     final lockFileContent = await lockFile.readAsString();
-    final packageLockEntryMatch =
-        packageLockEntryPattern.firstMatch(lockFileContent);
-    if (packageLockEntryMatch == null) return null;
-    final packageName = packageLockEntryMatch.namedGroup('packageName')!;
-    final rawPackageVersion =
-        packageLockEntryMatch.namedGroup('packageVersion')!;
+    final rawLockFileYaml = yaml.loadYaml(lockFileContent) as yaml.YamlMap;
+    final rawPackages = (rawLockFileYaml['packages'] as yaml.YamlMap?)
+        ?.values
+        .cast<yaml.YamlMap>();
+    final rawDirectMainHostedPackage = rawPackages?.firstWhereOrNull(
+      (rawPackage) =>
+          rawPackage['dependency'] == 'direct main' &&
+          rawPackage['source'] == 'hosted',
+    );
+    if (rawDirectMainHostedPackage == null) return null;
+    final rawPackageDescription =
+        rawDirectMainHostedPackage['description'] as yaml.YamlMap;
+    final packageName = rawPackageDescription['name'] as String;
+    final packageHostUrl = rawPackageDescription['url'] as String;
+    if (Uri.parse(packageHostUrl) != Uri.parse(baseUrl)) return null;
+    final rawPackageVersion = rawDirectMainHostedPackage['version'] as String;
     final packageVersion = Version.parse(rawPackageVersion);
-    final dartVersionConstraintMatch =
-        dartVersionConstraintRegex.firstMatch(lockFileContent);
-    if (dartVersionConstraintMatch == null) return null;
-    final rawDartVersionConstraint =
-        dartVersionConstraintMatch.namedGroup('versionConstraint');
+    final rawSdks = rawLockFileYaml['sdks'] as yaml.YamlMap?;
+    final rawDartVersionConstraint = rawSdks?['dart'] as String?;
     if (rawDartVersionConstraint == null) return null;
     final dartVersionConstraint =
         VersionConstraint.parse(rawDartVersionConstraint);

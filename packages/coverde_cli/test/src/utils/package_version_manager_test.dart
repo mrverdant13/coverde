@@ -40,7 +40,7 @@ void main() {
 
     group('getGlobalPackageInstallationInfo', () {
       setUp(() {
-        when(() => dependencies.baseUrl).thenReturn('');
+        when(() => dependencies.baseUrl).thenReturn('https://pub.dev');
       });
 
       test(
@@ -784,7 +784,7 @@ sdks:
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
         lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        when(() => dependencies.baseUrl).thenReturn('https://example.com');
+        when(() => dependencies.baseUrl).thenReturn('https://pub.dev');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
         httpClient = _MockHttpClient();
         when(() => dependencies.httpClient).thenReturn(httpClient);
