@@ -63,6 +63,7 @@ class PackageVersionManager {
   ///
   /// Returns `null` if the package is not globally installed via\
   /// `dart pub global activate`.
+  @visibleForTesting
   Future<PackageVersioningInfo?> getGlobalPackageInstallationInfo() async {
     final lockFile = File(globalLockFilePath);
     if (!lockFile.existsSync()) return null;
@@ -91,11 +92,14 @@ class PackageVersionManager {
   }
 
   /// Get the [PackageVersioningInfo]s of a remote package.
+  @visibleForTesting
   Future<Iterable<PackageVersioningInfo>> getRemotePackageVersioningInfos(
     String packageName,
   ) async {
     final packageInfoUri = Uri.parse('$baseUrl/api/packages/$packageName');
-    final packageInfoResponse = await httpClient.get(packageInfoUri);
+    final packageInfoResponse = await httpClient
+        .get(packageInfoUri)
+        .timeout(const Duration(seconds: 5));
     if (packageInfoResponse.statusCode != HttpStatus.ok) {
       throw Exception(
         'Failed to get remote package versioning info',
@@ -131,20 +135,20 @@ class PackageVersionManager {
   Future<void> promptUpdate() async {
     Timer? logsTimer;
 
-    Progress logPeriodically({required String message}) {
-      final progress = logger.progress(message);
-      logsTimer?.cancel();
-      logsTimer = Timer.periodic(
-        const Duration(milliseconds: 100),
-        (timer) {
-          if (!timer.isActive) return;
-          progress.update(message);
-        },
-      );
-      return progress;
-    }
-
     try {
+      Progress logPeriodically({required String message}) {
+        final progress = logger.progress(message);
+        logsTimer?.cancel();
+        logsTimer = Timer.periodic(
+          const Duration(milliseconds: 100),
+          (timer) {
+            if (!timer.isActive) return;
+            progress.update(message);
+          },
+        );
+        return progress;
+      }
+
       const globalPackageInstallationInfoRetrievalMessage =
           'Reviewing global package installation info...';
       final globalPackageInstallationInfoRetrievalProgress = logPeriodically(
@@ -267,6 +271,8 @@ $currentPackageVersion \u2192 $latestVersion''';
           '┗${'━' * boxLength}┛',
         );
       logger.write(messageBuffer.toString());
+    } on Object catch (e) {
+      logger.alert('Failed to prompt update: $e');
     } finally {
       logsTimer?.cancel();
     }

@@ -1832,6 +1832,22 @@ sdks:
           ),
         ).called(1);
       });
+
+      test(
+          'alerts the user '
+          'if there is an error while checking for updates', () async {
+        when(() => logger.progress(any())).thenThrow(Exception('Test error'));
+        await packageVersionManager.promptUpdate();
+        verify(
+          () => logger.alert(
+            any(
+              that: startsWith(
+                'Failed to prompt update:',
+              ),
+            ),
+          ),
+        ).called(1);
+      });
     });
   });
 }
