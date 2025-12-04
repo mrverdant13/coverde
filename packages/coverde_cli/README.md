@@ -105,8 +105,8 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 ### Examples
 
-![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
 ![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
+![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
 ![coverde-check-file-coverage-log-level-line-numbers-100.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
 
 
@@ -200,8 +200,8 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 ### Examples
 
-![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
 ![coverde-report-file.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-file.png)
+![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
 
 
 ## `coverde remove`
@@ -261,9 +261,9 @@ Compute the coverage value of the LCOV_FILE info file.
 
 ### Examples
 
+![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 ![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
 ![coverde-value-file-coverage-log-level-line-numbers.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
-![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 <!-- CLI FEATURES -->
 
 ---
