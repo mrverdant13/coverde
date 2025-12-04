@@ -30,6 +30,21 @@ Future<void> main(List<String> args) async {
   final readmeFile = File(readmePath);
   final initialReadmeContent = readmeFile.readAsStringSync();
 
+  const updateChecksToken = '<!-- UPDATE CHECKS -->';
+  final updateChecksRegex = RegExp(
+    '$updateChecksToken(.*?)$updateChecksToken',
+    dotAll: true,
+  );
+  final updateChecks =
+      updateChecksRegex.firstMatch(initialReadmeContent)?.group(1)?.trim();
+  if (updateChecks == null) {
+    throw StateError('Update checks section not found in root readme');
+  }
+  final updateCheckOptionDetails = runner
+          .argParser.options[CoverdeCommandRunner.updateCheckOptionName]
+          ?.asMarkdownMultiline(isBullet: false) ??
+      '';
+
   const featuresToken = '<!-- CLI FEATURES -->';
   final featuresRegex = RegExp(
     '$featuresToken(.*?)$featuresToken',
@@ -89,17 +104,27 @@ Future<void> main(List<String> args) async {
       }),
   ]);
 
-  final readmeContentWithFeatures = initialReadmeContent.replaceAll(
-    featuresRegex,
-    '''
+  final readmeContentWithFeatures = initialReadmeContent
+      .replaceAll(
+        updateChecksRegex,
+        '''
+$updateChecksToken
+$updateCheckOptionDetails
+$updateChecksToken
+'''
+            .trim(),
+      )
+      .replaceAll(
+        featuresRegex,
+        '''
 $featuresToken
 ${features.map((feature) => feature.overview).join('\n').trim()}
 
 ${features.map((feature) => feature.details).join('\n' * 2).trim()}
 $featuresToken
 '''
-        .trim(),
-  );
+            .trim(),
+      );
   readmeFile.writeAsStringSync(readmeContentWithFeatures);
 }
 
@@ -158,7 +183,7 @@ extension on Iterable<Option> {
         ..writeln();
       for (final option in options) {
         buf
-          ..writeln(option.asMarkdownMultiline)
+          ..writeln(option.asMarkdownMultiline(isBullet: true))
           ..writeln();
       }
     }
@@ -179,9 +204,15 @@ extension on CoverdeCommandParams {
 }
 
 extension on Option {
-  String get asMarkdownMultiline {
-    final buf = StringBuffer()
-      ..writeln('- `--$name`')
+  String asMarkdownMultiline({
+    required bool isBullet,
+  }) {
+    final buf = StringBuffer();
+    if (isBullet) {
+      buf.write('- ');
+    }
+    buf
+      ..writeln('`--$name`')
       ..writeln();
 
     final defaultValueString = switch (defaultsTo) {
@@ -215,7 +246,7 @@ extension on Option {
           '**Allowed values:**',
           allowedList.join('\n').indent(2),
         ].join('\n'),
-    ].nonNulls.join('\\\n').indent(2);
+    ].nonNulls.join('\\\n').indent(isBullet ? 2 : 0);
 
     if (details.isNotEmpty) {
       buf.writeln(details);
@@ -226,8 +257,11 @@ extension on Option {
 
 extension on String {
   String indent(int level) {
+    if (level == 0) return this;
     final lines = LineSplitter.split(this);
-    final indentedLines = lines.map((line) => ' ' * level + line);
+    final indentedLines = lines.map(
+      (line) => line.isEmpty ? line : ' ' * level + line,
+    );
     return indentedLines.join('\n');
   }
 

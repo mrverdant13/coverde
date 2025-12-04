@@ -1,6 +1,4 @@
-import 'package:coverde/src/commands/commands.dart';
-import 'package:coverde/src/entities/entities.dart';
-import 'package:coverde/src/utils/utils.dart';
+import 'package:coverde/coverde.dart';
 import 'package:http/http.dart' as http;
 import 'package:mason_logger/mason_logger.dart';
 
@@ -14,7 +12,6 @@ Future<void> coverde({
   required http.Client httpClient,
   required String rawDartVersion,
 }) async {
-  await CoverdeCommandRunner(logger: logger).run(args);
   final packageVersionManagerDependencies = PackageVersionManagerDependencies(
     logger: logger,
     httpClient: httpClient,
@@ -22,18 +19,10 @@ Future<void> coverde({
     baseUrl: pubApiBaseUrl,
     rawDartVersion: rawDartVersion,
   );
-  final packageVersionManager = PackageVersionManager(
-    dependencies: packageVersionManagerDependencies,
-  );
-  await _checkUpdates(packageVersionManager);
-}
-
-Future<void> _checkUpdates(
-  PackageVersionManager packageVersionManager,
-) async {
-  try {
-    await packageVersionManager.promptUpdate();
-  } on Object catch (_) {
-    // Swallow the error.
-  }
+  await CoverdeCommandRunner(
+    packageVersionManager: PackageVersionManager(
+      dependencies: packageVersionManagerDependencies,
+    ),
+    logger: logger,
+  ).run(args);
 }

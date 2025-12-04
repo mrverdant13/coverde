@@ -105,8 +105,8 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 ### Examples
 
-![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
 ![coverde-check-50.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-50.png)
+![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
 ![coverde-check-file-coverage-log-level-line-numbers-100.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
 
 
@@ -150,7 +150,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 - `--filters`
 
   Set of comma-separated path patterns of the files to be ignored.
-  
+
   Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
   **Default value:** _None_
 
@@ -178,14 +178,14 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 - `--medium`
 
   Medium threshold.
-  
+
   Must be a number between 0 and 100, and must be less than the high threshold.\
   **Default value:** `75`
 
 - `--high`
 
   High threshold.
-  
+
   Must be a number between 0 and 100, and must be greater than the medium threshold.\
   **Default value:** `90`
 
@@ -200,8 +200,8 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 ### Examples
 
-![coverde-report-file.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-file.png)
 ![coverde-report-dir.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-dir.png)
+![coverde-report-file.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/browser/coverde-report-file.png)
 
 
 ## `coverde remove`
@@ -261,10 +261,29 @@ Compute the coverage value of the LCOV_FILE info file.
 
 ### Examples
 
-![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 ![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
 ![coverde-value-file-coverage-log-level-line-numbers.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
+![coverde-value.png](https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/terminal/coverde-value.png)
 <!-- CLI FEATURES -->
+
+---
+
+# Update checks
+
+If `coverde` is installed via `dart pub global activate --source=hosted`, i.e. as a global package from the Pub.dev, it can prompt the user to update the package if a new compatible version is available.
+
+This process verifies that the new release has a higher SemVer version than the current one, and that its environment constraints are met by the current Dart SDK.
+
+<!-- UPDATE CHECKS -->
+`--update-check`
+
+The update check mode to use.\
+**Default value:** `enabled`\
+**Allowed values:**
+  - `disabled`: Disable the update check.
+  - `enabled`: Enable the update check with silent output, only prompting the user if an update is available, and ignoring any warnings and errors.
+  - `enabled-verbose`: Enable the update check with verbose output.
+<!-- UPDATE CHECKS -->
 
 ---
 

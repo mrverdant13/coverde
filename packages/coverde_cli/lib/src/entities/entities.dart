@@ -9,3 +9,4 @@ export 'file_line_coverage_details.dart';
 export 'package_version_manager_dependencies.dart';
 export 'package_versioning_info.dart';
 export 'trace_file.dart';
+export 'update_check_mode.dart';

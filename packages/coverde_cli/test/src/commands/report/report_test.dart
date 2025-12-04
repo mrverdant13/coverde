@@ -14,7 +14,28 @@ import 'package:process/process.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
-import '../../../utils/mocks.dart';
+class _MockProcessManager extends Mock implements ProcessManager {}
+
+final class _MockLogger extends Mock implements Logger {}
+
+final class _MockPackageVersionManager extends Mock
+    implements PackageVersionManager {}
+
+final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
+  _FakeCoverdeCommandRunner({
+    required super.logger,
+    required super.packageVersionManager,
+    required super.processManager,
+  });
+
+  @override
+  Future<void> run(Iterable<String> args) {
+    return super.run([
+      ...args,
+      '''--${CoverdeCommandRunner.updateCheckOptionName}=${UpdateCheckMode.disabled.identifier}''',
+    ]);
+  }
+}
 
 enum _Project {
   fakeProject1('fake_project_1'),
@@ -83,20 +104,21 @@ extension on String {
       ]);
 }
 
-class MockProcessManager extends Mock implements ProcessManager {}
-
 void main() {
   group('coverde report', () {
     late Logger logger;
-    late MockProcessManager processManager;
+    late ProcessManager processManager;
+    late PackageVersionManager packageVersionManager;
     late CoverdeCommandRunner cmdRunner;
 
     setUp(() {
-      logger = MockLogger();
-      processManager = MockProcessManager();
-      cmdRunner = CoverdeCommandRunner(
+      logger = _MockLogger();
+      processManager = _MockProcessManager();
+      packageVersionManager = _MockPackageVersionManager();
+      cmdRunner = _FakeCoverdeCommandRunner(
         logger: logger,
         processManager: processManager,
+        packageVersionManager: packageVersionManager,
       );
     });
 

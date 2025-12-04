@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -128,69 +129,146 @@ class PackageVersionManager {
 
   /// Prompts the user to update the package, if possible.
   Future<void> promptUpdate() async {
-    final currentPackageInstallationInfo =
-        await getGlobalPackageInstallationInfo();
-    if (currentPackageInstallationInfo == null) return;
-    final currentPackageVersion = currentPackageInstallationInfo.packageVersion;
-    final packageName = currentPackageInstallationInfo.packageName;
+    Timer? logsTimer;
 
-    final remotePackageVersioningInfos =
-        await getRemotePackageVersioningInfos(packageName);
-
-    final dartVersion = Version.parse(
-      rawDartVersion.split(' ').first,
-    );
-    final latestCompatiblePackageVersioningInfo =
-        remotePackageVersioningInfos.takeWhile(
-      (remotePackageVersioningInfo) {
-        final remotePackageVersion = remotePackageVersioningInfo.packageVersion;
-        if (!remotePackageVersion.isPreRelease &&
-            currentPackageVersion.isPreRelease) {
-          return false;
-        }
-        return remotePackageVersion > currentPackageVersion;
-      },
-    ).firstWhereOrNull(
-      (remotePackageVersioningInfo) {
-        final isDartVersionConstraintAllowed = remotePackageVersioningInfo
-            .dartVersionConstraint
-            .allows(dartVersion);
-        return isDartVersionConstraintAllowed;
-      },
-    );
-    if (latestCompatiblePackageVersioningInfo == null) return;
-    final latestVersion = latestCompatiblePackageVersioningInfo.packageVersion;
-    final updateMessage = 'A new version of `$packageName` is available!';
-    final styledUpdateMessage = lightYellow.wrap(updateMessage);
-    final styledVersionsMessage = '''
-${lightGray.wrap(currentPackageVersion.toString())} \u2192 ${lightGreen.wrap(latestVersion.toString())}''';
-    final styledCommand = wrapWith(
-      'dart pub global activate $packageName $latestVersion',
-      [lightCyan, styleBold],
-    );
-    final styledCommandMessage = 'Run $styledCommand to update.';
-
-    // Calculate padding for version display to center it in the box
-    final boxLength = updateMessage.length + 4;
-
-    final totalVersionsMessagePaddingLength = boxLength -
-        latestVersion.toString().length -
-        currentPackageVersion.toString().length -
-        3;
-    final versionsMessagePadding =
-        ' ' * (totalVersionsMessagePaddingLength ~/ 2);
-    logger
-      ..info('')
-      ..info(
-        '''
-┏${'━' * boxLength}┓
-┃${' ' * boxLength}┃
-┃  $styledUpdateMessage  ┃
-┃$versionsMessagePadding$styledVersionsMessage$versionsMessagePadding${totalVersionsMessagePaddingLength.isOdd ? ' ' : ''}┃
-┃  $styledCommandMessage  ┃
-┃${' ' * boxLength}┃
-┗${'━' * boxLength}┛
-''',
+    Progress logPeriodically({required String message}) {
+      final progress = logger.progress(message);
+      logsTimer?.cancel();
+      logsTimer = Timer.periodic(
+        const Duration(milliseconds: 100),
+        (timer) {
+          if (!timer.isActive) return;
+          progress.update(message);
+        },
       );
+      return progress;
+    }
+
+    try {
+      const globalPackageInstallationInfoRetrievalMessage =
+          'Reviewing global package installation info...';
+      final globalPackageInstallationInfoRetrievalProgress = logPeriodically(
+        message: globalPackageInstallationInfoRetrievalMessage,
+      );
+      final currentPackageInstallationInfo =
+          await getGlobalPackageInstallationInfo();
+      globalPackageInstallationInfoRetrievalProgress.cancel();
+      if (currentPackageInstallationInfo == null) {
+        logger.warn('No global package installation info found.');
+        return;
+      }
+      final currentPackageVersion =
+          currentPackageInstallationInfo.packageVersion;
+      final packageName = currentPackageInstallationInfo.packageName;
+      logger.detail(
+        'Global package installation info found:     '
+        '$packageName @ $currentPackageVersion',
+      );
+
+      const remotePackageVersioningInfosRetrievalMessage =
+          'Reviewing remote package versioning infos...';
+      final remotePackageVersioningInfosRetrievalProgress = logPeriodically(
+        message: remotePackageVersioningInfosRetrievalMessage,
+      );
+      final remotePackageVersioningInfos =
+          await getRemotePackageVersioningInfos(packageName);
+      remotePackageVersioningInfosRetrievalProgress.cancel();
+
+      final dartVersion = Version.parse(
+        rawDartVersion.split(' ').first,
+      );
+      final latestCompatiblePackageVersioningInfo =
+          remotePackageVersioningInfos.takeWhile(
+        (remotePackageVersioningInfo) {
+          final remotePackageVersion =
+              remotePackageVersioningInfo.packageVersion;
+          if (!remotePackageVersion.isPreRelease &&
+              currentPackageVersion.isPreRelease) {
+            return false;
+          }
+          return remotePackageVersion > currentPackageVersion;
+        },
+      ).firstWhereOrNull(
+        (remotePackageVersioningInfo) {
+          final isDartVersionConstraintAllowed = remotePackageVersioningInfo
+              .dartVersionConstraint
+              .allows(dartVersion);
+          return isDartVersionConstraintAllowed;
+        },
+      );
+      if (latestCompatiblePackageVersioningInfo == null) {
+        logger.warn(
+          'No newer compatible version of `$packageName` is available.',
+        );
+        return;
+      }
+      final latestVersion =
+          latestCompatiblePackageVersioningInfo.packageVersion;
+      logger
+        ..detail(
+          'A newer compatible version of is available: '
+          '$packageName @ $latestVersion',
+        )
+        ..detail(
+          '''Dart SDK constraint: ${latestCompatiblePackageVersioningInfo.dartVersionConstraint}''',
+        );
+      final unstyledUpdateMessage =
+          'A new version of `$packageName` is available!';
+      final styledUpdateMessage = lightYellow.wrap(unstyledUpdateMessage)!;
+      final styledVersionsMessage = '''
+${lightGray.wrap(currentPackageVersion.toString())} \u2192 ${lightGreen.wrap(latestVersion.toString())}''';
+      final unstyledVersionsMessage = '''
+$currentPackageVersion \u2192 $latestVersion''';
+
+      final unstyledCommand =
+          'dart pub global activate $packageName $latestVersion';
+      final styledCommand = wrapWith(
+        unstyledCommand,
+        [lightCyan, styleBold],
+      )!;
+      String buildCommandMessage(String command) => 'Run $command to update.';
+      final styledCommandMessage = buildCommandMessage(styledCommand);
+      final unstyledCommandMessage = buildCommandMessage(unstyledCommand);
+
+      // Calculate padding for version display to center it in the box
+      final boxLength = [
+            unstyledUpdateMessage.length,
+            unstyledCommandMessage.length,
+          ].max +
+          4;
+
+      String addPadding(String unstyled, String styled) {
+        final totalPadding = boxLength - unstyled.length;
+        final leftPadding = totalPadding ~/ 2;
+        final rightPadding = totalPadding - leftPadding;
+        return ' ' * leftPadding + styled + ' ' * rightPadding;
+      }
+
+      final messageBuffer = StringBuffer()
+        ..writeln(
+          '┏${'━' * boxLength}┓',
+        )
+        ..writeln(
+          '┃${' ' * boxLength}┃',
+        )
+        ..writeln(
+          '┃${addPadding(unstyledUpdateMessage, styledUpdateMessage)}┃',
+        )
+        ..writeln(
+          '┃${addPadding(unstyledVersionsMessage, styledVersionsMessage)}┃',
+        )
+        ..writeln(
+          '┃${addPadding(unstyledCommandMessage, styledCommandMessage)}┃',
+        )
+        ..writeln(
+          '┃${' ' * boxLength}┃',
+        )
+        ..writeln(
+          '┗${'━' * boxLength}┛',
+        );
+      logger.write(messageBuffer.toString());
+    } finally {
+      logsTimer?.cancel();
+    }
   }
 }
