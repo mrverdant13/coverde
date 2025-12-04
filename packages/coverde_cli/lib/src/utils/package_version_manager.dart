@@ -210,7 +210,7 @@ class PackageVersionManager {
           latestCompatiblePackageVersioningInfo.packageVersion;
       logger
         ..detail(
-          'A newer compatible version of is available: '
+          'A newer compatible version is available: '
           '$packageName @ $latestVersion',
         )
         ..detail(
