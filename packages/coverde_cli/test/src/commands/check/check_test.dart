@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
-import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:coverde/src/entities/file_coverage_log_level.dart';
+import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
@@ -10,240 +10,261 @@ import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
 import '../../../helpers/test_files.dart';
-import '../../../utils/mocks.dart';
+
+final class _MockLogger extends Mock implements Logger {}
+
+final class _MockPackageVersionManager extends Mock
+    implements PackageVersionManager {}
+
+final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
+  _FakeCoverdeCommandRunner({
+    required super.logger,
+    required super.packageVersionManager,
+  });
+
+  @override
+  Future<void> run(Iterable<String> args) {
+    return super.run([
+      ...args,
+      '''--${CoverdeCommandRunner.updateCheckOptionName}=${UpdateCheckMode.disabled.identifier}''',
+    ]);
+  }
+}
 
 void main() {
-  group(
-    'coverde check',
-    () {
-      late Logger logger;
-      late CoverdeCommandRunner cmdRunner;
+  group('coverde check', () {
+    late Logger logger;
+    late PackageVersionManager packageVersionManager;
+    late CoverdeCommandRunner cmdRunner;
 
-      setUp(
-        () {
-          logger = MockLogger();
-          cmdRunner = CoverdeCommandRunner(logger: logger);
-        },
-      );
+    setUp(
+      () {
+        logger = _MockLogger();
+        packageVersionManager = _MockPackageVersionManager();
+        cmdRunner = _FakeCoverdeCommandRunner(
+          logger: logger,
+          packageVersionManager: packageVersionManager,
+        );
+      },
+    );
 
-      tearDown(
-        () {
-          verifyNoMoreInteractions(logger);
-        },
-      );
+    tearDown(
+      () {
+        verifyNoMoreInteractions(logger);
+      },
+    );
 
-      test(
-        '| description',
-        () {
-          const expected = '''
+    test(
+      '| description',
+      () {
+        const expected = '''
 Check the coverage value (%) computed from a trace file.
 
 The unique argument should be an integer between 0 and 100.
 This parameter indicates the minimum value for the coverage to be accepted.
 ''';
 
-          final result = CheckCommand().description;
+        final result = CheckCommand().description;
 
-          expect(result.trim(), expected.trim());
-        },
-      );
+        expect(result.trim(), expected.trim());
+      },
+    );
 
-      test(
-        '''--${CheckCommand.fileCoverageLogLevelOptionName}=${FileCoverageLogLevel.none.identifier} '''
-        '''<min_coverage> '''
-        '''| meets the minimum coverage''',
-        () async {
-          final currentDirectory = Directory.current;
-          final projectPath = p.joinAll([
-            currentDirectory.path,
-            'test',
-            'src',
-            'commands',
-            'check',
-            'fixtures',
-            'partially_covered_proj',
-          ]);
-          final projectDir = Directory(projectPath);
+    test(
+      '''--${CheckCommand.fileCoverageLogLevelOptionName}=${FileCoverageLogLevel.none.identifier} '''
+      '''<min_coverage> '''
+      '''| meets the minimum coverage''',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          currentDirectory.path,
+          'test',
+          'src',
+          'commands',
+          'check',
+          'fixtures',
+          'partially_covered_proj',
+        ]);
+        final projectDir = Directory(projectPath);
 
-          generateTestFromTemplate(projectDir);
-          addTearDown(() => deleteTestFiles(projectDir));
+        generateTestFromTemplate(projectDir);
+        addTearDown(() => deleteTestFiles(projectDir));
 
-          await IOOverrides.runZoned(
-            () async {
-              await cmdRunner.run([
-                'check',
-                '--${CheckCommand.fileCoverageLogLevelOptionName}',
-                FileCoverageLogLevel.none.identifier,
-                '${50}',
-              ]);
-            },
-            getCurrentDirectory: () => Directory(projectPath),
-          );
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'check',
+              '--${CheckCommand.fileCoverageLogLevelOptionName}',
+              FileCoverageLogLevel.none.identifier,
+              '${50}',
+            ]);
+          },
+          getCurrentDirectory: () => Directory(projectPath),
+        );
 
-          final messages = [
-            wrapWith('GLOBAL:', [blue, styleBold]),
-            wrapWith('56.25% - 9/16', [blue, styleBold]),
-          ];
-          verifyInOrder([
-            for (final message in messages) () => logger.info(message),
-          ]);
-        },
-      );
+        final messages = [
+          wrapWith('GLOBAL:', [blue, styleBold]),
+          wrapWith('56.25% - 9/16', [blue, styleBold]),
+        ];
+        verifyInOrder([
+          for (final message in messages) () => logger.info(message),
+        ]);
+      },
+    );
 
-      test(
-        '''--${CheckCommand.inputOptionName}=<empty_trace_file> '''
-        '''<min_coverage> '''
-        '''| fails when trace file is empty''',
-        () async {
-          final emptyTraceFilePath = p.joinAll([
-            'test',
-            'src',
-            'commands',
-            'check',
-            'fixtures',
-            'empty.lcov.info',
-          ]);
-          Future<void> action() => cmdRunner.run([
-                'check',
-                '--${CheckCommand.inputOptionName}',
-                emptyTraceFilePath,
-                '${50}',
-              ]);
-          expect(
-            action,
-            throwsA(
-              isA<CovFileFormatException>().having(
-                (e) => e.message,
-                'message',
-                'No coverage data found in the trace file.',
+    test(
+      '''--${CheckCommand.inputOptionName}=<empty_trace_file> '''
+      '''<min_coverage> '''
+      '''| fails when trace file is empty''',
+      () async {
+        final emptyTraceFilePath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'check',
+          'fixtures',
+          'empty.lcov.info',
+        ]);
+        Future<void> action() => cmdRunner.run([
+              'check',
+              '--${CheckCommand.inputOptionName}',
+              emptyTraceFilePath,
+              '${50}',
+            ]);
+        expect(
+          action,
+          throwsA(
+            isA<CovFileFormatException>().having(
+              (e) => e.message,
+              'message',
+              'No coverage data found in the trace file.',
+            ),
+          ),
+        );
+      },
+    );
+
+    test(
+      '''--${CheckCommand.fileCoverageLogLevelOptionName}=${FileCoverageLogLevel.none.identifier} '''
+      '<min_coverage> '
+      '| fails when coverage is below minimum',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          currentDirectory.path,
+          'test',
+          'src',
+          'commands',
+          'check',
+          'fixtures',
+          'partially_covered_proj',
+        ]);
+
+        Future<void> action() => IOOverrides.runZoned(
+              () async {
+                await cmdRunner.run([
+                  'check',
+                  '--${CheckCommand.fileCoverageLogLevelOptionName}',
+                  FileCoverageLogLevel.none.identifier,
+                  '${75}',
+                ]);
+              },
+              getCurrentDirectory: () => Directory(projectPath),
+            );
+
+        await expectLater(action, throwsA(isA<MinCoverageException>()));
+        final messages = [
+          wrapWith('GLOBAL:', [blue, styleBold]),
+          wrapWith('56.25% - 9/16', [blue, styleBold]),
+        ];
+        verifyInOrder([
+          for (final message in messages) () => logger.info(message),
+        ]);
+      },
+    );
+
+    test(
+      '--${CheckCommand.inputOptionName}=<absent_file> '
+      '<min_coverage> '
+      '| fails when trace file does not exist',
+      () async {
+        final directory = Directory.systemTemp.createTempSync();
+        final absentFilePath = p.join(directory.path, 'absent.lcov.info');
+        final absentFile = File(absentFilePath);
+        const minCoverage = 50;
+        expect(absentFile.existsSync(), isFalse);
+
+        Future<void> action() => cmdRunner.run([
+              'check',
+              '--${CheckCommand.inputOptionName}',
+              absentFilePath,
+              '$minCoverage',
+            ]);
+
+        expect(action, throwsA(isA<UsageException>()));
+        directory.deleteSync(recursive: true);
+      },
+    );
+
+    test(
+      '--${CheckCommand.fileCoverageLogLevelOptionName}=<invalid> '
+      '<min_coverage> '
+      '| fails when --${CheckCommand.fileCoverageLogLevelOptionName} '
+      'is invalid',
+      () async {
+        const invalidLogLevel = 'invalid-log-level';
+        final directory = Directory.systemTemp.createTempSync();
+        final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+        File(traceFilePath).createSync(recursive: true);
+        addTearDown(() => directory.deleteSync(recursive: true));
+        const minCoverage = 50;
+
+        Future<void> action() => cmdRunner.run([
+              'check',
+              '--${CheckCommand.inputOptionName}',
+              traceFilePath,
+              '--${CheckCommand.fileCoverageLogLevelOptionName}',
+              invalidLogLevel,
+              '$minCoverage',
+            ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<UsageException>().having(
+              (e) => e.message,
+              'message',
+              contains(
+                '"invalid-log-level" is not an allowed value '
+                'for option "--file-coverage-log-level"',
               ),
             ),
-          );
-        },
-      );
+          ),
+        );
+      },
+    );
 
-      test(
-        '''--${CheckCommand.fileCoverageLogLevelOptionName}=${FileCoverageLogLevel.none.identifier} '''
-        '<min_coverage> '
-        '| fails when coverage is below minimum',
-        () async {
-          final currentDirectory = Directory.current;
-          final projectPath = p.joinAll([
-            currentDirectory.path,
-            'test',
-            'src',
-            'commands',
-            'check',
-            'fixtures',
-            'partially_covered_proj',
-          ]);
+    test(
+      '| fails when no minimum expected coverage value',
+      () async {
+        Future<void> action() => cmdRunner.run(['check']);
 
-          Future<void> action() => IOOverrides.runZoned(
-                () async {
-                  await cmdRunner.run([
-                    'check',
-                    '--${CheckCommand.fileCoverageLogLevelOptionName}',
-                    FileCoverageLogLevel.none.identifier,
-                    '${75}',
-                  ]);
-                },
-                getCurrentDirectory: () => Directory(projectPath),
-              );
+        expect(action, throwsArgumentError);
+      },
+    );
 
-          await expectLater(action, throwsA(isA<MinCoverageException>()));
-          final messages = [
-            wrapWith('GLOBAL:', [blue, styleBold]),
-            wrapWith('56.25% - 9/16', [blue, styleBold]),
-          ];
-          verifyInOrder([
-            for (final message in messages) () => logger.info(message),
-          ]);
-        },
-      );
+    test(
+      '<non-numeric> | fails when minimum coverage value is non-numeric',
+      () async {
+        const invalidMinCoverage = 'str';
 
-      test(
-        '--${CheckCommand.inputOptionName}=<absent_file> '
-        '<min_coverage> '
-        '| fails when trace file does not exist',
-        () async {
-          final directory = Directory.systemTemp.createTempSync();
-          final absentFilePath = p.join(directory.path, 'absent.lcov.info');
-          final absentFile = File(absentFilePath);
-          const minCoverage = 50;
-          expect(absentFile.existsSync(), isFalse);
+        Future<void> action() => cmdRunner.run([
+              'check',
+              invalidMinCoverage,
+            ]);
 
-          Future<void> action() => cmdRunner.run([
-                'check',
-                '--${CheckCommand.inputOptionName}',
-                absentFilePath,
-                '$minCoverage',
-              ]);
-
-          expect(action, throwsA(isA<UsageException>()));
-          directory.deleteSync(recursive: true);
-        },
-      );
-
-      test(
-        '--${CheckCommand.fileCoverageLogLevelOptionName}=<invalid> '
-        '<min_coverage> '
-        '| fails when --${CheckCommand.fileCoverageLogLevelOptionName} '
-        'is invalid',
-        () async {
-          const invalidLogLevel = 'invalid-log-level';
-          final directory = Directory.systemTemp.createTempSync();
-          final traceFilePath = p.join(directory.path, 'trace.lcov.info');
-          File(traceFilePath).createSync(recursive: true);
-          addTearDown(() => directory.deleteSync(recursive: true));
-          const minCoverage = 50;
-
-          Future<void> action() => cmdRunner.run([
-                'check',
-                '--${CheckCommand.inputOptionName}',
-                traceFilePath,
-                '--${CheckCommand.fileCoverageLogLevelOptionName}',
-                invalidLogLevel,
-                '$minCoverage',
-              ]);
-
-          expect(
-            action,
-            throwsA(
-              isA<UsageException>().having(
-                (e) => e.message,
-                'message',
-                contains(
-                  '"invalid-log-level" is not an allowed value '
-                  'for option "--file-coverage-log-level"',
-                ),
-              ),
-            ),
-          );
-        },
-      );
-
-      test(
-        '| fails when no minimum expected coverage value',
-        () async {
-          Future<void> action() => cmdRunner.run(['check']);
-
-          expect(action, throwsArgumentError);
-        },
-      );
-
-      test(
-        '<non-numeric> | fails when minimum coverage value is non-numeric',
-        () async {
-          const invalidMinCoverage = 'str';
-
-          Future<void> action() => cmdRunner.run([
-                'check',
-                invalidMinCoverage,
-              ]);
-
-          expect(action, throwsArgumentError);
-        },
-      );
-    },
-  );
+        expect(action, throwsArgumentError);
+      },
+    );
+  });
 }

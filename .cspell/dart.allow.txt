@@ -1,4 +1,5 @@
 # Allowed words for Dart files
+ansi
 canonicalize
 csslib
 endtemplate

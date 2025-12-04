@@ -5,6 +5,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/utils.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
@@ -12,7 +14,26 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../../../helpers/test_files.dart';
-import '../../../utils/mocks.dart';
+
+final class _MockLogger extends Mock implements Logger {}
+
+final class _MockPackageVersionManager extends Mock
+    implements PackageVersionManager {}
+
+final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
+  _FakeCoverdeCommandRunner({
+    required super.logger,
+    required super.packageVersionManager,
+  });
+
+  @override
+  Future<void> run(Iterable<String> args) {
+    return super.run([
+      ...args,
+      '''--${CoverdeCommandRunner.updateCheckOptionName}=${UpdateCheckMode.disabled.identifier}''',
+    ]);
+  }
+}
 
 final String _expectedUsage = '''
 Optimize tests by gathering them.
@@ -34,11 +55,16 @@ Run "coverde help" to see global options.
 void main() {
   group('coverde optimize-tests', () {
     late Logger logger;
+    late PackageVersionManager packageVersionManager;
     late CoverdeCommandRunner cmdRunner;
 
     setUp(() {
-      logger = MockLogger();
-      cmdRunner = CoverdeCommandRunner(logger: logger);
+      logger = _MockLogger();
+      packageVersionManager = _MockPackageVersionManager();
+      cmdRunner = _FakeCoverdeCommandRunner(
+        logger: logger,
+        packageVersionManager: packageVersionManager,
+      );
     });
 
     tearDown(() {
