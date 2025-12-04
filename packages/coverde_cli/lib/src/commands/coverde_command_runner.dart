@@ -71,14 +71,18 @@ class CoverdeCommandRunner extends CommandRunner<void> {
       (mode) =>
           mode.identifier == topLevelResults.option(updateCheckOptionName),
     );
-    switch (updateCheckMode) {
-      case UpdateCheckMode.disabled:
-        return;
-      case UpdateCheckMode.enabled:
-        logger.level = Level.quiet;
-      case UpdateCheckMode.enabledVerbose:
-        logger.level = Level.verbose;
+    final temporalLoggerLevel = switch (updateCheckMode) {
+      UpdateCheckMode.disabled => null,
+      UpdateCheckMode.enabled => Level.quiet,
+      UpdateCheckMode.enabledVerbose => Level.verbose,
+    };
+    if (temporalLoggerLevel == null) return;
+    final originalLoggerLevel = logger.level;
+    try {
+      logger.level = temporalLoggerLevel;
+      await packageVersionManager?.promptUpdate();
+    } finally {
+      logger.level = originalLoggerLevel;
     }
-    await packageVersionManager?.promptUpdate();
   }
 }

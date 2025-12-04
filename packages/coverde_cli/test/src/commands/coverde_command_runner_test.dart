@@ -56,6 +56,7 @@ void main() {
         '''--${CoverdeCommandRunner.updateCheckOptionName}=${UpdateCheckMode.enabled.identifier}'''
         'should prompt for update',
         () async {
+          when(() => logger.level).thenReturn(Level.critical);
           when(() => packageVersionManager.promptUpdate())
               .thenAnswer((_) async {});
           await cmdRunner.run([
@@ -71,6 +72,7 @@ void main() {
         '''--${CoverdeCommandRunner.updateCheckOptionName}=${UpdateCheckMode.enabledVerbose.identifier}'''
         'should prompt for update with verbose level',
         () async {
+          when(() => logger.level).thenReturn(Level.critical);
           when(() => packageVersionManager.promptUpdate())
               .thenAnswer((_) async {});
           await cmdRunner.run([
