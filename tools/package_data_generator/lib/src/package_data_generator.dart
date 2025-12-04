@@ -23,18 +23,11 @@ class PackageDataBuilder implements Builder {
     final assetContent = await buildStep.readAsString(origin);
     final pubspec = Pubspec.parse(assetContent, sourceUrl: origin.uri);
     final packageName = pubspec.name;
-    final packageVersion = pubspec.version;
-    if (packageVersion == null) {
-      throw Exception('`$input` is missing the `version` field');
-    }
     final buff = StringBuffer()
       ..writeln('// ! GENERATED CODE - DO NOT MODIFY BY HAND !')
       ..writeln()
       ..writeln('/// Package name.')
-      ..writeln("const packageName = '$packageName';")
-      ..writeln()
-      ..writeln('/// Package version.')
-      ..writeln("const packageVersion = '$packageVersion';");
+      ..writeln("const packageName = '$packageName';");
     final outputId = buildStep.allowedOutputs.single;
     await buildStep.writeAsString(outputId, buff.toString());
   }
