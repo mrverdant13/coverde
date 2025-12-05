@@ -4,6 +4,8 @@ export 'cov_file.dart';
 export 'cov_file_format.exception.dart';
 export 'cov_line.dart';
 export 'coverde.exception.dart';
+export 'coverde_get_global_package_installation_info_failure.dart';
+export 'coverde_get_remote_package_versioning_infos_failure.dart';
 export 'file_coverage_log_level.dart';
 export 'file_line_coverage_details.dart';
 export 'package_version_manager_dependencies.dart';
