@@ -244,7 +244,19 @@ class PackageVersionManager {
     if (packageInfoResponse.statusCode != HttpStatus.ok) {
       throw const UnexpectedRemotePackageVersioningInfosRetrievalFailure();
     }
-    final rawPackageInfoResponse = jsonDecode(packageInfoResponse.body);
+    late final dynamic rawPackageInfoResponse;
+    try {
+      rawPackageInfoResponse = jsonDecode(packageInfoResponse.body);
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidRemotePackageVersioningInfoMemberValueFailure(
+          key: null,
+          value: packageInfoResponse.body,
+          hint: 'a valid JSON string',
+        ),
+        stackTrace,
+      );
+    }
     if (rawPackageInfoResponse is! Map<String, dynamic>) {
       throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
         key: null,
@@ -570,7 +582,9 @@ extension PackageVersionManagerLogger on Logger {
   ) {
     switch (failure) {
       case UnexpectedRemotePackageVersioningInfosRetrievalFailure():
-        err('Unexpected remote package versioning infos retrieval');
+        err(
+          'Unexpected remote package versioning infos retrieval failure.',
+        );
       case final InvalidRemotePackageVersioningInfoFailure failure:
         final details = switch (failure) {
           InvalidRemotePackageVersioningInfoMemberTypeFailure(

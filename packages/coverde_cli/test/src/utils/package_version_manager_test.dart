@@ -813,6 +813,35 @@ sdks:
       });
 
       test(
+          'throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
+          'if the remote package info response is not a valid JSON string',
+          () async {
+        when(() => httpClient.get(any())).thenAnswer(
+          (_) async => http.Response(
+            '{',
+            HttpStatus.ok,
+          ),
+        );
+        expect(
+          () =>
+              packageVersionManager.getRemotePackageVersioningInfos('coverde'),
+          throwsA(
+            isA<InvalidRemotePackageVersioningInfoMemberValueFailure>()
+                .having(
+                  (failure) => failure.key,
+                  'key',
+                  null,
+                )
+                .having(
+                  (failure) => failure.hint,
+                  'hint',
+                  'a valid JSON string',
+                ),
+          ),
+        );
+      });
+
+      test(
           'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response is not a '
           '${Map<String, dynamic>}', () async {
@@ -1564,7 +1593,7 @@ sdks:
         );
         verify(
           () => logger.err(
-            'Unexpected remote package versioning infos retrieval',
+            'Unexpected remote package versioning infos retrieval failure.',
           ),
         ).called(1);
       });
