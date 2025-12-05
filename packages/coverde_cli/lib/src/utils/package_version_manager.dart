@@ -47,8 +47,8 @@ class PackageVersionManager {
 
   /// Get the global versioning info of the running package.
   ///
-  /// Returns `null` if the package is not globally installed via\
-  /// `dart pub global activate`.
+  /// Throws [CoverdeGetGlobalPackageInstallationInfoFailure] if a failure
+  /// occurs.
   @visibleForTesting
   Future<PackageVersioningInfo> getGlobalPackageInstallationInfo() async {
     final lockFile = File(globalLockFilePath);
