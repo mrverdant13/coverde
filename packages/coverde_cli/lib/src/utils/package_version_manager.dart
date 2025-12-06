@@ -518,9 +518,6 @@ $currentPackageVersion \u2192 $latestVersion''';
         logger.logRemotePackageVersioningInfosRetrievalFailure(e);
       }
       logger.alert('Failed to prompt update');
-    } finally {
-      globalPackageInstallationInfoRetrievalProgress?.cancel();
-      remotePackageVersioningInfosRetrievalProgress?.cancel();
     }
   }
 }
