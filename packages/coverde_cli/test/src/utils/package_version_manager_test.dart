@@ -1421,6 +1421,32 @@ sdks:
       });
 
       test(
+          'alerts the user '
+          'if there is an unexpected error while prompting update', () async {
+        File(lockFilePath).writeAsStringSync('''
+packages:
+  coverde:
+    dependency: "direct main"
+    description:
+      name: coverde
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0+1"
+sdks:
+  dart: ">=3.6.0 <4.0.0"
+''');
+        when(() => logger.progress(any())).thenThrow(Exception('Test error'));
+        await packageVersionManager.promptUpdate();
+        verify(
+          () => logger.alert(
+            'Unexpected error while prompting update.\n'
+            '${Exception('Test error')}',
+          ),
+        ).called(1);
+        verify(() => logger.alert('Failed to prompt update')).called(1);
+      });
+
+      test(
           'warns the user '
           'if no compatible newer version is available', () async {
         File(lockFilePath).writeAsStringSync('''

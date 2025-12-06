@@ -225,6 +225,8 @@ class PackageVersionManager {
   }
 
   /// Get the [PackageVersioningInfo]s of a remote package.
+  ///
+  /// Throws [CoverdeGetRemotePackageVersioningInfosFailure] if a failure
   @visibleForTesting
   Future<Iterable<PackageVersioningInfo>> getRemotePackageVersioningInfos(
     String packageName,
@@ -509,13 +511,19 @@ $currentPackageVersion \u2192 $latestVersion''';
         );
       logger.write(messageBuffer.toString());
     } on Object catch (e) {
+      var errorLogged = false;
       globalPackageInstallationInfoRetrievalProgress?.cancel();
       remotePackageVersioningInfosRetrievalProgress?.cancel();
       if (e is CoverdeGetGlobalPackageInstallationInfoFailure) {
         logger.logGlobalPackageInstallationInfoRetrievalFailure(e);
+        errorLogged = true;
       }
       if (e is CoverdeGetRemotePackageVersioningInfosFailure) {
         logger.logRemotePackageVersioningInfosRetrievalFailure(e);
+        errorLogged = true;
+      }
+      if (!errorLogged) {
+        logger.alert('Unexpected error while prompting update.\n$e');
       }
       logger.alert('Failed to prompt update');
     }
