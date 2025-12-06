@@ -47,36 +47,176 @@ class PackageVersionManager {
 
   /// Get the global versioning info of the running package.
   ///
-  /// Returns `null` if the package is not globally installed via\
-  /// `dart pub global activate`.
+  /// Throws [CoverdeGetGlobalPackageInstallationInfoFailure] if a failure
+  /// occurs.
   @visibleForTesting
-  Future<PackageVersioningInfo?> getGlobalPackageInstallationInfo() async {
+  Future<PackageVersioningInfo> getGlobalPackageInstallationInfo() async {
     final lockFile = File(globalLockFilePath);
-    if (!lockFile.existsSync()) return null;
-    if (!FileSystemEntity.isFileSync(globalLockFilePath)) return null;
+    if (!FileSystemEntity.isFileSync(globalLockFilePath)) {
+      throw AbsentGlobalLockFileForGlobalInstallationFailure(
+        lockFile: lockFile,
+      );
+    }
     final lockFileContent = await lockFile.readAsString();
-    final rawLockFileYaml = yaml.loadYaml(lockFileContent) as yaml.YamlMap;
-    final rawPackages = (rawLockFileYaml['packages'] as yaml.YamlMap?)
-        ?.values
-        .cast<yaml.YamlMap>();
-    final rawDirectMainHostedPackage = rawPackages?.firstWhereOrNull(
-      (rawPackage) =>
-          rawPackage['dependency'] == 'direct main' &&
-          rawPackage['source'] == 'hosted',
-    );
-    if (rawDirectMainHostedPackage == null) return null;
-    final rawPackageDescription =
-        rawDirectMainHostedPackage['description'] as yaml.YamlMap;
-    final packageName = rawPackageDescription['name'] as String;
-    final packageHostUrl = rawPackageDescription['url'] as String;
-    if (Uri.parse(packageHostUrl) != Uri.parse(baseUrl)) return null;
-    final rawPackageVersion = rawDirectMainHostedPackage['version'] as String;
-    final packageVersion = Version.parse(rawPackageVersion);
-    final rawSdks = rawLockFileYaml['sdks'] as yaml.YamlMap?;
-    final rawDartVersionConstraint = rawSdks?['dart'] as String?;
-    if (rawDartVersionConstraint == null) return null;
-    final dartVersionConstraint =
-        VersionConstraint.parse(rawDartVersionConstraint);
+    final rawLockFileYaml = yaml.loadYaml(lockFileContent);
+    if (rawLockFileYaml is! yaml.YamlMap) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: null,
+        value: rawLockFileYaml,
+        expectedType: yaml.YamlMap,
+      );
+    }
+    final rawPackages = rawLockFileYaml['packages'];
+    if (rawPackages is! yaml.YamlMap) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: 'packages',
+        expectedType: yaml.YamlMap,
+        value: rawPackages,
+      );
+    }
+    late final yaml.YamlMap? rawDirectMainHostedPackage;
+    try {
+      final rawPackagesYamls = rawPackages.values.cast<yaml.YamlMap>();
+      rawDirectMainHostedPackage = rawPackagesYamls.firstWhereOrNull(
+        (rawPackage) =>
+            rawPackage['dependency'] == 'direct main' &&
+            rawPackage['source'] == 'hosted',
+      );
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+          lockFile: lockFile,
+          key: 'packages(values)',
+          expectedType: Iterable<yaml.YamlMap>,
+          value: rawPackages,
+        ),
+        stackTrace,
+      );
+    }
+    if (rawDirectMainHostedPackage == null) {
+      throw NoDirectMainHostedPackageForGlobalInstallationFailure(
+        lockFile: lockFile,
+      );
+    }
+    final rawPackageDescription = rawDirectMainHostedPackage['description'];
+    if (rawPackageDescription is! yaml.YamlMap) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: [
+          'packages',
+          '["dependency"="direct main", "source"="hosted"]',
+          'description',
+        ].join('.'),
+        expectedType: yaml.YamlMap,
+        value: rawPackageDescription,
+      );
+    }
+    final packageName = rawPackageDescription['name'];
+    if (packageName is! String) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: [
+          'packages',
+          '["dependency"="direct main", "source"="hosted"]',
+          'description',
+          'name',
+        ].join('.'),
+        expectedType: String,
+        value: packageName,
+      );
+    }
+    final packageHostUrl = rawPackageDescription['url'];
+    if (packageHostUrl is! String) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: [
+          'packages',
+          '["dependency"="direct main", "source"="hosted"]',
+          'description',
+          'url',
+        ].join('.'),
+        expectedType: String,
+        value: packageHostUrl,
+      );
+    }
+    if (Uri.tryParse(packageHostUrl) != Uri.tryParse(baseUrl)) {
+      throw InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: [
+          'packages',
+          '["dependency"="direct main", "source"="hosted"]',
+          'description',
+          'url',
+        ].join('.'),
+        value: packageHostUrl,
+        hint: 'equal to $baseUrl',
+      );
+    }
+    final rawPackageVersion = rawDirectMainHostedPackage['version'];
+    if (rawPackageVersion is! String) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: [
+          'packages',
+          '["dependency"="direct main", "source"="hosted"]',
+          'version',
+        ].join('.'),
+        expectedType: String,
+        value: rawPackageVersion,
+      );
+    }
+    late final Version packageVersion;
+    try {
+      packageVersion = Version.parse(rawPackageVersion);
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+          lockFile: lockFile,
+          key: [
+            'packages',
+            '["dependency"="direct main", "source"="hosted"]',
+            'version',
+          ].join('.'),
+          value: rawPackageVersion,
+          hint: 'a valid SemVer string',
+        ),
+        stackTrace,
+      );
+    }
+    final rawSdks = rawLockFileYaml['sdks'];
+    if (rawSdks is! yaml.YamlMap) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: 'sdks',
+        expectedType: yaml.YamlMap,
+        value: rawSdks,
+      );
+    }
+    final rawDartVersionConstraint = rawSdks['dart'];
+    if (rawDartVersionConstraint is! String) {
+      throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+        lockFile: lockFile,
+        key: 'sdks.dart',
+        expectedType: String,
+        value: rawDartVersionConstraint,
+      );
+    }
+    late final VersionConstraint dartVersionConstraint;
+    try {
+      dartVersionConstraint = VersionConstraint.parse(rawDartVersionConstraint);
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+          lockFile: lockFile,
+          key: 'sdks.dart',
+          value: rawDartVersionConstraint,
+          hint: 'a valid SemVer constraint string',
+        ),
+        stackTrace,
+      );
+    }
     return PackageVersioningInfo(
       packageName: packageName,
       packageVersion: packageVersion,
@@ -85,33 +225,158 @@ class PackageVersionManager {
   }
 
   /// Get the [PackageVersioningInfo]s of a remote package.
+  ///
+  /// Throws [CoverdeGetRemotePackageVersioningInfosFailure] if a failure
   @visibleForTesting
   Future<Iterable<PackageVersioningInfo>> getRemotePackageVersioningInfos(
     String packageName,
   ) async {
-    final packageInfoUri = Uri.parse('$baseUrl/api/packages/$packageName');
-    final packageInfoResponse = await httpClient
-        .get(packageInfoUri)
-        .timeout(const Duration(seconds: 5));
-    if (packageInfoResponse.statusCode != HttpStatus.ok) {
-      throw Exception(
-        'Failed to get remote package versioning info',
+    late final http.Response packageInfoResponse;
+    try {
+      final packageInfoUri = Uri.parse('$baseUrl/api/packages/$packageName');
+      packageInfoResponse = await httpClient
+          .get(packageInfoUri)
+          .timeout(const Duration(seconds: 5));
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        const UnexpectedRemotePackageVersioningInfosRetrievalFailure(),
+        stackTrace,
       );
     }
-    final rawPackageInfoResponse =
-        jsonDecode(packageInfoResponse.body) as Map<String, dynamic>;
-    final rawVersions = rawPackageInfoResponse['versions'] as List<dynamic>;
+    if (packageInfoResponse.statusCode != HttpStatus.ok) {
+      throw const UnexpectedRemotePackageVersioningInfosRetrievalFailure();
+    }
+    late final dynamic rawPackageInfoResponse;
+    try {
+      rawPackageInfoResponse = jsonDecode(packageInfoResponse.body);
+    } on Object catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidRemotePackageVersioningInfoMemberValueFailure(
+          key: null,
+          value: packageInfoResponse.body,
+          hint: 'a valid JSON string',
+        ),
+        stackTrace,
+      );
+    }
+    if (rawPackageInfoResponse is! Map<String, dynamic>) {
+      throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+        key: null,
+        expectedType: Map<String, dynamic>,
+        value: rawPackageInfoResponse,
+      );
+    }
+    final rawVersions = rawPackageInfoResponse['versions'];
+    if (rawVersions is! List) {
+      throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+        key: 'versions',
+        expectedType: List,
+        value: rawVersions,
+      );
+    }
 
     PackageVersioningInfo parsePackageVersioningInfo(
-      Map<String, dynamic> rawVersionInfo,
+      int index,
+      dynamic rawVersionInfo,
     ) {
-      final rawPubspec = rawVersionInfo['pubspec'] as Map<String, dynamic>;
-      final rawVersion = rawVersionInfo['version'] as String;
-      final version = Version.parse(rawVersion);
-      final rawEnvironment = rawPubspec['environment'] as Map<String, dynamic>;
-      final rawDartVersionConstraint = rawEnvironment['sdk'] as String;
-      final dartVersionConstraint =
-          VersionConstraint.parse(rawDartVersionConstraint);
+      if (rawVersionInfo is! Map<String, dynamic>) {
+        throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+          key: [
+            'versions',
+            '[$index]',
+          ].join('.'),
+          expectedType: Map<String, dynamic>,
+          value: rawVersionInfo,
+        );
+      }
+      final rawVersion = rawVersionInfo['version'];
+      if (rawVersion is! String) {
+        throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+          key: [
+            'versions',
+            '[$index]',
+            'version',
+          ].join('.'),
+          expectedType: String,
+          value: rawVersion,
+        );
+      }
+      late final Version version;
+      try {
+        version = Version.parse(rawVersion);
+      } on Object catch (_, stackTrace) {
+        Error.throwWithStackTrace(
+          InvalidRemotePackageVersioningInfoMemberValueFailure(
+            key: [
+              'versions',
+              '[$index]',
+              'version',
+            ].join('.'),
+            value: rawVersion,
+            hint: 'a valid SemVer string',
+          ),
+          stackTrace,
+        );
+      }
+      final rawPubspec = rawVersionInfo['pubspec'];
+      if (rawPubspec is! Map<String, dynamic>) {
+        throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+          key: [
+            'versions',
+            '[$index]',
+            'pubspec',
+          ].join('.'),
+          expectedType: Map<String, dynamic>,
+          value: rawPubspec,
+        );
+      }
+      final rawEnvironment = rawPubspec['environment'];
+      if (rawEnvironment is! Map<String, dynamic>) {
+        throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+          key: [
+            'versions',
+            '[$index]',
+            'pubspec',
+            'environment',
+          ].join('.'),
+          expectedType: Map<String, dynamic>,
+          value: rawEnvironment,
+        );
+      }
+      final rawDartVersionConstraint = rawEnvironment['sdk'];
+      if (rawDartVersionConstraint is! String) {
+        throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
+          key: [
+            'versions',
+            '[$index]',
+            'pubspec',
+            'environment',
+            'sdk',
+          ].join('.'),
+          expectedType: String,
+          value: rawDartVersionConstraint,
+        );
+      }
+      late final VersionConstraint dartVersionConstraint;
+      try {
+        dartVersionConstraint =
+            VersionConstraint.parse(rawDartVersionConstraint);
+      } on Object catch (_, stackTrace) {
+        Error.throwWithStackTrace(
+          InvalidRemotePackageVersioningInfoMemberValueFailure(
+            key: [
+              'versions',
+              '[$index]',
+              'pubspec',
+              'environment',
+              'sdk',
+            ].join('.'),
+            value: rawDartVersionConstraint,
+            hint: 'a valid SemVer constraint string',
+          ),
+          stackTrace,
+        );
+      }
       return PackageVersioningInfo(
         packageName: packageName,
         packageVersion: version,
@@ -119,41 +384,22 @@ class PackageVersionManager {
       );
     }
 
-    return rawVersions.reversed
-        .cast<Map<String, dynamic>>()
-        .map(parsePackageVersioningInfo);
+    return rawVersions.reversed.mapIndexed(parsePackageVersioningInfo);
   }
 
   /// Prompts the user to update the package, if possible.
   Future<void> promptUpdate() async {
-    Timer? logsTimer;
-
+    Progress? globalPackageInstallationInfoRetrievalProgress;
+    Progress? remotePackageVersioningInfosRetrievalProgress;
     try {
-      Progress logPeriodically({required String message}) {
-        final progress = logger.progress(message);
-        logsTimer?.cancel();
-        logsTimer = Timer.periodic(
-          const Duration(milliseconds: 100),
-          (timer) {
-            if (!timer.isActive) return;
-            progress.update(message);
-          },
-        );
-        return progress;
-      }
-
       const globalPackageInstallationInfoRetrievalMessage =
           'Reviewing global package installation info...';
-      final globalPackageInstallationInfoRetrievalProgress = logPeriodically(
-        message: globalPackageInstallationInfoRetrievalMessage,
+      globalPackageInstallationInfoRetrievalProgress = logger.progress(
+        globalPackageInstallationInfoRetrievalMessage,
       );
       final currentPackageInstallationInfo =
           await getGlobalPackageInstallationInfo();
       globalPackageInstallationInfoRetrievalProgress.cancel();
-      if (currentPackageInstallationInfo == null) {
-        logger.warn('No global package installation info found.');
-        return;
-      }
       final currentPackageVersion =
           currentPackageInstallationInfo.packageVersion;
       final packageName = currentPackageInstallationInfo.packageName;
@@ -164,8 +410,8 @@ class PackageVersionManager {
 
       const remotePackageVersioningInfosRetrievalMessage =
           'Reviewing remote package versioning infos...';
-      final remotePackageVersioningInfosRetrievalProgress = logPeriodically(
-        message: remotePackageVersioningInfosRetrievalMessage,
+      remotePackageVersioningInfosRetrievalProgress = logger.progress(
+        remotePackageVersioningInfosRetrievalMessage,
       );
       final remotePackageVersioningInfos =
           await getRemotePackageVersioningInfos(packageName);
@@ -265,9 +511,95 @@ $currentPackageVersion \u2192 $latestVersion''';
         );
       logger.write(messageBuffer.toString());
     } on Object catch (e) {
-      logger.alert('Failed to prompt update: $e');
-    } finally {
-      logsTimer?.cancel();
+      var errorLogged = false;
+      globalPackageInstallationInfoRetrievalProgress?.cancel();
+      remotePackageVersioningInfosRetrievalProgress?.cancel();
+      if (e is CoverdeGetGlobalPackageInstallationInfoFailure) {
+        logger.logGlobalPackageInstallationInfoRetrievalFailure(e);
+        errorLogged = true;
+      }
+      if (e is CoverdeGetRemotePackageVersioningInfosFailure) {
+        logger.logRemotePackageVersioningInfosRetrievalFailure(e);
+        errorLogged = true;
+      }
+      if (!errorLogged) {
+        logger.alert('Unexpected error while prompting update.\n$e');
+      }
+      logger.alert('Failed to prompt update');
+    }
+  }
+}
+
+/// Extension for logging [PackageVersionManager] failures.
+extension PackageVersionManagerLogger on Logger {
+  /// Log a [CoverdeGetGlobalPackageInstallationInfoFailure].
+  void logGlobalPackageInstallationInfoRetrievalFailure(
+    CoverdeGetGlobalPackageInstallationInfoFailure failure,
+  ) {
+    switch (failure) {
+      case AbsentGlobalLockFileForGlobalInstallationFailure(:final lockFile):
+        warn(
+          'Absent global lock file (`${lockFile.path}`). '
+          'It is likely `dart pub global activate` '
+          'was not used to install the package.',
+        );
+      case final InvalidGlobalLockFileContentForGlobalInstallationFailure
+        failure:
+        final details = switch (failure) {
+          InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+            :final key,
+            :final value,
+            :final expectedType,
+          ) =>
+            'The `$key` member is '
+                'expected to be a `$expectedType`. '
+                'Actual value: `$value`.',
+          InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+            :final key,
+            :final value,
+            :final hint,
+          ) =>
+            'The `$key` member value is '
+                '${hint != null ? 'expected to be $hint' : 'invalid'}'
+                '. '
+                'Actual value: `$value`.',
+          NoDirectMainHostedPackageForGlobalInstallationFailure() =>
+            'No direct main hosted package found.',
+        };
+        err('Invalid global lock file content. $details');
+    }
+  }
+
+  /// Log a [CoverdeGetRemotePackageVersioningInfosFailure].
+  void logRemotePackageVersioningInfosRetrievalFailure(
+    CoverdeGetRemotePackageVersioningInfosFailure failure,
+  ) {
+    switch (failure) {
+      case UnexpectedRemotePackageVersioningInfosRetrievalFailure():
+        err(
+          'Unexpected remote package versioning infos retrieval failure.',
+        );
+      case final InvalidRemotePackageVersioningInfoFailure failure:
+        final details = switch (failure) {
+          InvalidRemotePackageVersioningInfoMemberTypeFailure(
+            :final key,
+            :final value,
+            :final expectedType,
+          ) =>
+            'The `$key` member is '
+                'expected to be a `$expectedType`. '
+                'Actual value: `$value`.',
+          InvalidRemotePackageVersioningInfoMemberValueFailure(
+            :final key,
+            :final value,
+            :final hint,
+          ) =>
+            'The `$key` member value is '
+                '${hint != null ? 'expected to be $hint' : 'invalid'}'
+                '. '
+                'Actual value: `$value`.',
+        };
+        err('Invalid remote package versioning info. $details');
     }
   }
 }
