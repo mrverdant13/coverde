@@ -387,29 +387,16 @@ class PackageVersionManager {
 
   /// Prompts the user to update the package, if possible.
   Future<void> promptUpdate() async {
-    Timer? logsTimer;
-
+    Progress? globalPackageInstallationInfoRetrievalProgress;
+    Progress? remotePackageVersioningInfosRetrievalProgress;
     try {
-      Progress logPeriodically({required String message}) {
-        final progress = logger.progress(message);
-        logsTimer?.cancel();
-        logsTimer = Timer.periodic(
-          const Duration(milliseconds: 100),
-          (timer) {
-            if (!timer.isActive) return;
-            progress.update(message);
-          },
-        );
-        return progress;
-      }
-
       const globalPackageInstallationInfoRetrievalMessage =
           'Reviewing global package installation info...';
-      final globalPackageInstallationInfoRetrievalProgress = logPeriodically(
-        message: globalPackageInstallationInfoRetrievalMessage,
+      globalPackageInstallationInfoRetrievalProgress = logger.progress(
+        globalPackageInstallationInfoRetrievalMessage,
       );
-      late final PackageVersioningInfo currentPackageInstallationInfo;
-      currentPackageInstallationInfo = await getGlobalPackageInstallationInfo();
+      final currentPackageInstallationInfo =
+          await getGlobalPackageInstallationInfo();
       globalPackageInstallationInfoRetrievalProgress.cancel();
       final currentPackageVersion =
           currentPackageInstallationInfo.packageVersion;
@@ -421,11 +408,10 @@ class PackageVersionManager {
 
       const remotePackageVersioningInfosRetrievalMessage =
           'Reviewing remote package versioning infos...';
-      final remotePackageVersioningInfosRetrievalProgress = logPeriodically(
-        message: remotePackageVersioningInfosRetrievalMessage,
+      remotePackageVersioningInfosRetrievalProgress = logger.progress(
+        remotePackageVersioningInfosRetrievalMessage,
       );
-      late final Iterable<PackageVersioningInfo> remotePackageVersioningInfos;
-      remotePackageVersioningInfos =
+      final remotePackageVersioningInfos =
           await getRemotePackageVersioningInfos(packageName);
       remotePackageVersioningInfosRetrievalProgress.cancel();
 
@@ -523,6 +509,8 @@ $currentPackageVersion \u2192 $latestVersion''';
         );
       logger.write(messageBuffer.toString());
     } on Object catch (e) {
+      globalPackageInstallationInfoRetrievalProgress?.cancel();
+      remotePackageVersioningInfosRetrievalProgress?.cancel();
       if (e is CoverdeGetGlobalPackageInstallationInfoFailure) {
         logger.logGlobalPackageInstallationInfoRetrievalFailure(e);
       }
@@ -531,7 +519,8 @@ $currentPackageVersion \u2192 $latestVersion''';
       }
       logger.alert('Failed to prompt update');
     } finally {
-      logsTimer?.cancel();
+      globalPackageInstallationInfoRetrievalProgress?.cancel();
+      remotePackageVersioningInfosRetrievalProgress?.cancel();
     }
   }
 }
