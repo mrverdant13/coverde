@@ -12,6 +12,8 @@ import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template optimize_tests_cmd}
 /// A subcommand to optimize tests.
 /// {@endtemplate}
@@ -103,10 +105,14 @@ class OptimizeTestsCommand extends CoverdeCommand {
   FutureOr<void> run() async {
     final argResults = this.argResults!;
     final projectDir = Directory.current;
-    final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
-    if (!pubspecFile.existsSync()) {
-      usageException('pubspec.yaml not found in ${projectDir.path}.');
+    final pubspecFilePath = p.join(projectDir.path, 'pubspec.yaml');
+    if (!File(pubspecFilePath).existsSync()) {
+      throw CoverdeOptimizeTestsPubspecNotFoundFailure(
+        usageMessage: usageWithoutDescription,
+        projectDirPath: projectDir.path,
+      );
     }
+    final pubspecFile = File(pubspecFilePath);
     final pubspecRawContent = pubspecFile.readAsStringSync();
     final pubspec = Pubspec.parse(pubspecRawContent);
     final outputPath = argResults.option(outputOptionName)!;

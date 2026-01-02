@@ -90,10 +90,10 @@ Compute the coverage value of the LCOV_FILE info file.
         expect(
           action,
           throwsA(
-            isA<CovFileFormatException>().having(
-              (e) => e.message,
-              'message',
-              'No coverage data found in the trace file.',
+            isA<CoverdeValueEmptyTraceFileFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(emptyTraceFilePath),
             ),
           ),
         );
@@ -421,7 +421,10 @@ Compute the coverage value of the LCOV_FILE info file.
               absentFilePath,
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(isA<CoverdeValueTraceFileNotFoundFailure>()),
+        );
         directory.deleteSync(recursive: true);
       },
     );

@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
 /// {@endtemplate}
@@ -78,17 +80,19 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       );
     }();
 
-    final file = File(filePath);
-
-    if (!file.existsSync()) {
-      usageException('The trace file located at `$filePath` does not exist.');
+    if (!File(filePath).existsSync()) {
+      throw CoverdeValueTraceFileNotFoundFailure(
+        traceFilePath: filePath,
+      );
     }
+
+    final file = File(filePath);
 
     final traceFile = await TraceFile.parseStreaming(file);
 
     if (traceFile.isEmpty) {
-      throw CovFileFormatException(
-        message: 'No coverage data found in the trace file.',
+      throw CoverdeValueEmptyTraceFileFailure(
+        traceFilePath: filePath,
       );
     }
 

@@ -28,16 +28,16 @@ class CovFile extends CovElement {
 
   /// Create a [CovFile] from a [data] trace block string.
   ///
-  /// Throws a [CovFileFormatException] if the [data] is not a valid trace
-  /// block.
+  /// Throws a [CovFileFormatFailure] if the [data] is not a valid trace block.
   factory CovFile.parse(String data) {
     final dataLines = data.split('\n');
 
     String sourcePath() => dataLines
         .firstWhere(
           (l) => l.startsWith(sourceFileTag),
-          orElse: () => throw CovFileFormatException(
-            message: 'Source file tag not found in the trace file block.',
+          orElse: () => throw const CovFileFormatFailure(
+            readableMessage:
+                'Source file tag not found in the trace file block.',
           ),
         )
         .replaceAll(sourceFileTag, '')

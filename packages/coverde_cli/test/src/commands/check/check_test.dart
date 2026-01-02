@@ -134,10 +134,10 @@ This parameter indicates the minimum value for the coverage to be accepted.
         expect(
           action,
           throwsA(
-            isA<CovFileFormatException>().having(
-              (e) => e.message,
-              'message',
-              'No coverage data found in the trace file.',
+            isA<CoverdeCheckEmptyTraceFileFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(emptyTraceFilePath),
             ),
           ),
         );
@@ -172,7 +172,22 @@ This parameter indicates the minimum value for the coverage to be accepted.
               getCurrentDirectory: () => Directory(projectPath),
             );
 
-        await expectLater(action, throwsA(isA<MinCoverageException>()));
+        await expectLater(
+          action,
+          throwsA(
+            isA<CoverdeCheckCoverageBelowMinimumFailure>()
+                .having(
+                  (failure) => failure.minimumCoverage,
+                  'minimumCoverage',
+                  75,
+                )
+                .having(
+                  (failure) => failure.actualCoverage,
+                  'actualCoverage',
+                  lessThan(75),
+                ),
+          ),
+        );
         final messages = [
           wrapWith('GLOBAL:', [blue, styleBold]),
           wrapWith('56.25% - 9/16', [blue, styleBold]),
@@ -201,7 +216,16 @@ This parameter indicates the minimum value for the coverage to be accepted.
               '$minCoverage',
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckTraceFileNotFoundFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(absentFilePath),
+            ),
+          ),
+        );
         directory.deleteSync(recursive: true);
       },
     );
@@ -245,11 +269,32 @@ This parameter indicates the minimum value for the coverage to be accepted.
     );
 
     test(
+      '| fails when more than one argument is provided',
+      () async {
+        Future<void> action() => cmdRunner.run(['check', '10', '20']);
+
+        expect(
+          action,
+          throwsA(isA<CoverdeCheckMoreThanOneArgumentFailure>()),
+        );
+      },
+    );
+
+    test(
       '| fails when no minimum expected coverage value',
       () async {
         Future<void> action() => cmdRunner.run(['check']);
 
-        expect(action, throwsArgumentError);
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckMissingMinimumCoverageThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Missing minimum coverage threshold.',
+            ),
+          ),
+        );
       },
     );
 
@@ -263,7 +308,18 @@ This parameter indicates the minimum value for the coverage to be accepted.
               invalidMinCoverage,
             ]);
 
-        expect(action, throwsArgumentError);
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckInvalidMinimumCoverageThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid minimum coverage threshold.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
+            ),
+          ),
+        );
       },
     );
   });

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
@@ -94,13 +93,10 @@ void main() {
           expect(
             action,
             throwsA(
-              isA<UsageException>().having(
-                (e) => e.message,
-                'message',
-                contains(
-                  'pubspec.yaml not found in '
-                  '${p.join(currentDirectory.path, projectPath)}',
-                ),
+              isA<CoverdeOptimizeTestsPubspecNotFoundFailure>().having(
+                (e) => e.projectDirPath,
+                'projectDirPath',
+                p.join(currentDirectory.path, projectPath),
               ),
             ),
           );

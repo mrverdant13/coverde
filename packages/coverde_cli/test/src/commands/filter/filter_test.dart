@@ -1,12 +1,11 @@
 import 'dart:convert';
 
-import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -81,20 +80,20 @@ All the relative paths in the resulting coverage trace file will be resolved rel
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.joinAll([
+        final originalFilePath = p.joinAll([
           directory.path,
           'original.info',
         ]);
-        final filteredFilePath = path.joinAll([
+        final filteredFilePath = p.joinAll([
           directory.path,
           'actual.info',
         ]);
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
@@ -183,21 +182,21 @@ end_of_record
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
@@ -287,22 +286,22 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final baseDirectory = path.join('root', 'parent');
+        final baseDirectory = p.join('root', 'parent');
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
@@ -365,7 +364,7 @@ $ignoredSourceFileData
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = '''
-SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
+SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
@@ -402,27 +401,27 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final baseDirectory = path.join('root', 'parent');
+        final baseDirectory = p.join('root', 'parent');
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
         ]);
-        final absoluteSourceFilePath = path.joinAll([
+        final absoluteSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
@@ -495,12 +494,12 @@ $absoluteSourceFileData
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = '''
-SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
+SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-SF:${path.relative(absoluteSourceFilePath, from: baseDirectory)}
+SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
@@ -534,7 +533,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final absentFilePath = path.join(
+        final absentFilePath = p.join(
           directory.path,
           'absent.info',
         );
@@ -549,7 +548,16 @@ end_of_record
               patterns.join(','),
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeFilterTraceFileNotFoundFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(absentFilePath),
+            ),
+          ),
+        );
       },
     );
 
@@ -561,7 +569,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = path.join(directory.path, 'test.info');
+        final traceFilePath = p.join(directory.path, 'test.info');
         File(traceFilePath)
           ..createSync()
           ..writeAsStringSync('''
@@ -584,12 +592,10 @@ end_of_record
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Invalid regex pattern in --filters: `[invalid`',
-              ),
+            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+              (e) => e.invalidRegexPattern,
+              'invalidRegexPattern',
+              invalidPattern,
             ),
           ),
         );
@@ -604,7 +610,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = path.join(directory.path, 'test.info');
+        final traceFilePath = p.join(directory.path, 'test.info');
         File(traceFilePath)
           ..createSync()
           ..writeAsStringSync('''
@@ -628,10 +634,10 @@ end_of_record
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains('Invalid regex pattern in --filters: `(unclosed`'),
+            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+              (e) => e.invalidRegexPattern,
+              'invalidRegexPattern',
+              invalidPattern,
             ),
           ),
         );
@@ -675,7 +681,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final inputFilePath = path.join(
+        final inputFilePath = p.join(
           directory.path,
           'input.info',
         );
@@ -684,7 +690,7 @@ end_of_record
           ..writeAsStringSync(newContent);
 
         for (final testCase in testCases) {
-          final outputFilePath = path.join(
+          final outputFilePath = p.join(
             directory.path,
             testCase.outputFileName,
           );

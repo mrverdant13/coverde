@@ -4,6 +4,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template filter_cmd}
 /// A command to filter coverage info files.
 /// {@endtemplate}
@@ -117,25 +119,27 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final ignorePatterns = argResults.multiOption(filtersOption);
     final shouldOverride = argResults.option(modeOption) == 'w';
 
-    final origin = File(originPath);
-    final destination = File(destinationPath);
-
-    if (!origin.existsSync()) {
-      usageException('The trace file located at `$originPath` does not exist.');
-    }
-
     // Validate regex patterns before use.
     final validatedPatterns = <RegExp>[];
     for (final ignorePattern in ignorePatterns) {
       try {
         validatedPatterns.add(RegExp(ignorePattern));
-      } on FormatException catch (e) {
-        usageException(
-          'Invalid regex pattern in --$filtersOption: `$ignorePattern`. '
-          'Error: ${e.message}',
+      } on FormatException catch (exception) {
+        throw CoverdeFilterInvalidRegexPatternFailure(
+          usageMessage: usageWithoutDescription,
+          invalidRegexPattern: ignorePattern,
+          exception: exception,
         );
       }
     }
+
+    if (!FileSystemEntity.isFileSync(originPath)) {
+      throw CoverdeFilterTraceFileNotFoundFailure(
+        traceFilePath: originPath,
+      );
+    }
+    final origin = File(originPath);
+    final destination = File(destinationPath);
 
     final traceFile = await TraceFile.parseStreaming(origin);
     final acceptedSrcFilesRawData = <String>{};

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:args/command_runner.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
@@ -149,10 +148,10 @@ void main() {
       expect(
         action,
         throwsA(
-          isA<CovFileFormatException>().having(
-            (e) => e.message,
-            'message',
-            'No coverage data found in the trace file.',
+          isA<CoverdeReportEmptyTraceFileFailure>().having(
+            (e) => e.traceFilePath,
+            'traceFilePath',
+            p.absolute(emptyTraceFilePath),
           ),
         ),
       );
@@ -390,7 +389,16 @@ Error: Non-matching (plain text) file <$relFilePath>''',
               absentFilePath,
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeReportTraceFileNotFoundFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(absentFilePath),
+            ),
+          ),
+        );
       },
     );
 
@@ -414,10 +422,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains('Invalid medium threshold.'),
+            isA<CoverdeReportInvalidMediumThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid medium threshold: `$invalidMediumThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -444,13 +454,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Medium threshold must be between 0 and 100 '
-                '(got -1.0).',
-              ),
+            isA<CoverdeReportInvalidMediumThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid medium threshold: `$negativeMediumThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -477,13 +486,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Medium threshold must be between 0 and 100 '
-                '(got 101.0).',
-              ),
+            isA<CoverdeReportInvalidMediumThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid medium threshold: `$over100MediumThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -510,10 +518,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains('Invalid high threshold.'),
+            isA<CoverdeReportInvalidHighThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid high threshold: `$invalidHighThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -540,13 +550,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'High threshold must be between 0 and 100 '
-                '(got -1.0).',
-              ),
+            isA<CoverdeReportInvalidHighThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid high threshold: `$negativeHighThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -573,13 +582,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'High threshold must be between 0 and 100 '
-                '(got 101.0).',
-              ),
+            isA<CoverdeReportInvalidHighThresholdFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Invalid high threshold: `$over100HighThreshold`.\n'
+                  'It should be a positive number not greater than 100 '
+                  '[0.0, 100.0].',
             ),
           ),
         );
@@ -610,13 +618,11 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Medium threshold (75.0) '
-                'must be less than high threshold (50.0).',
-              ),
+            isA<CoverdeReportInvalidThresholdRelationshipFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Medium threshold (75.0) must be less than '
+                  'high threshold (50.0).',
             ),
           ),
         );
@@ -646,13 +652,11 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Medium threshold (75.0) '
-                'must be less than high threshold (75.0).',
-              ),
+            isA<CoverdeReportInvalidThresholdRelationshipFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Medium threshold (75.0) must be less than '
+                  'high threshold (75.0).',
             ),
           ),
         );

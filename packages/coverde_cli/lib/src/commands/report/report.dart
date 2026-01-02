@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template report_cmd}
 /// A command to generate the coverage report from a given trace file.
 /// {@endtemplate}
@@ -120,27 +122,25 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     );
     final mediumString = argResults.option(mediumOption)!;
     final medium = double.tryParse(mediumString);
-    if (medium == null) {
-      usageException('Invalid medium threshold.');
-    }
-    if (medium < 0 || medium > 100) {
-      usageException(
-        'Medium threshold must be between 0 and 100 (got $medium).',
+    if (medium == null || medium < 0 || medium > 100) {
+      throw CoverdeReportInvalidMediumThresholdFailure(
+        usageMessage: usageWithoutDescription,
+        rawValue: mediumString,
       );
     }
     final highString = argResults.option(highOption)!;
     final high = double.tryParse(highString);
-    if (high == null) {
-      usageException('Invalid high threshold.');
-    }
-    if (high < 0 || high > 100) {
-      usageException(
-        'High threshold must be between 0 and 100 (got $high).',
+    if (high == null || high < 0 || high > 100) {
+      throw CoverdeReportInvalidHighThresholdFailure(
+        usageMessage: usageWithoutDescription,
+        rawValue: highString,
       );
     }
     if (medium >= high) {
-      usageException(
-        'Medium threshold ($medium) must be less than high threshold ($high).',
+      throw CoverdeReportInvalidThresholdRelationshipFailure(
+        usageMessage: usageWithoutDescription,
+        mediumValue: medium,
+        highValue: high,
       );
     }
     final shouldLaunch = argResults.flag(launchFlag);
@@ -156,16 +156,16 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final traceFile = File(traceFileAbsPath);
 
     if (!traceFile.existsSync()) {
-      usageException(
-        'The trace file located at `$traceFileAbsPath` does not exist.',
+      throw CoverdeReportTraceFileNotFoundFailure(
+        traceFilePath: traceFileAbsPath,
       );
     }
 
     final traceFileData = await TraceFile.parseStreaming(traceFile);
 
     if (traceFileData.isEmpty) {
-      throw CovFileFormatException(
-        message: 'No coverage data found in the trace file.',
+      throw CoverdeReportEmptyTraceFileFailure(
+        traceFilePath: traceFileAbsPath,
       );
     }
 

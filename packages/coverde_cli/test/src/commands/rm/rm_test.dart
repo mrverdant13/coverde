@@ -1,10 +1,9 @@
-import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -68,7 +67,7 @@ Remove a set of files and folders.
       '<existing_file> '
       '| previews deletion in dry-run mode (default)',
       () async {
-        final filePath = path.joinAll(['coverage', 'existing.file']);
+        final filePath = p.joinAll(['coverage', 'existing.file']);
         final file = File(filePath);
         await file.create(recursive: true);
         expect(file.existsSync(), isTrue);
@@ -90,7 +89,7 @@ Remove a set of files and folders.
       '<existing_file> '
       '| removes existing file when dry-run is disabled',
       () async {
-        final filePath = path.joinAll(['coverage', 'existing.file']);
+        final filePath = p.joinAll(['coverage', 'existing.file']);
         final file = File(filePath);
         await file.create(recursive: true);
         expect(file.existsSync(), isTrue);
@@ -110,7 +109,7 @@ Remove a set of files and folders.
       '<non-existing_file> '
       '| fails when file does not exist',
       () async {
-        final filePath = path.joinAll(['coverage', 'non-existing.file']);
+        final filePath = p.joinAll(['coverage', 'non-existing.file']);
         final file = File(filePath);
         expect(file.existsSync(), isFalse);
 
@@ -120,7 +119,16 @@ Remove a set of files and folders.
               '--no-${RmCommand.acceptAbsenceFlag}',
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeRmElementNotFoundFailure>().having(
+              (e) => e.elementPath,
+              'elementPath',
+              filePath,
+            ),
+          ),
+        );
         expect(file.existsSync(), isFalse);
       },
     );
@@ -130,7 +138,7 @@ Remove a set of files and folders.
       '<existing_file> '
       '| explicitly enables dry-run mode',
       () async {
-        final filePath = path.joinAll(['coverage', 'existing.file']);
+        final filePath = p.joinAll(['coverage', 'existing.file']);
         final file = File(filePath);
         await file.create(recursive: true);
         expect(file.existsSync(), isTrue);
@@ -153,7 +161,7 @@ Remove a set of files and folders.
       '<non-existing_file> '
       '| shows message when file does not exist',
       () async {
-        final filePath = path.joinAll(['coverage', 'non-existing.file']);
+        final filePath = p.joinAll(['coverage', 'non-existing.file']);
         final file = File(filePath);
         expect(file.existsSync(), isFalse);
 
@@ -174,7 +182,7 @@ Remove a set of files and folders.
       '<existing_directory> '
       '| previews deletion in dry-run mode (default)',
       () async {
-        final dirPath = path.joinAll(['coverage', 'existing.dir']);
+        final dirPath = p.joinAll(['coverage', 'existing.dir']);
         final dir = Directory(dirPath);
         await dir.create(recursive: true);
         expect(dir.existsSync(), isTrue);
@@ -196,7 +204,7 @@ Remove a set of files and folders.
       '<existing_directory> '
       '| removes existing directory when dry-run is disabled',
       () async {
-        final dirPath = path.joinAll(['coverage', 'existing.dir']);
+        final dirPath = p.joinAll(['coverage', 'existing.dir']);
         final dir = Directory(dirPath);
         await dir.create(recursive: true);
         expect(dir.existsSync(), isTrue);
@@ -216,7 +224,7 @@ Remove a set of files and folders.
       '<non-existing_directory> '
       '| fails when directory does not exist',
       () async {
-        final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
+        final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
         final dir = File(dirPath);
         expect(dir.existsSync(), isFalse);
 
@@ -226,7 +234,16 @@ Remove a set of files and folders.
               '--no-${RmCommand.acceptAbsenceFlag}',
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeRmElementNotFoundFailure>().having(
+              (e) => e.elementPath,
+              'elementPath',
+              dirPath,
+            ),
+          ),
+        );
         expect(dir.existsSync(), isFalse);
       },
     );
@@ -236,7 +253,7 @@ Remove a set of files and folders.
       '<non-existing_directory> '
       '| shows message when directory does not exist',
       () async {
-        final dirPath = path.joinAll(['coverage', 'non-existing.dir']);
+        final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
         final dir = File(dirPath);
         expect(dir.existsSync(), isFalse);
 
@@ -260,7 +277,10 @@ Remove a set of files and folders.
               'remove',
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(isA<CoverdeRmMissingPathsFailure>()),
+        );
       },
     );
   });
