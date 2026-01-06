@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/assets/assets.dart';
-import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/coverde.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
@@ -167,7 +166,19 @@ class CovFile extends CovElement {
 
     {
       final src = fileReport.querySelector('.source');
-      final sourceLines = source.readAsLinesSync();
+      final sourceLines = () {
+        try {
+          return source.readAsLinesSync();
+        } on FileSystemException catch (exception, stackTrace) {
+          Error.throwWithStackTrace(
+            GenerateHtmlCoverageReportFileReadFailure.fromFileSystemException(
+              filePath: source.path,
+              exception: exception,
+            ),
+            stackTrace,
+          );
+        }
+      }();
       final indexedSourceLines = sourceLines.asMap();
       for (final sourceLine in indexedSourceLines.entries) {
         final lineNumber = sourceLine.key + 1;
@@ -190,8 +201,28 @@ class CovFile extends CovElement {
       }
     }
 
-    File(reportFileAbsPath)
-      ..createSync(recursive: true)
-      ..writeAsStringSync(fileReport.outerHtml);
+    final reportFile = File(reportFileAbsPath);
+    try {
+      reportFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        GenerateHtmlCoverageReportFileCreateFailure.fromFileSystemException(
+          filePath: reportFileAbsPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      reportFile.writeAsStringSync(fileReport.outerHtml);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        GenerateHtmlCoverageReportFileWriteFailure.fromFileSystemException(
+          filePath: reportFileAbsPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
   }
 }

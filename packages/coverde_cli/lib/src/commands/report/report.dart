@@ -184,19 +184,41 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       }
     }();
     // Build cov report base tree.
-    final covTree = traceFileData.asTree
-      // Generate report doc.
-      // try {
-      ..generateReport(
+    final covTree = traceFileData.asTree;
+    // Generate report doc.
+    try {
+      covTree.generateReport(
         traceFileName: path.basename(traceFileAbsPath),
         traceFileModificationDate: traceFileModificationDate,
         parentReportDirAbsPath: reportDirAbsPath,
         medium: medium,
         high: high,
       );
-    // } on GenerateHtmlCoverageReportFailure catch (exception, stackTrace) {
-    //   // TODO: Handle this error.
-    // }
+    } on GenerateHtmlCoverageReportFailure catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        switch (exception) {
+          final GenerateHtmlCoverageReportFileOperationFailure failure =>
+            switch (failure) {
+              GenerateHtmlCoverageReportFileCreateFailure() =>
+                CoverdeReportFileCreateFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+              GenerateHtmlCoverageReportFileReadFailure() =>
+                CoverdeReportFileReadFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+              GenerateHtmlCoverageReportFileWriteFailure() =>
+                CoverdeReportFileWriteFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+            },
+        },
+        stackTrace,
+      );
+    }
 
     // Copy static files.
     final cssRootPath = path.join(

@@ -191,6 +191,14 @@ sealed class CoverdeReportFileOperationFailure extends CoverdeReportFailure {
 /// {@endtemplate}
 final class CoverdeReportFileWriteFailure
     extends CoverdeReportFileOperationFailure {
+  /// {@macro coverde_cli.report_file_write_failure}
+  const CoverdeReportFileWriteFailure({
+    required super.filePath,
+    required super.errorMessage,
+  }) : super(
+          operation: CoverdeReportFileOperation.write,
+        );
+
   /// Create a [CoverdeReportFileWriteFailure] from a [FileSystemException].
   CoverdeReportFileWriteFailure.fromFileSystemException({
     required super.filePath,
@@ -210,6 +218,14 @@ final class CoverdeReportFileWriteFailure
 /// {@endtemplate}
 final class CoverdeReportFileCreateFailure
     extends CoverdeReportFileOperationFailure {
+  /// {@macro coverde_cli.report_file_create_failure}
+  const CoverdeReportFileCreateFailure({
+    required super.filePath,
+    required super.errorMessage,
+  }) : super(
+          operation: CoverdeReportFileOperation.create,
+        );
+
   /// Create a [CoverdeReportFileCreateFailure] from a [FileSystemException].
   CoverdeReportFileCreateFailure.fromFileSystemException({
     required super.filePath,
@@ -228,6 +244,14 @@ final class CoverdeReportFileCreateFailure
 /// {@endtemplate}
 final class CoverdeReportFileReadFailure
     extends CoverdeReportFileOperationFailure {
+  /// {@macro coverde_cli.report_file_read_failure}
+  const CoverdeReportFileReadFailure({
+    required super.filePath,
+    required super.errorMessage,
+  }) : super(
+          operation: CoverdeReportFileOperation.read,
+        );
+
   /// Create a [CoverdeReportFileReadFailure] from a [FileSystemException].
   CoverdeReportFileReadFailure.fromFileSystemException({
     required super.filePath,

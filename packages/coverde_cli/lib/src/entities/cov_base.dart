@@ -1,6 +1,6 @@
 // cspell:words nbsp
 
-import 'package:coverde/src/assets/assets.dart';
+import 'package:coverde/coverde.dart';
 import 'package:html/dom.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -50,6 +50,8 @@ abstract class CovElement extends CovComputable {
   }
 
   /// Generate HTML coverage report for this element.
+  ///
+  /// Throws a [GenerateHtmlCoverageReportFailure] if the operation fails.
   void generateSubReport({
     required String traceFileName,
     required String parentReportDirAbsPath,
