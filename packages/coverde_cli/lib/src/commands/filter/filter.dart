@@ -169,7 +169,17 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       }
     }
 
-    destination.parent.createSync(recursive: true);
+    try {
+      destination.parent.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeFilterDirectoryCreateFailure.fromFileSystemException(
+          directoryPath: destination.parent.path,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
     final finalContent = acceptedSrcFilesRawData.join('\n');
 
     RandomAccessFile? raf;
@@ -189,6 +199,14 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       }
       await raf.writeString(finalContent);
       await raf.flush();
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeFilterFileWriteFailure.fromFileSystemException(
+          filePath: destination.path,
+          exception: exception,
+        ),
+        stackTrace,
+      );
     } finally {
       await raf?.unlock();
       await raf?.close();

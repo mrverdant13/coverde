@@ -76,13 +76,33 @@ Remove a set of files and folders.''';
           if (isDryRun) {
             logger.info('[DRY RUN] Would remove dir:  <$elementPath>');
           } else {
-            Directory(elementPath).deleteSync(recursive: true);
+            try {
+              Directory(elementPath).deleteSync(recursive: true);
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeRmDirectoryDeleteFailure.fromFileSystemException(
+                  directoryPath: elementPath,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
           }
         case FileSystemEntityType.file:
           if (isDryRun) {
             logger.info('[DRY RUN] Would remove file: <$elementPath>');
           } else {
-            File(elementPath).deleteSync();
+            try {
+              File(elementPath).deleteSync();
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeRmFileDeleteFailure.fromFileSystemException(
+                  filePath: elementPath,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
           }
         case FileSystemEntityType.notFound:
           final failure = CoverdeRmElementNotFoundFailure(

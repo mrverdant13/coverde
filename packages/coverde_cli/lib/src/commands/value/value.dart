@@ -128,7 +128,20 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       case FileCoverageLogLevel.lineContent:
         for (final fileCovData in traceFile.sourceFilesCovData) {
           logger.info(fileCovData.coverageDataString);
-          final sourceLines = fileCovData.source.absolute.readAsLinesSync();
+          final sourceLines = () {
+            final file = fileCovData.source.absolute;
+            try {
+              return file.readAsLinesSync();
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeValueFileReadFailure.fromFileSystemException(
+                  filePath: file.path,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
+          }();
           final sourceLinesCount = sourceLines.length;
           final lineNumberColumnWidth = '$sourceLinesCount'.length;
           final uncoveredLineRanges = fileCovData.uncoveredLineRanges;
@@ -188,7 +201,20 @@ extension on CovFile {
   Iterable<Iterable<FileLineCoverageDetails>> get uncoveredLineRanges {
     const maxGap = 5;
     const surroundingLines = 2;
-    final sourceLines = source.absolute.readAsLinesSync();
+    final sourceLines = () {
+      final file = source.absolute;
+      try {
+        return file.readAsLinesSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeValueFileReadFailure.fromFileSystemException(
+            filePath: file.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }();
     final sourceLinesCount = sourceLines.length;
     final ranges = covLines
         .where(

@@ -1,4 +1,5 @@
 import 'package:coverde/coverde.dart';
+import 'package:universal_io/universal_io.dart';
 
 /// {@template coverde_cli.report_failure}
 /// The interface for [ReportCommand] failures.
@@ -138,4 +139,104 @@ final class CoverdeReportEmptyTraceFileFailure
   @override
   String get readableMessage =>
       'No coverage data found in the trace file at `$traceFilePath`.';
+}
+
+/// An operation on a file.
+enum CoverdeReportFileOperation {
+  /// The operation to create a file.
+  create('create'),
+
+  /// The operation to read a file.
+  read('read'),
+
+  /// The operation to write to a file.
+  write('write'),
+  ;
+
+  const CoverdeReportFileOperation(this.name);
+
+  /// The name of the operation.
+  final String name;
+}
+
+/// {@template coverde_cli.report_file_operation_failure}
+/// The interface for [ReportCommand] failures that indicates that a file
+/// system operation on a file failed.
+/// {@endtemplate}
+sealed class CoverdeReportFileOperationFailure extends CoverdeReportFailure {
+  /// {@macro coverde_cli.report_file_operation_failure}
+  const CoverdeReportFileOperationFailure({
+    required this.filePath,
+    required this.operation,
+    required this.errorMessage,
+  });
+
+  /// The file path where the operation failed.
+  final String filePath;
+
+  /// The operation that failed (e.g., 'write', 'create').
+  final CoverdeReportFileOperation operation;
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to ${operation.name} file at `$filePath`.\n'
+      '$errorMessage';
+}
+
+/// {@template coverde_cli.report_file_write_failure}
+/// A [ReportCommand] failure that indicates that a file write operation failed.
+/// {@endtemplate}
+final class CoverdeReportFileWriteFailure
+    extends CoverdeReportFileOperationFailure {
+  /// Create a [CoverdeReportFileWriteFailure] from a [FileSystemException].
+  CoverdeReportFileWriteFailure.fromFileSystemException({
+    required super.filePath,
+    required FileSystemException exception,
+  }) : super(
+          operation: CoverdeReportFileOperation.write,
+          errorMessage: [
+            exception.message,
+            if (exception.osError case final osError?) osError.message,
+          ].join('\n'),
+        );
+}
+
+/// {@template coverde_cli.report_file_create_failure}
+/// A [ReportCommand] failure that indicates that a file creation operation
+/// failed.
+/// {@endtemplate}
+final class CoverdeReportFileCreateFailure
+    extends CoverdeReportFileOperationFailure {
+  /// Create a [CoverdeReportFileCreateFailure] from a [FileSystemException].
+  CoverdeReportFileCreateFailure.fromFileSystemException({
+    required super.filePath,
+    required FileSystemException exception,
+  }) : super(
+          operation: CoverdeReportFileOperation.create,
+          errorMessage: [
+            exception.message,
+            if (exception.osError case final osError?) osError.message,
+          ].join('\n'),
+        );
+}
+
+/// {@template coverde_cli.report_file_read_failure}
+/// A [ReportCommand] failure that indicates that a file read operation failed.
+/// {@endtemplate}
+final class CoverdeReportFileReadFailure
+    extends CoverdeReportFileOperationFailure {
+  /// Create a [CoverdeReportFileReadFailure] from a [FileSystemException].
+  CoverdeReportFileReadFailure.fromFileSystemException({
+    required super.filePath,
+    required FileSystemException exception,
+  }) : super(
+          operation: CoverdeReportFileOperation.read,
+          errorMessage: [
+            exception.message,
+            if (exception.osError case final osError?) osError.message,
+          ].join('\n'),
+        );
 }

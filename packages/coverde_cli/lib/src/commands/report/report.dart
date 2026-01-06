@@ -170,40 +170,118 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     }
 
     // Build cov report base tree.
+    final traceFileModificationDate = () {
+      try {
+        return traceFile.lastModifiedSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeReportFileReadFailure.fromFileSystemException(
+            filePath: traceFileAbsPath,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }();
+    // Build cov report base tree.
     final covTree = traceFileData.asTree
       // Generate report doc.
+      // try {
       ..generateReport(
         traceFileName: path.basename(traceFileAbsPath),
-        traceFileModificationDate: traceFile.lastModifiedSync(),
+        traceFileModificationDate: traceFileModificationDate,
         parentReportDirAbsPath: reportDirAbsPath,
         medium: medium,
         high: high,
       );
+    // } on GenerateHtmlCoverageReportFailure catch (exception, stackTrace) {
+    //   // TODO: Handle this error.
+    // }
 
     // Copy static files.
     final cssRootPath = path.join(
       reportDirAbsPath,
       'report_style.css',
     );
-    File(cssRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(reportStyleCssBytes);
+    final cssFile = File(cssRootPath);
+    try {
+      cssFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: cssRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      cssFile.writeAsBytesSync(reportStyleCssBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: cssRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final sortAlphaIconRootPath = path.join(
       reportDirAbsPath,
       'sort_alpha.png',
     );
-    File(sortAlphaIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortAlphaPngBytes);
+    final sortAlphaFile = File(sortAlphaIconRootPath);
+    try {
+      sortAlphaFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: sortAlphaIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      sortAlphaFile.writeAsBytesSync(sortAlphaPngBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: sortAlphaIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final sortNumericIconRootPath = path.join(
       reportDirAbsPath,
       'sort_numeric.png',
     );
-    File(sortNumericIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortNumericPngBytes);
+    final sortNumericFile = File(sortNumericIconRootPath);
+    try {
+      sortNumericFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: sortNumericIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      sortNumericFile.writeAsBytesSync(sortNumericPngBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: sortNumericIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
 

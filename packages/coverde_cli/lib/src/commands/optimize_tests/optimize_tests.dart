@@ -113,7 +113,19 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
     }
     final pubspecFile = File(pubspecFilePath);
-    final pubspecRawContent = pubspecFile.readAsStringSync();
+    final pubspecRawContent = () {
+      try {
+        return pubspecFile.readAsStringSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
+            filePath: pubspecFilePath,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }();
     final pubspec = Pubspec.parse(pubspecRawContent);
     final outputPath = argResults.option(outputOptionName)!;
     if (p.basenameWithoutExtension(outputPath).startsWith('.')) {
@@ -123,7 +135,19 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
     }
     final outputFile = File(p.join(projectDir.path, outputPath));
-    if (outputFile.existsSync()) outputFile.deleteSync();
+    if (outputFile.existsSync()) {
+      try {
+        outputFile.deleteSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsFileDeleteFailure.fromFileSystemException(
+            filePath: outputFile.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }
     final includeGlob = () {
       final pattern = argResults.option(includeOptionName)!.withoutQuotes;
       return Glob(pattern, context: p.posix);
@@ -145,8 +169,19 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final useFlutterGoldenTests =
         argResults.flag(useFlutterGoldenTestsFlagName) && isFlutterPackage;
 
-    final fileRelativePaths = projectDir
-        .listSync(recursive: true)
+    final fileRelativePaths = () {
+      try {
+        return projectDir.listSync(recursive: true);
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsDirectoryListFailure.fromFileSystemException(
+            directoryPath: projectDir.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }()
         .whereType<File>()
         .sortedBy((it) => it.path)
         .map((it) {
@@ -171,7 +206,20 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final testFileGroupsStatements = <coder.Code>[];
     var hasAsyncEntryPoints = false;
     for (final fileRelativePath in validFileRelativePaths) {
-      final fileContent = File(fileRelativePath).absolute.readAsStringSync();
+      final fileContent = () {
+        final file = File(fileRelativePath).absolute;
+        try {
+          return file.readAsStringSync();
+        } on FileSystemException catch (exception, stackTrace) {
+          Error.throwWithStackTrace(
+            CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
+              filePath: file.path,
+              exception: exception,
+            ),
+            stackTrace,
+          );
+        }
+      }();
       final result = parseString(
         content: fileContent,
         featureSet: FeatureSet.latestLanguageVersion(),
@@ -352,9 +400,29 @@ tearDown(() {
     final unformattedOutput = '${library.accept(emitter)}';
     final output = formatter.format(unformattedOutput);
     if (!outputFile.parent.existsSync()) {
-      outputFile.parent.createSync(recursive: true);
+      try {
+        outputFile.parent.createSync(recursive: true);
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsDirectoryCreateFailure.fromFileSystemException(
+            directoryPath: outputFile.parent.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
     }
-    outputFile.writeAsStringSync(output);
+    try {
+      outputFile.writeAsStringSync(output);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeOptimizeTestsFileWriteFailure.fromFileSystemException(
+          filePath: outputFile.path,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
   }
 }
 
