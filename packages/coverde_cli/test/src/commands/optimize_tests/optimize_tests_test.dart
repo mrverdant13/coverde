@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -11,6 +12,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:universal_io/universal_io.dart';
 
 import '../../../helpers/test_files.dart';
 
@@ -1189,7 +1191,501 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
         );
       }
     });
+
+    test(
+      '| throws $CoverdeOptimizeTestsFileReadFailure '
+      'when pubspec.yaml read fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        File(pubspecFilePath).createSync();
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsFileReadFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  pubspecFilePath,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return _OptimizeTestsTestFile(
+                path: path,
+                existsSync: () => true,
+                readAsStringSync: () => throw FileSystemException(
+                  'Fake file read error',
+                  path,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsFileDeleteFailure '
+      'when output file delete fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        final pubspecFile = File(pubspecFilePath)
+          ..createSync()
+          ..writeAsStringSync('name: test');
+        final outputFilePath = p.join(directory.path, 'output.dart');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.outputOptionName}',
+                  outputFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsFileDeleteFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  outputFilePath,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return pubspecFile;
+            }
+            if (p.basename(path) == 'output.dart') {
+              return _OptimizeTestsTestFile(
+                path: path,
+                existsSync: () => true,
+                deleteSync: ({bool recursive = false}) =>
+                    throw FileSystemException(
+                  'Fake file delete error',
+                  path,
+                ),
+              );
+            }
+            return File(path);
+          },
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsDirectoryListFailure '
+      'when project directory list fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        final pubspecFile = File(pubspecFilePath)
+          ..createSync()
+          ..writeAsStringSync('name: test');
+        final outputFilePath = p.join(directory.path, 'output.dart');
+        final outputFile = File(outputFilePath);
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.outputOptionName}',
+                  outputFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsDirectoryListFailure>().having(
+                  (e) => e.directoryPath,
+                  'directoryPath',
+                  directory.path,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => _OptimizeTestsTestDirectory(
+            path: directory.path,
+            listSync: ({
+              bool recursive = false,
+              bool followLinks = true,
+            }) =>
+                throw FileSystemException(
+              'Fake directory list error',
+              directory.path,
+            ),
+          ),
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return pubspecFile;
+            }
+            if (p.basename(path) == 'output.dart') {
+              return outputFile;
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsFileReadFailure '
+      'when test file read fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        final pubspecFile = File(pubspecFilePath)
+          ..createSync()
+          ..writeAsStringSync('name: test');
+        final outputFilePath = p.join(directory.path, 'output.dart');
+        final outputFile = File(outputFilePath);
+        final testFilePath = p.joinAll([
+          directory.path,
+          'test',
+          'some_test.dart',
+        ]);
+        File(testFilePath)
+          ..createSync(recursive: true)
+          ..writeAsStringSync('void main() {}');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.outputOptionName}',
+                  outputFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsFileReadFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  testFilePath,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return pubspecFile;
+            }
+            if (p.basename(path) == 'output.dart') {
+              return outputFile;
+            }
+            if (p.basename(path) == 'some_test.dart') {
+              return _OptimizeTestsTestFile(
+                path: path,
+                readAsStringSync: () => throw FileSystemException(
+                  'Fake file read error',
+                  testFilePath,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsDirectoryCreateFailure '
+      'when output directory create fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        final pubspecFile = File(pubspecFilePath)
+          ..createSync()
+          ..writeAsStringSync('name: test');
+        final outputFilePath = p.joinAll([
+          directory.path,
+          'output',
+          'output.dart',
+        ]);
+        final outputFile = File(outputFilePath);
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.outputOptionName}',
+                  outputFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsDirectoryCreateFailure>().having(
+                  (e) => e.directoryPath,
+                  'directoryPath',
+                  p.joinAll([directory.path, 'output']),
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createDirectory: (path) {
+            if (p.basename(path) == 'output') {
+              return _OptimizeTestsTestDirectory(
+                path: path,
+                existsSync: () => false,
+                createSync: ({bool recursive = false}) {
+                  throw FileSystemException(
+                    'Fake directory create error',
+                    path,
+                  );
+                },
+              );
+            }
+            throw UnsupportedError(
+              'This directory $path should not be created in this test',
+            );
+          },
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return pubspecFile;
+            }
+            if (p.basename(path) == 'output.dart') {
+              return outputFile;
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsFileWriteFailure '
+      'when output file write fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        final pubspecFile = File(pubspecFilePath)
+          ..createSync()
+          ..writeAsStringSync('name: test');
+        final outputDirectoryPath = p.join(directory.path, 'output');
+        final outputDirectory = Directory(outputDirectoryPath)
+          ..createSync(recursive: true);
+        final outputFilePath = p.joinAll([
+          outputDirectory.path,
+          'output.dart',
+        ]);
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.outputOptionName}',
+                  outputFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsFileWriteFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  outputFilePath,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (path) {
+            if (p.basename(path) == 'pubspec.yaml') {
+              return pubspecFile;
+            }
+            if (p.basename(path) == 'output.dart') {
+              return _OptimizeTestsTestFile(
+                path: path,
+                existsSync: () => false,
+                writeAsStringSync: (
+                  contents, {
+                  mode = FileMode.write,
+                  encoding = utf8,
+                  flush = false,
+                }) =>
+                    throw FileSystemException(
+                  'Fake file write error',
+                  path,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      },
+    );
   });
+}
+
+final class _OptimizeTestsTestFile extends Fake implements File {
+  _OptimizeTestsTestFile({
+    required this.path,
+    bool Function()? existsSync,
+    String Function()? readAsStringSync,
+    void Function(
+      String contents, {
+      FileMode mode,
+      Encoding encoding,
+      bool flush,
+    })? writeAsStringSync,
+    void Function({bool recursive})? deleteSync,
+  })  : _existsSync = existsSync,
+        _readAsStringSync = readAsStringSync,
+        _writeAsStringSync = writeAsStringSync,
+        _deleteSync = deleteSync;
+
+  @override
+  final String path;
+
+  final bool Function()? _existsSync;
+
+  final String Function()? _readAsStringSync;
+
+  final void Function(
+    String contents, {
+    FileMode mode,
+    Encoding encoding,
+    bool flush,
+  })? _writeAsStringSync;
+
+  final void Function({bool recursive})? _deleteSync;
+
+  @override
+  File get absolute => File(p.absolute(path));
+
+  @override
+  Directory get parent {
+    final [...parentSegments, _] = p.split(path);
+    return Directory(p.joinAll(parentSegments));
+  }
+
+  @override
+  bool existsSync() {
+    if (_existsSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  String readAsStringSync({Encoding encoding = utf8}) {
+    if (_readAsStringSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  void writeAsStringSync(
+    String contents, {
+    FileMode mode = FileMode.write,
+    Encoding encoding = utf8,
+    bool flush = false,
+  }) {
+    if (_writeAsStringSync case final cb?) {
+      return cb(
+        contents,
+        mode: mode,
+        encoding: encoding,
+        flush: flush,
+      );
+    }
+    throw UnimplementedError();
+  }
+
+  @override
+  void deleteSync({bool recursive = false}) {
+    if (_deleteSync case final cb?) return cb(recursive: recursive);
+    throw UnimplementedError();
+  }
+}
+
+final class _OptimizeTestsTestDirectory extends Fake implements Directory {
+  _OptimizeTestsTestDirectory({
+    required this.path,
+    bool Function()? existsSync,
+    void Function({bool recursive})? createSync,
+    List<FileSystemEntity> Function({
+      bool recursive,
+      bool followLinks,
+    })? listSync,
+  })  : _existsSync = existsSync,
+        _createSync = createSync,
+        _listSync = listSync;
+
+  @override
+  final String path;
+
+  final bool Function()? _existsSync;
+
+  final void Function({bool recursive})? _createSync;
+
+  final List<FileSystemEntity> Function({
+    bool recursive,
+    bool followLinks,
+  })? _listSync;
+
+  @override
+  bool existsSync() {
+    if (_existsSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  void createSync({bool recursive = false}) {
+    if (_createSync case final cb?) return cb(recursive: recursive);
+    throw UnimplementedError();
+  }
+
+  @override
+  List<FileSystemEntity> listSync({
+    bool recursive = false,
+    bool followLinks = true,
+  }) {
+    if (_listSync case final cb?) {
+      return cb(
+        recursive: recursive,
+        followLinks: followLinks,
+      );
+    }
+    throw UnimplementedError();
+  }
 }
 
 extension on String {

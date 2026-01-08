@@ -283,5 +283,115 @@ Remove a set of files and folders.
         );
       },
     );
+
+    test(
+      '--no-${RmCommand.dryRunFlag} '
+      '<existing_file> '
+      '| throws $CoverdeRmFileDeleteFailure '
+      'when file deletion fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-rm-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final filePath = p.join(directory.path, 'file.txt');
+        File(filePath).createSync();
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'remove',
+                  '--no-${RmCommand.dryRunFlag}',
+                  filePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeRmFileDeleteFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  filePath,
+                ),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (p.equals(path, filePath)) {
+              return _RmTestFile(path: path);
+            }
+            return File(path);
+          },
+        );
+      },
+    );
+
+    test(
+      '--no-${RmCommand.dryRunFlag} '
+      '<existing_directory> '
+      '| throws $CoverdeRmDirectoryDeleteFailure '
+      'when directory deletion fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-rm-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final dirPath = p.join(directory.path, 'subdir');
+        Directory(dirPath).createSync();
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'remove',
+                  '--no-${RmCommand.dryRunFlag}',
+                  dirPath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeRmDirectoryDeleteFailure>().having(
+                  (e) => e.directoryPath,
+                  'directoryPath',
+                  dirPath,
+                ),
+              ),
+            );
+          },
+          createDirectory: (path) {
+            if (p.equals(path, dirPath)) {
+              return _RmTestDirectory(path: path);
+            }
+            return Directory(path);
+          },
+        );
+      },
+    );
   });
+}
+
+final class _RmTestFile extends Fake implements File {
+  _RmTestFile({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  void deleteSync({bool recursive = false}) {
+    throw FileSystemException('Fake file delete error', path);
+  }
+}
+
+final class _RmTestDirectory extends Fake implements Directory {
+  _RmTestDirectory({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  void deleteSync({bool recursive = false}) {
+    throw FileSystemException('Fake directory delete error', path);
+  }
 }

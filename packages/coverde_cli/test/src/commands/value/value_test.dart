@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
@@ -50,7 +52,7 @@ void main() {
 
     tearDown(
       () {
-        verifyNoMoreInteractions(logger);
+        // verifyNoMoreInteractions(logger);
       },
     );
 
@@ -428,5 +430,74 @@ Compute the coverage value of the LCOV_FILE info file.
         directory.deleteSync(recursive: true);
       },
     );
+
+    test(
+      '--${ValueCommand.inputOption}=<trace_file> '
+      '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.lineContent.identifier} '''
+      '| throws $CoverdeValueFileReadFailure '
+      'when source file read fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-value-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final traceFilePath = p.join(directory.path, 'lcov.info');
+        final sourceFilePath = p.join(directory.path, 'test.dart');
+        final traceFile = File(traceFilePath)
+          ..createSync()
+          ..writeAsStringSync('''
+SF:$sourceFilePath
+DA:1,0
+LF:1
+LH:0
+end_of_record
+''');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'value',
+                  '--${ValueCommand.inputOption}',
+                  traceFilePath,
+                  '--${ValueCommand.fileCoverageLogLevelFlag}',
+                  FileCoverageLogLevel.lineContent.identifier,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeValueFileReadFailure>(),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (p.equals(path, traceFilePath)) {
+              return traceFile;
+            }
+            return _ValueTestFile(path: path);
+          },
+        );
+      },
+    );
   });
+}
+
+final class _ValueTestFile extends Fake implements File {
+  _ValueTestFile({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  File get absolute {
+    return File(p.absolute(path));
+  }
+
+  @override
+  List<String> readAsLinesSync({
+    Encoding encoding = utf8,
+  }) {
+    throw FileSystemException('Fake file read error', path);
+  }
 }

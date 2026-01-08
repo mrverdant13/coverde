@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:coverde/src/commands/commands.dart';
@@ -723,5 +724,119 @@ end_of_record
         }
       },
     );
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterDirectoryCreateFailure '
+        'when output directory creation fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync('SF:test.dart\nend_of_record');
+
+      final outputFilePath = p.join(directory.path, 'output.info');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterDirectoryCreateFailure>().having(
+                (e) => e.directoryPath,
+                'directoryPath',
+                p.dirname(outputFilePath),
+              ),
+            ),
+          );
+        },
+        createDirectory: (path) => _FilterTestDirectory(path: path),
+      );
+    });
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterFileWriteFailure '
+        'when output file write fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      final inputFile = File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync('SF:test.dart\nend_of_record');
+
+      final outputFilePath = p.join(directory.path, 'output.info');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterFileWriteFailure>().having(
+                (e) => e.filePath,
+                'filePath',
+                outputFilePath,
+              ),
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.equals(path, inputFilePath)) return inputFile;
+          return _FilterTestFile(path: path);
+        },
+      );
+    });
   });
+}
+
+final class _FilterTestDirectory extends Fake implements Directory {
+  _FilterTestDirectory({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  void createSync({bool recursive = false}) {
+    throw FileSystemException('Fake directory creation error', path);
+  }
+}
+
+final class _FilterTestFile extends Fake implements File {
+  _FilterTestFile({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  Directory get parent => Directory(p.dirname(path));
+
+  @override
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
+    throw FileSystemException('Fake file write error', path);
+  }
 }

@@ -144,7 +144,9 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           }();
           final sourceLinesCount = sourceLines.length;
           final lineNumberColumnWidth = '$sourceLinesCount'.length;
-          final uncoveredLineRanges = fileCovData.uncoveredLineRanges;
+          final uncoveredLineRanges = fileCovData.getUncoveredLineRanges(
+            sourceLines: sourceLines,
+          );
           final indexedUncoveredLineRanges = uncoveredLineRanges.indexed;
           for (final (index, uncoveredLineRange)
               in indexedUncoveredLineRanges) {
@@ -198,23 +200,11 @@ extension on CovFile {
         .map((line) => line.lineNumber);
   }
 
-  Iterable<Iterable<FileLineCoverageDetails>> get uncoveredLineRanges {
+  Iterable<Iterable<FileLineCoverageDetails>> getUncoveredLineRanges({
+    required Iterable<String> sourceLines,
+  }) {
     const maxGap = 5;
     const surroundingLines = 2;
-    final sourceLines = () {
-      final file = source.absolute;
-      try {
-        return file.readAsLinesSync();
-      } on FileSystemException catch (exception, stackTrace) {
-        Error.throwWithStackTrace(
-          CoverdeValueFileReadFailure.fromFileSystemException(
-            filePath: file.path,
-            exception: exception,
-          ),
-          stackTrace,
-        );
-      }
-    }();
     final sourceLinesCount = sourceLines.length;
     final ranges = covLines
         .where(
@@ -238,7 +228,7 @@ extension on CovFile {
         for (var lineNumber = range.start;
             lineNumber <= range.end;
             lineNumber++) {
-          final content = sourceLines[lineNumber - 1];
+          final content = sourceLines.elementAt(lineNumber - 1);
           final covLine = covLines.singleWhereOrNull(
             (line) => line.lineNumber == lineNumber,
           );

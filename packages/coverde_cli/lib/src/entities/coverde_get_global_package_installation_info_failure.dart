@@ -1,4 +1,5 @@
 import 'package:universal_io/universal_io.dart';
+import 'package:yaml/yaml.dart';
 
 /// {@template coverde_cli.coverde_get_global_package_installation_info_failure}
 /// A failure that occurs when retrieving the global package installation info
@@ -29,6 +30,28 @@ final class AbsentGlobalLockFileForGlobalInstallationFailure
 
 // Long doc template identifier.
 // ignore: lines_longer_than_80_chars
+/// {@template coverde_cli.unreadable_global_lock_file_for_global_installation_failure}
+/// A failure that occurs when the global lock file is unreadable.
+/// {@endtemplate}
+final class UnreadableGlobalLockFileForGlobalInstallationFailure
+    extends CoverdeGetGlobalPackageInstallationInfoFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde_cli.unreadable_global_lock_file_for_global_installation_failure}
+  const UnreadableGlobalLockFileForGlobalInstallationFailure({
+    required this.lockFile,
+    required this.fileSystemException,
+  });
+
+  /// The global lock file that is unreadable.
+  final File lockFile;
+
+  /// The file system exception that occurred.
+  final FileSystemException fileSystemException;
+}
+
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
 /// {@template coverde_cli.invalid_global_lock_file_content_for_global_installation_failure}
 /// A failure that occurs when the global lock file is invalid.
 /// {@endtemplate}
@@ -40,6 +63,25 @@ sealed class InvalidGlobalLockFileContentForGlobalInstallationFailure
 
   /// The global lock file that is invalid.
   final File lockFile;
+}
+
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
+/// {@template coverde_cli.invalid_global_lock_file_yaml_for_global_installation_failure}
+/// A failure that occurs when the global lock file is invalid.
+/// {@endtemplate}
+final class InvalidGlobalLockFileYamlForGlobalInstallationFailure
+    extends InvalidGlobalLockFileContentForGlobalInstallationFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde_cli.invalid_global_lock_file_yaml_for_global_installation_failure}
+  const InvalidGlobalLockFileYamlForGlobalInstallationFailure({
+    required super.lockFile,
+    required this.yamlException,
+  });
+
+  /// The yaml exception that occurred.
+  final YamlException yamlException;
 }
 
 // Long doc template identifier.
