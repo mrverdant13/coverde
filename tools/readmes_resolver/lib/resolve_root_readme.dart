@@ -20,11 +20,15 @@ Future<void> main(List<String> args) async {
       'readme',
       mandatory: true,
     )
+    ..addOption(
+      'description-footer-dir',
+    )
     ..addMultiOption(
       'example-dirs',
     );
   final argResults = parser.parse(args);
   final readmePath = argResults.option('readme')!;
+  final descriptionFooterDirPath = argResults.option('description-footer-dir');
   final exampleDirPaths = argResults.multiOption('example-dirs');
 
   final readmeFile = File(readmePath);
@@ -56,6 +60,11 @@ Future<void> main(List<String> args) async {
     throw StateError('Features section not found in root readme');
   }
 
+  final descriptionFooterFiles = switch (descriptionFooterDirPath) {
+    null => <File>[],
+    final String path => Directory(path).listSync().whereType<File>(),
+  };
+
   final exampleFiles = exampleDirPaths
       .map((path) => Directory(path).listSync().whereType<File>())
       .expand((it) => it);
@@ -69,16 +78,30 @@ Future<void> main(List<String> args) async {
           '- [**${command.summary}**]',
           '(#${commandInvocation.paramCase})',
         ].join();
+        final descriptionFooter = descriptionFooterFiles
+            .where(
+              (file) {
+                return p.basename(file.path) ==
+                    '${commandInvocation.paramCase}.md';
+              },
+            )
+            .map((file) => file.readAsStringSync().trim())
+            .singleOrNull
+            ?.trim();
         detailsBuffer
           ..writeln('## `$commandInvocation`')
           ..writeln()
-          ..writeln(command.asMarkdownMultiline);
+          ..writeln(
+            command.getMarkdownMultiline(
+              descriptionFooter: descriptionFooter,
+            ),
+          );
         final commandExampleFiles = exampleFiles.where(
           (file) {
             final name = p.basenameWithoutExtension(file.path);
             final extension = p.extension(file.path);
             return name.startsWith(commandInvocation.paramCase) &&
-                extension == '.png';
+                ['.png', '.md'].contains(extension);
           },
         );
         if (commandExampleFiles.isNotEmpty) {
@@ -87,14 +110,21 @@ Future<void> main(List<String> args) async {
             ..writeln('### Examples')
             ..writeln();
           for (final commandExampleFile in commandExampleFiles) {
-            final referenceableExamplePath = p.relative(
-              commandExampleFile.path,
-              from: p.dirname(readmePath),
-            );
-            detailsBuffer.writeln(
-              '![${p.basename(commandExampleFile.path)}]'
-              '(${p.url.joinAll([gitUrl, referenceableExamplePath])})',
-            );
+            final exampleExtension = p.extension(commandExampleFile.path);
+            if (exampleExtension == '.png') {
+              final referenceableExamplePath = p.relative(
+                commandExampleFile.path,
+                from: p.dirname(readmePath),
+              );
+              detailsBuffer.writeln(
+                '![${p.basename(commandExampleFile.path)}]'
+                '(${p.url.joinAll([gitUrl, referenceableExamplePath])})',
+              );
+            } else if (exampleExtension == '.md') {
+              detailsBuffer.writeln(
+                commandExampleFile.readAsStringSync().trim(),
+              );
+            }
           }
         }
         return (
@@ -129,8 +159,15 @@ $featuresToken
 }
 
 extension on CoverdeCommand {
-  String get asMarkdownMultiline {
+  String getMarkdownMultiline({
+    String? descriptionFooter,
+  }) {
     final buf = StringBuffer()..writeln(description.asMarkdownMultiline);
+    if (descriptionFooter != null) {
+      buf
+        ..writeln()
+        ..writeln(descriptionFooter);
+    }
     final optionsAsMarkdownMultiline =
         argParser.options.values.asMarkdownMultiline;
     final paramsAsMarkdownMultiline = params?.asMarkdownMultiline;
