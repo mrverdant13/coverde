@@ -55,7 +55,8 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
     );
 
     test(
-      '| throws exception when parsing invalid string representation',
+      '| throws $CovFileFormatFailure '
+      'when parsing invalid string representation',
       () async {
         const rawCovFileString = '''
 DA:1,3
@@ -63,7 +64,7 @@ DA:3,5''';
 
         void action() => CovFile.parse(rawCovFileString);
 
-        expect(action, throwsA(isA<CovFileFormatException>()));
+        expect(action, throwsA(isA<CovFileFormatFailure>()));
       },
     );
   });
