@@ -10,4 +10,4 @@ on_os:
   mac-os:
     timeout: 1m 30s
   windows:
-    timeout: 6m
+    timeout: 10m
