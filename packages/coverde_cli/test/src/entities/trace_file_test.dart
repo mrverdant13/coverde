@@ -94,13 +94,13 @@ void main() {
       );
 
       test(
-        '| throws $CovFileFormatException when a block has no source file tag',
+        '| throws $CovFileFormatFailure when a block has no source file tag',
         () async {
           const invalidBlock = 'DA:1,1\nend_of_record\n';
 
           void action() => TraceFile.parse(invalidBlock);
 
-          expect(action, throwsA(isA<CovFileFormatException>()));
+          expect(action, throwsA(isA<CovFileFormatFailure>()));
         },
       );
 
@@ -265,7 +265,7 @@ DA:1,1
       );
 
       test(
-        '| propagates $CovFileFormatException '
+        '| propagates $CovFileFormatFailure '
         'when a block has no source file tag',
         () async {
           final tempDir = Directory.systemTemp.createTempSync();
@@ -278,7 +278,7 @@ DA:1,1
 
           await expectLater(
             action,
-            throwsA(isA<CovFileFormatException>()),
+            throwsA(isA<CovFileFormatFailure>()),
           );
         },
       );
@@ -303,7 +303,7 @@ DA:1,1
       );
 
       test(
-        '| propagates $CovFileFormatException '
+        '| propagates $CovFileFormatFailure '
         'when the last block is incomplete and malformed',
         () async {
           final tempDir = Directory.systemTemp.createTempSync();
@@ -318,7 +318,7 @@ DA:1,1
 
           await expectLater(
             action,
-            throwsA(isA<CovFileFormatException>()),
+            throwsA(isA<CovFileFormatFailure>()),
           );
         },
       );

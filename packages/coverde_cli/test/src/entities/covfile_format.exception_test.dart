@@ -1,28 +1,17 @@
 import 'package:coverde/src/entities/cov_file_format.exception.dart';
-import 'package:io/io.dart';
 import 'package:test/test.dart';
 
 void main() {
   group(
-    '$CovFileFormatException',
+    '$CovFileFormatFailure',
     () {
-      final exception = CovFileFormatException(message: 'A message.');
+      const exception = CovFileFormatFailure(readableMessage: 'A message.');
 
       test(
-        'code '
-        '| returns data exit code',
+        'readableMessage '
+        '| returns the readable message',
         () {
-          final result = exception.code;
-
-          expect(result, ExitCode.data);
-        },
-      );
-
-      test(
-        'toString() '
-        '| string representation includes exception message',
-        () {
-          final result = exception.toString();
+          final result = exception.readableMessage;
 
           expect(result, 'A message.');
         },

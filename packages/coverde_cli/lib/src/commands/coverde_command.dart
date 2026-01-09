@@ -27,6 +27,11 @@ abstract class CoverdeCommand extends Command<void> {
     };
   }
 
+  /// The usage without the description.
+  String get usageWithoutDescription {
+    return usage.replaceAll(description, '').trim();
+  }
+
   @override
   CoverdeCommandRunner get runner => super.runner! as CoverdeCommandRunner;
 

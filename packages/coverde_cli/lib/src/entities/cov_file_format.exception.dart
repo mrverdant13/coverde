@@ -1,19 +1,15 @@
 import 'package:coverde/src/entities/entities.dart';
-import 'package:io/io.dart';
 
-/// {@template cov_file_format_exception}
-/// An exception that indicates that the coverage data of a given tested file is
-/// not properly formatted.
+/// {@template cov_file_format_failure}
+/// A [CoverdeFailure] that indicates that the coverage data of a given tested
+/// file is not properly formatted.
 /// {@endtemplate}
-class CovFileFormatException extends CoverdeException {
-  /// {@macro cov_file_format_exception}
-  CovFileFormatException({
-    required this.message,
+class CovFileFormatFailure extends CoverdeFailure {
+  /// {@macro cov_file_format_failure}
+  const CovFileFormatFailure({
+    required this.readableMessage,
   });
 
   @override
-  ExitCode get code => ExitCode.data;
-
-  @override
-  final String message;
+  final String readableMessage;
 }
