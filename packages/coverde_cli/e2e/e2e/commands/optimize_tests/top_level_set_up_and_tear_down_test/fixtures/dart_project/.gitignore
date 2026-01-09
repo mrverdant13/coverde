@@ -7,6 +7,7 @@
 /pubspec.lock
 
 # Testing and coverage
+/**/*_test.dart
 /coverage/
 /test/optimized_test.dart
 
