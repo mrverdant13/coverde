@@ -141,6 +141,29 @@ final class CoverdeReportEmptyTraceFileFailure
       'No coverage data found in the trace file at `$traceFilePath`.';
 }
 
+/// {@template coverde_cli.report_trace_file_read_failure}
+/// A [ReportCommand] failure that indicates that a trace file read operation
+/// failed.
+/// {@endtemplate}
+final class CoverdeReportTraceFileReadFailure
+    extends CoverdeReportInvalidTraceFileFailure {
+  /// Create a [CoverdeReportTraceFileReadFailure] from a [FileSystemException].
+  CoverdeReportTraceFileReadFailure.fromFileSystemException({
+    required super.traceFilePath,
+    required FileSystemException exception,
+  }) : errorMessage = [
+          exception.message,
+          if (exception.osError case final osError?) osError.message,
+        ].join('\n');
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to read trace file at `$traceFilePath`.\n$errorMessage';
+}
+
 /// An operation on a file.
 enum CoverdeReportFileOperation {
   /// The operation to create a file.

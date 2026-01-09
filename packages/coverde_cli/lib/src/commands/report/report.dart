@@ -161,7 +161,15 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       );
     }
 
-    final traceFileData = await TraceFile.parseStreaming(traceFile);
+    final TraceFile traceFileData;
+    try {
+      traceFileData = await TraceFile.parseStreaming(traceFile);
+    } on FileSystemException catch (exception) {
+      throw CoverdeReportTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: traceFileAbsPath,
+        exception: exception,
+      );
+    }
 
     if (traceFileData.isEmpty) {
       throw CoverdeReportEmptyTraceFileFailure(
@@ -332,10 +340,14 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
         );
         return;
       }
-      await processManager.run(
-        [launchCommand, reportIndexAbsPath],
-        runInShell: true,
-      );
+      try {
+        await processManager.run(
+          [launchCommand, reportIndexAbsPath],
+          runInShell: true,
+        );
+      } on Object catch (error) {
+        logger.err('Failed to launch browser: $error');
+      }
     }
   }
 }

@@ -231,6 +231,55 @@ This parameter indicates the minimum value for the coverage to be accepted.
     );
 
     test(
+      '--${CheckCommand.inputOptionName}=<trace_file> '
+      '<min_coverage> '
+      '| throws $CoverdeCheckTraceFileReadFailure '
+      'when trace file read fails',
+      () async {
+        final directory = Directory.systemTemp.createTempSync();
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+        File(traceFilePath).createSync();
+        const minCoverage = 50;
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'check',
+                  '--${CheckCommand.inputOptionName}',
+                  traceFilePath,
+                  '$minCoverage',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeCheckTraceFileReadFailure>().having(
+                  (e) => e.traceFilePath,
+                  'traceFilePath',
+                  p.absolute(traceFilePath),
+                ),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (p.basename(path) == 'trace.lcov.info') {
+              return _CheckTraceFileReadTestFile(
+                path: path,
+                openRead: ([start, end]) => Stream<List<int>>.error(
+                  FileSystemException('Fake file read error', path),
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be read in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
       '--${CheckCommand.fileCoverageLogLevelOptionName}=<invalid> '
       '<min_coverage> '
       '| fails when --${CheckCommand.fileCoverageLogLevelOptionName} '
@@ -323,4 +372,22 @@ This parameter indicates the minimum value for the coverage to be accepted.
       },
     );
   });
+}
+
+final class _CheckTraceFileReadTestFile extends Fake implements File {
+  _CheckTraceFileReadTestFile({
+    required this.path,
+    Stream<List<int>> Function([int? start, int? end])? openRead,
+  }) : _openRead = openRead;
+
+  @override
+  final String path;
+
+  final Stream<List<int>> Function([int? start, int? end])? _openRead;
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    if (_openRead case final cb?) return cb(start, end);
+    throw UnimplementedError();
+  }
 }

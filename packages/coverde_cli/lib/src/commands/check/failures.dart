@@ -1,4 +1,5 @@
 import 'package:coverde/coverde.dart';
+import 'package:universal_io/universal_io.dart';
 
 /// {@template coverde_cli.check_failure}
 /// The interface for [CheckCommand] failures.
@@ -119,6 +120,29 @@ final class CoverdeCheckEmptyTraceFileFailure
   @override
   String get readableMessage =>
       'No coverage data found in the trace file located at `$traceFilePath`.';
+}
+
+/// {@template coverde_cli.check_trace_file_read_failure}
+/// A [CheckCommand] failure that indicates that a trace file read operation
+/// failed.
+/// {@endtemplate}
+final class CoverdeCheckTraceFileReadFailure
+    extends CoverdeCheckInvalidTraceFileFailure {
+  /// Create a [CoverdeCheckTraceFileReadFailure] from a [FileSystemException].
+  CoverdeCheckTraceFileReadFailure.fromFileSystemException({
+    required super.traceFilePath,
+    required FileSystemException exception,
+  }) : errorMessage = [
+          exception.message,
+          if (exception.osError case final osError?) osError.message,
+        ].join('\n');
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to read trace file at `$traceFilePath`.\n$errorMessage';
 }
 
 /// {@template coverde_cli.check_coverage_below_minimum_failure}

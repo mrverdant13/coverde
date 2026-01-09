@@ -74,6 +74,31 @@ final class CoverdeFilterTraceFileNotFoundFailure extends CoverdeFilterFailure {
   String get readableMessage => 'No trace file found at `$traceFilePath`.';
 }
 
+/// {@template coverde_cli.filter_trace_file_read_failure}
+/// A [FilterCommand] failure that indicates that a trace file read operation
+/// failed.
+/// {@endtemplate}
+final class CoverdeFilterTraceFileReadFailure extends CoverdeFilterFailure {
+  /// Create a [CoverdeFilterTraceFileReadFailure] from a [FileSystemException].
+  CoverdeFilterTraceFileReadFailure.fromFileSystemException({
+    required this.traceFilePath,
+    required FileSystemException exception,
+  }) : errorMessage = [
+          exception.message,
+          if (exception.osError case final osError?) osError.message,
+        ].join('\n');
+
+  /// The path to the trace file.
+  final String traceFilePath;
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to read trace file at `$traceFilePath`.\n$errorMessage';
+}
+
 /// An operation on a file.
 enum CoverdeFilterFileOperation {
   /// The operation to write to a file.

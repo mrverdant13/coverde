@@ -141,7 +141,15 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final origin = File(originPath);
     final destination = File(destinationPath);
 
-    final traceFile = await TraceFile.parseStreaming(origin);
+    final TraceFile traceFile;
+    try {
+      traceFile = await TraceFile.parseStreaming(origin);
+    } on FileSystemException catch (exception) {
+      throw CoverdeFilterTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: originPath,
+        exception: exception,
+      );
+    }
     final acceptedSrcFilesRawData = <String>{};
 
     // For each file coverage data.

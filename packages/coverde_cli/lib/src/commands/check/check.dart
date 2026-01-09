@@ -106,7 +106,15 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     }
     final file = File(filePath);
 
-    final traceFile = await TraceFile.parseStreaming(file);
+    final TraceFile traceFile;
+    try {
+      traceFile = await TraceFile.parseStreaming(file);
+    } on FileSystemException catch (exception) {
+      throw CoverdeCheckTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: filePath,
+        exception: exception,
+      );
+    }
 
     if (traceFile.isEmpty) {
       throw CoverdeCheckEmptyTraceFileFailure(

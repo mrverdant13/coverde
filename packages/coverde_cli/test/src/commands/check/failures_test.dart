@@ -1,6 +1,7 @@
 import 'package:coverde/src/commands/check/failures.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:test/test.dart';
+import 'package:universal_io/universal_io.dart';
 
 void main() {
   group('$CoverdeCheckFailure', () {
@@ -184,6 +185,32 @@ Usage message
           final result = failure.traceFilePath;
 
           expect(result, '/path/to/file');
+        },
+      );
+    });
+
+    group('$CoverdeCheckTraceFileReadFailure', () {
+      test(
+        'readableMessage '
+        '| returns formatted message with trace file path and error message',
+        () {
+          const exception = FileSystemException(
+            'Permission denied',
+            '/path/to/trace.lcov.info',
+          );
+          final failure =
+              CoverdeCheckTraceFileReadFailure.fromFileSystemException(
+            traceFilePath: '/path/to/trace.lcov.info',
+            exception: exception,
+          );
+
+          final result = failure.readableMessage;
+
+          expect(
+            result,
+            'Failed to read trace file at `/path/to/trace.lcov.info`.\n'
+            'Permission denied',
+          );
         },
       );
     });

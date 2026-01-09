@@ -360,6 +360,47 @@ Error: Non-matching (plain text) file <$relFilePath>''',
     });
 
     test(
+        '--${ReportCommand.inputOption}=<trace_file> '
+        '--${ReportCommand.outputOption}=<report_dir> '
+        '--${ReportCommand.launchFlag} '
+        '| logs error when browser launch fails', () async {
+      final traceFilePath = _Project.fakeProject1.traceFilePath;
+      final traceFileFile = File(traceFilePath);
+      const resultDirName = 'result';
+      final reportDirPath =
+          resultDirName.fixturePath(proj: _Project.fakeProject1);
+      final reportDir = Directory(reportDirPath);
+      when(
+        () => processManager.run(
+          any(),
+          runInShell: any(named: 'runInShell'),
+        ),
+      ).thenThrow(Exception('Browser not found'));
+      expect(traceFileFile.existsSync(), isTrue);
+
+      await cmdRunner.run([
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.outputOption}',
+        reportDirPath,
+        '--${ReportCommand.launchFlag}',
+      ]);
+
+      expect(reportDir.existsSync(), isTrue);
+      final reportIndexFile = File(
+        p.join(reportDirPath, 'index.html'),
+      );
+      expect(reportIndexFile.existsSync(), isTrue);
+      verify(
+        () => logger.info(any()),
+      ).called(2);
+      verify(
+        () => logger.err(any(that: contains('Failed to launch browser'))),
+      ).called(1);
+    });
+
+    test(
         '--${ReportCommand.inputOption}=<absent_file> '
         '| fails when trace file does not exist', () async {
       final absentFilePath = p.joinAll([
@@ -1376,6 +1417,51 @@ end_of_record
               readAsLinesSync: (Encoding encoding) => throw FileSystemException(
                 'Fake file read error',
                 path,
+              ),
+            );
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
+
+    test(
+        '| throws $CoverdeReportTraceFileReadFailure '
+        'when trace file read fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-report-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'report',
+                '--${ReportCommand.inputOption}',
+                traceFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeReportTraceFileReadFailure>().having(
+                (e) => e.traceFilePath,
+                'traceFilePath',
+                p.absolute(traceFilePath),
+              ),
+            ),
+          );
+        },
+        getCurrentDirectory: () => directory,
+        createFile: (path) {
+          if (p.basename(path) == 'lcov.info') {
+            return _ReportTestFile(
+              path: path,
+              existsSync: () => true,
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
               ),
             );
           }

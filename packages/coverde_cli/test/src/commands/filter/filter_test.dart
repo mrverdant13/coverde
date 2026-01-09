@@ -776,9 +776,16 @@ end_of_record
       final inputFilePath = p.join(directory.path, 'input.info');
       final inputFile = File(inputFilePath)
         ..createSync()
-        ..writeAsStringSync('SF:test.dart\nend_of_record');
-
+        ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
       final outputFilePath = p.join(directory.path, 'output.info');
+      final testFilePath = p.joinAll([
+        directory.path,
+        'lib',
+        'some_test.dart',
+      ]);
+      final testFile = File(testFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
@@ -802,8 +809,76 @@ end_of_record
           );
         },
         createFile: (path) {
-          if (p.equals(path, inputFilePath)) return inputFile;
-          return _FilterTestFile(path: path);
+          if (p.basename(path) == 'input.info') {
+            return inputFile;
+          }
+          if (p.basename(path) == 'some_test.dart') {
+            return testFile;
+          }
+          if (p.basename(path) == 'output.info') {
+            return _FilterTestFile(
+              path: path,
+              open: () => Future<RandomAccessFile>.error(
+                FileSystemException('Fake file write error', path),
+              ),
+            );
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterTraceFileReadFailure '
+        'when trace file read fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      File(inputFilePath).createSync();
+      final outputFilePath = p.join(directory.path, 'output.info');
+      final outputFile = File(outputFilePath);
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterTraceFileReadFailure>().having(
+                (e) => e.traceFilePath,
+                'traceFilePath',
+                inputFilePath,
+              ),
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.basename(path) == 'input.info') {
+            return _FilterTestFile(
+              path: path,
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
+            );
+          }
+          if (p.basename(path) == 'output.info') {
+            return outputFile;
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
         },
       );
     });
@@ -827,7 +902,13 @@ final class _FilterTestDirectory extends Fake implements Directory {
 final class _FilterTestFile extends Fake implements File {
   _FilterTestFile({
     required this.path,
-  });
+    Future<RandomAccessFile> Function()? open,
+    Stream<List<int>> Function([int? start, int? end])? openRead,
+  })  : _open = open,
+        _openRead = openRead;
+
+  final Future<RandomAccessFile> Function()? _open;
+  final Stream<List<int>> Function([int? start, int? end])? _openRead;
 
   @override
   final String path;
@@ -837,6 +918,13 @@ final class _FilterTestFile extends Fake implements File {
 
   @override
   Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
-    throw FileSystemException('Fake file write error', path);
+    if (_open case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    if (_openRead case final cb?) return cb(start, end);
+    throw UnimplementedError();
   }
 }

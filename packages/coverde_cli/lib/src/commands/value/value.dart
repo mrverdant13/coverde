@@ -88,7 +88,15 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     final file = File(filePath);
 
-    final traceFile = await TraceFile.parseStreaming(file);
+    final TraceFile traceFile;
+    try {
+      traceFile = await TraceFile.parseStreaming(file);
+    } on FileSystemException catch (exception) {
+      throw CoverdeValueTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: filePath,
+        exception: exception,
+      );
+    }
 
     if (traceFile.isEmpty) {
       throw CoverdeValueEmptyTraceFileFailure(

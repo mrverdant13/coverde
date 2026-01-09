@@ -315,5 +315,31 @@ Usage message
         },
       );
     });
+
+    group('$CoverdeFilterTraceFileReadFailure', () {
+      test(
+        'readableMessage '
+        '| returns formatted message with trace file path and error message',
+        () {
+          final exception = FileSystemException(
+            'Permission denied',
+            '/path/to/trace.lcov.info',
+          );
+          final failure =
+              CoverdeFilterTraceFileReadFailure.fromFileSystemException(
+            traceFilePath: '/path/to/trace.lcov.info',
+            exception: exception,
+          );
+
+          final result = failure.readableMessage;
+
+          expect(
+            result,
+            'Failed to read trace file at `/path/to/trace.lcov.info`.\n'
+            'Permission denied',
+          );
+        },
+      );
+    });
   });
 }

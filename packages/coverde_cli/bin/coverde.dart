@@ -90,6 +90,7 @@ extension on CoverdeCheckInvalidTraceFileFailure {
   ExitCode get exitCode => switch (this) {
         CoverdeCheckTraceFileNotFoundFailure() => ExitCode.noInput,
         CoverdeCheckEmptyTraceFileFailure() => ExitCode.data,
+        CoverdeCheckTraceFileReadFailure() => ExitCode.ioError,
       };
 }
 
@@ -97,6 +98,7 @@ extension on CoverdeFilterFailure {
   ExitCode get exitCode => switch (this) {
         final CoverdeFilterInvalidInputFailure failure => failure.exitCode,
         CoverdeFilterTraceFileNotFoundFailure() => ExitCode.noInput,
+        CoverdeFilterTraceFileReadFailure() => ExitCode.ioError,
         final CoverdeFilterFileOperationFailure failure => failure.exitCode,
         final CoverdeFilterDirectoryOperationFailure failure =>
           failure.exitCode,
@@ -185,6 +187,7 @@ extension on CoverdeReportInvalidTraceFileFailure {
   ExitCode get exitCode => switch (this) {
         CoverdeReportTraceFileNotFoundFailure() => ExitCode.noInput,
         CoverdeReportEmptyTraceFileFailure() => ExitCode.data,
+        CoverdeReportTraceFileReadFailure() => ExitCode.ioError,
       };
 }
 
@@ -226,5 +229,6 @@ extension on CoverdeValueInvalidTraceFileFailure {
   ExitCode get exitCode => switch (this) {
         CoverdeValueTraceFileNotFoundFailure() => ExitCode.noInput,
         CoverdeValueEmptyTraceFileFailure() => ExitCode.data,
+        CoverdeValueTraceFileReadFailure() => ExitCode.ioError,
       };
 }

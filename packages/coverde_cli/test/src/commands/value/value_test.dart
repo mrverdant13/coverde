@@ -441,11 +441,10 @@ Compute the coverage value of the LCOV_FILE info file.
             Directory.systemTemp.createTempSync('coverde-value-test-');
         addTearDown(() => directory.delete(recursive: true));
         final traceFilePath = p.join(directory.path, 'lcov.info');
-        final sourceFilePath = p.join(directory.path, 'test.dart');
         final traceFile = File(traceFilePath)
           ..createSync()
           ..writeAsStringSync('''
-SF:$sourceFilePath
+SF:lib/some_test.dart
 DA:1,0
 LF:1
 LH:0
@@ -470,10 +469,70 @@ end_of_record
             );
           },
           createFile: (path) {
-            if (p.equals(path, traceFilePath)) {
+            if (p.basename(path) == 'lcov.info') {
               return traceFile;
             }
-            return _ValueTestFile(path: path);
+            if (p.basename(path) == 'some_test.dart') {
+              return _ValueTestFile(
+                path: path,
+                readAsLinesSync: ({encoding = utf8}) {
+                  throw FileSystemException(
+                    'Fake file read error',
+                    path,
+                  );
+                },
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be read in this test',
+            );
+          },
+        );
+      },
+    );
+
+    test(
+      '--${ValueCommand.inputOption}=<trace_file> '
+      '| throws $CoverdeValueTraceFileReadFailure '
+      'when trace file read fails',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-value-test-');
+        addTearDown(() => directory.delete(recursive: true));
+        final traceFilePath = p.join(directory.path, 'lcov.info');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'value',
+                  '--${ValueCommand.inputOption}',
+                  traceFilePath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeValueTraceFileReadFailure>().having(
+                  (e) => e.traceFilePath,
+                  'traceFilePath',
+                  p.absolute(traceFilePath),
+                ),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (p.basename(path) == 'lcov.info') {
+              return _ValueTestFile(
+                path: path,
+                existsSync: () => true,
+                openRead: ([start, end]) => Stream<List<int>>.error(
+                  FileSystemException('Fake file read error', path),
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be read in this test',
+            );
           },
         );
       },
@@ -484,7 +543,26 @@ end_of_record
 final class _ValueTestFile extends Fake implements File {
   _ValueTestFile({
     required this.path,
-  });
+    bool Function()? existsSync,
+    Stream<List<int>> Function([
+      int? start,
+      int? end,
+    ])? openRead,
+    List<String> Function({
+      Encoding encoding,
+    })? readAsLinesSync,
+  })  : _existsSync = existsSync,
+        _openRead = openRead,
+        _readAsLinesSync = readAsLinesSync;
+
+  final bool Function()? _existsSync;
+  final Stream<List<int>> Function([
+    int? start,
+    int? end,
+  ])? _openRead;
+  final List<String> Function({
+    Encoding encoding,
+  })? _readAsLinesSync;
 
   @override
   final String path;
@@ -495,9 +573,22 @@ final class _ValueTestFile extends Fake implements File {
   }
 
   @override
+  bool existsSync() {
+    if (_existsSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    if (_openRead case final cb?) return cb(start, end);
+    throw UnimplementedError();
+  }
+
+  @override
   List<String> readAsLinesSync({
     Encoding encoding = utf8,
   }) {
-    throw FileSystemException('Fake file read error', path);
+    if (_readAsLinesSync case final cb?) return cb(encoding: encoding);
+    throw UnimplementedError();
   }
 }
