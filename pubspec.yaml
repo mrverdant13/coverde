@@ -213,8 +213,10 @@ melos:
       description: Resolve CLI README file
       run: >
         dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart
-        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/browser/
-        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/terminal/
+        --description-footer-dir=MELOS_ROOT_PATH/packages/coverde_cli/doc/details/command-description-footers/
+        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/browser/
+        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/terminal/
+        --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/markdown/
         --readme=MELOS_ROOT_PATH/packages/coverde_cli/README.md
 
 workspace:
