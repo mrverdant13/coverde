@@ -115,7 +115,7 @@ melos:
           - test
         dirExists:
           - test
-    test.e2e: # TODO: Test
+    test.e2e:
       description: Run E2E tests
       run: >
         git clean

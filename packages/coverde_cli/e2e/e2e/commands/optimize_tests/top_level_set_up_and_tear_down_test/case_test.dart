@@ -8,38 +8,28 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
-  test('Flutter golden test', () async {
-    final testCases = [
+  test('Top level `setUp` and `tearDown`', () async {
+    const testCases = [
       (
-        caseName: 'flutter (platform: _default_)',
-        sdkCommand: 'flutter',
+        caseName: 'dart',
+        projectDirName: 'dart_project',
+        testCommand: 'dart test --no-color --reporter compact',
+      ),
+      (
+        caseName: 'flutter',
         projectDirName: 'flutter_project',
         testCommand: 'flutter test --reporter compact',
       ),
-      if (!Platform.isWindows)
-        // `--platform chrome` fails on Windows
-        // Possibly related to https://github.com/flutter/flutter/issues/171436
-        (
-          caseName: 'flutter (platform: Chrome)',
-          sdkCommand: 'flutter',
-          projectDirName: 'flutter_project',
-          testCommand: 'flutter test --reporter compact --platform chrome',
-        ),
     ];
     final currentDirectory = Directory.current;
     for (final testCase in testCases) {
-      final (
-        :sdkCommand,
-        :caseName,
-        :projectDirName,
-        :testCommand,
-      ) = testCase;
+      final (:caseName, :projectDirName, :testCommand) = testCase;
       final projectDirPath = p.joinAll([
         currentDirectory.path,
-        'test',
+        'e2e',
         'commands',
         'optimize_tests',
-        'flutter_golden_test',
+        'top_level_set_up_and_tear_down_test',
         'fixtures',
         projectDirName,
       ]);
@@ -66,14 +56,19 @@ void main() {
           }),
         ).wait;
         expect(
-          exitCode,
-          0,
-          reason: 'generated files should be cleaned ($caseName project)',
-        );
-        expect(
-          stderrMessages,
-          isEmpty,
-          reason: 'there should be no stderr messages ($caseName project)',
+          (exitCode, stderrMessages),
+          isA<(int, List<String>)>()
+              .having(
+                (it) => it.$1,
+                'exitCode',
+                isZero,
+              )
+              .having(
+                (it) => it.$2,
+                'stderrMessages',
+                isEmpty,
+              ),
+          reason: '$caseName project',
         );
       }
 
@@ -83,7 +78,7 @@ void main() {
           final [
             command,
             ...arguments,
-          ] = '$sdkCommand pub get'.split(' ');
+          ] = '$caseName pub get'.split(' ');
           return Process.start(
             command,
             arguments,
@@ -100,14 +95,19 @@ void main() {
           }),
         ).wait;
         expect(
-          exitCode,
-          0,
-          reason: 'dependencies should be installed ($caseName project)',
-        );
-        expect(
-          stderrMessages,
-          isEmpty,
-          reason: 'there should be no stderr messages ($caseName project)',
+          (exitCode, stderrMessages),
+          isA<(int, List<String>)>()
+              .having(
+                (it) => it.$1,
+                'exitCode',
+                isZero,
+              )
+              .having(
+                (it) => it.$2,
+                'stderrMessages',
+                isEmpty,
+              ),
+          reason: '$caseName project',
         );
       }
 
@@ -169,19 +169,24 @@ void main() {
           }),
         ).wait;
         expect(
-          exitCode,
-          0,
-          reason: 'optimized test file should be created ($caseName project)',
-        );
-        expect(
-          stdoutMessages,
-          isEmpty,
-          reason: 'there should be no stdout messages ($caseName project)',
-        );
-        expect(
-          stderrMessages,
-          isEmpty,
-          reason: 'there should be no stderr messages ($caseName project)',
+          (exitCode, stdoutMessages, stderrMessages),
+          isA<(int, List<String>, List<String>)>()
+              .having(
+                (it) => it.$1,
+                'exitCode',
+                isZero,
+              )
+              .having(
+                (it) => it.$2,
+                'stdoutMessages',
+                isEmpty,
+              )
+              .having(
+                (it) => it.$3,
+                'stderrMessages',
+                isEmpty,
+              ),
+          reason: '$caseName project',
         );
         expect(
           optimizedTestFile.existsSync(),
@@ -218,19 +223,24 @@ void main() {
           }),
         ).wait;
         expect(
-          exitCode,
-          0,
-          reason: 'optimized test file should be run ($caseName project)',
-        );
-        expect(
-          stdoutMessages,
-          anyElement(contains('+2: All tests passed!')),
-          reason: 'all tests should pass ($caseName project)',
-        );
-        expect(
-          stderrMessages,
-          isEmpty,
-          reason: 'there should be no stderr messages ($caseName project)',
+          (exitCode, stdoutMessages, stderrMessages),
+          isA<(int, List<String>, List<String>)>()
+              .having(
+                (it) => it.$1,
+                'exitCode',
+                isZero,
+              )
+              .having(
+                (it) => it.$2,
+                'stdoutMessages',
+                anyElement(contains('+4: All tests passed!')),
+              )
+              .having(
+                (it) => it.$3,
+                'stderrMessages',
+                isEmpty,
+              ),
+          reason: '$caseName project',
         );
       }
     }
