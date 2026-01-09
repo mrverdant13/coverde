@@ -103,6 +103,8 @@ class TraceFile extends CovComputable {
     );
     try {
       await completer.future;
+    } on Object {
+      rethrow;
     } finally {
       await linesSubscription.cancel();
     }
