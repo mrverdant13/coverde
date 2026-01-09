@@ -266,7 +266,7 @@ void main() {}
         for (final testFilePath in testFilesWithNoMainFunction) {
           verify(
             () => logger.warn(
-              'Test file ${p.posix.joinAll(testFilePath)} '
+              'Test file ${p.joinAll(testFilePath)} '
               'does not have a `main` function.',
             ),
           ).called(1);
@@ -282,7 +282,7 @@ void main() {}
         for (final testFilePath in testFilesWithMainFunctionWithParams) {
           verify(
             () => logger.warn(
-              'Test file ${p.posix.joinAll(testFilePath)} '
+              'Test file ${p.joinAll(testFilePath)} '
               'has a `main` function with params.',
             ),
           ).called(1);
@@ -398,7 +398,7 @@ void main() {
         for (final testFilePath in testFilesWithAsyncMainFunction) {
           verify(
             () => logger.warn(
-              'Test file ${p.posix.joinAll(testFilePath)} '
+              'Test file ${p.joinAll(testFilePath)} '
               'has an async `main` function.',
             ),
           ).called(1);

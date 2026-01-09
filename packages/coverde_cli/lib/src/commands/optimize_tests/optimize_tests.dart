@@ -185,29 +185,31 @@ class OptimizeTestsCommand extends CoverdeCommand {
         .whereType<File>()
         .sortedBy((it) => it.path)
         .map((it) {
-      final filePath = p.posix.joinAll(
-        p.split(
-          p.relative(
-            it.path,
-            from: projectDir.path,
-          ),
-        ),
+      final relativePath = p.relative(it.path, from: projectDir.path);
+      final segments = p.split(relativePath);
+      final posixRelativePath = p.posix.joinAll(segments);
+      final platformRelativePath = p.joinAll(segments);
+      return (
+        posixRelativePath: posixRelativePath,
+        platformRelativePath: platformRelativePath,
       );
-      return filePath;
     });
 
-    final includedFileRelativePaths =
-        fileRelativePaths.where(includeGlob.matches);
+    final includedFileRelativePaths = fileRelativePaths.where(
+      (it) => includeGlob.matches(it.posixRelativePath),
+    );
     final validFileRelativePaths = switch (excludeGlob) {
       null => includedFileRelativePaths,
-      _ => includedFileRelativePaths.whereNot(excludeGlob.matches),
+      _ => includedFileRelativePaths.whereNot(
+          (it) => excludeGlob.matches(it.posixRelativePath),
+        ),
     };
 
     final testFileGroupsStatements = <coder.Code>[];
     var hasAsyncEntryPoints = false;
     for (final fileRelativePath in validFileRelativePaths) {
       final fileContent = () {
-        final file = File(fileRelativePath).absolute;
+        final file = File(fileRelativePath.platformRelativePath).absolute;
         try {
           return file.readAsStringSync();
         } on FileSystemException catch (exception, stackTrace) {
@@ -233,7 +235,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
       if (mainFunctionDeclaration == null) {
         logger.warn(
-          'Test file $fileRelativePath does not have a `main` function.',
+          'Test file ${fileRelativePath.platformRelativePath} '
+          'does not have a `main` function.',
         );
         continue;
       }
@@ -244,7 +247,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       };
       if (mainFunctionHasParams) {
         logger.warn(
-          'Test file $fileRelativePath has a `main` function with params.',
+          'Test file ${fileRelativePath.platformRelativePath} '
+          'has a `main` function with params.',
         );
         continue;
       }
@@ -258,7 +262,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
       final testRelativePath = p.posix.joinAll(
         p.split(
           p.relative(
-            fileRelativePath,
+            fileRelativePath.posixRelativePath,
             from: outputFile.parent.path,
           ),
         ),
@@ -296,7 +300,8 @@ tearDown(() {
           final mainFunction = coder.Reference('main', testRelativePath);
           if (!mainFunctionIsAsync) return mainFunction.call([]);
           logger.warn(
-            'Test file $fileRelativePath has an async `main` function.',
+            'Test file ${fileRelativePath.platformRelativePath} '
+            'has an async `main` function.',
           );
           return const coder.Reference('unawaited').call([
             const coder.Reference('Future.sync').call([

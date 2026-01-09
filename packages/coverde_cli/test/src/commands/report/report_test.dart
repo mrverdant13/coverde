@@ -1496,6 +1496,15 @@ end_of_record
       final sourceFile = File(sourceFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('void main() {}');
+      final outputDirPath = p.joinAll([
+        directory.path,
+        'coverage',
+        'html',
+      ]);
+      final rootIndexHtmlFilePath = p.joinAll([
+        outputDirPath,
+        'index.html',
+      ]);
 
       await IOOverrides.runZoned(
         () async {
@@ -1503,6 +1512,8 @@ end_of_record
                 'report',
                 '--${ReportCommand.inputOption}',
                 traceFilePath,
+                '--${ReportCommand.outputOption}',
+                outputDirPath,
               ]);
 
           expect(
@@ -1524,10 +1535,7 @@ end_of_record
           if (p.basename(path) == 'some_source_file.dart') {
             return sourceFile;
           }
-          // Directory index.html - should fail on create
-          if (p.basename(path) == 'index.html' &&
-              path.contains('coverage/html') &&
-              !path.contains('lib')) {
+          if (path == rootIndexHtmlFilePath) {
             return _ReportTestFile(
               path: path,
               createSync: ({bool recursive = false, bool exclusive = false}) {
@@ -1538,7 +1546,6 @@ end_of_record
               },
             );
           }
-          // Source file HTML reports - should succeed (both create and write)
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
@@ -1582,6 +1589,15 @@ end_of_record
       final sourceFile = File(sourceFilePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('void main() {}');
+      final outputDirPath = p.joinAll([
+        directory.path,
+        'coverage',
+        'html',
+      ]);
+      final rootIndexHtmlFilePath = p.joinAll([
+        outputDirPath,
+        'index.html',
+      ]);
 
       await IOOverrides.runZoned(
         () async {
@@ -1589,6 +1605,8 @@ end_of_record
                 'report',
                 '--${ReportCommand.inputOption}',
                 traceFilePath,
+                '--${ReportCommand.outputOption}',
+                outputDirPath,
               ]);
 
           expect(
@@ -1610,10 +1628,7 @@ end_of_record
           if (p.basename(path) == 'some_source_file.dart') {
             return sourceFile;
           }
-          // Directory index.html - should fail on write
-          if (p.basename(path) == 'index.html' &&
-              path.contains('coverage/html') &&
-              !path.contains('lib')) {
+          if (path == rootIndexHtmlFilePath) {
             return _ReportTestFile(
               path: path,
               createSync: ({bool recursive = false, bool exclusive = false}) {},
@@ -1630,7 +1645,6 @@ end_of_record
               },
             );
           }
-          // Source file HTML reports - should succeed (both create and write)
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
