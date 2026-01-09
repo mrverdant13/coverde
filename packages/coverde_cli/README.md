@@ -476,27 +476,80 @@ The update check mode to use.\
 
 # Usage with [melos][melos_link]
 
-If your project uses melos to manage its multi-package structure, it could be handy to collect test coverage data in a unified trace file.
+If your project uses `melos` to manage its multi-package structure, `coverde` can help optimize test execution and collect test coverage data in a unified trace file.
 
-This can be achieved by defining a melos script as follows:
+Here are some examples of how to use `coverde` with `melos` to manage your monorepo. Adapt them to match your project structure and needs.
+
+## Test Optimization
+
+Optimize test execution by gathering all test files into a single optimized test file before running tests:
 
 ```yaml
-merge-trace-files:
-  description: Merge all packages coverage trace files ignoring data related to generated files.
+test:
+  description: Run tests and generate coverage trace file for a package
   run: >
-    coverde rm --no-dry-run MELOS_ROOT_PATH/coverage/filtered.lcov.info &&
-    melos exec --file-exists=coverage/lcov.info -- "coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --base-directory MELOS_ROOT_PATH --filters '\.g\.dart'"
+    dart run coverde optimize-tests
+    --output=test/optimized_test.dart
+    &&
+    dart test
+    --coverage-path=coverage/lcov.info
+    --test-randomize-ordering-seed random
+    test/optimized_test.dart
+  packageFilters:
+    dependsOn:
+      - test
+    dirExists:
+      - test
 ```
 
-`merge-trace-files` is the melos script that merges the coverage trace file of all tested packages contained within the project
+This script:
+1. Optimizes tests by gathering them into a single file
+2. Runs the optimized test file with coverage collection, directly outputting an LCOV trace file
 
-First, the script removes the `filtered.lcov.info` file, if it exists, from the `coverage` folder in the root folder of the project.
+## Coverage Data Merging
 
-Then, the script executes the `coverde filter` command for each package that contains a `coverage/lcov.info` file, using its content as input and the `filtered.lcov.info` file in the project root as output.
+Merge coverage trace files from all packages into a unified trace file:
 
-The resulting merged trace file ignores data related to generated files, which are identified by the `.g.dart` extension.
+```yaml
+coverage.merge:
+  description: Merge all packages coverage trace files
+  run: >
+    dart run coverde rm
+    --no-dry-run
+    MELOS_ROOT_PATH/coverage/filtered.lcov.info
+    &&
+    melos exec
+    --file-exists=coverage/lcov.info
+    --
+    "
+    dart run coverde filter
+    --base-directory MELOS_ROOT_PATH
+    --input coverage/lcov.info
+    --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+    "
+```
 
-Each referenced file path is prefixed with the package path, so that the resulting merged trace file contains a set of paths that represent the actual project structure, which is critical for the `coverde report` command to work properly, as it relies on the file system to generate the HTML report.
+This script:
+1. Removes any existing merged coverage file
+2. Executes `coverde filter` for each package that contains a `coverage/lcov.info` file
+3. Merges all coverage data into a single trace file at the project root, prefixing file paths with the corresponding package paths using `--base-directory` to maintain the project structure
+
+The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo.
+
+## Coverage Check
+
+Validate minimum coverage threshold across all packages:
+
+```yaml
+coverage.check:
+  description: Check test coverage
+  run: >
+    dart run coverde check
+    --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
+    100
+```
+
+This script checks that the merged coverage trace file meets the minimum coverage threshold (100% in this example). The command will fail if coverage is below the threshold, making it suitable for CI/CD pipelines.
 
 ---
 
