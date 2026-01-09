@@ -1,11 +1,10 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
-import 'package:coverde/src/utils/utils.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
-export 'min_coverage.exception.dart';
+export 'failures.dart';
 
 /// {@template check_cmd}
 /// A command to check the minimum coverage value from a trace file.
@@ -67,12 +66,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
   @override
   Future<void> run() async {
     final argResults = this.argResults!;
-    final filePath = () {
-      final rawFilePath = argResults.option(
-        inputOptionName,
-      )!;
-      return p.absolute(rawFilePath);
-    }();
+    final filePath = p.absolute(argResults.option(inputOptionName)!);
     final fileCoverageLogLevel = () {
       final rawFileCoverageLogLevel = argResults.option(
         fileCoverageLogLevelOptionName,
@@ -84,30 +78,47 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
       );
     }();
     final args = argResults.rest;
-    if (args.length > 1) usageException('Too many arguments.');
+    if (args.length > 1) {
+      throw CoverdeCheckMoreThanOneArgumentFailure(
+        usageMessage: usageWithoutDescription,
+      );
+    }
     final coverageThresholdStr = args.firstOrNull;
     if (coverageThresholdStr == null) {
-      throw ArgumentError('Missing minimum coverage threshold.');
+      throw CoverdeCheckMissingMinimumCoverageThresholdFailure(
+        usageMessage: usageWithoutDescription,
+      );
     }
     final maybeCoverageThreshold = double.tryParse(coverageThresholdStr);
-    if (maybeCoverageThreshold == null) {
-      throw ArgumentError('Invalid minimum coverage threshold.');
+    if (maybeCoverageThreshold == null ||
+        maybeCoverageThreshold < 0 ||
+        maybeCoverageThreshold > 100) {
+      throw CoverdeCheckInvalidMinimumCoverageThresholdFailure(
+        usageMessage: usageWithoutDescription,
+      );
     }
-    final coverageThreshold = maybeCoverageThreshold.checkedAsCoverage(
-      valueName: 'coverage threshold',
-    );
+    final coverageThreshold = maybeCoverageThreshold;
 
+    if (!FileSystemEntity.isFileSync(filePath)) {
+      throw CoverdeCheckTraceFileNotFoundFailure(
+        traceFilePath: filePath,
+      );
+    }
     final file = File(filePath);
 
-    if (!file.existsSync()) {
-      usageException('The trace file located at `$filePath` does not exist.');
+    final TraceFile traceFile;
+    try {
+      traceFile = await TraceFile.parseStreaming(file);
+    } on FileSystemException catch (exception) {
+      throw CoverdeCheckTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: filePath,
+        exception: exception,
+      );
     }
 
-    final traceFile = await TraceFile.parseStreaming(file);
-
     if (traceFile.isEmpty) {
-      throw CovFileFormatException(
-        message: 'No coverage data found in the trace file.',
+      throw CoverdeCheckEmptyTraceFileFailure(
+        traceFilePath: filePath,
       );
     }
 
@@ -118,8 +129,8 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     );
 
     if (traceFile.coverage < coverageThreshold) {
-      throw MinCoverageException(
-        minCoverage: coverageThreshold,
+      throw CoverdeCheckCoverageBelowMinimumFailure(
+        minimumCoverage: coverageThreshold,
         traceFile: traceFile,
       );
     }

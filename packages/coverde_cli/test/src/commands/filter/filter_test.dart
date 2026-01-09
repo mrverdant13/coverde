@@ -1,12 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
 
-import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 
@@ -81,20 +81,20 @@ All the relative paths in the resulting coverage trace file will be resolved rel
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.joinAll([
+        final originalFilePath = p.joinAll([
           directory.path,
           'original.info',
         ]);
-        final filteredFilePath = path.joinAll([
+        final filteredFilePath = p.joinAll([
           directory.path,
           'actual.info',
         ]);
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
@@ -183,21 +183,21 @@ end_of_record
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
@@ -287,22 +287,22 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final baseDirectory = path.join('root', 'parent');
+        final baseDirectory = p.join('root', 'parent');
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
@@ -365,7 +365,7 @@ $ignoredSourceFileData
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = '''
-SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
+SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
@@ -402,27 +402,27 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final baseDirectory = path.join('root', 'parent');
+        final baseDirectory = p.join('root', 'parent');
         final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = path.join(
+        final originalFilePath = p.join(
           directory.path,
           'original.info',
         );
-        final filteredFilePath = path.join(
+        final filteredFilePath = p.join(
           directory.path,
           'actual.info',
         );
-        final acceptedSourceFilePath = path.joinAll([
+        final acceptedSourceFilePath = p.joinAll([
           'path',
           'to',
           'accepted_source_file.dart',
         ]);
-        final ignoredSourceFilePath = path.joinAll([
+        final ignoredSourceFilePath = p.joinAll([
           'path',
           'to',
           'ignored_source_file.dart',
         ]);
-        final absoluteSourceFilePath = path.joinAll([
+        final absoluteSourceFilePath = p.joinAll([
           if (Platform.isWindows) 'C:' else '/',
           'path',
           'to',
@@ -495,12 +495,12 @@ $absoluteSourceFileData
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = '''
-SF:${path.relative(acceptedSourceFilePath, from: baseDirectory)}
+SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-SF:${path.relative(absoluteSourceFilePath, from: baseDirectory)}
+SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
@@ -534,7 +534,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const patterns = <String>['ignored_source'];
-        final absentFilePath = path.join(
+        final absentFilePath = p.join(
           directory.path,
           'absent.info',
         );
@@ -549,7 +549,16 @@ end_of_record
               patterns.join(','),
             ]);
 
-        expect(action, throwsA(isA<UsageException>()));
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeFilterTraceFileNotFoundFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(absentFilePath),
+            ),
+          ),
+        );
       },
     );
 
@@ -561,7 +570,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = path.join(directory.path, 'test.info');
+        final traceFilePath = p.join(directory.path, 'test.info');
         File(traceFilePath)
           ..createSync()
           ..writeAsStringSync('''
@@ -584,12 +593,10 @@ end_of_record
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains(
-                'Invalid regex pattern in --filters: `[invalid`',
-              ),
+            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+              (e) => e.invalidRegexPattern,
+              'invalidRegexPattern',
+              invalidPattern,
             ),
           ),
         );
@@ -604,7 +611,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = path.join(directory.path, 'test.info');
+        final traceFilePath = p.join(directory.path, 'test.info');
         File(traceFilePath)
           ..createSync()
           ..writeAsStringSync('''
@@ -628,10 +635,10 @@ end_of_record
         expect(
           action,
           throwsA(
-            isA<UsageException>().having(
-              (e) => e.message,
-              'message',
-              contains('Invalid regex pattern in --filters: `(unclosed`'),
+            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+              (e) => e.invalidRegexPattern,
+              'invalidRegexPattern',
+              invalidPattern,
             ),
           ),
         );
@@ -675,7 +682,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         addTearDown(() => directory.delete(recursive: true));
-        final inputFilePath = path.join(
+        final inputFilePath = p.join(
           directory.path,
           'input.info',
         );
@@ -684,7 +691,7 @@ end_of_record
           ..writeAsStringSync(newContent);
 
         for (final testCase in testCases) {
-          final outputFilePath = path.join(
+          final outputFilePath = p.join(
             directory.path,
             testCase.outputFileName,
           );
@@ -717,5 +724,207 @@ end_of_record
         }
       },
     );
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterDirectoryCreateFailure '
+        'when output directory creation fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync('SF:test.dart\nend_of_record');
+
+      final outputFilePath = p.join(directory.path, 'output.info');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterDirectoryCreateFailure>().having(
+                (e) => e.directoryPath,
+                'directoryPath',
+                p.dirname(outputFilePath),
+              ),
+            ),
+          );
+        },
+        createDirectory: (path) => _FilterTestDirectory(path: path),
+      );
+    });
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterFileWriteFailure '
+        'when output file write fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      final inputFile = File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
+      final outputFilePath = p.join(directory.path, 'output.info');
+      final testFilePath = p.joinAll([
+        directory.path,
+        'lib',
+        'some_test.dart',
+      ]);
+      final testFile = File(testFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterFileWriteFailure>().having(
+                (e) => e.filePath,
+                'filePath',
+                outputFilePath,
+              ),
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.basename(path) == 'input.info') {
+            return inputFile;
+          }
+          if (p.basename(path) == 'some_test.dart') {
+            return testFile;
+          }
+          if (p.basename(path) == 'output.info') {
+            return _FilterTestFile(
+              path: path,
+              open: () => Future<RandomAccessFile>.error(
+                FileSystemException('Fake file write error', path),
+              ),
+            );
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
+
+    test(
+        '--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| throws $CoverdeFilterTraceFileReadFailure '
+        'when trace file read fails', () async {
+      final directory =
+          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      File(inputFilePath).createSync();
+      final outputFilePath = p.join(directory.path, 'output.info');
+      final outputFile = File(outputFilePath);
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+                'filter',
+                '--${FilterCommand.inputOption}',
+                inputFilePath,
+                '--${FilterCommand.outputOption}',
+                outputFilePath,
+              ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeFilterTraceFileReadFailure>().having(
+                (e) => e.traceFilePath,
+                'traceFilePath',
+                inputFilePath,
+              ),
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.basename(path) == 'input.info') {
+            return _FilterTestFile(
+              path: path,
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
+            );
+          }
+          if (p.basename(path) == 'output.info') {
+            return outputFile;
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
   });
+}
+
+final class _FilterTestDirectory extends Fake implements Directory {
+  _FilterTestDirectory({
+    required this.path,
+  });
+
+  @override
+  final String path;
+
+  @override
+  void createSync({bool recursive = false}) {
+    throw FileSystemException('Fake directory creation error', path);
+  }
+}
+
+final class _FilterTestFile extends Fake implements File {
+  _FilterTestFile({
+    required this.path,
+    Future<RandomAccessFile> Function()? open,
+    Stream<List<int>> Function([int? start, int? end])? openRead,
+  })  : _open = open,
+        _openRead = openRead;
+
+  final Future<RandomAccessFile> Function()? _open;
+  final Stream<List<int>> Function([int? start, int? end])? _openRead;
+
+  @override
+  final String path;
+
+  @override
+  Directory get parent => Directory(p.dirname(path));
+
+  @override
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
+    if (_open case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<int>> openRead([int? start, int? end]) {
+    if (_openRead case final cb?) return cb(start, end);
+    throw UnimplementedError();
+  }
 }

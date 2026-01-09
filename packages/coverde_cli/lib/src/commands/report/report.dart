@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template report_cmd}
 /// A command to generate the coverage report from a given trace file.
 /// {@endtemplate}
@@ -120,27 +122,25 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     );
     final mediumString = argResults.option(mediumOption)!;
     final medium = double.tryParse(mediumString);
-    if (medium == null) {
-      usageException('Invalid medium threshold.');
-    }
-    if (medium < 0 || medium > 100) {
-      usageException(
-        'Medium threshold must be between 0 and 100 (got $medium).',
+    if (medium == null || medium < 0 || medium > 100) {
+      throw CoverdeReportInvalidMediumThresholdFailure(
+        usageMessage: usageWithoutDescription,
+        rawValue: mediumString,
       );
     }
     final highString = argResults.option(highOption)!;
     final high = double.tryParse(highString);
-    if (high == null) {
-      usageException('Invalid high threshold.');
-    }
-    if (high < 0 || high > 100) {
-      usageException(
-        'High threshold must be between 0 and 100 (got $high).',
+    if (high == null || high < 0 || high > 100) {
+      throw CoverdeReportInvalidHighThresholdFailure(
+        usageMessage: usageWithoutDescription,
+        rawValue: highString,
       );
     }
     if (medium >= high) {
-      usageException(
-        'Medium threshold ($medium) must be less than high threshold ($high).',
+      throw CoverdeReportInvalidThresholdRelationshipFailure(
+        usageMessage: usageWithoutDescription,
+        mediumValue: medium,
+        highValue: high,
       );
     }
     final shouldLaunch = argResults.flag(launchFlag);
@@ -156,54 +156,162 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final traceFile = File(traceFileAbsPath);
 
     if (!traceFile.existsSync()) {
-      usageException(
-        'The trace file located at `$traceFileAbsPath` does not exist.',
+      throw CoverdeReportTraceFileNotFoundFailure(
+        traceFilePath: traceFileAbsPath,
       );
     }
 
-    final traceFileData = await TraceFile.parseStreaming(traceFile);
+    final TraceFile traceFileData;
+    try {
+      traceFileData = await TraceFile.parseStreaming(traceFile);
+    } on FileSystemException catch (exception) {
+      throw CoverdeReportTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: traceFileAbsPath,
+        exception: exception,
+      );
+    }
 
     if (traceFileData.isEmpty) {
-      throw CovFileFormatException(
-        message: 'No coverage data found in the trace file.',
+      throw CoverdeReportEmptyTraceFileFailure(
+        traceFilePath: traceFileAbsPath,
       );
     }
 
     // Build cov report base tree.
-    final covTree = traceFileData.asTree
-      // Generate report doc.
-      ..generateReport(
+    final traceFileModificationDate = () {
+      try {
+        return traceFile.lastModifiedSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeReportFileReadFailure.fromFileSystemException(
+            filePath: traceFileAbsPath,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }();
+    // Build cov report base tree.
+    final covTree = traceFileData.asTree;
+    // Generate report doc.
+    try {
+      covTree.generateReport(
         traceFileName: path.basename(traceFileAbsPath),
-        traceFileModificationDate: traceFile.lastModifiedSync(),
+        traceFileModificationDate: traceFileModificationDate,
         parentReportDirAbsPath: reportDirAbsPath,
         medium: medium,
         high: high,
       );
+    } on GenerateHtmlCoverageReportFailure catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        switch (exception) {
+          final GenerateHtmlCoverageReportFileOperationFailure failure =>
+            switch (failure) {
+              GenerateHtmlCoverageReportFileCreateFailure() =>
+                CoverdeReportFileCreateFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+              GenerateHtmlCoverageReportFileReadFailure() =>
+                CoverdeReportFileReadFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+              GenerateHtmlCoverageReportFileWriteFailure() =>
+                CoverdeReportFileWriteFailure(
+                  filePath: failure.filePath,
+                  errorMessage: failure.errorMessage,
+                ),
+            },
+        },
+        stackTrace,
+      );
+    }
 
     // Copy static files.
     final cssRootPath = path.join(
       reportDirAbsPath,
       'report_style.css',
     );
-    File(cssRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(reportStyleCssBytes);
+    final cssFile = File(cssRootPath);
+    try {
+      cssFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: cssRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      cssFile.writeAsBytesSync(reportStyleCssBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: cssRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final sortAlphaIconRootPath = path.join(
       reportDirAbsPath,
       'sort_alpha.png',
     );
-    File(sortAlphaIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortAlphaPngBytes);
+    final sortAlphaFile = File(sortAlphaIconRootPath);
+    try {
+      sortAlphaFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: sortAlphaIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      sortAlphaFile.writeAsBytesSync(sortAlphaPngBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: sortAlphaIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final sortNumericIconRootPath = path.join(
       reportDirAbsPath,
       'sort_numeric.png',
     );
-    File(sortNumericIconRootPath)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(sortNumericPngBytes);
+    final sortNumericFile = File(sortNumericIconRootPath);
+    try {
+      sortNumericFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileCreateFailure.fromFileSystemException(
+          filePath: sortNumericIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      sortNumericFile.writeAsBytesSync(sortNumericPngBytes);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeReportFileWriteFailure.fromFileSystemException(
+          filePath: sortNumericIconRootPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
 
     final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
 
@@ -232,10 +340,14 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
         );
         return;
       }
-      await processManager.run(
-        [launchCommand, reportIndexAbsPath],
-        runInShell: true,
-      );
+      try {
+        await processManager.run(
+          [launchCommand, reportIndexAbsPath],
+          runInShell: true,
+        );
+      } on Object catch (error) {
+        logger.err('Failed to launch browser: $error');
+      }
     }
   }
 }
