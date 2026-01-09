@@ -7,6 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template value_cmd}
 /// A command to compute the coverage of a given info file.
 /// {@endtemplate}
@@ -78,17 +80,27 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       );
     }();
 
-    final file = File(filePath);
-
-    if (!file.existsSync()) {
-      usageException('The trace file located at `$filePath` does not exist.');
+    if (!File(filePath).existsSync()) {
+      throw CoverdeValueTraceFileNotFoundFailure(
+        traceFilePath: filePath,
+      );
     }
 
-    final traceFile = await TraceFile.parseStreaming(file);
+    final file = File(filePath);
+
+    final TraceFile traceFile;
+    try {
+      traceFile = await TraceFile.parseStreaming(file);
+    } on FileSystemException catch (exception) {
+      throw CoverdeValueTraceFileReadFailure.fromFileSystemException(
+        traceFilePath: filePath,
+        exception: exception,
+      );
+    }
 
     if (traceFile.isEmpty) {
-      throw CovFileFormatException(
-        message: 'No coverage data found in the trace file.',
+      throw CoverdeValueEmptyTraceFileFailure(
+        traceFilePath: filePath,
       );
     }
 
@@ -124,10 +136,25 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       case FileCoverageLogLevel.lineContent:
         for (final fileCovData in traceFile.sourceFilesCovData) {
           logger.info(fileCovData.coverageDataString);
-          final sourceLines = fileCovData.source.absolute.readAsLinesSync();
+          final sourceLines = () {
+            final file = fileCovData.source.absolute;
+            try {
+              return file.readAsLinesSync();
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeValueFileReadFailure.fromFileSystemException(
+                  filePath: file.path,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
+          }();
           final sourceLinesCount = sourceLines.length;
           final lineNumberColumnWidth = '$sourceLinesCount'.length;
-          final uncoveredLineRanges = fileCovData.uncoveredLineRanges;
+          final uncoveredLineRanges = fileCovData.getUncoveredLineRanges(
+            sourceLines: sourceLines,
+          );
           final indexedUncoveredLineRanges = uncoveredLineRanges.indexed;
           for (final (index, uncoveredLineRange)
               in indexedUncoveredLineRanges) {
@@ -181,10 +208,11 @@ extension on CovFile {
         .map((line) => line.lineNumber);
   }
 
-  Iterable<Iterable<FileLineCoverageDetails>> get uncoveredLineRanges {
+  Iterable<Iterable<FileLineCoverageDetails>> getUncoveredLineRanges({
+    required Iterable<String> sourceLines,
+  }) {
     const maxGap = 5;
     const surroundingLines = 2;
-    final sourceLines = source.absolute.readAsLinesSync();
     final sourceLinesCount = sourceLines.length;
     final ranges = covLines
         .where(
@@ -208,7 +236,7 @@ extension on CovFile {
         for (var lineNumber = range.start;
             lineNumber <= range.end;
             lineNumber++) {
-          final content = sourceLines[lineNumber - 1];
+          final content = sourceLines.elementAt(lineNumber - 1);
           final covLine = covLines.singleWhereOrNull(
             (line) => line.lineNumber == lineNumber,
           );

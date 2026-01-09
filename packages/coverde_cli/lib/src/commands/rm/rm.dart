@@ -2,6 +2,8 @@ import 'package:coverde/src/commands/commands.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template rm_cmd}
 /// A generic subcommand to remove a set of files and/or folders.
 /// {@endtemplate}
@@ -60,8 +62,8 @@ Remove a set of files and folders.''';
 
     final paths = argResults.rest;
     if (paths.isEmpty) {
-      usageException(
-        'A set of file and/or directory paths should be provided.',
+      throw CoverdeRmMissingPathsFailure(
+        usageMessage: usageWithoutDescription,
       );
     }
     for (final elementPath in paths) {
@@ -74,20 +76,42 @@ Remove a set of files and folders.''';
           if (isDryRun) {
             logger.info('[DRY RUN] Would remove dir:  <$elementPath>');
           } else {
-            Directory(elementPath).deleteSync(recursive: true);
+            try {
+              Directory(elementPath).deleteSync(recursive: true);
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeRmDirectoryDeleteFailure.fromFileSystemException(
+                  directoryPath: elementPath,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
           }
         case FileSystemEntityType.file:
           if (isDryRun) {
             logger.info('[DRY RUN] Would remove file: <$elementPath>');
           } else {
-            File(elementPath).deleteSync();
+            try {
+              File(elementPath).deleteSync();
+            } on FileSystemException catch (exception, stackTrace) {
+              Error.throwWithStackTrace(
+                CoverdeRmFileDeleteFailure.fromFileSystemException(
+                  filePath: elementPath,
+                  exception: exception,
+                ),
+                stackTrace,
+              );
+            }
           }
         case FileSystemEntityType.notFound:
-          final message = 'The <$elementPath> element does not exist.';
+          final failure = CoverdeRmElementNotFoundFailure(
+            elementPath: elementPath,
+          );
           if (shouldAcceptAbsence) {
-            logger.info(message);
+            logger.info(failure.readableMessage);
           } else {
-            usageException(message);
+            throw failure;
           }
       }
     }

@@ -57,8 +57,30 @@ class PackageVersionManager {
         lockFile: lockFile,
       );
     }
-    final lockFileContent = await lockFile.readAsString();
-    final rawLockFileYaml = yaml.loadYaml(lockFileContent);
+    final String lockFileContent;
+    try {
+      lockFileContent = await lockFile.readAsString();
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        UnreadableGlobalLockFileForGlobalInstallationFailure(
+          lockFile: lockFile,
+          fileSystemException: exception,
+        ),
+        stackTrace,
+      );
+    }
+    final dynamic rawLockFileYaml;
+    try {
+      rawLockFileYaml = yaml.loadYaml(lockFileContent);
+    } on yaml.YamlException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        InvalidGlobalLockFileYamlForGlobalInstallationFailure(
+          lockFile: lockFile,
+          yamlException: exception,
+        ),
+        stackTrace,
+      );
+    }
     if (rawLockFileYaml is! yaml.YamlMap) {
       throw InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
         lockFile: lockFile,
@@ -543,9 +565,25 @@ extension PackageVersionManagerLogger on Logger {
           'It is likely `dart pub global activate` '
           'was not used to install the package.',
         );
+      case UnreadableGlobalLockFileForGlobalInstallationFailure(
+          :final lockFile,
+          :final fileSystemException,
+        ):
+        warn(
+          [
+            'Unreadable global lock file (`${lockFile.path}`).',
+            fileSystemException.message,
+            if (fileSystemException.osError case final osError?)
+              osError.message,
+          ].join('\n'),
+        );
       case final InvalidGlobalLockFileContentForGlobalInstallationFailure
         failure:
         final details = switch (failure) {
+          InvalidGlobalLockFileYamlForGlobalInstallationFailure(
+            :final yamlException,
+          ) =>
+            'Invalid global lock file YAML. ${yamlException.message}',
           InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
             :final key,
             :final value,

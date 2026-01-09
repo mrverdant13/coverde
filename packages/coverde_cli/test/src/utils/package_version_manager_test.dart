@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +10,7 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/universal_io.dart';
-import 'package:yaml/yaml.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 class _MockHttpClient extends Mock implements http.Client {}
 
@@ -18,6 +20,34 @@ final class _MockPackageVersionManagerDependencies extends Mock
 final class _MockLogger extends Mock implements Logger {}
 
 final class _MockProgress extends Mock implements Progress {}
+
+final class _PackageVersionManagerTestFile extends Fake implements File {
+  _PackageVersionManagerTestFile({
+    required this.path,
+    bool Function()? existsSync,
+    Future<String> Function()? readAsString,
+  })  : _existsSync = existsSync,
+        _readAsString = readAsString;
+
+  @override
+  final String path;
+
+  final bool Function()? _existsSync;
+
+  final Future<String> Function()? _readAsString;
+
+  @override
+  bool existsSync() {
+    if (_existsSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> readAsString({Encoding encoding = utf8}) {
+    if (_readAsString case final cb?) return cb();
+    throw UnimplementedError();
+  }
+}
 
 void main() {
   setUpAll(() {
@@ -74,8 +104,78 @@ void main() {
       });
 
       test(
+          'throws an $UnreadableGlobalLockFileForGlobalInstallationFailure '
+          'if the lock file cannot be read', () async {
+        final tempDir = Directory.systemTemp.createTempSync();
+        addTearDown(() => tempDir.deleteSync(recursive: true));
+        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+        File(lockFilePath).createSync();
+        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() async =>
+                packageVersionManager.getGlobalPackageInstallationInfo();
+            expect(
+              action,
+              throwsA(
+                isA<UnreadableGlobalLockFileForGlobalInstallationFailure>()
+                    .having(
+                  (failure) => failure.lockFile.path,
+                  'lockFile.path',
+                  lockFilePath,
+                ),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (path == lockFilePath) {
+              return _PackageVersionManagerTestFile(
+                path: path,
+                existsSync: () => true,
+                readAsString: () => throw FileSystemException(
+                  'Permission denied',
+                  path,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $path should not be created in this test',
+            );
+          },
+        );
+      });
+
+      test(
+          'throws an $InvalidGlobalLockFileYamlForGlobalInstallationFailure '
+          'if the lock file contains invalid YAML', () async {
+        final tempDir = Directory.systemTemp.createTempSync();
+        addTearDown(() => tempDir.deleteSync(recursive: true));
+        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+        File(lockFilePath).writeAsStringSync('''
+packages:
+  coverde:
+    dependency: "direct main"
+    description:
+      name: "unclosed quote
+''');
+        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+        Future<void> action() async =>
+            packageVersionManager.getGlobalPackageInstallationInfo();
+        expect(
+          action,
+          throwsA(
+            isA<InvalidGlobalLockFileYamlForGlobalInstallationFailure>().having(
+              (failure) => failure.lockFile.path,
+              'lockFile.path',
+              lockFilePath,
+            ),
+          ),
+        );
+      });
+
+      test(
           'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
-          'if the lock file content root is not a $YamlMap', () async {
+          'if the lock file content root is not a ${yaml.YamlMap}', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
         final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
@@ -99,7 +199,7 @@ void main() {
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
-                  YamlMap,
+                  yaml.YamlMap,
                 ),
           ),
         );
@@ -107,7 +207,7 @@ void main() {
 
       test(
           'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
-          'if the lock file content "packages" member is not a $YamlMap',
+          'if the lock file content "packages" member is not a ${yaml.YamlMap}',
           () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -133,7 +233,7 @@ packages:
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
-                  YamlMap,
+                  yaml.YamlMap,
                 ),
           ),
         );
@@ -142,7 +242,7 @@ packages:
       test(
           'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file content "packages" member values '
-          'are not ${YamlMap}s', () async {
+          'are not ${yaml.YamlMap}s', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
         final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
@@ -168,7 +268,7 @@ packages:
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
-                  Iterable<YamlMap>,
+                  Iterable<yaml.YamlMap>,
                 ),
           ),
         );
@@ -216,7 +316,7 @@ sdks:
       test(
           'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
-          'description is not a $YamlMap', () async {
+          'description is not a ${yaml.YamlMap}', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
         final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
@@ -263,7 +363,7 @@ packages:
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
-                  YamlMap,
+                  yaml.YamlMap,
                 ),
           ),
         );
@@ -610,7 +710,7 @@ packages:
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
-                  YamlMap,
+                  yaml.YamlMap,
                 ),
           ),
         );
@@ -1546,14 +1646,14 @@ sdks:
             InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
               lockFile: File('some/path/to/pubspec.lock'),
               key: 'packages',
-              expectedType: YamlMap,
+              expectedType: yaml.YamlMap,
               value: '12345',
             ),
           );
           verify(
             () => logger.err(
               'Invalid global lock file content. '
-              'The `packages` member is expected to be a `$YamlMap`. '
+              'The `packages` member is expected to be a `${yaml.YamlMap}`. '
               'Actual value: `12345`.',
             ),
           ).called(1);
@@ -1605,6 +1705,80 @@ sdks:
             () => logger.err(
               'Invalid global lock file content. '
               'No direct main hosted package found.',
+            ),
+          ).called(1);
+        });
+
+        test('logs a $UnreadableGlobalLockFileForGlobalInstallationFailure',
+            () {
+          const fileSystemException = FileSystemException(
+            'Permission denied',
+            'some/path/to/pubspec.lock',
+          );
+          logger.logGlobalPackageInstallationInfoRetrievalFailure(
+            UnreadableGlobalLockFileForGlobalInstallationFailure(
+              lockFile: File('some/path/to/pubspec.lock'),
+              fileSystemException: fileSystemException,
+            ),
+          );
+          verify(
+            () => logger.warn(
+              'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
+              'Permission denied',
+            ),
+          ).called(1);
+        });
+
+        test(
+            'logs a $UnreadableGlobalLockFileForGlobalInstallationFailure '
+            'with OS error message', () {
+          const osError = OSError('No such file or directory', 2);
+          const fileSystemException = FileSystemException(
+            'Permission denied',
+            'some/path/to/pubspec.lock',
+            osError,
+          );
+          logger.logGlobalPackageInstallationInfoRetrievalFailure(
+            UnreadableGlobalLockFileForGlobalInstallationFailure(
+              lockFile: File('some/path/to/pubspec.lock'),
+              fileSystemException: fileSystemException,
+            ),
+          );
+          verify(
+            () => logger.warn(
+              'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
+              'Permission denied\n'
+              'No such file or directory',
+            ),
+          ).called(1);
+        });
+
+        test('logs a $InvalidGlobalLockFileYamlForGlobalInstallationFailure',
+            () {
+          // Create a YamlException by actually parsing invalid YAML
+          late yaml.YamlException yamlException;
+          try {
+            yaml.loadYaml('invalid: [unclosed');
+            fail('Expected YamlException');
+          } on yaml.YamlException catch (e) {
+            yamlException = e;
+          }
+          logger.logGlobalPackageInstallationInfoRetrievalFailure(
+            InvalidGlobalLockFileYamlForGlobalInstallationFailure(
+              lockFile: File('some/path/to/pubspec.lock'),
+              yamlException: yamlException,
+            ),
+          );
+          verify(
+            () => logger.err(
+              any(
+                that: isA<String>().having(
+                  (s) => s,
+                  'message',
+                  contains('Invalid global lock file content. '
+                      'Invalid global lock file YAML.'),
+                ),
+              ),
             ),
           ).called(1);
         });

@@ -12,6 +12,8 @@ import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
 
+export 'failures.dart';
+
 /// {@template optimize_tests_cmd}
 /// A subcommand to optimize tests.
 /// {@endtemplate}
@@ -103,11 +105,27 @@ class OptimizeTestsCommand extends CoverdeCommand {
   FutureOr<void> run() async {
     final argResults = this.argResults!;
     final projectDir = Directory.current;
-    final pubspecFile = File(p.join(projectDir.path, 'pubspec.yaml'));
-    if (!pubspecFile.existsSync()) {
-      usageException('pubspec.yaml not found in ${projectDir.path}.');
+    final pubspecFilePath = p.join(projectDir.path, 'pubspec.yaml');
+    if (!File(pubspecFilePath).existsSync()) {
+      throw CoverdeOptimizeTestsPubspecNotFoundFailure(
+        usageMessage: usageWithoutDescription,
+        projectDirPath: projectDir.path,
+      );
     }
-    final pubspecRawContent = pubspecFile.readAsStringSync();
+    final pubspecFile = File(pubspecFilePath);
+    final pubspecRawContent = () {
+      try {
+        return pubspecFile.readAsStringSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
+            filePath: pubspecFilePath,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }();
     final pubspec = Pubspec.parse(pubspecRawContent);
     final outputPath = argResults.option(outputOptionName)!;
     if (p.basenameWithoutExtension(outputPath).startsWith('.')) {
@@ -117,7 +135,19 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
     }
     final outputFile = File(p.join(projectDir.path, outputPath));
-    if (outputFile.existsSync()) outputFile.deleteSync();
+    if (outputFile.existsSync()) {
+      try {
+        outputFile.deleteSync();
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsFileDeleteFailure.fromFileSystemException(
+            filePath: outputFile.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }
     final includeGlob = () {
       final pattern = argResults.option(includeOptionName)!.withoutQuotes;
       return Glob(pattern, context: p.posix);
@@ -139,33 +169,59 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final useFlutterGoldenTests =
         argResults.flag(useFlutterGoldenTestsFlagName) && isFlutterPackage;
 
-    final fileRelativePaths = projectDir
-        .listSync(recursive: true)
+    final fileRelativePaths = () {
+      try {
+        return projectDir.listSync(recursive: true);
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsDirectoryListFailure.fromFileSystemException(
+            directoryPath: projectDir.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
+    }()
         .whereType<File>()
         .sortedBy((it) => it.path)
         .map((it) {
-      final filePath = p.posix.joinAll(
-        p.split(
-          p.relative(
-            it.path,
-            from: projectDir.path,
-          ),
-        ),
+      final relativePath = p.relative(it.path, from: projectDir.path);
+      final segments = p.split(relativePath);
+      final posixRelativePath = p.posix.joinAll(segments);
+      final platformRelativePath = p.joinAll(segments);
+      return (
+        posixRelativePath: posixRelativePath,
+        platformRelativePath: platformRelativePath,
       );
-      return filePath;
     });
 
-    final includedFileRelativePaths =
-        fileRelativePaths.where(includeGlob.matches);
+    final includedFileRelativePaths = fileRelativePaths.where(
+      (it) => includeGlob.matches(it.posixRelativePath),
+    );
     final validFileRelativePaths = switch (excludeGlob) {
       null => includedFileRelativePaths,
-      _ => includedFileRelativePaths.whereNot(excludeGlob.matches),
+      _ => includedFileRelativePaths.whereNot(
+          (it) => excludeGlob.matches(it.posixRelativePath),
+        ),
     };
 
     final testFileGroupsStatements = <coder.Code>[];
     var hasAsyncEntryPoints = false;
     for (final fileRelativePath in validFileRelativePaths) {
-      final fileContent = File(fileRelativePath).absolute.readAsStringSync();
+      final fileContent = () {
+        final file = File(fileRelativePath.platformRelativePath).absolute;
+        try {
+          return file.readAsStringSync();
+        } on FileSystemException catch (exception, stackTrace) {
+          Error.throwWithStackTrace(
+            CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
+              filePath: file.path,
+              exception: exception,
+            ),
+            stackTrace,
+          );
+        }
+      }();
       final result = parseString(
         content: fileContent,
         featureSet: FeatureSet.latestLanguageVersion(),
@@ -179,7 +235,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
       if (mainFunctionDeclaration == null) {
         logger.warn(
-          'Test file $fileRelativePath does not have a `main` function.',
+          'Test file ${fileRelativePath.platformRelativePath} '
+          'does not have a `main` function.',
         );
         continue;
       }
@@ -190,7 +247,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       };
       if (mainFunctionHasParams) {
         logger.warn(
-          'Test file $fileRelativePath has a `main` function with params.',
+          'Test file ${fileRelativePath.platformRelativePath} '
+          'has a `main` function with params.',
         );
         continue;
       }
@@ -204,7 +262,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
       final testRelativePath = p.posix.joinAll(
         p.split(
           p.relative(
-            fileRelativePath,
+            fileRelativePath.posixRelativePath,
             from: outputFile.parent.path,
           ),
         ),
@@ -242,7 +300,8 @@ tearDown(() {
           final mainFunction = coder.Reference('main', testRelativePath);
           if (!mainFunctionIsAsync) return mainFunction.call([]);
           logger.warn(
-            'Test file $fileRelativePath has an async `main` function.',
+            'Test file ${fileRelativePath.platformRelativePath} '
+            'has an async `main` function.',
           );
           return const coder.Reference('unawaited').call([
             const coder.Reference('Future.sync').call([
@@ -346,9 +405,29 @@ tearDown(() {
     final unformattedOutput = '${library.accept(emitter)}';
     final output = formatter.format(unformattedOutput);
     if (!outputFile.parent.existsSync()) {
-      outputFile.parent.createSync(recursive: true);
+      try {
+        outputFile.parent.createSync(recursive: true);
+      } on FileSystemException catch (exception, stackTrace) {
+        Error.throwWithStackTrace(
+          CoverdeOptimizeTestsDirectoryCreateFailure.fromFileSystemException(
+            directoryPath: outputFile.parent.path,
+            exception: exception,
+          ),
+          stackTrace,
+        );
+      }
     }
-    outputFile.writeAsStringSync(output);
+    try {
+      outputFile.writeAsStringSync(output);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeOptimizeTestsFileWriteFailure.fromFileSystemException(
+          filePath: outputFile.path,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
   }
 }
 

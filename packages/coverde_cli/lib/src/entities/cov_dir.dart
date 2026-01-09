@@ -176,6 +176,8 @@ class CovDir extends CovElement {
   );
 
   /// Generate HTML report for this directory and its children.
+  ///
+  /// Throws a [GenerateHtmlCoverageReportFailure] if the operation fails.
   void generateReport({
     required String traceFileName,
     required String parentReportDirAbsPath,
@@ -276,8 +278,28 @@ class CovDir extends CovElement {
       }
     }
 
-    File(reportFileAbsPath)
-      ..createSync(recursive: true)
-      ..writeAsStringSync(folderReport.outerHtml);
+    final reportFile = File(reportFileAbsPath);
+    try {
+      reportFile.createSync(recursive: true);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        GenerateHtmlCoverageReportFileCreateFailure.fromFileSystemException(
+          filePath: reportFileAbsPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    try {
+      reportFile.writeAsStringSync(folderReport.outerHtml);
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        GenerateHtmlCoverageReportFileWriteFailure.fromFileSystemException(
+          filePath: reportFileAbsPath,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
   }
 }
