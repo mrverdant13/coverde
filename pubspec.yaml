@@ -94,19 +94,11 @@ melos:
         &&
         dart test
         --color
-        --coverage=coverage
+        --coverage-path=coverage/lcov.info
         --exclude-tags ci-only
         --reporter expanded
         --test-randomize-ordering-seed random
         test/optimized_test.dart
-        &&
-        dart run coverage:format_coverage
-        --base-directory MELOS_PACKAGE_PATH
-        --check-ignore
-        --in=coverage
-        --lcov
-        --out=coverage/lcov.info
-        --report-on=lib
       exec:
         concurrency: 1
         orderDependents: true
@@ -157,19 +149,11 @@ melos:
         --output=test/optimized_test.dart
         &&
         dart test
-        --coverage=coverage
+        --coverage-path=coverage/lcov.info
         --exclude-tags ci-only
         --reporter expanded
         --test-randomize-ordering-seed random
         test/optimized_test.dart
-        &&
-        dart run coverage:format_coverage
-        --base-directory MELOS_PACKAGE_PATH
-        --check-ignore
-        --in=coverage
-        --lcov
-        --out=coverage/lcov.info
-        --report-on=lib
         "
     coverage.merge:
       description: Merge all packages coverage trace files
