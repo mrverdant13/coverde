@@ -7,9 +7,115 @@ import 'package:coverde/coverde.dart';
 import 'package:path/path.dart' as p;
 import 'package:recase/recase.dart' as recase;
 
-// TODO(mrverdant13): Resolve or pass the git URL as an argument.
-const gitUrl =
-    '''https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli''';
+/// Gets the git remote URL from the repository.
+///
+/// Returns the HTTPS URL of the remote origin, or null if git is not available
+/// or the remote cannot be determined.
+Future<String?> _getGitRemoteUrl(String workingDirectory) async {
+  try {
+    final result = await Process.run(
+      'git',
+      ['config', '--get', 'remote.origin.url'],
+      workingDirectory: workingDirectory,
+    );
+
+    if (result.exitCode != 0) {
+      return null;
+    }
+
+    final remoteUrl = result.stdout.toString().trim();
+    if (remoteUrl.isEmpty) {
+      return null;
+    }
+
+    return _convertToHttpsUrl(remoteUrl);
+  } on Object {
+    return null;
+  }
+}
+
+/// Converts a git remote URL to HTTPS format.
+///
+/// Handles both SSH (`git@github.com:owner/repo.git`) and HTTPS
+/// (`https://github.com/owner/repo.git`) formats.
+String _convertToHttpsUrl(String remoteUrl) {
+  // Handle SSH format: git@github.com:owner/repo.git
+  final sshMatch = RegExp(r'git@([^:]+):(.+)\.git?').firstMatch(remoteUrl);
+  if (sshMatch != null) {
+    final host = sshMatch.group(1)!;
+    final repo = sshMatch.group(2)!;
+    return 'https://$host/$repo';
+  }
+
+  // Handle HTTPS format: https://github.com/owner/repo.git
+  final httpsMatch = RegExp('https?://[^/]+/[^/]+/[^/]+').firstMatch(remoteUrl);
+  if (httpsMatch != null) {
+    final url = httpsMatch.group(0)!;
+    // Remove .git suffix if present
+    return url.replaceAll(RegExp(r'\.git$'), '');
+  }
+
+  // Return as-is if format is not recognized
+  return remoteUrl;
+}
+
+/// Gets the current git branch name.
+///
+/// Returns the current branch name, or 'main' as a default if git is not
+/// available or the branch cannot be determined.
+Future<String> _getGitBranch(String workingDirectory) async {
+  try {
+    final result = await Process.run(
+      'git',
+      ['rev-parse', '--abbrev-ref', 'HEAD'],
+      workingDirectory: workingDirectory,
+    );
+
+    if (result.exitCode != 0) {
+      return 'main';
+    }
+
+    final branch = result.stdout.toString().trim();
+    return branch.isEmpty ? 'main' : branch;
+  } on Object {
+    return 'main';
+  }
+}
+
+/// Resolves the git URL for the repository.
+///
+/// Constructs a GitHub blob URL from the git remote URL and current branch.
+/// Falls back to a default value if git information cannot be determined.
+Future<String> _resolveGitUrl(String readmePath) async {
+  // Find the repository root by looking for .git directory
+  final readmeDir = Directory(p.dirname(readmePath));
+  var currentDir = readmeDir.absolute;
+
+  // Walk up the directory tree to find .git
+  while (currentDir.path != currentDir.parent.path) {
+    final gitDir = Directory(p.join(currentDir.path, '.git'));
+    if (gitDir.existsSync()) {
+      final remoteUrl = await _getGitRemoteUrl(currentDir.path);
+      final branch = await _getGitBranch(currentDir.path);
+
+      if (remoteUrl != null) {
+        // Construct GitHub blob URL with the path to packages/coverde_cli
+        final relativePath = p
+            .relative(
+              p.dirname(readmePath),
+              from: currentDir.path,
+            )
+            .replaceAll(r'\', '/');
+        return '$remoteUrl/blob/$branch/$relativePath';
+      }
+      break;
+    }
+    currentDir = currentDir.parent;
+  }
+
+  // Fallback to hardcoded value if git info cannot be determined
+  return '''https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli''';
+}
 
 Future<void> main(List<String> args) async {
   final runner = CoverdeCommandRunner();
@@ -32,7 +138,10 @@ Future<void> main(List<String> args) async {
   final exampleDirPaths = argResults.multiOption('example-dirs');
 
   final readmeFile = File(readmePath);
+  if (!readmeFile.existsSync()) readmeFile.createSync(recursive: true);
   final initialReadmeContent = readmeFile.readAsStringSync();
+
+  final gitUrl = await _resolveGitUrl(readmePath);
 
   const updateChecksToken = '<!-- UPDATE CHECKS -->';
   final updateChecksRegex = RegExp(
@@ -62,12 +171,14 @@ Future<void> main(List<String> args) async {
 
   final descriptionFooterFiles = switch (descriptionFooterDirPath) {
     null => <File>[],
-    final String path => Directory(path).listSync().whereType<File>(),
+    final String path =>
+      Directory(path).listSync().whereType<File>().sortedBy((it) => it.path),
   };
 
   final exampleFiles = exampleDirPaths
       .map((path) => Directory(path).listSync().whereType<File>())
-      .expand((it) => it);
+      .expand((it) => it)
+      .sortedBy((it) => it.path);
 
   final features = await Future.wait([
     for (final command in commands)
