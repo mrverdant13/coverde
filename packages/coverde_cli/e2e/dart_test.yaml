@@ -4,4 +4,10 @@ tags:
   e2e:
     skip: Should be run manually
 
-timeout: 5m
+on_os:
+  linux:
+    timeout: 1m 30s
+  mac-os:
+    timeout: 1m 30s
+  windows:
+    timeout: 6m
