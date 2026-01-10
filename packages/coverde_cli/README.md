@@ -7,7 +7,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![melos][melos_badge]][melos_link]
 
-A CLI for basic coverage trace files manipulation.
+A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, filter trace files, and generate HTML reports.
 
 ---
 

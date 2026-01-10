@@ -1,6 +1,3 @@
 /.dart_tool/**
-/coverage/**
 /pubspec.lock
 /test/optimized_test.dart
-
-!/coverage/lcov.info

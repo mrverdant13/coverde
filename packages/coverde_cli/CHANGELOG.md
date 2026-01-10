@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - **BREAKING FEAT**: use `base-directory` option instead of `paths-parent` option in `filter` command (#158).
 - **BREAKING FEAT**: add `--dry-run` flag to `remove` command to preview deletions without actually deleting (#214).

@@ -2,8 +2,8 @@ import 'package:coverde/coverde.dart';
 import 'package:http/http.dart' as http;
 import 'package:mason_logger/mason_logger.dart';
 
-/// The command invocation function that provides coverage-related
-/// functionalities.
+/// The command invocation function that provides test execution optimization
+/// and coverage trace file manipulation.
 Future<void> coverde({
   required List<String> args,
   required Logger logger,

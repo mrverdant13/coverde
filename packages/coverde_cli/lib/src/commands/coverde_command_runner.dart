@@ -19,8 +19,8 @@ class CoverdeCommandRunner extends CommandRunner<void> {
         processManager = processManager ?? const LocalProcessManager(),
         super(
           packageName,
-          'A set of commands that '
-          'encapsulate coverage-related functionalities.',
+          'A CLI for optimizing test execution and manipulating coverage '
+          'trace files.',
         ) {
     addCommand(OptimizeTestsCommand());
     addCommand(CheckCommand());
