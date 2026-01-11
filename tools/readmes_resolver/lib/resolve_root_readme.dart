@@ -9,7 +9,7 @@ import 'package:recase/recase.dart' as recase;
 
 /// Gets the git remote URL from the repository.
 ///
-/// Returns the HTTPS URL of the remote origin, or null if git is not available
+/// Returns the remote URL as-is, or null if git is not available
 /// or the remote cannot be determined.
 Future<String?> _getGitRemoteUrl(String workingDirectory) async {
   try {
@@ -18,103 +18,76 @@ Future<String?> _getGitRemoteUrl(String workingDirectory) async {
       ['config', '--get', 'remote.origin.url'],
       workingDirectory: workingDirectory,
     );
-
-    if (result.exitCode != 0) {
-      return null;
-    }
-
+    if (result.exitCode != 0) return null;
     final remoteUrl = result.stdout.toString().trim();
-    if (remoteUrl.isEmpty) {
-      return null;
-    }
-
-    return _convertToHttpsUrl(remoteUrl);
+    if (remoteUrl.isEmpty) return null;
+    return remoteUrl;
   } on Object {
     return null;
   }
 }
 
-/// Converts a git remote URL to HTTPS format.
+/// Extracts owner and repo name from a git remote URL.
 ///
 /// Handles both SSH (`git@github.com:owner/repo.git`) and HTTPS
 /// (`https://github.com/owner/repo.git`) formats.
-String _convertToHttpsUrl(String remoteUrl) {
+///
+/// Returns a record of (owner, repo), or null if the URL format is not
+/// recognized.
+(String owner, String repo)? _extractOwnerAndRepo(String remoteUrl) {
   // Handle SSH format: git@github.com:owner/repo.git
-  final sshMatch = RegExp(r'git@([^:]+):(.+)\.git?').firstMatch(remoteUrl);
+  final sshMatch =
+      RegExp(r'git@[^:]+:([^/]+)/(.+)\.git?').firstMatch(remoteUrl);
   if (sshMatch != null) {
-    final host = sshMatch.group(1)!;
+    final owner = sshMatch.group(1)!;
     final repo = sshMatch.group(2)!;
-    return 'https://$host/$repo';
+    return (owner, repo);
   }
 
   // Handle HTTPS format: https://github.com/owner/repo.git
-  final httpsMatch = RegExp('https?://[^/]+/[^/]+/[^/]+').firstMatch(remoteUrl);
+  final httpsMatch =
+      RegExp('https?://[^/]+/([^/]+)/([^/]+)').firstMatch(remoteUrl);
   if (httpsMatch != null) {
-    final url = httpsMatch.group(0)!;
-    // Remove .git suffix if present
-    return url.replaceAll(RegExp(r'\.git$'), '');
+    final owner = httpsMatch.group(1)!;
+    final repo = httpsMatch.group(2)!.replaceAll(RegExp(r'\.git$'), '');
+    return (owner, repo);
   }
 
-  // Return as-is if format is not recognized
-  return remoteUrl;
+  return null;
 }
 
-/// Gets the current git branch name.
-///
-/// Returns the current branch name, or 'main' as a default if git is not
-/// available or the branch cannot be determined.
-Future<String> _getGitBranch(String workingDirectory) async {
-  try {
-    final result = await Process.run(
-      'git',
-      ['rev-parse', '--abbrev-ref', 'HEAD'],
-      workingDirectory: workingDirectory,
-    );
-
-    if (result.exitCode != 0) {
-      return 'main';
-    }
-
-    final branch = result.stdout.toString().trim();
-    return branch.isEmpty ? 'main' : branch;
-  } on Object {
-    return 'main';
-  }
-}
-
-/// Resolves the git URL for the repository.
-///
-/// Constructs a GitHub blob URL from the git remote URL and current branch.
-/// Falls back to a default value if git information cannot be determined.
-Future<String> _resolveGitUrl(String readmePath) async {
-  // Find the repository root by looking for .git directory
+/// Resolves the base URL for a docs asset.
+Future<Uri?> _resolveDocsAssetBaseUri(String readmePath) async {
   final readmeDir = Directory(p.dirname(readmePath));
-  var currentDir = readmeDir.absolute;
-
-  // Walk up the directory tree to find .git
-  while (currentDir.path != currentDir.parent.path) {
-    final gitDir = Directory(p.join(currentDir.path, '.git'));
-    if (gitDir.existsSync()) {
-      final remoteUrl = await _getGitRemoteUrl(currentDir.path);
-      final branch = await _getGitBranch(currentDir.path);
-
-      if (remoteUrl != null) {
-        // Construct GitHub blob URL with the path to packages/coverde_cli
-        final relativePath = p
-            .relative(
-              p.dirname(readmePath),
-              from: currentDir.path,
-            )
-            .replaceAll(r'\', '/');
-        return '$remoteUrl/blob/$branch/$relativePath';
+  final repoRootPath = () {
+    var currentDir = readmeDir.absolute;
+    while (currentDir.path != currentDir.parent.path) {
+      final gitDir = Directory(p.join(currentDir.path, '.git'));
+      if (gitDir.existsSync()) {
+        return currentDir.path;
       }
-      break;
+      currentDir = currentDir.parent;
     }
-    currentDir = currentDir.parent;
-  }
-
-  // Fallback to hardcoded value if git info cannot be determined
-  return '''https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli''';
+  }();
+  if (repoRootPath == null) return null;
+  final remoteUrl = await _getGitRemoteUrl(repoRootPath);
+  if (remoteUrl == null) return null;
+  final ownerAndRepo = _extractOwnerAndRepo(remoteUrl);
+  if (ownerAndRepo == null) return null;
+  final (owner, repo) = ownerAndRepo;
+  final relativePath = p.relative(
+    p.dirname(readmePath),
+    from: repoRootPath,
+  );
+  final pathSegments = [
+    owner,
+    repo,
+    'main',
+    ...p.split(relativePath),
+  ].map(Uri.encodeComponent);
+  final path = p.url.joinAll(pathSegments);
+  final uri = Uri.https('raw.githubusercontent.com').replace(path: path);
+  return uri;
 }
 
 Future<void> main(List<String> args) async {
@@ -141,7 +114,7 @@ Future<void> main(List<String> args) async {
   if (!readmeFile.existsSync()) readmeFile.createSync(recursive: true);
   final initialReadmeContent = readmeFile.readAsStringSync();
 
-  final gitUrl = await _resolveGitUrl(readmePath);
+  final docsAssetBaseUri = await _resolveDocsAssetBaseUri(readmePath);
 
   const updateChecksToken = '<!-- UPDATE CHECKS -->';
   final updateChecksRegex = RegExp(
@@ -191,10 +164,8 @@ Future<void> main(List<String> args) async {
         ].join();
         final descriptionFooter = descriptionFooterFiles
             .where(
-              (file) {
-                return p.basename(file.path) ==
-                    '${commandInvocation.paramCase}.md';
-              },
+              (file) =>
+                  p.basename(file.path) == '${commandInvocation.paramCase}.md',
             )
             .map((file) => file.readAsStringSync().trim())
             .singleOrNull
@@ -215,7 +186,7 @@ Future<void> main(List<String> args) async {
                 ['.png', '.md'].contains(extension);
           },
         );
-        if (commandExampleFiles.isNotEmpty) {
+        if (commandExampleFiles.isNotEmpty && docsAssetBaseUri != null) {
           detailsBuffer
             ..writeln()
             ..writeln('### Examples')
@@ -227,9 +198,14 @@ Future<void> main(List<String> args) async {
                 commandExampleFile.path,
                 from: p.dirname(readmePath),
               );
+              final path = p.url.joinAll([
+                docsAssetBaseUri.path,
+                ...p.split(referenceableExamplePath).map(Uri.encodeComponent),
+              ]);
+              final exampleUri = docsAssetBaseUri.replace(path: path);
               detailsBuffer.writeln(
                 '![${p.basename(commandExampleFile.path)}]'
-                '(${p.url.joinAll([gitUrl, referenceableExamplePath])})',
+                '($exampleUri)',
               );
             } else if (exampleExtension == '.md') {
               detailsBuffer.writeln(
