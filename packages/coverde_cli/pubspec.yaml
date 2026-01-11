@@ -1,6 +1,6 @@
 name: coverde
 description: A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, filter trace files, and generate HTML reports.
-version: 0.3.0
+version: 0.3.0+1
 homepage: https://github.com/mrverdant13/coverde
 repository: https://github.com/mrverdant13/coverde/tree/main/packages/coverde_cli
 issue_tracker: https://github.com/mrverdant13/coverde/issues

@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0+1
 
 - **CHORE**: use git-based dependencies for tools (#256).
 
