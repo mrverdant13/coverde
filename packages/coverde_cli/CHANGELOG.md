@@ -1,3 +1,7 @@
+## Unreleased
+
+- **CHORE**: use git-based dependencies for tools (#256).
+
 ## 0.3.0
 
 - **BREAKING FEAT**: use `base-directory` option instead of `paths-parent` option in `filter` command (#158).
