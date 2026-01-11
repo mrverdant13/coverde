@@ -5,7 +5,6 @@ import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:coverde/coverde.dart';
 import 'package:path/path.dart' as p;
-import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:recase/recase.dart' as recase;
 
 /// Gets the git remote URL from the repository.
@@ -57,22 +56,6 @@ Future<String?> _getGitRemoteUrl(String workingDirectory) async {
   return null;
 }
 
-/// Gets the package version from the pubspec.yaml file.
-///
-/// Returns the version string from the pubspec.yaml file, or null if the file
-/// cannot be read or parsed.
-Future<String?> _getPackageVersion(String pubspecPath) async {
-  try {
-    final pubspecFile = File(pubspecPath);
-    if (!pubspecFile.existsSync()) return null;
-    final pubspecContent = await pubspecFile.readAsString();
-    final pubspec = Pubspec.parse(pubspecContent);
-    return pubspec.version?.toString();
-  } on Object {
-    return null;
-  }
-}
-
 /// Resolves the base URL for a docs asset.
 Future<Uri?> _resolveDocsAssetBaseUri(String readmePath) async {
   final readmeDir = Directory(p.dirname(readmePath));
@@ -92,10 +75,6 @@ Future<Uri?> _resolveDocsAssetBaseUri(String readmePath) async {
   final ownerAndRepo = _extractOwnerAndRepo(remoteUrl);
   if (ownerAndRepo == null) return null;
   final (owner, repo) = ownerAndRepo;
-  final pubspecPath = p.join(p.dirname(readmePath), 'pubspec.yaml');
-  final version = await _getPackageVersion(pubspecPath);
-  if (version == null) return null;
-  final tag = 'coverde-v$version';
   final relativePath = p.relative(
     p.dirname(readmePath),
     from: repoRootPath,
@@ -103,9 +82,7 @@ Future<Uri?> _resolveDocsAssetBaseUri(String readmePath) async {
   final pathSegments = [
     owner,
     repo,
-    'refs',
-    'tags',
-    tag,
+    'main',
     ...p.split(relativePath),
   ].map(Uri.encodeComponent);
   final path = p.url.joinAll(pathSegments);
