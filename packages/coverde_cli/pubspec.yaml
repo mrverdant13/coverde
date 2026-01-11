@@ -50,9 +50,15 @@ dev_dependencies:
   csslib: ^1.0.2
   mocktail: ^1.0.4
   package_assets_generator:
-    path: ../../tools/package_assets_generator/
+    git:
+      url: https://github.com/mrverdant13/coverde.git
+      path: tools/package_assets_generator
+      ref: 95ddc13ebb5ff7540e3eec3b83ccd5c53ae5414b
   package_data_generator:
-    path: ../../tools/package_data_generator/
+    git:
+      url: https://github.com/mrverdant13/coverde.git
+      path: tools/package_data_generator
+      ref: 95ddc13ebb5ff7540e3eec3b83ccd5c53ae5414b
   test: ^1.29.0
   very_good_analysis: ^10.0.0
 
