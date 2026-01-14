@@ -1,3 +1,7 @@
+## 0.3.1
+
+- **FIX**: full support for analyzer package v8-v10 (#263).
+
 ## 0.3.0+1
 
 - **CHORE**: use git-based dependencies for tools (#256).
