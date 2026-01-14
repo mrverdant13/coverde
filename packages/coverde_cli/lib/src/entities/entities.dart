@@ -11,5 +11,6 @@ export 'file_line_coverage_details.dart';
 export 'generate_html_coverage_report_failure.dart';
 export 'package_version_manager_dependencies.dart';
 export 'package_versioning_info.dart';
+export 'test_file_optimization_data.dart';
 export 'trace_file.dart';
 export 'update_check_mode.dart';

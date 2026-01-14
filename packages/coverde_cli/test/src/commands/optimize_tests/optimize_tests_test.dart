@@ -1404,7 +1404,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             if (p.basename(path) == 'some_test.dart') {
               return _OptimizeTestsTestFile(
                 path: path,
-                readAsStringSync: () => throw FileSystemException(
+                readAsString: () async => throw FileSystemException(
                   'Fake file read error',
                   testFilePath,
                 ),
@@ -1562,6 +1562,7 @@ final class _OptimizeTestsTestFile extends Fake implements File {
     required this.path,
     bool Function()? existsSync,
     String Function()? readAsStringSync,
+    Future<String> Function()? readAsString,
     void Function(
       String contents, {
       FileMode mode,
@@ -1571,6 +1572,7 @@ final class _OptimizeTestsTestFile extends Fake implements File {
     void Function({bool recursive})? deleteSync,
   })  : _existsSync = existsSync,
         _readAsStringSync = readAsStringSync,
+        _readAsString = readAsString,
         _writeAsStringSync = writeAsStringSync,
         _deleteSync = deleteSync;
 
@@ -1580,6 +1582,8 @@ final class _OptimizeTestsTestFile extends Fake implements File {
   final bool Function()? _existsSync;
 
   final String Function()? _readAsStringSync;
+
+  final Future<String> Function()? _readAsString;
 
   final void Function(
     String contents, {
@@ -1608,6 +1612,12 @@ final class _OptimizeTestsTestFile extends Fake implements File {
   @override
   String readAsStringSync({Encoding encoding = utf8}) {
     if (_readAsStringSync case final cb?) return cb();
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> readAsString({Encoding encoding = utf8}) async {
+    if (_readAsString case final cb?) return cb();
     throw UnimplementedError();
   }
 

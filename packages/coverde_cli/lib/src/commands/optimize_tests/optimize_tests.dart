@@ -5,9 +5,10 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:code_builder/code_builder.dart' as coder;
 import 'package:collection/collection.dart';
-import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/coverde.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:universal_io/io.dart';
@@ -100,6 +101,158 @@ class OptimizeTestsCommand extends CoverdeCommand {
     dotAll: true,
     multiLine: true,
   );
+
+  /// Process a single test file asynchronously.
+  static Future<TestFileOptimizationData?> _processTestFile({
+    required ({
+      String posixRelativePath,
+      String platformRelativePath,
+    }) fileRelativePath,
+    required File outputFile,
+    required bool useFlutterGoldenTests,
+    required Logger logger,
+  }) async {
+    final file = File(fileRelativePath.platformRelativePath).absolute;
+    final String fileContent;
+    try {
+      fileContent = await file.readAsString();
+    } on FileSystemException catch (exception, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
+          filePath: file.path,
+          exception: exception,
+        ),
+        stackTrace,
+      );
+    }
+    final result = parseString(
+      content: fileContent,
+      featureSet: FeatureSet.latestLanguageVersion(),
+    );
+    final unit = result.unit;
+    final declarations = unit.declarations;
+    final functionDeclarations = declarations.whereType<FunctionDeclaration>();
+    final mainFunctionDeclaration = functionDeclarations.firstWhereOrNull(
+      (declaration) => declaration.name.lexeme == 'main',
+    );
+    if (mainFunctionDeclaration == null) {
+      logger.warn(
+        'Test file ${fileRelativePath.platformRelativePath} '
+        'does not have a `main` function.',
+      );
+      return null;
+    }
+    final mainFunctionHasParams =
+        switch (mainFunctionDeclaration.functionExpression.parameters) {
+      FormalParameterList(:final parameters) => parameters.isNotEmpty,
+      null => false,
+    };
+    if (mainFunctionHasParams) {
+      logger.warn(
+        'Test file ${fileRelativePath.platformRelativePath} '
+        'has a `main` function with params.',
+      );
+      return null;
+    }
+    final onPlatform =
+        onPlatformRegex.firstMatch(fileContent)?.namedGroup('onPlatform');
+    final skip = skipRegex.firstMatch(fileContent)?.namedGroup('skip');
+    final tags = tagsRegex.firstMatch(fileContent)?.namedGroup('tags');
+    final testOn = testOnRegex.firstMatch(fileContent)?.namedGroup('testOn');
+    final timeout = timeoutRegex.firstMatch(fileContent)?.namedGroup('timeout');
+    final testRelativePath = p.posix.joinAll(
+      p.split(
+        p.relative(
+          fileRelativePath.posixRelativePath,
+          from: outputFile.parent.path,
+        ),
+      ),
+    );
+    final testInvocation = () {
+      final expression = mainFunctionDeclaration.functionExpression;
+      final mainFunctionIsAsync = () {
+        if (expression.body.isAsynchronous) return true;
+        final returnType = mainFunctionDeclaration.returnType;
+        if (returnType is! NamedType) return false;
+        return returnType.name.lexeme == 'Future';
+      }();
+      final setUpInvocation = () {
+        if (!useFlutterGoldenTests) return null;
+        return coder.Code(
+          '''
+late GoldenFileComparator initialGoldenFileComparator;
+
+setUp(() {
+  initialGoldenFileComparator = goldenFileComparator;
+  goldenFileComparator = _DelegatingGoldenFileComparator(
+    goldensDir: Directory(${coder.literalString(p.dirname(testRelativePath))}),
+    delegateGoldenFileComparator: initialGoldenFileComparator,
+  );
+});
+
+tearDown(() {
+  goldenFileComparator = initialGoldenFileComparator;
+});
+''',
+        );
+      }();
+      final mainInvocation = () {
+        final mainFunction = coder.Reference('main', testRelativePath);
+        if (!mainFunctionIsAsync) return mainFunction.call([]);
+        logger.warn(
+          'Test file ${fileRelativePath.platformRelativePath} '
+          'has an async `main` function.',
+        );
+        return const coder.Reference('unawaited').call([
+          const coder.Reference('Future.sync').call([
+            mainFunction,
+          ]),
+        ]);
+      }();
+      return (
+        invocation: coder.Method(
+          (b) => b
+            ..body = coder.Block.of([
+              if (setUpInvocation != null) setUpInvocation,
+              mainInvocation.statement,
+            ]),
+        ).closure,
+        hasAsyncEntryPoint: mainFunctionIsAsync,
+      );
+    }();
+    final testFileGroupStatement = const coder.Reference('group').call(
+      [
+        coder.literalString(testRelativePath),
+        testInvocation.invocation,
+      ],
+      {
+        if (onPlatform != null)
+          'onPlatform': coder.CodeExpression(
+            coder.Code(onPlatform),
+          ),
+        if (skip != null)
+          'skip': coder.CodeExpression(
+            skip == '' ? coder.literalBool(true).code : coder.Code(skip),
+          ),
+        if (tags != null)
+          'tags': coder.CodeExpression(
+            coder.Code(tags),
+          ),
+        if (testOn != null)
+          'testOn': coder.CodeExpression(
+            coder.Code(testOn),
+          ),
+        if (timeout != null)
+          'timeout': coder.CodeExpression(
+            coder.Code(timeout),
+          ),
+      },
+    ).statement;
+    return TestFileOptimizationData(
+      testFileGroupStatement: testFileGroupStatement,
+      hasAsyncEntryPoint: testInvocation.hasAsyncEntryPoint,
+    );
+  }
 
   @override
   FutureOr<void> run() async {
@@ -205,147 +358,25 @@ class OptimizeTestsCommand extends CoverdeCommand {
         ),
     };
 
+    // Process files in parallel for better performance
+    final processedFiles = await Future.wait(
+      validFileRelativePaths.map(
+        (fileRelativePath) => _processTestFile(
+          fileRelativePath: fileRelativePath,
+          outputFile: outputFile,
+          useFlutterGoldenTests: useFlutterGoldenTests,
+          logger: logger,
+        ),
+      ),
+    );
+
     final testFileGroupsStatements = <coder.Code>[];
     var hasAsyncEntryPoints = false;
-    for (final fileRelativePath in validFileRelativePaths) {
-      final fileContent = () {
-        final file = File(fileRelativePath.platformRelativePath).absolute;
-        try {
-          return file.readAsStringSync();
-        } on FileSystemException catch (exception, stackTrace) {
-          Error.throwWithStackTrace(
-            CoverdeOptimizeTestsFileReadFailure.fromFileSystemException(
-              filePath: file.path,
-              exception: exception,
-            ),
-            stackTrace,
-          );
-        }
-      }();
-      final result = parseString(
-        content: fileContent,
-        featureSet: FeatureSet.latestLanguageVersion(),
-      );
-      final unit = result.unit;
-      final declarations = unit.declarations;
-      final functionDeclarations =
-          declarations.whereType<FunctionDeclaration>();
-      final mainFunctionDeclaration = functionDeclarations.firstWhereOrNull(
-        (declaration) => declaration.name.lexeme == 'main',
-      );
-      if (mainFunctionDeclaration == null) {
-        logger.warn(
-          'Test file ${fileRelativePath.platformRelativePath} '
-          'does not have a `main` function.',
-        );
-        continue;
-      }
-      final mainFunctionHasParams =
-          switch (mainFunctionDeclaration.functionExpression.parameters) {
-        FormalParameterList(:final parameters) => parameters.isNotEmpty,
-        null => false,
-      };
-      if (mainFunctionHasParams) {
-        logger.warn(
-          'Test file ${fileRelativePath.platformRelativePath} '
-          'has a `main` function with params.',
-        );
-        continue;
-      }
-      final onPlatform =
-          onPlatformRegex.firstMatch(fileContent)?.namedGroup('onPlatform');
-      final skip = skipRegex.firstMatch(fileContent)?.namedGroup('skip');
-      final tags = tagsRegex.firstMatch(fileContent)?.namedGroup('tags');
-      final testOn = testOnRegex.firstMatch(fileContent)?.namedGroup('testOn');
-      final timeout =
-          timeoutRegex.firstMatch(fileContent)?.namedGroup('timeout');
-      final testRelativePath = p.posix.joinAll(
-        p.split(
-          p.relative(
-            fileRelativePath.posixRelativePath,
-            from: outputFile.parent.path,
-          ),
-        ),
-      );
-      final testInvocation = () {
-        final expression = mainFunctionDeclaration.functionExpression;
-        final mainFunctionIsAsync = () {
-          if (expression.body.isAsynchronous) return true;
-          final returnType = mainFunctionDeclaration.returnType;
-          if (returnType is! NamedType) return false;
-          return returnType.name.lexeme == 'Future';
-        }();
-        hasAsyncEntryPoints |= mainFunctionIsAsync;
-        final setUpInvocation = () {
-          if (!useFlutterGoldenTests) return null;
-          return coder.Code(
-            '''
-late GoldenFileComparator initialGoldenFileComparator;
+    for (final processedFile in processedFiles) {
+      if (processedFile == null) continue; // File was skipped
 
-setUp(() {
-  initialGoldenFileComparator = goldenFileComparator;
-  goldenFileComparator = _DelegatingGoldenFileComparator(
-    goldensDir: Directory(${coder.literalString(p.dirname(testRelativePath))}),
-    delegateGoldenFileComparator: initialGoldenFileComparator,
-  );
-});
-
-tearDown(() {
-  goldenFileComparator = initialGoldenFileComparator;
-});
-''',
-          );
-        }();
-        final mainInvocation = () {
-          final mainFunction = coder.Reference('main', testRelativePath);
-          if (!mainFunctionIsAsync) return mainFunction.call([]);
-          logger.warn(
-            'Test file ${fileRelativePath.platformRelativePath} '
-            'has an async `main` function.',
-          );
-          return const coder.Reference('unawaited').call([
-            const coder.Reference('Future.sync').call([
-              mainFunction,
-            ]),
-          ]);
-        }();
-        return coder.Method(
-          (b) => b
-            ..body = coder.Block.of([
-              if (setUpInvocation != null) setUpInvocation,
-              mainInvocation.statement,
-            ]),
-        ).closure;
-      }();
-      final testFileGroupStatement = const coder.Reference('group').call(
-        [
-          coder.literalString(testRelativePath),
-          testInvocation,
-        ],
-        {
-          if (onPlatform != null)
-            'onPlatform': coder.CodeExpression(
-              coder.Code(onPlatform),
-            ),
-          if (skip != null)
-            'skip': coder.CodeExpression(
-              skip == '' ? coder.literalBool(true).code : coder.Code(skip),
-            ),
-          if (tags != null)
-            'tags': coder.CodeExpression(
-              coder.Code(tags),
-            ),
-          if (testOn != null)
-            'testOn': coder.CodeExpression(
-              coder.Code(testOn),
-            ),
-          if (timeout != null)
-            'timeout': coder.CodeExpression(
-              coder.Code(timeout),
-            ),
-        },
-      ).statement;
-      testFileGroupsStatements.add(testFileGroupStatement);
+      hasAsyncEntryPoints |= processedFile.hasAsyncEntryPoint;
+      testFileGroupsStatements.add(processedFile.testFileGroupStatement);
     }
     final mainFunction = coder.Method.returnsVoid(
       (b) => b
