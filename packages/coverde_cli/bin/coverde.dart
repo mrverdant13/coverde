@@ -119,7 +119,7 @@ extension on CoverdeFilterDirectoryOperationFailure {
 
 extension on CoverdeFilterInvalidInputFailure {
   ExitCode get exitCode => switch (this) {
-        CoverdeFilterInvalidRegexPatternFailure() => ExitCode.usage,
+        CoverdeFilterInvalidGlobPatternFailure() => ExitCode.usage,
       };
 }
 

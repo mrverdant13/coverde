@@ -186,7 +186,7 @@ melos:
         "
         dart run coverde filter
         --base-directory MELOS_ROOT_PATH
-        --filters '\.asset\.dart'
+        --exclude '**.asset.dart'
         --input coverage/lcov.info
         --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
         "

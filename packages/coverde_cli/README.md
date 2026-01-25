@@ -308,7 +308,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 Filter a coverage trace file.
 
-Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.\
+Filter the coverage info by ignoring data related to files with paths that matches the given EXCLUDE_GLOB.\
 The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
 
 All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
@@ -331,6 +331,13 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
   Base directory relative to which trace file source paths are resolved.
 
+- `--exclude`
+
+  The glob pattern of the files to be excluded.
+
+  In order to be cross-platform compatible, the glob pattern must use the POSIX path syntax.\
+  **Default value:** _None_
+
 - `--mode`
 
   The mode in which the OUTPUT_LCOV_FILE can be generated.\
@@ -338,15 +345,6 @@ All the relative paths in the resulting coverage trace file will be resolved rel
   **Allowed values:**
     - `a`: Append filtered content to the OUTPUT_LCOV_FILE content, if any.
     - `w`: Override the OUTPUT_LCOV_FILE content, if any, with the filtered content.
-
-#### Multi-options
-
-- `--filters`
-
-  Set of comma-separated path patterns of the files to be ignored.
-
-  Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
-  **Default value:** _None_
 
 
 ## `coverde report`

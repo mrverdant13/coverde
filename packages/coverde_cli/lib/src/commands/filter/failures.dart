@@ -33,28 +33,28 @@ $usageMessage
 ''';
 }
 
-/// {@template coverde_cli.filter_invalid_regex_pattern_failure}
-/// A [FilterCommand] failure that indicates that an invalid regex pattern was
+/// {@template coverde_cli.filter_invalid_glob_pattern_failure}
+/// A [FilterCommand] failure that indicates that an invalid glob pattern was
 /// provided.
 /// {@endtemplate}
-final class CoverdeFilterInvalidRegexPatternFailure
+final class CoverdeFilterInvalidGlobPatternFailure
     extends CoverdeFilterInvalidInputFailure {
-  /// {@macro coverde_cli.filter_invalid_regex_pattern_failure}
-  const CoverdeFilterInvalidRegexPatternFailure({
+  /// {@macro coverde_cli.filter_invalid_glob_pattern_failure}
+  const CoverdeFilterInvalidGlobPatternFailure({
     required super.usageMessage,
-    required this.invalidRegexPattern,
+    required this.invalidGlobPattern,
     required this.exception,
   });
 
-  /// The invalid regex pattern.
-  final String invalidRegexPattern;
+  /// The invalid glob pattern.
+  final String invalidGlobPattern;
 
-  /// The underlying regex pattern parsing exception.
+  /// The underlying glob pattern parsing exception.
   final FormatException exception;
 
   @override
   String get invalidInputDescription =>
-      'Invalid regex pattern: `$invalidRegexPattern`.\n'
+      'Invalid glob pattern: `$invalidGlobPattern`.\n'
       '${exception.message}';
 }
 

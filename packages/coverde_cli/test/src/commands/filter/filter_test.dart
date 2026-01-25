@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
+import 'package:glob/glob.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
@@ -59,7 +60,7 @@ void main() {
         const expected = '''
 Filter a coverage trace file.
 
-Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.
+Filter the coverage info by ignoring data related to files with paths that matches the given EXCLUDE_GLOB.
 The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
 
 All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
@@ -74,13 +75,13 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     test(
       '--${FilterCommand.inputOption}=<trace_file> '
       '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
+      '--${FilterCommand.excludeOptionName}=<glob_pattern> '
       '| filters trace file',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final patternsRegex = patterns.map(RegExp.new);
+        const excludePattern = '**/ignored_source*';
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.joinAll([
           directory.path,
           'original.info',
@@ -127,17 +128,15 @@ end_of_record
         final originalTraceFile = TraceFile.parse(
           originalFile.readAsStringSync(),
         );
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
+        final originalFileIncludesFileThatMatchesGlob =
+            originalTraceFile.includesFileThatMatchesGlob(excludeGlob);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
+          (d) => excludeGlob.matches(d.source.path),
         );
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+        expect(originalFileIncludesFileThatMatchesGlob, isTrue);
 
         await cmdRunner.run([
           'filter',
@@ -145,8 +144,8 @@ end_of_record
           originalFilePath,
           '--${FilterCommand.outputOption}',
           filteredFilePath,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
+          '--${FilterCommand.excludeOptionName}',
+          excludePattern,
         ]);
 
         const splitter = LineSplitter();
@@ -154,10 +153,10 @@ end_of_record
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = acceptedSourceFileData;
-        final filteredFileIncludeFileThatMatchPatterns =
+        final filteredFileIncludesFileThatMatchesGlob =
             TraceFile.parse(filteredFileContent)
-                .includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+                .includesFileThatMatchesGlob(excludeGlob);
+        expect(filteredFileIncludesFileThatMatchesGlob, isFalse);
         expect(
           splitter.convert(filteredFileContent),
           splitter.convert(expectedFilteredFileContent),
@@ -176,13 +175,13 @@ end_of_record
     test(
       '--${FilterCommand.inputOption}=<trace_file> '
       '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
+      '--${FilterCommand.excludeOptionName}=<glob_pattern> '
       '| filters trace file with absolute paths',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final patternsRegex = patterns.map(RegExp.new);
+        const excludePattern = '/**/ignored_source*';
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
@@ -231,17 +230,15 @@ end_of_record
         final originalTraceFile = TraceFile.parse(
           originalFile.readAsStringSync(),
         );
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
+        final originalFileIncludesFileThatMatchesGlob =
+            originalTraceFile.includesFileThatMatchesGlob(excludeGlob);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
+          (d) => excludeGlob.matches(d.source.path),
         );
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+        expect(originalFileIncludesFileThatMatchesGlob, isTrue);
 
         await cmdRunner.run([
           'filter',
@@ -249,8 +246,8 @@ end_of_record
           originalFilePath,
           '--${FilterCommand.outputOption}',
           filteredFilePath,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
+          '--${FilterCommand.excludeOptionName}',
+          excludePattern,
         ]);
 
         const splitter = LineSplitter();
@@ -258,10 +255,10 @@ end_of_record
         expect(filteredFile.existsSync(), isTrue);
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = acceptedSourceFileData;
-        final filteredFileIncludeFileThatMatchPatterns =
+        final filteredFileIncludesFileThatMatchesGlob =
             TraceFile.parse(filteredFileContent)
-                .includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+                .includesFileThatMatchesGlob(excludeGlob);
+        expect(filteredFileIncludesFileThatMatchesGlob, isFalse);
         expect(
           splitter.convert(filteredFileContent),
           splitter.convert(expectedFilteredFileContent),
@@ -281,14 +278,14 @@ end_of_record
       '--${FilterCommand.inputOption}=<trace_file> '
       '--${FilterCommand.outputOption}=<output_file> '
       '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
-      '--${FilterCommand.filtersOption}=<patterns> '
+      '--${FilterCommand.excludeOptionName}=<glob_pattern> '
       '| filters trace file and resolves relative paths',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
+        const excludePattern = '**/ignored_source*';
         final baseDirectory = p.join('root', 'parent');
-        final patternsRegex = patterns.map(RegExp.new);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
@@ -337,17 +334,15 @@ $ignoredSourceFileData
         final originalTraceFile = TraceFile.parse(
           originalFile.readAsStringSync(),
         );
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
+        final originalFileIncludesFileThatMatchesGlob =
+            originalTraceFile.includesFileThatMatchesGlob(excludeGlob);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
+          (d) => excludeGlob.matches(d.source.path),
         );
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+        expect(originalFileIncludesFileThatMatchesGlob, isTrue);
 
         await cmdRunner.run([
           'filter',
@@ -357,8 +352,8 @@ $ignoredSourceFileData
           filteredFilePath,
           '--${FilterCommand.baseDirectoryOptionName}',
           baseDirectory,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
+          '--${FilterCommand.excludeOptionName}',
+          excludePattern,
         ]);
 
         expect(originalFile.existsSync(), isTrue);
@@ -374,9 +369,9 @@ end_of_record
             .trim();
         final filteredTraceFile = TraceFile.parse(filteredFileContent);
         final expectedTraceFile = TraceFile.parse(expectedFilteredFileContent);
-        final filteredFileIncludeFileThatMatchPatterns =
-            filteredTraceFile.includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+        final filteredFileIncludesFileThatMatchesGlob =
+            filteredTraceFile.includesFileThatMatchesGlob(excludeGlob);
+        expect(filteredFileIncludesFileThatMatchesGlob, isFalse);
         expect(
           filteredTraceFile,
           expectedTraceFile,
@@ -395,15 +390,15 @@ end_of_record
       '--${FilterCommand.inputOption}=<trace_file> '
       '--${FilterCommand.outputOption}=<output_file> '
       '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
-      '--${FilterCommand.filtersOption}=<patterns> '
+      '--${FilterCommand.excludeOptionName}=<glob_pattern> '
       '| filters trace file and resolves relative paths '
       '(including absolute paths)',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
+        const excludePattern = '**/ignored_source*';
         final baseDirectory = p.join('root', 'parent');
-        final patternsRegex = patterns.map(RegExp.new);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
@@ -467,17 +462,15 @@ $absoluteSourceFileData
         final originalTraceFile = TraceFile.parse(
           originalFile.readAsStringSync(),
         );
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
+        final originalFileIncludesFileThatMatchesGlob =
+            originalTraceFile.includesFileThatMatchesGlob(excludeGlob);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
+          (d) => excludeGlob.matches(d.source.path),
         );
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+        expect(originalFileIncludesFileThatMatchesGlob, isTrue);
 
         await cmdRunner.run([
           'filter',
@@ -487,8 +480,8 @@ $absoluteSourceFileData
           filteredFilePath,
           '--${FilterCommand.baseDirectoryOptionName}',
           baseDirectory,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
+          '--${FilterCommand.excludeOptionName}',
+          excludePattern,
         ]);
 
         expect(originalFile.existsSync(), isTrue);
@@ -509,9 +502,9 @@ end_of_record
             .trim();
         final filteredTraceFile = TraceFile.parse(filteredFileContent);
         final expectedTraceFile = TraceFile.parse(expectedFilteredFileContent);
-        final filteredFileIncludeFileThatMatchPatterns =
-            filteredTraceFile.includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+        final filteredFileIncludesFileThatMatchesGlob =
+            filteredTraceFile.includesFileThatMatchesGlob(excludeGlob);
+        expect(filteredFileIncludesFileThatMatchesGlob, isFalse);
         expect(
           filteredTraceFile,
           expectedTraceFile,
@@ -528,12 +521,12 @@ end_of_record
 
     test(
       '--${FilterCommand.inputOption}=<absent_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
+      '--${FilterCommand.excludeOptionName}=<glob_pattern> '
       '| fails when trace file does not exist',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
+        const excludePattern = '**/ignored_source*';
         final absentFilePath = p.join(
           directory.path,
           'absent.info',
@@ -545,8 +538,8 @@ end_of_record
               'filter',
               '--${FilterCommand.inputOption}',
               absentFilePath,
-              '--${FilterCommand.filtersOption}',
-              patterns.join(','),
+              '--${FilterCommand.excludeOptionName}',
+              excludePattern,
             ]);
 
         expect(
@@ -564,8 +557,8 @@ end_of_record
 
     test(
       '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.filtersOption}=<invalid_regex> '
-      '| fails when regex pattern is invalid',
+      '--${FilterCommand.excludeOptionName}=<invalid_glob> '
+      '| fails when glob pattern is invalid',
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
@@ -580,64 +573,22 @@ LF:1
 LH:1
 end_of_record
 ''');
-        const invalidPattern = '[invalid'; // Missing closing bracket
+        const invalidPattern = '{invalid'; // Missing closing brace
 
         Future<void> action() => cmdRunner.run([
               'filter',
               '--${FilterCommand.inputOption}',
               traceFilePath,
-              '--${FilterCommand.filtersOption}',
+              '--${FilterCommand.excludeOptionName}',
               invalidPattern,
             ]);
 
         expect(
           action,
           throwsA(
-            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
-              (e) => e.invalidRegexPattern,
-              'invalidRegexPattern',
-              invalidPattern,
-            ),
-          ),
-        );
-      },
-    );
-
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.filtersOption}=<multiple_invalid_patterns> '
-      '| fails when any regex pattern is invalid',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = p.join(directory.path, 'test.info');
-        File(traceFilePath)
-          ..createSync()
-          ..writeAsStringSync('''
-SF:test.dart
-DA:1,1
-LF:1
-LH:1
-end_of_record
-''');
-        const validPattern = 'test';
-        const invalidPattern = '(unclosed'; // Invalid regex
-
-        Future<void> action() => cmdRunner.run([
-              'filter',
-              '--${FilterCommand.inputOption}',
-              traceFilePath,
-              '--${FilterCommand.filtersOption}',
-              '$validPattern,$invalidPattern',
-            ]);
-
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
-              (e) => e.invalidRegexPattern,
-              'invalidRegexPattern',
+            isA<CoverdeFilterInvalidGlobPatternFailure>().having(
+              (e) => e.invalidGlobPattern,
+              'invalidGlobPattern',
               invalidPattern,
             ),
           ),
