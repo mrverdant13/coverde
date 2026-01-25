@@ -1,6 +1,6 @@
-## 0.3.1
+## UNRELEASED
 
-- **FIX**: full support for analyzer package v8-v10 (#263).
+- **BREAKING FEAT**: full support for analyzer package v8-v10 (#263).
 
 ## 0.3.0+1
 
