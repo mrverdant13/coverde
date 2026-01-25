@@ -410,7 +410,7 @@ end_of_record
       () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const excludePattern = '**/ignored_source*';
+        const excludePattern = '{**,..}/**/ignored_source*';
         final baseDirectory = p.join('root', 'parent');
         final excludeGlob = Glob(excludePattern);
         final originalFilePath = p.join(
