@@ -32,7 +32,7 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
       '| supports value comparison',
       () {
         final sameCovFile = CovFile(
-          source: File(sourcePath),
+          source: File(path.join('.', sourcePath)),
           raw: rawCovFileData,
           covLines: covLines,
         );

@@ -1,6 +1,7 @@
 ## UNRELEASED
 
 - **BREAKING FEAT**: full support for analyzer package v8-v10 (#263).
+- **BREAKING FEAT**: change `filter` command to use `--exclude` option with a single glob pattern instead of `--filters` with multiple regex patterns (#270).
 
 ## 0.3.0+1
 

@@ -1,7 +1,8 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
 export 'failures.dart';
@@ -34,15 +35,13 @@ Destination coverage info file to dump the resulting coverage data into.''',
         help: '''
 Base directory relative to which trace file source paths are resolved.''',
       )
-      ..addMultiOption(
-        filtersOption,
-        abbr: filtersOption[0],
+      ..addOption(
+        excludeOptionName,
         help: '''
-Set of comma-separated path patterns of the files to be ignored.
+The glob pattern of the files to be excluded.
 
-Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.''',
-        defaultsTo: [],
-        valueHelp: _filtersHelpValue,
+In order to be cross-platform compatible, the glob pattern must use the POSIX path syntax.''',
+        valueHelp: _excludeHelpValue,
       )
       ..addOption(
         modeOption,
@@ -57,7 +56,7 @@ Each pattern must be a valid regex expression. Invalid patterns will cause the c
 
   static const _inputHelpValue = 'INPUT_LCOV_FILE';
   static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
-  static const _filtersHelpValue = 'FILTERS';
+  static const _excludeHelpValue = 'EXCLUDE_GLOB';
   static const _modeHelpValue = 'MODE';
   static const _outModeAllowedHelp = {
     'a': '''
@@ -66,9 +65,9 @@ Append filtered content to the $_outputHelpValue content, if any.''',
 Override the $_outputHelpValue content, if any, with the filtered content.''',
   };
 
-  /// Option name for identifier patters to be used for trace file filtering.
+  /// Option name for the glob pattern of the files to be excluded.
   @visibleForTesting
-  static const filtersOption = 'filters';
+  static const excludeOptionName = 'exclude';
 
   /// Option name for the origin trace file to be filtered.
   @visibleForTesting
@@ -96,7 +95,7 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
   String get description => '''
 Filter a coverage trace file.
 
-Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
+Filter the coverage info by ignoring data related to files with paths that matches the given $_excludeHelpValue.
 The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.
 
 All the relative paths in the resulting coverage trace file will be resolved relative to the <$baseDirectoryOptionName>, if provided.''';
@@ -116,22 +115,20 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final originPath = argResults.option(inputOption)!;
     final destinationPath = argResults.option(outputOption)!;
     final baseDirectory = argResults.option(baseDirectoryOptionName);
-    final ignorePatterns = argResults.multiOption(filtersOption);
-    final shouldOverride = argResults.option(modeOption) == 'w';
-
-    // Validate regex patterns before use.
-    final validatedPatterns = <RegExp>[];
-    for (final ignorePattern in ignorePatterns) {
+    final excludeGlob = () {
+      final excludePattern = argResults.option(excludeOptionName);
+      if (excludePattern == null) return null;
       try {
-        validatedPatterns.add(RegExp(ignorePattern));
+        return Glob(excludePattern, context: p.posix);
       } on FormatException catch (exception) {
-        throw CoverdeFilterInvalidRegexPatternFailure(
+        throw CoverdeFilterInvalidGlobPatternFailure(
+          invalidGlobPattern: excludePattern,
           usageMessage: usageWithoutDescription,
-          invalidRegexPattern: ignorePattern,
           exception: exception,
         );
       }
-    }
+    }();
+    final shouldOverride = argResults.option(modeOption) == 'w';
 
     if (!FileSystemEntity.isFileSync(originPath)) {
       throw CoverdeFilterTraceFileNotFoundFailure(
@@ -155,9 +152,8 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     // For each file coverage data.
     for (final fileCovData in traceFile.sourceFilesCovData) {
       // Check if file should be ignored according to matching patterns.
-      final shouldBeIgnored = validatedPatterns.any(
-        (regexp) => regexp.hasMatch(fileCovData.source.path),
-      );
+      final shouldBeIgnored =
+          excludeGlob?.matches(fileCovData.source.path) ?? false;
 
       // Conditionally include file coverage data.
       if (shouldBeIgnored) {
@@ -167,7 +163,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
           null => fileCovData.raw,
           final String baseDirectory => fileCovData.raw.replaceFirst(
               RegExp(r'^SF:(.*)$', multiLine: true),
-              'SF:${path.relative(
+              'SF:${p.relative(
                 fileCovData.source.path,
                 from: baseDirectory,
               )}',

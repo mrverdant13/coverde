@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -118,10 +119,10 @@ class TraceFile extends CovComputable {
   late final CovDir asTree = CovDir.tree(covFiles: sourceFilesCovData);
 
   /// Check if any name of the files included by this trace file match any of
-  /// the provided [patterns].
-  bool includeFileThatMatchPatterns(List<String> patterns) => patterns
-      .map(RegExp.new)
-      .any((p) => _sourceFilesCovData.any((f) => p.hasMatch(f.source.path)));
+  /// the provided [glob].
+  bool includesFileThatMatchesGlob(Glob glob) => _sourceFilesCovData.any(
+        (f) => glob.matches(f.source.path),
+      );
 
   /// The coverage data related to the referenced source files.
   UnmodifiableListView<CovFile> get sourceFilesCovData =>

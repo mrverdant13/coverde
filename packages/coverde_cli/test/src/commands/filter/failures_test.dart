@@ -7,15 +7,15 @@ import 'package:universal_io/universal_io.dart';
 
 void main() {
   group('$CoverdeFilterFailure', () {
-    group('$CoverdeFilterInvalidRegexPatternFailure', () {
+    group('$CoverdeFilterInvalidGlobPatternFailure', () {
       test(
         'readableMessage '
-        '| returns formatted message with invalid regex pattern and exception',
+        '| returns formatted message with invalid glob pattern and exception',
         () {
-          final exception = FormatException('Invalid regex pattern');
-          final failure = CoverdeFilterInvalidRegexPatternFailure(
+          final exception = FormatException('Invalid glob pattern');
+          final failure = CoverdeFilterInvalidGlobPatternFailure(
             usageMessage: 'Usage message',
-            invalidRegexPattern: '[invalid',
+            invalidGlobPattern: '{invalid',
             exception: exception,
           );
 
@@ -24,8 +24,8 @@ void main() {
           expect(
             result,
             '''
-Invalid regex pattern: `[invalid`.
-Invalid regex pattern
+Invalid glob pattern: `{invalid`.
+Invalid glob pattern
 
 Usage message
 ''',
@@ -37,10 +37,10 @@ Usage message
         'invalidInputDescription '
         '| returns formatted description with pattern and exception message',
         () {
-          final exception = FormatException('Unmatched bracket');
-          final failure = CoverdeFilterInvalidRegexPatternFailure(
+          final exception = FormatException('Unmatched brace');
+          final failure = CoverdeFilterInvalidGlobPatternFailure(
             usageMessage: 'Usage message',
-            invalidRegexPattern: '[unclosed',
+            invalidGlobPattern: '{unclosed',
             exception: exception,
           );
 
@@ -48,26 +48,26 @@ Usage message
 
           expect(
             result,
-            'Invalid regex pattern: `[unclosed`.\n'
-            'Unmatched bracket',
+            'Invalid glob pattern: `{unclosed`.\n'
+            'Unmatched brace',
           );
         },
       );
 
       test(
-        'invalidRegexPattern '
-        '| returns the invalid regex pattern',
+        'invalidGlobPattern '
+        '| returns the invalid glob pattern',
         () {
           final exception = FormatException('Error');
-          final failure = CoverdeFilterInvalidRegexPatternFailure(
+          final failure = CoverdeFilterInvalidGlobPatternFailure(
             usageMessage: 'Usage message',
-            invalidRegexPattern: 'test[pattern',
+            invalidGlobPattern: 'test{pattern',
             exception: exception,
           );
 
-          final result = failure.invalidRegexPattern;
+          final result = failure.invalidGlobPattern;
 
-          expect(result, 'test[pattern');
+          expect(result, 'test{pattern');
         },
       );
 
@@ -76,9 +76,9 @@ Usage message
         '| returns the underlying FormatException',
         () {
           final exception = FormatException('Custom error message');
-          final failure = CoverdeFilterInvalidRegexPatternFailure(
+          final failure = CoverdeFilterInvalidGlobPatternFailure(
             usageMessage: 'Usage message',
-            invalidRegexPattern: 'pattern',
+            invalidGlobPattern: 'pattern',
             exception: exception,
           );
 
