@@ -238,7 +238,15 @@ end_of_record
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludesFileThatMatchesGlob, isTrue);
+        expect(
+          originalFileIncludesFileThatMatchesGlob,
+          isTrue,
+          reason: [
+            'Original file includes file that matches glob.',
+            'Original file:',
+            originalFileContent,
+          ].join('\n'),
+        );
 
         await cmdRunner.run([
           'filter',
@@ -375,7 +383,13 @@ end_of_record
         expect(
           filteredTraceFile,
           expectedTraceFile,
-          reason: 'Error: Non-matching trace files.',
+          reason: [
+            'Error: Non-matching trace files.',
+            'Filtered trace file:',
+            filteredFileContent,
+            'Expected trace file:',
+            expectedFilteredFileContent,
+          ].join('\n'),
         );
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
@@ -508,7 +522,13 @@ end_of_record
         expect(
           filteredTraceFile,
           expectedTraceFile,
-          reason: 'Error: Non-matching trace files.',
+          reason: [
+            'Error: Non-matching trace files.',
+            'Filtered trace file:',
+            filteredFileContent,
+            'Expected trace file:',
+            expectedFilteredFileContent,
+          ].join('\n'),
         );
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
