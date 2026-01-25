@@ -81,7 +81,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const excludePattern = '**/ignored_source*';
-        final excludeGlob = Glob(excludePattern);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.joinAll([
           directory.path,
           'original.info',
@@ -181,7 +181,7 @@ end_of_record
         final directory =
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const excludePattern = '/**/ignored_source*';
-        final excludeGlob = Glob(excludePattern);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
@@ -293,7 +293,7 @@ end_of_record
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const excludePattern = '**/ignored_source*';
         final baseDirectory = p.join('root', 'parent');
-        final excludeGlob = Glob(excludePattern);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
@@ -412,7 +412,7 @@ end_of_record
             Directory.systemTemp.createTempSync('coverde-filter-test-');
         const excludePattern = '{**,../..}/**/ignored_source*';
         final baseDirectory = p.join('root', 'parent');
-        final excludeGlob = Glob(excludePattern);
+        final excludeGlob = Glob(excludePattern, context: p.posix);
         final originalFilePath = p.join(
           directory.path,
           'original.info',
