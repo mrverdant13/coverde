@@ -335,8 +335,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
   The glob pattern of the files to be excluded.
 
-  In order to be cross-platform compatible, the glob pattern must use the POSIX path syntax.\
-  **Default value:** _None_
+  In order to be cross-platform compatible, the glob pattern must use the POSIX path syntax.
 
 - `--mode`
 
