@@ -106,7 +106,7 @@ melos:
         dart run coverde optimize-tests
         --exclude '**/fixtures/**'
         --include 'test/**_test.dart'
-        --output 'test/optimized_test.dart'
+        --output test/optimized_test.dart
         &&
         dart test
         --color
@@ -163,7 +163,7 @@ melos:
         dart run coverde optimize-tests
         --exclude '**/fixtures/**'
         --include 'test/**_test.dart'
-        --output 'test/optimized_test.dart'
+        --output test/optimized_test.dart
         &&
         dart test
         --coverage-path coverage/lcov.info
