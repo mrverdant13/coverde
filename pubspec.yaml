@@ -4,7 +4,6 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dev_dependencies:
-  coverage: ^1.15.0
   coverde:
     path: packages/coverde_cli
   melos: ^7.3.0
@@ -19,18 +18,26 @@ melos:
       - "**/e2e"
 
   command:
+    bootstrap:
+      environment:
+        sdk: ">=3.5.0 <4.0.0"
     clean:
       hooks:
-        pre: melos run --include-private .clean
+        pre:
+          run: >
+            melos run --include-private .clean
 
   scripts:
+    # Clean-up
     .clean:
+      private: true
       description: Deep clean-up
       run: >
         git clean
         -dfX
         MELOS_ROOT_PATH
 
+    # Code generation
     gen:
       description: Run code generation for a package
       run: >
@@ -51,21 +58,23 @@ melos:
       description: Run code generation for all packages (multi-threaded)
       run: >
         melos exec
-        --depends-on=build_runner
+        --depends-on build_runner
         --order-dependents
         -- "
         dart run build_runner build
         --delete-conflicting-outputs
         "
 
+    # Spell checking
     spellcheck:
       description: Run spell checking for the entire project
       run: >
         cspell lint
-        --config ./.cspell/cspell.yaml
+        --config .cspell/cspell.yaml
         --no-progress
         "MELOS_ROOT_PATH/**"
 
+    # Formatting
     format:
       description: Format a package
       run: >
@@ -73,8 +82,11 @@ melos:
     format.ci:
       description: Format all packages (CI)
       run: >
-        dart format --set-exit-if-changed .
+        dart format
+        --set-exit-if-changed
+        .
 
+    # Analyzing
     analyze:
       description: Analyze a package
       run: >
@@ -82,19 +94,24 @@ melos:
     analyze.ci:
       description: Analyze all packages (CI)
       run: >
-        dart analyze --fatal-infos --fatal-warnings .
+        dart analyze
+        --fatal-infos
+        --fatal-warnings
+        .
 
+    # Testing & Coverage
     test:
       description: Run tests and generate coverage trace file for a package
       run: >
         dart run coverde optimize-tests
         --exclude '**/fixtures/**'
         --include 'test/**_test.dart'
-        --output=test/optimized_test.dart
+        --output test/optimized_test.dart
         &&
         dart test
         --color
-        --coverage-path=coverage/lcov.info
+        --coverage-path coverage/lcov.info
+        --coverage-package MELOS_PACKAGE_NAME
         --exclude-tags ci-only
         --reporter expanded
         --test-randomize-ordering-seed random
@@ -138,18 +155,19 @@ melos:
       description: Run tests for all packages (CI)
       run: >
         melos exec
-        --depends-on=test
-        --dir-exists=test
+        --depends-on test
+        --dir-exists test
         --fail-fast
         --order-dependents
         -- "
         dart run coverde optimize-tests
-        --exclude='**/fixtures/**'
-        --include='test/**_test.dart'
-        --output=test/optimized_test.dart
+        --exclude '**/fixtures/**'
+        --include 'test/**_test.dart'
+        --output test/optimized_test.dart
         &&
         dart test
-        --coverage-path=coverage/lcov.info
+        --coverage-path coverage/lcov.info
+        --coverage-package MELOS_PACKAGE_NAME
         --exclude-tags ci-only
         --reporter expanded
         --test-randomize-ordering-seed random
@@ -163,7 +181,7 @@ melos:
         MELOS_ROOT_PATH/coverage/filtered.lcov.info
         &&
         melos exec
-        --file-exists=coverage/lcov.info
+        --file-exists coverage/lcov.info
         --
         "
         dart run coverde filter
