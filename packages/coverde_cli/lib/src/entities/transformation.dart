@@ -1,25 +1,81 @@
 import 'package:meta/meta.dart';
 
+/// Separator used when showing nested preset hierarchy (e.g. "preset-a →
+/// preset-b").
+const String presetChainSeparator = ' → ';
+
 /// {@template transformation}
 /// A transformation step to apply to coverage trace file paths.
 /// {@endtemplate}
 @immutable
 sealed class Transformation {
   /// {@macro transformation}
-  const Transformation(
-    this.fromPreset,
-  );
-
-  /// The preset name this transformation was expanded from, if any.
-  final String? fromPreset;
+  const Transformation();
 
   /// Human-readable description of this transformation.
   String get describe;
 
-  /// Creates a copy with the given [fromPreset].
-  Transformation copyWith({
-    String? fromPreset,
+  /// Flattens this transformation to leaf steps only.
+  ///
+  /// [PresetTransformation] is expanded; leaf transformations return
+  /// themselves.
+  Iterable<Transformation> get flattenedSteps sync* {
+    switch (this) {
+      case PresetTransformation(:final steps):
+        yield* steps.expand((s) => s.flattenedSteps);
+      default:
+        yield this;
+    }
+  }
+
+  /// Yields each leaf step with its preset chain (outermost first).
+  ///
+  /// Used to show "from preset a → b" for nested presets.
+  Iterable<
+      ({
+        List<String> presets,
+        Transformation transformation,
+      })> stepsWithPresetChains([
+    List<String> precedingPresets = const [],
+  ]) sync* {
+    switch (this) {
+      case PresetTransformation(:final presetName, :final steps):
+        yield* steps.expand(
+          (s) => s.stepsWithPresetChains([
+            ...precedingPresets,
+            presetName,
+          ]),
+        );
+      default:
+        yield (
+          presets: precedingPresets,
+          transformation: this,
+        );
+    }
+  }
+}
+
+/// {@template preset_transformation}
+/// Groups a set of transformations under a preset name (may include nested
+/// [PresetTransformation]s).
+/// {@endtemplate}
+@immutable
+final class PresetTransformation extends Transformation {
+  /// {@macro preset_transformation}
+  const PresetTransformation({
+    required this.presetName,
+    required this.steps,
   });
+
+  /// The preset name.
+  final String presetName;
+
+  /// The transformations in this preset (may include nested
+  /// [PresetTransformation]s).
+  final List<Transformation> steps;
+
+  @override
+  String get describe => 'preset $presetName';
 }
 
 /// {@template keep_by_regex_transformation}
@@ -28,26 +84,13 @@ sealed class Transformation {
 @immutable
 final class KeepByRegexTransformation extends Transformation {
   /// {@macro keep_by_regex_transformation}
-  const KeepByRegexTransformation(
-    this.regex,
-    super.fromPreset,
-  );
+  const KeepByRegexTransformation(this.regex);
 
   /// The regex pattern to match.
   final String regex;
 
   @override
   String get describe => 'keep-by-regex $regex';
-
-  @override
-  Transformation copyWith({
-    String? fromPreset,
-  }) {
-    return KeepByRegexTransformation(
-      regex,
-      fromPreset ?? this.fromPreset,
-    );
-  }
 }
 
 /// {@template skip_by_regex_transformation}
@@ -56,26 +99,13 @@ final class KeepByRegexTransformation extends Transformation {
 @immutable
 final class SkipByRegexTransformation extends Transformation {
   /// {@macro skip_by_regex_transformation}
-  const SkipByRegexTransformation(
-    this.regex,
-    super.fromPreset,
-  );
+  const SkipByRegexTransformation(this.regex);
 
   /// The regex pattern to match.
   final String regex;
 
   @override
   String get describe => 'skip-by-regex $regex';
-
-  @override
-  Transformation copyWith({
-    String? fromPreset,
-  }) {
-    return SkipByRegexTransformation(
-      regex,
-      fromPreset ?? this.fromPreset,
-    );
-  }
 }
 
 /// {@template keep_by_glob_transformation}
@@ -84,26 +114,13 @@ final class SkipByRegexTransformation extends Transformation {
 @immutable
 final class KeepByGlobTransformation extends Transformation {
   /// {@macro keep_by_glob_transformation}
-  const KeepByGlobTransformation(
-    this.glob,
-    super.fromPreset,
-  );
+  const KeepByGlobTransformation(this.glob);
 
   /// The glob pattern to match.
   final String glob;
 
   @override
   String get describe => 'keep-by-glob $glob';
-
-  @override
-  Transformation copyWith({
-    String? fromPreset,
-  }) {
-    return KeepByGlobTransformation(
-      glob,
-      fromPreset ?? this.fromPreset,
-    );
-  }
 }
 
 /// {@template skip_by_glob_transformation}
@@ -112,26 +129,13 @@ final class KeepByGlobTransformation extends Transformation {
 @immutable
 final class SkipByGlobTransformation extends Transformation {
   /// {@macro skip_by_glob_transformation}
-  const SkipByGlobTransformation(
-    this.glob,
-    super.fromPreset,
-  );
+  const SkipByGlobTransformation(this.glob);
 
   /// The glob pattern to match.
   final String glob;
 
   @override
   String get describe => 'skip-by-glob $glob';
-
-  @override
-  Transformation copyWith({
-    String? fromPreset,
-  }) {
-    return SkipByGlobTransformation(
-      glob,
-      fromPreset ?? this.fromPreset,
-    );
-  }
 }
 
 /// {@template relative_transformation}
@@ -140,24 +144,11 @@ final class SkipByGlobTransformation extends Transformation {
 @immutable
 final class RelativeTransformation extends Transformation {
   /// {@macro relative_transformation}
-  const RelativeTransformation(
-    this.basePath,
-    super.fromPreset,
-  );
+  const RelativeTransformation(this.basePath);
 
   /// The base path to rewrite file paths to be relative to.
   final String basePath;
 
   @override
   String get describe => 'relative base-path=$basePath';
-
-  @override
-  Transformation copyWith({
-    String? fromPreset,
-  }) {
-    return RelativeTransformation(
-      basePath,
-      fromPreset ?? this.fromPreset,
-    );
-  }
 }
