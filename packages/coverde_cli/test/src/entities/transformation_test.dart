@@ -1,70 +1,77 @@
 import 'package:coverde/src/entities/transformation.dart';
+import 'package:glob/glob.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
   group('Transformation', () {
     group('$KeepByRegexTransformation', () {
       test('describe | returns expected format', () {
-        const t = KeepByRegexTransformation('lib/.*');
+        final t = KeepByRegexTransformation(RegExp('lib/.*'));
         expect(t.describe, 'keep-by-regex lib/.*');
       });
 
       test('regex | returns the regex pattern', () {
-        const t = KeepByRegexTransformation(r'test/.*\.dart');
-        expect(t.regex, r'test/.*\.dart');
+        final regex = RegExp(r'test/.*\.dart');
+        final t = KeepByRegexTransformation(regex);
+        expect(t.regex, regex);
       });
 
       test('flattenedSteps | returns single step', () {
-        const t = KeepByRegexTransformation('lib/.*');
+        final t = KeepByRegexTransformation(RegExp('lib/.*'));
         expect(t.flattenedSteps.toList(), [t]);
       });
     });
 
     group('$SkipByRegexTransformation', () {
       test('describe | returns expected format', () {
-        const t = SkipByRegexTransformation(r'\.g\.dart$');
+        final t = SkipByRegexTransformation(RegExp(r'\.g\.dart$'));
         expect(t.describe, r'skip-by-regex \.g\.dart$');
       });
 
       test('regex | returns the regex pattern', () {
-        const t = SkipByRegexTransformation('ignored');
-        expect(t.regex, 'ignored');
+        final regex = RegExp('ignored');
+        final t = SkipByRegexTransformation(regex);
+        expect(t.regex, regex);
       });
     });
 
     group('$KeepByGlobTransformation', () {
       test('describe | returns expected format', () {
-        const t = KeepByGlobTransformation('**/*.dart');
+        final t = KeepByGlobTransformation(Glob('**/*.dart'));
         expect(t.describe, 'keep-by-glob **/*.dart');
       });
 
       test('glob | returns the glob pattern', () {
-        const t = KeepByGlobTransformation('lib/**/*.dart');
-        expect(t.glob, 'lib/**/*.dart');
+        final glob = Glob('lib/**/*.dart');
+        final t = KeepByGlobTransformation(glob);
+        expect(t.glob, glob);
       });
     });
 
     group('$SkipByGlobTransformation', () {
       test('describe | returns expected format', () {
-        const t = SkipByGlobTransformation('**/*.g.dart');
+        final t = SkipByGlobTransformation(Glob('**/*.g.dart'));
         expect(t.describe, 'skip-by-glob **/*.g.dart');
       });
 
       test('glob | returns the glob pattern', () {
-        const t = SkipByGlobTransformation('**/*.freezed.dart');
-        expect(t.glob, '**/*.freezed.dart');
+        final glob = Glob('**/*.freezed.dart');
+        final t = SkipByGlobTransformation(glob);
+        expect(t.glob, glob);
       });
     });
 
     group('$RelativeTransformation', () {
       test('describe | returns expected format', () {
-        const t = RelativeTransformation('packages/app/');
-        expect(t.describe, 'relative base-path=packages/app/');
+        final t = RelativeTransformation(path.join('packages', 'app'));
+        expect(t.describe, 'relative base-path=packages${path.separator}app');
       });
 
       test('basePath | returns the base path', () {
-        const t = RelativeTransformation('packages/apps/');
-        expect(t.basePath, 'packages/apps/');
+        final basePath = path.join('packages', 'apps');
+        final t = RelativeTransformation(basePath);
+        expect(t.basePath, basePath);
       });
     });
 
@@ -78,8 +85,8 @@ void main() {
       });
 
       test('flattenedSteps | returns inner steps only', () {
-        const keep = KeepByRegexTransformation('lib/.*');
-        const preset = PresetTransformation(
+        final keep = KeepByRegexTransformation(RegExp('lib/.*'));
+        final preset = PresetTransformation(
           presetName: 'p',
           steps: [keep],
         );
@@ -87,12 +94,12 @@ void main() {
       });
 
       test('flattenedSteps | flattens nested presets', () {
-        const skip = SkipByGlobTransformation('**/*.g.dart');
-        const inner = PresetTransformation(
+        final skip = SkipByGlobTransformation(Glob('**/*.g.dart'));
+        final inner = PresetTransformation(
           presetName: 'inner',
           steps: [skip],
         );
-        const outer = PresetTransformation(
+        final outer = PresetTransformation(
           presetName: 'outer',
           steps: [inner],
         );
@@ -102,8 +109,8 @@ void main() {
       test(
         'stepsWithPresetChains | yields leaf with single preset in chain',
         () {
-          const keep = KeepByRegexTransformation('lib/.*');
-          const preset = PresetTransformation(
+          final keep = KeepByRegexTransformation(RegExp('lib/.*'));
+          final preset = PresetTransformation(
             presetName: 'some-preset',
             steps: [keep],
           );
@@ -115,12 +122,12 @@ void main() {
       );
 
       test('stepsWithPresetChains | yields leaf with nested preset chain', () {
-        const relative = RelativeTransformation('lib/');
-        const inner = PresetTransformation(
+        final relative = RelativeTransformation(path.join('lib', ''));
+        final inner = PresetTransformation(
           presetName: 'inner-preset',
           steps: [relative],
         );
-        const outer = PresetTransformation(
+        final outer = PresetTransformation(
           presetName: 'outer-preset',
           steps: [inner],
         );
@@ -131,12 +138,12 @@ void main() {
       });
 
       test('stepsWithPresetChains | chain joins with presetChainSeparator', () {
-        const step = SkipByGlobTransformation('**/*.g.dart');
-        const inner = PresetTransformation(
+        final step = SkipByGlobTransformation(Glob('**/*.g.dart'));
+        final inner = PresetTransformation(
           presetName: 'preset-a',
           steps: [step],
         );
-        const outer = PresetTransformation(
+        final outer = PresetTransformation(
           presetName: 'preset-b',
           steps: [inner],
         );

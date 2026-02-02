@@ -1,3 +1,4 @@
+import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 
 /// Separator used when showing nested preset hierarchy (e.g. "preset-a →
@@ -11,6 +12,74 @@ const String presetChainSeparator = ' → ';
 sealed class Transformation {
   /// {@macro transformation}
   const Transformation();
+
+  factory Transformation.fromCliOption(
+    String option, {
+    List<PresetTransformation> presets = const [],
+  }) {
+    final [identifier, ...rest] = option.split('=');
+    final argument = rest.join('=');
+    switch (identifier) {
+      case 'keep-by-regex':
+        final regex = RegExp(argument);
+        return KeepByRegexTransformation(regex);
+      case 'skip-by-regex':
+        final regex = RegExp(argument);
+        return SkipByRegexTransformation(regex);
+      case 'keep-by-glob':
+        final glob = Glob(argument);
+        return KeepByGlobTransformation(glob);
+      case 'skip-by-glob':
+        final glob = Glob(argument);
+        return SkipByGlobTransformation(glob);
+      case 'relative':
+        final basePath = argument;
+        return RelativeTransformation(basePath);
+      case 'preset':
+        final presetName = argument;
+        return presets.singleWhere(
+          (p) => p.presetName == presetName,
+          // TODO(mrverdant13): Use custom failure.
+          orElse: () => throw StateError('Unknown preset: $presetName'),
+        );
+      default:
+        // TODO(mrverdant13): Use custom failure.
+        throw UnsupportedError('Unsupported transformation: $identifier');
+    }
+  }
+
+  factory Transformation.fromJson(
+    Map<String, dynamic> json, {
+    List<PresetTransformation> presets = const [],
+  }) {
+    switch (json['type']) {
+      case 'keep-by-regex':
+        final regex = RegExp(json['regex'] as String);
+        return KeepByRegexTransformation(regex);
+      case 'skip-by-regex':
+        final regex = RegExp(json['regex'] as String);
+        return SkipByRegexTransformation(regex);
+      case 'keep-by-glob':
+        final glob = Glob(json['glob'] as String);
+        return KeepByGlobTransformation(glob);
+      case 'skip-by-glob':
+        final glob = Glob(json['glob'] as String);
+        return SkipByGlobTransformation(glob);
+      case 'relative':
+        final basePath = json['base-path'] as String;
+        return RelativeTransformation(basePath);
+      case 'preset':
+        final presetName = json['name'] as String;
+        return presets.singleWhere(
+          (p) => p.presetName == presetName,
+          // TODO(mrverdant13): Use custom failure.
+          orElse: () => throw StateError('Unknown preset: $presetName'),
+        );
+      default:
+        // TODO(mrverdant13): Use custom failure.
+        throw UnsupportedError('Unsupported transformation: ${json['type']}');
+    }
+  }
 
   /// Human-readable description of this transformation.
   String get describe;
@@ -87,10 +156,10 @@ final class KeepByRegexTransformation extends Transformation {
   const KeepByRegexTransformation(this.regex);
 
   /// The regex pattern to match.
-  final String regex;
+  final RegExp regex;
 
   @override
-  String get describe => 'keep-by-regex $regex';
+  String get describe => 'keep-by-regex ${regex.pattern}';
 }
 
 /// {@template skip_by_regex_transformation}
@@ -102,10 +171,10 @@ final class SkipByRegexTransformation extends Transformation {
   const SkipByRegexTransformation(this.regex);
 
   /// The regex pattern to match.
-  final String regex;
+  final RegExp regex;
 
   @override
-  String get describe => 'skip-by-regex $regex';
+  String get describe => 'skip-by-regex ${regex.pattern}';
 }
 
 /// {@template keep_by_glob_transformation}
@@ -117,10 +186,10 @@ final class KeepByGlobTransformation extends Transformation {
   const KeepByGlobTransformation(this.glob);
 
   /// The glob pattern to match.
-  final String glob;
+  final Glob glob;
 
   @override
-  String get describe => 'keep-by-glob $glob';
+  String get describe => 'keep-by-glob ${glob.pattern}';
 }
 
 /// {@template skip_by_glob_transformation}
@@ -132,10 +201,10 @@ final class SkipByGlobTransformation extends Transformation {
   const SkipByGlobTransformation(this.glob);
 
   /// The glob pattern to match.
-  final String glob;
+  final Glob glob;
 
   @override
-  String get describe => 'skip-by-glob $glob';
+  String get describe => 'skip-by-glob ${glob.pattern}';
 }
 
 /// {@template relative_transformation}
