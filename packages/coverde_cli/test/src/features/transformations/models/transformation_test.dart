@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as path;
@@ -106,6 +107,34 @@ void main() {
             ),
             throwsA(
               isA<TransformationFromCliOptionInvalidGlobPatternFailure>(),
+            ),
+          );
+        });
+      });
+
+      group('identifier: ${KeepByCoverageTransformation.identifier}', () {
+        test('| returns $KeepByCoverageTransformation', () {
+          final transformation = Transformation.fromCliOption(
+            '${KeepByCoverageTransformation.identifier}='
+            '${const EqualsNumericComparison(reference: 0.5).describe}',
+          );
+          expect(
+            transformation,
+            const KeepByCoverageTransformation(
+              comparison: EqualsNumericComparison(reference: 0.5),
+            ),
+          );
+        });
+
+        test(
+            '| throws $NumericComparisonFromDescriptionFailure '
+            'when invalid numeric comparison description', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${KeepByCoverageTransformation.identifier}=invalid',
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionFailure>(),
             ),
           );
         });
@@ -328,6 +357,43 @@ void main() {
           final subject = SkipByGlobTransformation(Glob('**/*.g.dart'));
           final same = SkipByGlobTransformation(Glob('**/*.g.dart'));
           final other = SkipByGlobTransformation(Glob('**/*.freezed.dart'));
+          expect(subject, same);
+          expect(subject, isNot(other));
+          expect(subject.hashCode, same.hashCode);
+          expect(subject.hashCode, isNot(other.hashCode));
+        });
+      });
+    });
+
+    group('$KeepByCoverageTransformation', () {
+      group('describe', () {
+        test('| returns description', () {
+          const t = KeepByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          expect(t.describe, 'keep-by-coverage comparison=eq|0.5');
+        });
+      });
+
+      group('comparison', () {
+        test('| returns the comparison', () {
+          const comparison = EqualsNumericComparison(reference: 0.5);
+          const t = KeepByCoverageTransformation(comparison: comparison);
+          expect(t.comparison, comparison);
+        });
+      });
+
+      group('== & hashCode', () {
+        test('| verifies equality and hash code resolution', () {
+          const subject = KeepByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          const same = KeepByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          const other = KeepByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.6),
+          );
           expect(subject, same);
           expect(subject, isNot(other));
           expect(subject.hashCode, same.hashCode);

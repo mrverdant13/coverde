@@ -45,6 +45,8 @@ Transformation steps to apply in order.''',
               'Keep files that match the <glob>.',
           'skip-by-glob=<glob>': //
               'Skip files that match the <glob>.',
+          'keep-by-coverage=<comparison>': //
+              'Keep files that match the <comparison>.',
           'relative=<base-path>': //
               'Rewrite file paths to be relative to the <base-path>.',
           'preset=<name>': //
@@ -282,7 +284,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
     List<Transformation> steps,
   ) {
     var entries = traceFile.sourceFilesCovData
-        .map((f) => (path: f.source.path, raw: f.raw))
+        .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
         .toList();
 
     final flatSteps = steps.flattenedSteps;
@@ -300,6 +302,9 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
           entries = entries
               .where((e) => !glob.matches(_normalizePath(e.path)))
               .toList();
+        case KeepByCoverageTransformation(:final comparison):
+          entries =
+              entries.where((e) => comparison.matches(e.coverage)).toList();
         case RelativeTransformation(basePath: final bp):
           entries = entries.map((e) {
             final newPath = path.relative(e.path, from: bp);
@@ -307,7 +312,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
               RegExp(r'^SF:(.*)$', multiLine: true),
               'SF:$newPath',
             );
-            return (path: newPath, raw: newRaw);
+            return (path: newPath, raw: newRaw, coverage: e.coverage);
           }).toList();
       }
     }

@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 
@@ -82,6 +83,12 @@ sealed class Transformation {
           );
         }
         return SkipByGlobTransformation(glob);
+      case 'keep-by-coverage':
+        final comparison = NumericComparison.fromDescription(
+          argument,
+          double.parse,
+        );
+        return KeepByCoverageTransformation(comparison: comparison);
       case 'relative':
         final basePath = argument;
         return RelativeTransformation(basePath);
@@ -101,9 +108,6 @@ sealed class Transformation {
     }
   }
 
-  /// Human-readable description of this transformation.
-  String get describe;
-
   /// The available transformation identifiers.
   static const List<String> identifiers = [
     KeepByRegexTransformation.identifier,
@@ -113,6 +117,9 @@ sealed class Transformation {
     RelativeTransformation.identifier,
     PresetTransformation.identifier,
   ];
+
+  /// Human-readable description of this transformation.
+  String get describe;
 }
 
 /// {@template preset_transformation}
@@ -284,6 +291,38 @@ final class SkipByGlobTransformation extends LeafTransformation {
   int get hashCode => Object.hashAll([
         runtimeType,
         glob.pattern,
+      ]);
+}
+
+/// {@template keep_by_coverage_transformation}
+/// Keeps only files that have coverage data.
+/// {@endtemplate}
+@immutable
+final class KeepByCoverageTransformation extends LeafTransformation {
+  /// {@macro keep_by_coverage_transformation}
+  const KeepByCoverageTransformation({
+    required this.comparison,
+  });
+
+  /// The identifier for this transformation.
+  static const identifier = 'keep-by-coverage';
+
+  /// The coverage comparison to apply.
+  final NumericComparison<double> comparison;
+
+  @override
+  String get describe => '$identifier comparison=${comparison.describe}';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! KeepByCoverageTransformation) return false;
+    return comparison == other.comparison;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        comparison,
       ]);
 }
 

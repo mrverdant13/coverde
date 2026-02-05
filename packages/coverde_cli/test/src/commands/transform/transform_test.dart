@@ -74,16 +74,15 @@ Presets can be defined in coverde.yaml under transformations.<name>.''';
 
     group('run', () {
       test(
-        '--${TransformCommand.explainFlag} | prints resolved steps and exits '
-        'without modifying files',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'coverage.info');
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync('''
+          '--${TransformCommand.explainFlag} | prints resolved steps and exits '
+          'without modifying files', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'coverage.info');
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync('''
 SF:lib/foo.dart
 DA:1,1
 LF:1
@@ -91,29 +90,28 @@ LH:1
 end_of_record
 ''');
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.explainFlag}',
-            '--${TransformCommand.transformationsOption}',
-            'keep-by-regex=lib/.*',
-            '--${TransformCommand.transformationsOption}',
-            'skip-by-glob=**/*.g.dart',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.explainFlag}',
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-regex=lib/.*',
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-glob=**/*.g.dart',
+        ]);
 
-          verify(
-            () => logger.info('1. keep-by-regex pattern=lib/.*'),
-          ).called(1);
-          verify(
-            () => logger.info('2. skip-by-glob pattern=**/*.g.dart'),
-          ).called(1);
-          expect(
-            File(p.join(directory.path, 'transformed.info')).existsSync(),
-            isFalse,
-          );
-        },
-      );
+        verify(
+          () => logger.info('1. keep-by-regex pattern=lib/.*'),
+        ).called(1);
+        verify(
+          () => logger.info('2. skip-by-glob pattern=**/*.g.dart'),
+        ).called(1);
+        expect(
+          File(p.join(directory.path, 'transformed.info')).existsSync(),
+          isFalse,
+        );
+      });
 
       test(
           '--${TransformCommand.explainFlag} with preset '
@@ -159,19 +157,18 @@ transformations:
       });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=keep-by-regex=<regex> '
-        '| keeps only files matching regex',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const keptPath = 'lib/src/foo.dart';
-          const skippedPath = 'test/foo_test.dart';
-          const inputContent = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=keep-by-regex=<regex> '
+          '| keeps only files matching regex', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/src/foo.dart';
+        const skippedPath = 'test/foo_test.dart';
+        const inputContent = '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -183,40 +180,38 @@ LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.transformationsOption}',
-            'keep-by-regex=lib/.*',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-regex=lib/.*',
+        ]);
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('SF:$keptPath'));
-          expect(outContent, isNot(contains('SF:$skippedPath')));
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=skip-by-regex=<regex> '
-        '| skips files matching regex',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const keptPath = 'lib/foo.dart';
-          const skippedPath = 'test/bar_test.dart';
-          const inputContent = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=skip-by-regex=<regex> '
+          '| skips files matching regex', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/foo.dart';
+        const skippedPath = 'test/bar_test.dart';
+        const inputContent = '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -228,40 +223,38 @@ LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.transformationsOption}',
-            'skip-by-regex=test/.*',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-regex=test/.*',
+        ]);
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('SF:$keptPath'));
-          expect(outContent, isNot(contains('SF:$skippedPath')));
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=keep-by-glob=<glob> '
-        '| keeps only files matching glob',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const keptPath = 'lib/foo.dart';
-          const skippedPath = 'bin/bar.dart';
-          const inputContent = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=keep-by-glob=<glob> '
+          '| keeps only files matching glob', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/foo.dart';
+        const skippedPath = 'bin/bar.dart';
+        const inputContent = '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -273,40 +266,38 @@ LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.transformationsOption}',
-            'keep-by-glob=lib/*.dart',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-glob=lib/*.dart',
+        ]);
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('SF:$keptPath'));
-          expect(outContent, isNot(contains('SF:$skippedPath')));
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=skip-by-glob=<glob> '
-        '| skips files matching glob',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const keptPath = 'lib/foo.dart';
-          const skippedPath = 'lib/foo.g.dart';
-          const inputContent = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=skip-by-glob=<glob> '
+          '| skips files matching glob', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/foo.dart';
+        const skippedPath = 'lib/foo.g.dart';
+        const inputContent = '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -318,192 +309,230 @@ LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.transformationsOption}',
-            'skip-by-glob=**/*.g.dart',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-glob=**/*.g.dart',
+        ]);
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('SF:$keptPath'));
-          expect(outContent, isNot(contains('SF:$skippedPath')));
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=relative=<base-path> '
-        '| rewrites paths to be relative to base path',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          final absolutePath = p.joinAll([directory.path, 'lib', 'foo.dart']);
-          final inputContent = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          // Long CLI option usage
+          // ignore: lines_longer_than_80_chars
+          '--${TransformCommand.transformationsOption}=keep-by-coverage=<comparison> '
+          '| keeps only files matching coverage comparison', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/foo.dart';
+        const skippedPath = 'lib/bar.dart';
+        const inputContent = '''
+SF:$keptPath
+DA:1,1
+DA:2,2
+LF:2
+LH:2
+end_of_record
+SF:$skippedPath
+DA:1,1
+DA:2,0
+LF:2
+LH:1
+end_of_record
+          ''';
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-coverage=gte|75',
+        ]);
+
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
+
+      test(
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=relative=<base-path> '
+          '| rewrites paths to be relative to base path', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        final absolutePath = p.joinAll([directory.path, 'lib', 'foo.dart']);
+        final inputContent = '''
 SF:$absolutePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.transformationsOption}',
-            'relative=${directory.path}',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'relative=${directory.path}',
+        ]);
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('lib'));
-          expect(outContent, contains('foo.dart'));
-          expect(outContent, isNot(contains(directory.path)));
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('lib'));
+        expect(outContent, contains('foo.dart'));
+        expect(outContent, isNot(contains(directory.path)));
+      });
 
       test(
-        '--${TransformCommand.modeOption}=w '
-        '| overrides output file content',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const existingContent = '''
+          '--${TransformCommand.modeOption}=w '
+          '| overrides output file content', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const existingContent = '''
 SF:existing.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''';
-          const newContent = '''
+        const newContent = '''
 SF:new.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(newContent);
-          File(outputPath)
-            ..createSync()
-            ..writeAsStringSync(existingContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(newContent);
+        File(outputPath)
+          ..createSync()
+          ..writeAsStringSync(existingContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.modeOption}',
-            'w',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.modeOption}',
+          'w',
+        ]);
 
-          expect(File(outputPath).readAsStringSync(), newContent.trim());
-        },
-      );
+        expect(File(outputPath).readAsStringSync(), newContent.trim());
+      });
 
       test(
-        '--${TransformCommand.modeOption}=a '
-        '| appends to output file content',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          const existingContent = '''
+          '--${TransformCommand.modeOption}=a '
+          '| appends to output file content', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const existingContent = '''
 SF:existing.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''';
-          const newContent = '''
+        const newContent = '''
 SF:new.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(newContent);
-          File(outputPath)
-            ..createSync()
-            ..writeAsStringSync(existingContent);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(newContent);
+        File(outputPath)
+          ..createSync()
+          ..writeAsStringSync(existingContent);
 
-          await cmdRunner.run([
-            'transform',
-            '--${TransformCommand.inputOption}',
-            inputPath,
-            '--${TransformCommand.outputOption}',
-            outputPath,
-            '--${TransformCommand.modeOption}',
-            'a',
-          ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.modeOption}',
+          'a',
+        ]);
 
-          expect(
-            File(outputPath).readAsStringSync(),
-            '$existingContent\n${newContent.trim()}',
+        expect(
+          File(outputPath).readAsStringSync(),
+          '$existingContent\n${newContent.trim()}',
+        );
+      });
+
+      test(
+          'when coverde.yaml is invalid '
+          '| throws $CoverdeTransformInvalidConfigFileFailure', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final configPath = p.join(directory.path, 'coverde.yaml');
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
           );
-        },
-      );
+        File(configPath)
+          ..createSync()
+          ..writeAsStringSync('invalid: [');
 
-      test(
-        'when coverde.yaml is invalid '
-        '| throws $CoverdeTransformInvalidConfigFileFailure',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final configPath = p.join(directory.path, 'coverde.yaml');
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(
-              'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.inputOption}',
+                  inputPath,
+                ]);
+
+            expect(
+              action,
+              throwsA(isA<CoverdeTransformInvalidConfigFileFailure>()),
             );
-          File(configPath)
-            ..createSync()
-            ..writeAsStringSync('invalid: [');
-
-          await IOOverrides.runZoned(
-            () async {
-              Future<void> action() => cmdRunner.run([
-                    'transform',
-                    '--${TransformCommand.inputOption}',
-                    inputPath,
-                  ]);
-
-              expect(
-                action,
-                throwsA(isA<CoverdeTransformInvalidConfigFileFailure>()),
-              );
-            },
-            getCurrentDirectory: () => directory,
-          );
-        },
-      );
+          },
+          getCurrentDirectory: () => directory,
+        );
+      });
 
       test(
           '| throws $CoverdeTransformFileReadFailure '
@@ -562,77 +591,73 @@ end_of_record
       });
 
       test(
-        '--${TransformCommand.inputOption}=<absent_file> '
-        '| throws $CoverdeTransformTraceFileNotFoundFailure',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final absentPath = p.join(directory.path, 'absent.info');
-          expect(File(absentPath).existsSync(), isFalse);
+          '--${TransformCommand.inputOption}=<absent_file> '
+          '| throws $CoverdeTransformTraceFileNotFoundFailure', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final absentPath = p.join(directory.path, 'absent.info');
+        expect(File(absentPath).existsSync(), isFalse);
 
-          Future<void> action() => cmdRunner.run([
-                'transform',
-                '--${TransformCommand.inputOption}',
-                absentPath,
-              ]);
+        Future<void> action() => cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              absentPath,
+            ]);
 
-          expect(
-            action,
-            throwsA(
-              isA<CoverdeTransformTraceFileNotFoundFailure>().having(
-                (e) => e.traceFilePath,
-                'traceFilePath',
-                p.absolute(absentPath),
-              ),
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeTransformTraceFileNotFoundFailure>().having(
+              (e) => e.traceFilePath,
+              'traceFilePath',
+              p.absolute(absentPath),
             ),
-          );
-        },
-      );
+          ),
+        );
+      });
 
       test(
-        '--${TransformCommand.transformationsOption}=<invalid_regex> '
-        '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(
-              'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
-            );
-          const invalidRegex = '[invalid';
-
-          Future<void> action() => cmdRunner.run([
-                'transform',
-                '--${TransformCommand.inputOption}',
-                inputPath,
-                '--${TransformCommand.transformationsOption}',
-                'keep-by-regex=$invalidRegex',
-              ]);
-
-          expect(
-            action,
-            throwsA(isA<CoverdeTransformInvalidTransformCliOptionFailure>()),
+          '--${TransformCommand.transformationsOption}=<invalid_regex> '
+          '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
+          () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
           );
-        },
-      );
+        const invalidRegex = '[invalid';
+
+        Future<void> action() => cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.transformationsOption}',
+              'keep-by-regex=$invalidRegex',
+            ]);
+
+        expect(
+          action,
+          throwsA(isA<CoverdeTransformInvalidTransformCliOptionFailure>()),
+        );
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<file> '
-        '--${TransformCommand.outputOption}=<file> '
-        '--${TransformCommand.transformationsOption}=preset=<name> '
-        '| expands preset from coverde.yaml and applies steps',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final outputPath = p.join(directory.path, 'out.info');
-          final configPath = p.join(directory.path, 'coverde.yaml');
-          const configYaml = '''
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=preset=<name> '
+          '| expands preset from coverde.yaml and applies steps', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        final configPath = p.join(directory.path, 'coverde.yaml');
+        const configYaml = '''
 transformations:
   my-preset:
     - type: keep-by-regex
@@ -640,7 +665,7 @@ transformations:
     - type: skip-by-glob
       glob: "**/*.g.dart"
 ''';
-          const inputContent = '''
+        const inputContent = '''
 SF:lib/foo.dart
 DA:1,1
 LF:1
@@ -657,216 +682,210 @@ LF:1
 LH:1
 end_of_record
 ''';
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(inputContent);
-          File(configPath)
-            ..createSync()
-            ..writeAsStringSync(configYaml);
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
+        File(configPath)
+          ..createSync()
+          ..writeAsStringSync(configYaml);
 
-          await IOOverrides.runZoned(
-            () async {
-              await cmdRunner.run([
-                'transform',
-                '--${TransformCommand.inputOption}',
-                inputPath,
-                '--${TransformCommand.outputOption}',
-                outputPath,
-                '--${TransformCommand.transformationsOption}',
-                'preset=my-preset',
-              ]);
-            },
-            getCurrentDirectory: () => directory,
-          );
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.outputOption}',
+              outputPath,
+              '--${TransformCommand.transformationsOption}',
+              'preset=my-preset',
+            ]);
+          },
+          getCurrentDirectory: () => directory,
+        );
 
-          final outContent = File(outputPath).readAsStringSync();
-          expect(outContent, contains('lib/foo.dart'));
-          expect(outContent, isNot(contains('test/foo_test.dart')));
-          expect(outContent, isNot(contains('bar.g.dart')));
-        },
-      );
-
-      test(
-        '--${TransformCommand.transformationsOption}=<unsupported> '
-        '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(
-              'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
-            );
-
-          Future<void> action() => cmdRunner.run([
-                'transform',
-                '--${TransformCommand.inputOption}',
-                inputPath,
-                '--${TransformCommand.transformationsOption}',
-                'unknown=value',
-              ]);
-
-          expect(
-            action,
-            throwsA(isA<CoverdeTransformInvalidTransformCliOptionFailure>()),
-          );
-        },
-      );
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('lib/foo.dart'));
+        expect(outContent, isNot(contains('test/foo_test.dart')));
+        expect(outContent, isNot(contains('bar.g.dart')));
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<trace_file> '
-        '--${TransformCommand.outputOption}=<output_file> '
-        '| throws $CoverdeTransformDirectoryCreateFailure '
-        'when output directory creation fails',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(
-              'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          '--${TransformCommand.transformationsOption}=<unsupported> '
+          '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
+          () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          );
+
+        Future<void> action() => cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.transformationsOption}',
+              'unknown=value',
+            ]);
+
+        expect(
+          action,
+          throwsA(isA<CoverdeTransformInvalidTransformCliOptionFailure>()),
+        );
+      });
+
+      test(
+          '--${TransformCommand.inputOption}=<trace_file> '
+          '--${TransformCommand.outputOption}=<output_file> '
+          '| throws $CoverdeTransformDirectoryCreateFailure '
+          'when output directory creation fails', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          );
+        final outputPath = p.join(directory.path, 'out.info');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.inputOption}',
+                  inputPath,
+                  '--${TransformCommand.outputOption}',
+                  outputPath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformDirectoryCreateFailure>().having(
+                  (e) => e.directoryPath,
+                  'directoryPath',
+                  p.dirname(outputPath),
+                ),
+              ),
             );
-          final outputPath = p.join(directory.path, 'out.info');
+          },
+          createDirectory: (path) => _TransformTestDirectory(path: path),
+        );
+      });
 
-          await IOOverrides.runZoned(
-            () async {
-              Future<void> action() => cmdRunner.run([
-                    'transform',
-                    '--${TransformCommand.inputOption}',
-                    inputPath,
-                    '--${TransformCommand.outputOption}',
-                    outputPath,
-                  ]);
+      test(
+          '--${TransformCommand.inputOption}=<trace_file> '
+          '--${TransformCommand.outputOption}=<output_file> '
+          '| throws $CoverdeTransformFileWriteFailure when output file write fails',
+          () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final inputFile = File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          );
+        final outputPath = p.join(directory.path, 'out.info');
 
-              expect(
-                action,
-                throwsA(
-                  isA<CoverdeTransformDirectoryCreateFailure>().having(
-                    (e) => e.directoryPath,
-                    'directoryPath',
-                    p.dirname(outputPath),
-                  ),
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.inputOption}',
+                  inputPath,
+                  '--${TransformCommand.outputOption}',
+                  outputPath,
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformFileWriteFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  outputPath,
+                ),
+              ),
+            );
+          },
+          createFile: (filePath) {
+            if (p.basename(filePath) == 'in.info') return inputFile;
+            if (p.basename(filePath) == 'out.info') {
+              return _TransformTestFile(
+                path: filePath,
+                open: () => Future<RandomAccessFile>.error(
+                  FileSystemException('Fake file write error', filePath),
                 ),
               );
-            },
-            createDirectory: (path) => _TransformTestDirectory(path: path),
-          );
-        },
-      );
-
-      test(
-        '--${TransformCommand.inputOption}=<trace_file> '
-        '--${TransformCommand.outputOption}=<output_file> '
-        '| throws $CoverdeTransformFileWriteFailure when output file write fails',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          final inputFile = File(inputPath)
-            ..createSync()
-            ..writeAsStringSync(
-              'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+            }
+            // Path from SF: line in trace is used to build CovFile; not opened.
+            if (filePath.contains('foo.dart')) {
+              return _TransformTestFile(path: filePath);
+            }
+            throw UnsupportedError(
+              'This file $filePath should not be opened in this test',
             );
-          final outputPath = p.join(directory.path, 'out.info');
-
-          await IOOverrides.runZoned(
-            () async {
-              Future<void> action() => cmdRunner.run([
-                    'transform',
-                    '--${TransformCommand.inputOption}',
-                    inputPath,
-                    '--${TransformCommand.outputOption}',
-                    outputPath,
-                  ]);
-
-              expect(
-                action,
-                throwsA(
-                  isA<CoverdeTransformFileWriteFailure>().having(
-                    (e) => e.filePath,
-                    'filePath',
-                    outputPath,
-                  ),
-                ),
-              );
-            },
-            createFile: (filePath) {
-              if (p.basename(filePath) == 'in.info') return inputFile;
-              if (p.basename(filePath) == 'out.info') {
-                return _TransformTestFile(
-                  path: filePath,
-                  open: () => Future<RandomAccessFile>.error(
-                    FileSystemException('Fake file write error', filePath),
-                  ),
-                );
-              }
-              // Path from SF: line in trace is used to build CovFile; not opened.
-              if (filePath.contains('foo.dart')) {
-                return _TransformTestFile(path: filePath);
-              }
-              throw UnsupportedError(
-                'This file $filePath should not be opened in this test',
-              );
-            },
-          );
-        },
-      );
+          },
+        );
+      });
 
       test(
-        '--${TransformCommand.inputOption}=<trace_file> '
-        '| throws $CoverdeTransformFileReadFailure when trace file read fails',
-        () async {
-          final directory =
-              Directory.systemTemp.createTempSync('coverde-transform-test-');
-          addTearDown(() => directory.deleteSync(recursive: true));
-          final inputPath = p.join(directory.path, 'in.info');
-          File(inputPath).createSync();
-          final outputPath = p.join(directory.path, 'out.info');
-          final outputFile = File(outputPath);
+          '--${TransformCommand.inputOption}=<trace_file> '
+          '| throws $CoverdeTransformFileReadFailure when trace file read fails',
+          () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        File(inputPath).createSync();
+        final outputPath = p.join(directory.path, 'out.info');
+        final outputFile = File(outputPath);
 
-          await IOOverrides.runZoned(
-            () async {
-              Future<void> action() => cmdRunner.run([
-                    'transform',
-                    '--${TransformCommand.inputOption}',
-                    inputPath,
-                    '--${TransformCommand.outputOption}',
-                    outputPath,
-                  ]);
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.inputOption}',
+                  inputPath,
+                  '--${TransformCommand.outputOption}',
+                  outputPath,
+                ]);
 
-              expect(
-                action,
-                throwsA(
-                  isA<CoverdeTransformFileReadFailure>().having(
-                    (e) => e.filePath,
-                    'filePath',
-                    inputPath,
-                  ),
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformFileReadFailure>().having(
+                  (e) => e.filePath,
+                  'filePath',
+                  inputPath,
+                ),
+              ),
+            );
+          },
+          createFile: (path) {
+            if (p.basename(path) == 'in.info') {
+              return _TransformTestFile(
+                path: path,
+                openRead: ([start, end]) => Stream<List<int>>.error(
+                  FileSystemException('Fake file read error', path),
                 ),
               );
-            },
-            createFile: (path) {
-              if (p.basename(path) == 'in.info') {
-                return _TransformTestFile(
-                  path: path,
-                  openRead: ([start, end]) => Stream<List<int>>.error(
-                    FileSystemException('Fake file read error', path),
-                  ),
-                );
-              }
-              if (p.basename(path) == 'out.info') return outputFile;
-              throw UnsupportedError(
-                'This file $path should not be opened in this test',
-              );
-            },
-          );
-        },
-      );
+            }
+            if (p.basename(path) == 'out.info') return outputFile;
+            throw UnsupportedError(
+              'This file $path should not be opened in this test',
+            );
+          },
+        );
+      });
     });
   });
 }
