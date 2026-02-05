@@ -194,7 +194,7 @@ List<_PresetEntry> _parsePresetSteps(
             value: rawGlob,
           );
         }
-        late final Glob glob;
+        final Glob glob;
         try {
           glob = Glob(rawGlob, context: p.posix);
         } on Object catch (_, stackTrace) {
@@ -221,7 +221,7 @@ List<_PresetEntry> _parsePresetSteps(
             value: rawGlob,
           );
         }
-        late final Glob glob;
+        final Glob glob;
         try {
           glob = Glob(rawGlob, context: p.posix);
         } on Object catch (_, stackTrace) {
