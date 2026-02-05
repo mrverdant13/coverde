@@ -259,13 +259,13 @@ final class KeepByRegexTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! KeepByRegexTransformation) return false;
-    return regex == other.regex;
+    return regex.pattern == other.regex.pattern;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        regex,
+        regex.pattern,
       ]);
 }
 
@@ -289,13 +289,13 @@ final class SkipByRegexTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! SkipByRegexTransformation) return false;
-    return regex == other.regex;
+    return regex.pattern == other.regex.pattern;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
-        regex,
+        regex.pattern,
       ]);
 }
 
