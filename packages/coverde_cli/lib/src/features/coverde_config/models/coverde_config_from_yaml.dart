@@ -70,7 +70,7 @@ Map<String, List<_PresetEntry>> _parseRawPresets(
   if (rawPresets is! yaml.YamlMap) {
     throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
       key: null,
-      expectedType: Map<String, yaml.YamlMap>,
+      expectedType: yaml.YamlMap,
       value: rawPresets,
     );
   }
