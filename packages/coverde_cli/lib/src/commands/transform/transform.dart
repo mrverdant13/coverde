@@ -3,7 +3,7 @@ import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
 
 export 'failures.dart';
@@ -138,7 +138,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
     final rawTransformations = argResults.multiOption(transformationsOption);
     final explain = argResults.flag(explainFlag);
 
-    final coverdeConfigPath = path.joinAll([
+    final coverdeConfigPath = p.joinAll([
       Directory.current.path,
       _configFileName,
     ]);
@@ -186,7 +186,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
 
     if (!FileSystemEntity.isFileSync(originPath)) {
       throw CoverdeTransformTraceFileNotFoundFailure(
-        traceFilePath: originPath,
+        traceFilePath: p.absolute(originPath),
       );
     }
     final origin = File(originPath);
@@ -317,7 +317,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
               entries.where((e) => comparison.matches(e.coverage)).toList();
         case RelativeTransformation(basePath: final bp):
           entries = entries.map((e) {
-            final newPath = path.relative(e.path, from: bp);
+            final newPath = p.relative(e.path, from: bp);
             final newRaw = e.raw.replaceFirst(
               RegExp(
                 '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
@@ -335,6 +335,6 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
 
   /// Normalize path for glob matching (use posix separators).
   String _normalizePath(String pth) {
-    return path.posix.joinAll(path.split(pth));
+    return p.posix.joinAll(p.split(pth));
   }
 }
