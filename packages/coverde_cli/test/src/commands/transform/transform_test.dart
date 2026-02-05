@@ -782,8 +782,8 @@ end_of_record
       test(
           '--${TransformCommand.inputOption}=<trace_file> '
           '--${TransformCommand.outputOption}=<output_file> '
-          '| throws $CoverdeTransformFileWriteFailure when output file write fails',
-          () async {
+          '| throws $CoverdeTransformFileWriteFailure '
+          'when output file write fails', () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-transform-test-');
         addTearDown(() => directory.deleteSync(recursive: true));
@@ -839,8 +839,8 @@ end_of_record
 
       test(
           '--${TransformCommand.inputOption}=<trace_file> '
-          '| throws $CoverdeTransformFileReadFailure when trace file read fails',
-          () async {
+          '| throws $CoverdeTransformFileReadFailure '
+          'when trace file read fails', () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-transform-test-');
         addTearDown(() => directory.deleteSync(recursive: true));
