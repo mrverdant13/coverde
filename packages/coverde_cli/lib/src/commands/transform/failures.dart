@@ -122,6 +122,14 @@ final class CoverdeTransformInvalidTransformCliOptionFailure
               'Transformation: `$transformationIdentifier`.',
               'Invalid glob pattern: `$glob`.',
             ],
+          TransformationFromCliOptionInvalidNumericComparisonFailure(
+            :final transformationIdentifier,
+            :final comparison,
+          ) =>
+            [
+              'Transformation: `$transformationIdentifier`.',
+              'Invalid numeric comparison: `$comparison`.',
+            ],
         },
       ].join('\n');
 }

@@ -64,7 +64,18 @@ sealed class NumericComparison<T extends num> {
         final reference = parseReference(argument);
         return LessThanOrEqualToNumericComparison(reference: reference);
       case RangeNumericComparison.identifier:
-        final [lowerBoundData, upperBoundData] = argument.split(',');
+        final argumentParts = argument.split(',');
+        if (argumentParts.length != 2) {
+          throw NumericComparisonFromDescriptionInvalidRawReferenceFailure(
+            rawReference: argument,
+          );
+        }
+        final [lowerBoundData, upperBoundData] = argumentParts;
+        if (lowerBoundData.isEmpty || upperBoundData.isEmpty) {
+          throw NumericComparisonFromDescriptionInvalidRawReferenceFailure(
+            rawReference: argument,
+          );
+        }
         final lowerBoundIndicator = lowerBoundData.substring(
           0,
           1,

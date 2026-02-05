@@ -65,6 +65,27 @@ final class TransformationFromCliOptionInvalidGlobPatternFailure
   final String glob;
 }
 
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
+/// {@template coverde.transformation_from_cli_option_invalid_numeric_comparison_failure}
+/// A failure that occurs when the numeric comparison for a transformation is
+/// invalid.
+/// {@endtemplate}
+@immutable
+final class TransformationFromCliOptionInvalidNumericComparisonFailure
+    extends TransformationFromCliOptionInvalidArgumentsFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde.transformation_from_cli_option_invalid_numeric_comparison_failure}
+  const TransformationFromCliOptionInvalidNumericComparisonFailure({
+    required super.transformationIdentifier,
+    required this.comparison,
+  });
+
+  /// The numeric comparison.
+  final String comparison;
+}
+
 /// {@template coverde.transformation_from_cli_option_unknown_preset_failure}
 /// A failure that occurs when a referenced preset is not found in the list of
 /// available presets.

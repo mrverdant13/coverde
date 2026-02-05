@@ -48,14 +48,14 @@ final class NumericComparisonFromDescriptionInvalidRawReferenceFailure
   /// {@macro coverde.numeric_comparison_from_description_invalid_raw_reference_failure}
   const NumericComparisonFromDescriptionInvalidRawReferenceFailure({
     required this.rawReference,
-    required this.exception,
+    this.exception,
   });
 
   /// The raw reference string that failed to parse.
   final String rawReference;
 
   /// The underlying exception that describes why parsing failed.
-  final Object exception;
+  final Object? exception;
 }
 
 // Long doc template identifier.

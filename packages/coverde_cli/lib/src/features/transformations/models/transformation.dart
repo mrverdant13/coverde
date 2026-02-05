@@ -84,10 +84,21 @@ sealed class Transformation {
         }
         return SkipByGlobTransformation(glob);
       case KeepByCoverageTransformation.identifier:
-        final comparison = NumericComparison.fromDescription(
-          argument,
-          double.parse,
-        );
+        final NumericComparison<double> comparison;
+        try {
+          comparison = NumericComparison.fromDescription(
+            argument,
+            double.parse,
+          );
+        } on Object catch (_, stackTrace) {
+          Error.throwWithStackTrace(
+            TransformationFromCliOptionInvalidNumericComparisonFailure(
+              transformationIdentifier: identifier,
+              comparison: argument,
+            ),
+            stackTrace,
+          );
+        }
         return KeepByCoverageTransformation(comparison: comparison);
       case RelativeTransformation.identifier:
         final basePath = argument;

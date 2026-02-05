@@ -4,6 +4,43 @@ import 'package:test/test.dart';
 void main() {
   group('$NumericComparison', () {
     group('fromDescription', () {
+      test(
+          '| throws '
+          '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
+          'when no separator between identifier and argument is provided', () {
+        expect(
+          () => NumericComparison.fromDescription('invalid', int.parse),
+          throwsA(
+            isA<NumericComparisonFromDescriptionInvalidIdentifierFailure>(),
+          ),
+        );
+      });
+
+      test(
+          '| throws '
+          '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
+          'when only the separator between identifier and argument '
+          'is provided', () {
+        expect(
+          () => NumericComparison.fromDescription('|', int.parse),
+          throwsA(
+            isA<NumericComparisonFromDescriptionInvalidIdentifierFailure>(),
+          ),
+        );
+      });
+
+      test(
+          '| throws '
+          '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
+          'when no description is provided', () {
+        expect(
+          () => NumericComparison.fromDescription('', int.parse),
+          throwsA(
+            isA<NumericComparisonFromDescriptionInvalidIdentifierFailure>(),
+          ),
+        );
+      });
+
       group('identifier: ${EqualsNumericComparison.identifier}', () {
         test('| returns $EqualsNumericComparison', () {
           final comparison = NumericComparison.fromDescription(
@@ -318,6 +355,126 @@ void main() {
               // Long class name
               // ignore: lines_longer_than_80_chars
               isA<NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when no lower bound is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(,20)',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when no upper bound is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(10,)',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when no lower nor upper bound is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(,)',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when only bound indicators are provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|()',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when only bounds separator is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|,',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when no argument is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when only the identifier is provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              RangeNumericComparison.identifier,
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+            'when multiple reference values are provided', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(10,20,30)',
+              int.parse,
+            ),
+            throwsA(
+              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
             ),
           );
         });
