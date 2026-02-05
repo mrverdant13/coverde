@@ -5,4 +5,5 @@ export 'filter/filter.dart';
 export 'optimize_tests/optimize_tests.dart';
 export 'report/report.dart';
 export 'rm/rm.dart';
+export 'transform/transform.dart';
 export 'value/value.dart';

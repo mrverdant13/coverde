@@ -157,11 +157,21 @@ final class PresetTransformation extends Transformation {
       ]);
 }
 
+/// {@template leaf_transformation}
+/// A leaf transformation, i.e. a transformation that does not contain any other
+/// transformations.
+/// {@endtemplate}
+@immutable
+sealed class LeafTransformation extends Transformation {
+  /// {@macro leaf_transformation}
+  const LeafTransformation();
+}
+
 /// {@template keep_by_regex_transformation}
 /// Keeps only files whose path matches the [regex].
 /// {@endtemplate}
 @immutable
-final class KeepByRegexTransformation extends Transformation {
+final class KeepByRegexTransformation extends LeafTransformation {
   /// {@macro keep_by_regex_transformation}
   const KeepByRegexTransformation(this.regex);
 
@@ -191,7 +201,7 @@ final class KeepByRegexTransformation extends Transformation {
 /// Skips files whose path matches the [regex].
 /// {@endtemplate}
 @immutable
-final class SkipByRegexTransformation extends Transformation {
+final class SkipByRegexTransformation extends LeafTransformation {
   /// {@macro skip_by_regex_transformation}
   const SkipByRegexTransformation(this.regex);
 
@@ -221,7 +231,7 @@ final class SkipByRegexTransformation extends Transformation {
 /// Keeps only files whose path matches the [glob].
 /// {@endtemplate}
 @immutable
-final class KeepByGlobTransformation extends Transformation {
+final class KeepByGlobTransformation extends LeafTransformation {
   /// {@macro keep_by_glob_transformation}
   const KeepByGlobTransformation(this.glob);
 
@@ -251,7 +261,7 @@ final class KeepByGlobTransformation extends Transformation {
 /// Skips files whose path matches the [glob].
 /// {@endtemplate}
 @immutable
-final class SkipByGlobTransformation extends Transformation {
+final class SkipByGlobTransformation extends LeafTransformation {
   /// {@macro skip_by_glob_transformation}
   const SkipByGlobTransformation(this.glob);
 
@@ -281,7 +291,7 @@ final class SkipByGlobTransformation extends Transformation {
 /// Rewrites file paths to be relative to [basePath].
 /// {@endtemplate}
 @immutable
-final class RelativeTransformation extends Transformation {
+final class RelativeTransformation extends LeafTransformation {
   /// {@macro relative_transformation}
   const RelativeTransformation(this.basePath);
 
@@ -311,8 +321,8 @@ final class RelativeTransformation extends Transformation {
 typedef Transformations = Iterable<Transformation>;
 
 /// A tuple of a transformation and its preset chains.
-typedef TransformationWithPresetChains = ({
-  Transformation transformation,
+typedef LeafTransformationWithPresetChains = ({
+  LeafTransformation transformation,
   List<String> presets,
 });
 
@@ -322,19 +332,19 @@ extension ExtendedTransformations on Iterable<Transformation> {
   ///
   /// [PresetTransformation] is expanded; leaf transformations return
   /// themselves.
-  Iterable<Transformation> get flattenedSteps sync* {
+  Iterable<LeafTransformation> get flattenedSteps sync* {
     for (final step in this) {
       switch (step) {
         case PresetTransformation(:final steps):
           yield* steps.flattenedSteps;
-        default:
+        case LeafTransformation():
           yield step;
       }
     }
   }
 
   /// Returns a list of transformations with their preset chains.
-  Iterable<TransformationWithPresetChains> getStepsWithPresetChains({
+  Iterable<LeafTransformationWithPresetChains> getStepsWithPresetChains({
     List<String> precedingPresets = const [],
   }) sync* {
     for (final step in this) {
@@ -346,7 +356,7 @@ extension ExtendedTransformations on Iterable<Transformation> {
               step.presetName,
             ],
           );
-        default:
+        case LeafTransformation():
           yield (
             transformation: step,
             presets: precedingPresets,

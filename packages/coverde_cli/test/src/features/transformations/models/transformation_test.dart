@@ -424,8 +424,8 @@ void main() {
         const presetsEquality = ListEquality<String>();
         expect(
           result,
-          pairwiseCompare<TransformationWithPresetChains,
-              TransformationWithPresetChains>(
+          pairwiseCompare<LeafTransformationWithPresetChains,
+              LeafTransformationWithPresetChains>(
             [
               (
                 transformation: step_1_1,
