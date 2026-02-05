@@ -15,6 +15,7 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 
 - [Installing](#installing)
 - [Features](#features)
+- [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
 - [Usage with `melos`](#usage-with-melos)
 - [CI integration for coverage checks](#ci-integration-for-coverage-checks)
 
@@ -459,6 +460,216 @@ Compute the coverage value of the LCOV_FILE info file.
 ![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
 ![coverde-value.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value.png)
 <!-- CLI FEATURES -->
+
+---
+
+# `coverde.yaml` configuration file
+
+The `coverde.yaml` file allows you to define reusable transformation presets for the [`coverde transform`](#coverde-transform) command.
+
+Place this file in your project root directory.
+
+## File Format
+
+The configuration file uses YAML format with a `transformations` key at the root level. Each preset is defined as a named list of transformation steps.
+
+```yaml
+# coverde.yaml
+
+transformations:
+  preset-name:
+    - type: <transformation-type>
+      <parameter-1-name>: <value-1>
+      <parameter-2-name>: <value-2>
+    - type: <transformation-type>
+      <parameter-1-name>: <value-1>
+```
+
+## Transformation Types
+
+Each transformation step requires a `type` field and the corresponding parameters.
+
+### `keep-by-regex`
+
+Keep files whose paths match the provided regular expression pattern.
+
+```yaml
+type: keep-by-regex
+regex: <regex-pattern>  # Example: "^lib/.*\\.dart$"
+```
+
+### `skip-by-regex`
+
+Skip (exclude) files whose paths match the provided regular expression pattern.
+
+```yaml
+type: skip-by-regex
+regex: <regex-pattern>  # Example: "^test/.*_integration\\.dart$"
+```
+
+### `keep-by-glob`
+
+Keep files whose paths match the provided glob pattern.
+
+```yaml
+type: keep-by-glob
+glob: <glob-pattern>  # Example: "**/lib/**"
+```
+
+### `skip-by-glob`
+
+Skip (exclude) files whose paths match the provided glob pattern.
+
+```yaml
+type: skip-by-glob
+glob: <glob-pattern>  # Example: "**/*.g.dart"
+```
+
+### `keep-by-coverage`
+
+Keep files whose coverage meets the specified comparison.
+
+```yaml
+type: keep-by-coverage
+comparison: <comparison>  # Example: "lte|80" (less than or equal to 80%)
+```
+
+### `skip-by-coverage`
+
+Skip (exclude) files whose coverage meets the specified comparison.
+
+```yaml
+type: skip-by-coverage
+comparison: <comparison>  # Example: "gt|50" (greater than 50%)
+```
+
+See [Comparison Operators](#comparison-operators) for the allowed comparison operators.
+
+### `relative`
+
+Rewrite file paths so that they are relative to the given base path.
+
+```yaml
+type: relative
+base-path: <base-path>  # Example: "/path/to/project"
+```
+
+### `preset`
+
+Include transformations defined in another preset by name.
+
+> [!CAUTION]
+> Circular references between presets are detected and will result in an error.
+
+
+```yaml
+type: preset
+name: <other-preset-name>  # Example: "production-only"
+```
+
+## Comparison Operators
+
+### `eq`
+
+`eq|<value>`
+
+Checks if the value is equal to `<value>`.
+
+### `neq`
+
+`neq|<value>`
+
+Checks if the value is not equal to `<value>`.
+
+### `gt`
+
+`gt|<value>`
+
+Checks if the value is greater than `<value>`.
+
+### `gte`
+
+`gte|<value>`
+
+Checks if the value is greater than or equal to `<value>`.
+
+### `lt`
+
+`lt|<value>`
+
+Checks if the value is less than `<value>`.
+
+### `lte`
+
+`lte|<value>`
+
+Checks if the value is less than or equal to `<value>`.
+
+### `in`
+
+`in|<range>`
+
+Checks if the value is within the specified `<range>`.
+
+The `<range>` can be one of the following:
+- `[lowerValue,upperValue]`
+- `(lowerValue,upperValue]`
+- `[lowerValue,upperValue)`
+- `(lowerValue,upperValue)`
+
+The `[` and `]` brackets indicate that the lower and upper bounds are inclusive, while the `(` and `)` parentheses indicate that the lower and upper bounds are exclusive.
+
+## Example Configuration
+
+```yaml
+# coverde.yaml
+
+transformations:
+  # Exclude generated code files
+  exclude-generated:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+    - type: skip-by-glob
+      glob: "**/*.freezed.dart"
+    - type: skip-by-glob
+      glob: "**/*.gen.dart"
+
+  # Keep only production code (lib folder), excluding generated files
+  production-only:
+    - type: keep-by-glob
+      glob: "**/lib/**"
+    - type: preset
+      name: exclude-generated
+
+  # Filter to files with high coverage
+  high-coverage-only:
+    - type: keep-by-coverage
+      comparison: "gte|80"
+
+  # Common CI workflow preset
+  ci-workflow:
+    - type: preset
+      name: production-only
+    - type: relative
+      base-path: "/path/to/project"
+```
+
+## Using Presets
+
+Once defined, presets can be used with the `coverde transform` command.
+
+```sh
+# Use a single preset
+$ coverde transform --transformations preset=exclude-generated
+
+# Combine presets with inline transformations
+$ coverde transform \
+  --transformations preset=production-only \
+  --transformations skip-by-coverage="gt|50"
+
+# Preview transformations without applying them
+$ coverde transform --transformations preset=ci-workflow --explain
+```
 
 ---
 
