@@ -38,23 +38,23 @@ Transformation steps to apply in order.''',
         defaultsTo: [],
         allowedHelp: {
           '${KeepByRegexTransformation.identifier}=<regex>': //
-              'Keep files that match the <regex>.',
+              'Keep files that match the `<regex>`.',
           '${SkipByRegexTransformation.identifier}=<regex>': //
-              'Skip files that match the <regex>.',
+              'Skip files that match the `<regex>`.',
           '${KeepByGlobTransformation.identifier}=<glob>': //
-              'Keep files that match the <glob>.',
+              'Keep files that match the `<glob>`.',
           '${SkipByGlobTransformation.identifier}=<glob>': //
-              'Skip files that match the <glob>.',
+              'Skip files that match the `<glob>`.',
           '${KeepByCoverageTransformation.identifier}=<comparison>': //
-              'Keep files that match the <comparison> '
+              'Keep files that match the `<comparison>` '
                   '(with reference values between 0 and 100).',
           '${SkipByCoverageTransformation.identifier}=<comparison>': //
-              'Skip files that match the <comparison> '
+              'Skip files that match the `<comparison>` '
                   '(with reference values between 0 and 100).',
           '${RelativeTransformation.identifier}=<base-path>': //
-              'Rewrite file paths to be relative to the <base-path>.',
+              'Rewrite file paths to be relative to the `<base-path>`.',
           '${PresetTransformation.identifier}=<name>': //
-              'Expand a preset from $_configFileName.',
+              'Expand a preset from `$_configFileName`.',
         },
         valueHelp: _transformationsHelpValue,
       )
