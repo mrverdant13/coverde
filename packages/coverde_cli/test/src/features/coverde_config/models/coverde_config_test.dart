@@ -1,3 +1,4 @@
+import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
@@ -333,6 +334,65 @@ void main() {
             preset:
               - type: skip-by-glob
                 glob: '[invalid'
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+          );
+        });
+      });
+
+      group('identifier: ${KeepByCoverageTransformation.identifier}', () {
+        test('| returns $KeepByCoverageTransformation', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: eq|0.5
+              ''';
+          final config = CoverdeConfig.fromYaml(yamlString);
+          expect(
+            config,
+            const CoverdeConfig(
+              presets: [
+                PresetTransformation(
+                  presetName: 'preset',
+                  steps: [
+                    KeepByCoverageTransformation(
+                      comparison: EqualsNumericComparison(reference: 0.5),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when YAML transformation preset step comparison is not a string',
+            () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: 123
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when YAML transformation preset step comparison '
+            'is not a valid numeric comparison', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: invalid
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),

@@ -14,6 +14,9 @@ extension _CoverdeConfigYamlKeys on CoverdeConfig {
   /// Preset step map key for glob pattern (keep-by-glob, skip-by-glob).
   static const stepGlob = 'glob';
 
+  /// Preset step map key for numeric comparison (keep-by-coverage).
+  static const stepComparison = 'comparison';
+
   /// Preset step map key for base path (relative).
   static const stepBasePath = 'base-path';
 
@@ -231,6 +234,38 @@ List<_PresetEntry> _parsePresetSteps(
           );
         }
         result.add(_PresetEntryStep(SkipByGlobTransformation(glob)));
+      case KeepByCoverageTransformation.identifier:
+        final rawComparison = rawStep[_CoverdeConfigYamlKeys.stepComparison];
+        final comparisonKey = [
+          stepKey,
+          _CoverdeConfigYamlKeys.stepComparison,
+        ].join('.');
+        if (rawComparison is! String) {
+          throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+            key: comparisonKey,
+            expectedType: String,
+            value: rawComparison,
+          );
+        }
+        final NumericComparison<double> comparison;
+        try {
+          comparison =
+              NumericComparison.fromDescription(rawComparison, double.parse);
+        } on Object catch (_, stackTrace) {
+          Error.throwWithStackTrace(
+            CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: comparisonKey,
+              value: rawComparison,
+              hint: 'a valid numeric comparison',
+            ),
+            stackTrace,
+          );
+        }
+        result.add(
+          _PresetEntryStep(
+            KeepByCoverageTransformation(comparison: comparison),
+          ),
+        );
       case RelativeTransformation.identifier:
         final basePath = rawStep[_CoverdeConfigYamlKeys.stepBasePath];
         final basePathKey = [

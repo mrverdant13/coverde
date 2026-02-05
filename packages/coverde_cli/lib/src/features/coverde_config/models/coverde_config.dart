@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';

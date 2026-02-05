@@ -125,6 +125,7 @@ sealed class Transformation {
     SkipByRegexTransformation.identifier,
     KeepByGlobTransformation.identifier,
     SkipByGlobTransformation.identifier,
+    KeepByCoverageTransformation.identifier,
     RelativeTransformation.identifier,
     PresetTransformation.identifier,
   ];
