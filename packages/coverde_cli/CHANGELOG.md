@@ -2,6 +2,8 @@
 
 - **BREAKING FEAT**: full support for analyzer package v8-v10 (#263).
 - **FEAT**: add `transform` command (#276).
+- **FEAT**: support transformation presets in `coverde.yaml` config file (#276).
+- **FEAT**: introduce `coverde.yaml` config file (#276).
 
 ## 0.3.0+1
 
