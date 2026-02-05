@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -64,11 +64,11 @@ void main() {
         test('| returns $KeepByGlobTransformation', () {
           final transformation = Transformation.fromCliOption(
             '${KeepByGlobTransformation.identifier}='
-            '${Glob('**/*.dart').pattern}',
+            '${Glob('**/*.dart', context: p.posix).pattern}',
           );
           expect(
             transformation,
-            KeepByGlobTransformation(Glob('**/*.dart')),
+            KeepByGlobTransformation(Glob('**/*.dart', context: p.posix)),
           );
         });
 
@@ -90,11 +90,11 @@ void main() {
         test('| returns $SkipByGlobTransformation', () {
           final transformation = Transformation.fromCliOption(
             '${SkipByGlobTransformation.identifier}='
-            '${Glob('**/*.dart').pattern}',
+            '${Glob('**/*.dart', context: p.posix).pattern}',
           );
           expect(
             transformation,
-            SkipByGlobTransformation(Glob('**/*.dart')),
+            SkipByGlobTransformation(Glob('**/*.dart', context: p.posix)),
           );
         });
 
@@ -270,11 +270,11 @@ void main() {
         test('| returns $RelativeTransformation', () {
           final transformation = Transformation.fromCliOption(
             '${RelativeTransformation.identifier}='
-            '${path.join('packages', 'app')}',
+            '${p.join('packages', 'app')}',
           );
           expect(
             transformation,
-            RelativeTransformation(path.join('packages', 'app')),
+            RelativeTransformation(p.join('packages', 'app')),
           );
         });
       });
@@ -568,14 +568,14 @@ void main() {
     group('$RelativeTransformation', () {
       group('describe', () {
         test('| returns description', () {
-          final t = RelativeTransformation(path.join('packages', 'app'));
-          expect(t.describe, 'relative base-path=packages${path.separator}app');
+          final t = RelativeTransformation(p.join('packages', 'app'));
+          expect(t.describe, 'relative base-path=packages${p.separator}app');
         });
       });
 
       group('basePath', () {
         test('| returns the base path', () {
-          final basePath = path.join('packages', 'apps');
+          final basePath = p.join('packages', 'apps');
           final t = RelativeTransformation(basePath);
           expect(t.basePath, basePath);
         });
@@ -583,9 +583,9 @@ void main() {
 
       group('== & hashCode', () {
         test('| verifies equality and hash code resolution', () {
-          final subject = RelativeTransformation(path.join('packages', 'app'));
-          final same = RelativeTransformation(path.join('packages', 'app'));
-          final other = RelativeTransformation(path.join('packages', 'apps'));
+          final subject = RelativeTransformation(p.join('packages', 'app'));
+          final same = RelativeTransformation(p.join('packages', 'app'));
+          final other = RelativeTransformation(p.join('packages', 'apps'));
           expect(subject, same);
           expect(subject, isNot(other));
           expect(subject.hashCode, same.hashCode);

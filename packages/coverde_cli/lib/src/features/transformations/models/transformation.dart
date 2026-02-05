@@ -259,13 +259,21 @@ final class KeepByRegexTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! KeepByRegexTransformation) return false;
-    return regex.pattern == other.regex.pattern;
+    return regex.pattern == other.regex.pattern &&
+        regex.isCaseSensitive == other.regex.isCaseSensitive &&
+        regex.isDotAll == other.regex.isDotAll &&
+        regex.isMultiLine == other.regex.isMultiLine &&
+        regex.isUnicode == other.regex.isUnicode;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
         regex.pattern,
+        regex.isCaseSensitive,
+        regex.isDotAll,
+        regex.isMultiLine,
+        regex.isUnicode,
       ]);
 }
 
@@ -289,13 +297,21 @@ final class SkipByRegexTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! SkipByRegexTransformation) return false;
-    return regex.pattern == other.regex.pattern;
+    return regex.pattern == other.regex.pattern &&
+        regex.isCaseSensitive == other.regex.isCaseSensitive &&
+        regex.isDotAll == other.regex.isDotAll &&
+        regex.isMultiLine == other.regex.isMultiLine &&
+        regex.isUnicode == other.regex.isUnicode;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
         regex.pattern,
+        regex.isCaseSensitive,
+        regex.isDotAll,
+        regex.isMultiLine,
+        regex.isUnicode,
       ]);
 }
 
@@ -319,13 +335,15 @@ final class KeepByGlobTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! KeepByGlobTransformation) return false;
-    return glob.pattern == other.glob.pattern;
+    return glob.pattern == other.glob.pattern &&
+        glob.context == other.glob.context;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
         glob.pattern,
+        glob.context,
       ]);
 }
 
@@ -349,13 +367,15 @@ final class SkipByGlobTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! SkipByGlobTransformation) return false;
-    return glob.pattern == other.glob.pattern;
+    return glob.pattern == other.glob.pattern &&
+        glob.context == other.glob.context;
   }
 
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
         glob.pattern,
+        glob.context,
       ]);
 }
 

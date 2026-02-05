@@ -2,6 +2,7 @@ import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
@@ -246,7 +247,9 @@ void main() {
                 PresetTransformation(
                   presetName: 'preset',
                   steps: [
-                    KeepByGlobTransformation(Glob('lib/**/*.dart')),
+                    KeepByGlobTransformation(
+                      Glob('lib/**/*.dart', context: p.posix),
+                    ),
                   ],
                 ),
               ],
@@ -302,7 +305,9 @@ void main() {
                 PresetTransformation(
                   presetName: 'preset',
                   steps: [
-                    SkipByGlobTransformation(Glob('lib/**/*.dart')),
+                    SkipByGlobTransformation(
+                      Glob('lib/**/*.dart', context: p.posix),
+                    ),
                   ],
                 ),
               ],
