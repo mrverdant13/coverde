@@ -336,7 +336,9 @@ final class KeepByGlobTransformation extends LeafTransformation {
   bool operator ==(Object other) {
     if (other is! KeepByGlobTransformation) return false;
     return glob.pattern == other.glob.pattern &&
-        glob.context == other.glob.context;
+        glob.context == other.glob.context &&
+        glob.caseSensitive == other.glob.caseSensitive &&
+        glob.recursive == other.glob.recursive;
   }
 
   @override
@@ -344,6 +346,8 @@ final class KeepByGlobTransformation extends LeafTransformation {
         runtimeType,
         glob.pattern,
         glob.context,
+        glob.caseSensitive,
+        glob.recursive,
       ]);
 }
 
@@ -368,7 +372,9 @@ final class SkipByGlobTransformation extends LeafTransformation {
   bool operator ==(Object other) {
     if (other is! SkipByGlobTransformation) return false;
     return glob.pattern == other.glob.pattern &&
-        glob.context == other.glob.context;
+        glob.context == other.glob.context &&
+        glob.caseSensitive == other.glob.caseSensitive &&
+        glob.recursive == other.glob.recursive;
   }
 
   @override
@@ -376,6 +382,8 @@ final class SkipByGlobTransformation extends LeafTransformation {
         runtimeType,
         glob.pattern,
         glob.context,
+        glob.caseSensitive,
+        glob.recursive,
       ]);
 }
 
