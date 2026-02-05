@@ -127,14 +127,15 @@ void main() {
         });
 
         test(
-            '| throws $NumericComparisonFromDescriptionFailure '
+            '| throws '
+            '$TransformationFromCliOptionInvalidNumericComparisonFailure '
             'when invalid numeric comparison description', () {
           expect(
             () => Transformation.fromCliOption(
               '${KeepByCoverageTransformation.identifier}=invalid',
             ),
             throwsA(
-              isA<NumericComparisonFromDescriptionFailure>(),
+              isA<TransformationFromCliOptionInvalidNumericComparisonFailure>(),
             ),
           );
         });
