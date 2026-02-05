@@ -38,6 +38,7 @@ $ dart pub global activate coverde
 - [**Optimize tests by gathering them.**](#coverde-optimize-tests)
 - [**Check the coverage value (%) computed from a trace file.**](#coverde-check)
 - [**Filter a coverage trace file.**](#coverde-filter)
+- [**Transform a coverage trace file.**](#coverde-transform)
 - [**Generate the coverage report from a trace file.**](#coverde-report)
 - [**Remove a set of files and folders.**](#coverde-remove)
 - [**Compute the coverage value (%) of an info file.**](#coverde-value)
@@ -348,6 +349,105 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
   Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
   **Default value:** _None_
+
+
+## `coverde transform`
+
+Transform a coverage trace file.
+
+Apply a sequence of transformations to the coverage data.\
+The coverage data is taken from the INPUT_LCOV_FILE file and written to the OUTPUT_LCOV_FILE file.
+
+Presets can be defined in coverde.yaml under the `transformations` key.
+
+### Arguments
+
+#### Single-options
+
+- `--input`
+
+  Origin coverage info file to transform.\
+  **Default value:** `coverage/lcov.info`
+
+- `--output`
+
+  Destination coverage info file to dump the transformed coverage data into.\
+  **Default value:** `coverage/transformed.lcov.info`
+
+- `--mode`
+
+  The mode in which the OUTPUT_LCOV_FILE can be generated.\
+  **Default value:** `a`\
+  **Allowed values:**
+    - `a`: Append transformed content to the OUTPUT_LCOV_FILE content, if any.
+    - `w`: Override the OUTPUT_LCOV_FILE content, if any, with the transformed content.
+
+#### Multi-options
+
+- `--transformations`
+
+  Transformation steps to apply in order.\
+  **Default value:** _None_\
+  **Allowed values:**
+    - `keep-by-regex=<regex>`: Keep files that match the `<regex>`.
+    - `skip-by-regex=<regex>`: Skip files that match the `<regex>`.
+    - `keep-by-glob=<glob>`: Keep files that match the `<glob>`.
+    - `skip-by-glob=<glob>`: Skip files that match the `<glob>`.
+    - `keep-by-coverage=<comparison>`: Keep files that match the `<comparison>` (with reference values between 0 and 100).
+    - `skip-by-coverage=<comparison>`: Skip files that match the `<comparison>` (with reference values between 0 and 100).
+    - `relative=<base-path>`: Rewrite file paths to be relative to the `<base-path>`.
+    - `preset=<name>`: Expand a preset from `coverde.yaml`.
+
+#### Flags
+
+- `--explain`
+
+  Print the resolved transformation list and exit without modifying files.\
+  **Default value:** _Disabled_
+
+### Examples
+
+#### Inline Transformations
+
+```sh
+$ coverde transform \
+  --transformations relative="/packages/my_package/" \
+  --transformations keep-by-glob="lib/**" \
+  --transformations skip-by-glob="**/*.g.dart" \
+  --transformations keep-by-coverage="lte|80"
+```
+
+This transformation chain performs the following steps:
+1. Rewrite file paths to be relative to the `/packages/my_package/` directory (useful for monorepos).
+2. Keep files that match the `lib/**` glob pattern, i.e. implementation files.
+3. Skip files that match the `**/*.g.dart` glob pattern, i.e. generated files.
+4. Keep files that have a coverage value less than or equal to 80%.
+
+#### Preset Usage
+
+Given the following `coverde.yaml` configuration:
+
+```yaml
+# coverde.yaml
+
+transformations:
+  implementation-without-generated:
+    - type: relative
+      glob: "lib/**"
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+```
+
+Running:
+
+```sh
+$ coverde transform \
+  --transformations relative="/packages/my_package/" \
+  --transformations preset=implementation-without-generated \
+  --transformations keep-by-coverage="gte|80"
+```
+
+Is equivalent to the [Inline Transformations](#inline-transformations) example.
 
 
 ## `coverde report`
