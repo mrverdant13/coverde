@@ -284,6 +284,31 @@ void main() {
             ].join('\n'),
           );
         });
+
+        test(
+            '| returns formatted message for invalid numeric comparison failure',
+            () {
+          const failure =
+              TransformationFromCliOptionInvalidNumericComparisonFailure(
+            transformationIdentifier: 'keep-by-coverage',
+            comparison: 'invalid',
+          );
+          final transformFailure =
+              CoverdeTransformInvalidTransformCliOptionFailure(
+            failure: failure,
+          );
+
+          final result = transformFailure.readableMessage;
+
+          expect(
+            result,
+            [
+              'Invalid transformation CLI option.',
+              'Transformation: `keep-by-coverage`.',
+              'Invalid numeric comparison: `invalid`.',
+            ].join('\n'),
+          );
+        });
       });
     });
 
