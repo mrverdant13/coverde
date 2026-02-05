@@ -27,7 +27,7 @@ sealed class Transformation {
     final [identifier, ...rest] = option.split('=');
     final argument = rest.join('=');
     switch (identifier) {
-      case 'keep-by-regex':
+      case KeepByRegexTransformation.identifier:
         final RegExp regex;
         try {
           regex = RegExp(argument);
@@ -41,7 +41,7 @@ sealed class Transformation {
           );
         }
         return KeepByRegexTransformation(regex);
-      case 'skip-by-regex':
+      case SkipByRegexTransformation.identifier:
         final RegExp regex;
         try {
           regex = RegExp(argument);
@@ -55,7 +55,7 @@ sealed class Transformation {
           );
         }
         return SkipByRegexTransformation(regex);
-      case 'keep-by-glob':
+      case KeepByGlobTransformation.identifier:
         final Glob glob;
         try {
           glob = Glob(argument);
@@ -69,7 +69,7 @@ sealed class Transformation {
           );
         }
         return KeepByGlobTransformation(glob);
-      case 'skip-by-glob':
+      case SkipByGlobTransformation.identifier:
         final Glob glob;
         try {
           glob = Glob(argument);
@@ -83,16 +83,16 @@ sealed class Transformation {
           );
         }
         return SkipByGlobTransformation(glob);
-      case 'keep-by-coverage':
+      case KeepByCoverageTransformation.identifier:
         final comparison = NumericComparison.fromDescription(
           argument,
           double.parse,
         );
         return KeepByCoverageTransformation(comparison: comparison);
-      case 'relative':
+      case RelativeTransformation.identifier:
         final basePath = argument;
         return RelativeTransformation(basePath);
-      case 'preset':
+      case PresetTransformation.identifier:
         final presetName = argument;
         return presets.singleWhere(
           (p) => p.presetName == presetName,

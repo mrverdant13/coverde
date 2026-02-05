@@ -37,20 +37,20 @@ Destination coverage info file to dump the transformed coverage data into.''',
 Transformation steps to apply in order.''',
         defaultsTo: [],
         allowedHelp: {
-          'keep-by-regex=<regex>': //
+          '${KeepByRegexTransformation.identifier}=<regex>': //
               'Keep files that match the <regex>.',
-          'skip-by-regex=<regex>': //
+          '${SkipByRegexTransformation.identifier}=<regex>': //
               'Skip files that match the <regex>.',
-          'keep-by-glob=<glob>': //
+          '${KeepByGlobTransformation.identifier}=<glob>': //
               'Keep files that match the <glob>.',
-          'skip-by-glob=<glob>': //
+          '${SkipByGlobTransformation.identifier}=<glob>': //
               'Skip files that match the <glob>.',
-          'keep-by-coverage=<comparison>': //
+          '${KeepByCoverageTransformation.identifier}=<comparison>': //
               'Keep files that match the <comparison>.',
-          'relative=<base-path>': //
+          '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the <base-path>.',
-          'preset=<name>': //
-              'Expand a preset from coverde.yaml.',
+          '${PresetTransformation.identifier}=<name>': //
+              'Expand a preset from $_configFileName.',
         },
         valueHelp: _transformationsHelpValue,
       )
@@ -68,7 +68,7 @@ Transformation steps to apply in order.''',
         valueHelp: _modeHelpValue,
         allowed: _outModeAllowedHelp.keys,
         allowedHelp: _outModeAllowedHelp,
-        defaultsTo: _outModeAllowedHelp.keys.first,
+        defaultsTo: modeAppend,
       );
   }
 
@@ -76,10 +76,19 @@ Transformation steps to apply in order.''',
   static const _outputHelpValue = 'OUTPUT_LCOV_FILE';
   static const _transformationsHelpValue = 'TRANSFORMATIONS';
   static const _modeHelpValue = 'MODE';
-  static const _outModeAllowedHelp = {
-    'a': '''
+
+  /// Mode value to append transformed content to the output file.
+  @visibleForTesting
+  static const modeAppend = 'a';
+
+  /// Mode value to override the output file with the transformed content.
+  @visibleForTesting
+  static const modeWrite = 'w';
+
+  static final Map<String, String> _outModeAllowedHelp = {
+    modeAppend: '''
 Append transformed content to the $_outputHelpValue content, if any.''',
-    'w': '''
+    modeWrite: '''
 Override the $_outputHelpValue content, if any, with the transformed content.''',
   };
 
@@ -172,7 +181,7 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
 
     final originPath = argResults.option(inputOption)!;
     final destinationPath = argResults.option(outputOption)!;
-    final shouldOverride = argResults.option(modeOption) == 'w';
+    final shouldOverride = argResults.option(modeOption) == modeWrite;
 
     if (!FileSystemEntity.isFileSync(originPath)) {
       throw CoverdeTransformTraceFileNotFoundFailure(
@@ -309,8 +318,11 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
           entries = entries.map((e) {
             final newPath = path.relative(e.path, from: bp);
             final newRaw = e.raw.replaceFirst(
-              RegExp(r'^SF:(.*)$', multiLine: true),
-              'SF:$newPath',
+              RegExp(
+                '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
+                multiLine: true,
+              ),
+              '${CovFile.sourceFileTag}$newPath',
             );
             return (path: newPath, raw: newRaw, coverage: e.coverage);
           }).toList();
