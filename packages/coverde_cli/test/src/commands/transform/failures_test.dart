@@ -286,8 +286,8 @@ void main() {
         });
 
         test(
-            '| returns formatted message for invalid numeric comparison failure',
-            () {
+            '| returns formatted message '
+            'for invalid numeric comparison failure', () {
           const failure =
               TransformationFromCliOptionInvalidNumericComparisonFailure(
             transformationIdentifier: 'keep-by-coverage',
