@@ -191,7 +191,7 @@ end_of_record
           '--${TransformCommand.outputOption}',
           outputPath,
           '--${TransformCommand.transformationsOption}',
-          'keep-by-regex=lib/.*',
+          r'keep-by-regex=lib[/\\\\].*',
         ]);
 
         final outContent = File(outputPath).readAsStringSync();
@@ -234,7 +234,7 @@ end_of_record
           '--${TransformCommand.outputOption}',
           outputPath,
           '--${TransformCommand.transformationsOption}',
-          'skip-by-regex=test/.*',
+          r'skip-by-regex=test[/\\\\].*',
         ]);
 
         final outContent = File(outputPath).readAsStringSync();
@@ -657,11 +657,11 @@ end_of_record
         final inputPath = p.join(directory.path, 'in.info');
         final outputPath = p.join(directory.path, 'out.info');
         final configPath = p.join(directory.path, 'coverde.yaml');
-        const configYaml = '''
+        const configYaml = r'''
 transformations:
   my-preset:
     - type: keep-by-regex
-      regex: "lib/.*"
+      regex: "lib[/\\\\].*"
     - type: skip-by-glob
       glob: "**/*.g.dart"
 ''';
