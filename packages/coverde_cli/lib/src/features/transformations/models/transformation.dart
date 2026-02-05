@@ -9,6 +9,26 @@ part 'transformation_from_cli_option_failure.dart';
 /// preset-b").
 const String presetChainSeparator = ' → ';
 
+/// Validates that all references in [comparison] are valid coverage percentages
+/// (between 0 and 100 inclusive).
+///
+/// Returns a list of invalid references, or an empty list if all are valid.
+List<double> validateCoverageReferences(NumericComparison<double> comparison) {
+  final references = switch (comparison) {
+    EqualsNumericComparison(:final reference) => [reference],
+    NotEqualToNumericComparison(:final reference) => [reference],
+    GreaterThanNumericComparison(:final reference) => [reference],
+    GreaterThanOrEqualToNumericComparison(:final reference) => [reference],
+    LessThanNumericComparison(:final reference) => [reference],
+    LessThanOrEqualToNumericComparison(:final reference) => [reference],
+    RangeNumericComparison(:final lowerReference, :final upperReference) => [
+        lowerReference,
+        upperReference,
+      ],
+  };
+  return references.where((ref) => ref < 0 || ref > 100).toList();
+}
+
 /// {@template transformation}
 /// A transformation step to apply to coverage trace file paths.
 /// {@endtemplate}
@@ -99,6 +119,13 @@ sealed class Transformation {
             stackTrace,
           );
         }
+        final invalidReferences = validateCoverageReferences(comparison);
+        if (invalidReferences.isNotEmpty) {
+          throw TransformationFromCliOptionInvalidCoveragePercentageFailure(
+            transformationIdentifier: identifier,
+            invalidReferences: invalidReferences,
+          );
+        }
         return KeepByCoverageTransformation(comparison: comparison);
       case SkipByCoverageTransformation.identifier:
         final NumericComparison<double> comparison;
@@ -114,6 +141,13 @@ sealed class Transformation {
               comparison: argument,
             ),
             stackTrace,
+          );
+        }
+        final invalidReferences = validateCoverageReferences(comparison);
+        if (invalidReferences.isNotEmpty) {
+          throw TransformationFromCliOptionInvalidCoveragePercentageFailure(
+            transformationIdentifier: identifier,
+            invalidReferences: invalidReferences,
           );
         }
         return SkipByCoverageTransformation(comparison: comparison);

@@ -86,6 +86,27 @@ final class TransformationFromCliOptionInvalidNumericComparisonFailure
   final String comparison;
 }
 
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
+/// {@template coverde.transformation_from_cli_option_invalid_coverage_percentage_failure}
+/// A failure that occurs when a coverage percentage value is out of the valid
+/// range (0-100).
+/// {@endtemplate}
+@immutable
+final class TransformationFromCliOptionInvalidCoveragePercentageFailure
+    extends TransformationFromCliOptionInvalidArgumentsFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde.transformation_from_cli_option_invalid_coverage_percentage_failure}
+  const TransformationFromCliOptionInvalidCoveragePercentageFailure({
+    required super.transformationIdentifier,
+    required this.invalidReferences,
+  });
+
+  /// The coverage reference values that are out of range.
+  final List<double> invalidReferences;
+}
+
 /// {@template coverde.transformation_from_cli_option_unknown_preset_failure}
 /// A failure that occurs when a referenced preset is not found in the list of
 /// available presets.

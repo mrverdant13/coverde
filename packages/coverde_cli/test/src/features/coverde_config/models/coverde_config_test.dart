@@ -399,6 +399,57 @@ void main() {
             throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
           );
         });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage is below 0', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: eq|-5
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage is above 100', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: eq|150
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage range has invalid bounds', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: keep-by-coverage
+                comparison: in|[-10,110)
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
       });
 
       group('identifier: ${SkipByCoverageTransformation.identifier}', () {
@@ -456,6 +507,57 @@ void main() {
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
             throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage is below 0', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: eq|-5
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage is above 100', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: eq|150
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when coverage percentage range has invalid bounds', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: in|[-10,110)
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            ),
           );
         });
       });

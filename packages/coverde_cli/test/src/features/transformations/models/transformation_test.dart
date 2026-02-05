@@ -139,6 +139,54 @@ void main() {
             ),
           );
         });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage is below 0', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${KeepByCoverageTransformation.identifier}=eq|-5',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage is above 100', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${KeepByCoverageTransformation.identifier}=eq|150',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage range has invalid bounds', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${KeepByCoverageTransformation.identifier}=in|[-10,110)',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
       });
 
       group('identifier: ${SkipByCoverageTransformation.identifier}', () {
@@ -165,6 +213,54 @@ void main() {
             ),
             throwsA(
               isA<TransformationFromCliOptionInvalidNumericComparisonFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage is below 0', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${SkipByCoverageTransformation.identifier}=eq|-5',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage is above 100', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${SkipByCoverageTransformation.identifier}=eq|150',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
+            'when coverage percentage range has invalid bounds', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${SkipByCoverageTransformation.identifier}=in|[-10,110)',
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
             ),
           );
         });

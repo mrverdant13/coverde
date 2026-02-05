@@ -69,6 +69,16 @@ final class CoverdeTransformInvalidConfigFileFailure
           CoverdeConfigFromYamlPresetCycleFailure(:final cycle) => [
               'Preset cycle detected: ${cycle.join(' -> ')}.',
             ],
+          CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+            :final key,
+            :final invalidReferences
+          ) =>
+            [
+              'Invalid coverage percentage.',
+              'Key: `$key`.',
+              'Coverage values must be between 0 and 100.',
+              'Invalid values: ${invalidReferences.join(', ')}.',
+            ],
         },
       ].join('\n');
 }
@@ -129,6 +139,15 @@ final class CoverdeTransformInvalidTransformCliOptionFailure
             [
               'Transformation: `$transformationIdentifier`.',
               'Invalid numeric comparison: `$comparison`.',
+            ],
+          TransformationFromCliOptionInvalidCoveragePercentageFailure(
+            :final transformationIdentifier,
+            :final invalidReferences,
+          ) =>
+            [
+              'Transformation: `$transformationIdentifier`.',
+              'Coverage values must be between 0 and 100.',
+              'Invalid values: ${invalidReferences.join(', ')}.',
             ],
         },
       ].join('\n');

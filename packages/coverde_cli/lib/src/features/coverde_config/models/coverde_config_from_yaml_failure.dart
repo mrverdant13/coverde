@@ -84,6 +84,30 @@ final class CoverdeConfigFromYamlInvalidYamlMemberValueFailure
   final String? hint;
 }
 
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
+/// {@template coverde.coverde_config_from_yaml_invalid_coverage_percentage_failure}
+/// A failure that occurs when a coverage percentage value is out of the valid
+/// range (0-100).
+/// {@endtemplate}
+@immutable
+final class CoverdeConfigFromYamlInvalidCoveragePercentageFailure
+    extends CoverdeConfigFromYamlFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde.coverde_config_from_yaml_invalid_coverage_percentage_failure}
+  const CoverdeConfigFromYamlInvalidCoveragePercentageFailure({
+    required this.key,
+    required this.invalidReferences,
+  });
+
+  /// The key of the member with the invalid value.
+  final String key;
+
+  /// The coverage reference values that are out of range.
+  final List<double> invalidReferences;
+}
+
 /// {@template coverde.coverde_config_from_yaml_unknown_preset_failure}
 /// A failure that occurs when a preset is not found.
 /// {@endtemplate}

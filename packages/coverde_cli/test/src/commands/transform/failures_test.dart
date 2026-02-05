@@ -187,6 +187,32 @@ void main() {
             ].join('\n'),
           );
         });
+
+        test(
+            '| returns formatted message '
+            'for invalid coverage percentage failure', () {
+          const failure = CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+            key: 'presets',
+            invalidReferences: [150],
+          );
+          final transformFailure = CoverdeTransformInvalidConfigFileFailure(
+            configPath: 'coverde.yaml',
+            failure: failure,
+          );
+
+          final result = transformFailure.readableMessage;
+
+          expect(
+            result,
+            [
+              'Invalid config file at `coverde.yaml`.',
+              'Invalid coverage percentage.',
+              'Key: `presets`.',
+              'Coverage values must be between 0 and 100.',
+              'Invalid values: 150.0.',
+            ].join('\n'),
+          );
+        });
       });
     });
 
@@ -306,6 +332,32 @@ void main() {
               'Invalid transformation CLI option.',
               'Transformation: `keep-by-coverage`.',
               'Invalid numeric comparison: `invalid`.',
+            ].join('\n'),
+          );
+        });
+
+        test(
+            '| returns formatted message '
+            'for invalid coverage percentage failure', () {
+          const failure =
+              TransformationFromCliOptionInvalidCoveragePercentageFailure(
+            transformationIdentifier: 'keep-by-coverage',
+            invalidReferences: [150],
+          );
+          final transformFailure =
+              CoverdeTransformInvalidTransformCliOptionFailure(
+            failure: failure,
+          );
+
+          final result = transformFailure.readableMessage;
+
+          expect(
+            result,
+            [
+              'Invalid transformation CLI option.',
+              'Transformation: `keep-by-coverage`.',
+              'Coverage values must be between 0 and 100.',
+              'Invalid values: 150.0.',
             ].join('\n'),
           );
         });

@@ -262,6 +262,13 @@ List<_PresetEntry> _parsePresetSteps(
             stackTrace,
           );
         }
+        final invalidReferences = validateCoverageReferences(comparison);
+        if (invalidReferences.isNotEmpty) {
+          throw CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+            key: comparisonKey,
+            invalidReferences: invalidReferences,
+          );
+        }
         result.add(
           _PresetEntryStep(
             KeepByCoverageTransformation(comparison: comparison),
@@ -292,6 +299,13 @@ List<_PresetEntry> _parsePresetSteps(
               hint: 'a valid numeric comparison',
             ),
             stackTrace,
+          );
+        }
+        final invalidReferences = validateCoverageReferences(comparison);
+        if (invalidReferences.isNotEmpty) {
+          throw CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+            key: comparisonKey,
+            invalidReferences: invalidReferences,
           );
         }
         result.add(
