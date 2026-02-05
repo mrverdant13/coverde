@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 
 part 'transformation_from_cli_option_failure.dart';
 
@@ -78,7 +79,7 @@ sealed class Transformation {
       case KeepByGlobTransformation.identifier:
         final Glob glob;
         try {
-          glob = Glob(argument);
+          glob = Glob(argument, context: p.posix);
         } on Object catch (_, stackTrace) {
           Error.throwWithStackTrace(
             TransformationFromCliOptionInvalidGlobPatternFailure(
@@ -92,7 +93,7 @@ sealed class Transformation {
       case SkipByGlobTransformation.identifier:
         final Glob glob;
         try {
-          glob = Glob(argument);
+          glob = Glob(argument, context: p.posix);
         } on Object catch (_, stackTrace) {
           Error.throwWithStackTrace(
             TransformationFromCliOptionInvalidGlobPatternFailure(
