@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
@@ -278,6 +279,34 @@ void main() {
         });
       });
 
+      group('identifier: ${PresetTransformation.identifier}', () {
+        test('| returns $PresetTransformation', () {
+          const preset = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [],
+          );
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}=my-preset',
+            presets: const [preset],
+          );
+          expect(
+            transformation,
+            preset,
+          );
+        });
+
+        test(
+            '| throws $TransformationFromCliOptionUnknownPresetFailure '
+            'when unknown preset', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}=unknown',
+            ),
+            throwsA(isA<TransformationFromCliOptionUnknownPresetFailure>()),
+          );
+        });
+      });
+
       test(
           '| throws '
           '$TransformationFromCliOptionUnsupportedTransformationFailure '
@@ -288,6 +317,61 @@ void main() {
             isA<TransformationFromCliOptionUnsupportedTransformationFailure>(),
           ),
         );
+      });
+    });
+
+    group('$PresetTransformation', () {
+      group('describe', () {
+        test('| returns description', () {
+          const t = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [],
+          );
+          expect(t.describe, 'preset name=my-preset');
+        });
+      });
+
+      group('presetName', () {
+        test('| returns the preset name', () {
+          const t = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [],
+          );
+          expect(t.presetName, 'my-preset');
+        });
+      });
+
+      group('steps', () {
+        test('| returns the steps', () {
+          final step1 = KeepByRegexTransformation(RegExp('lib/.*'));
+          final step2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
+          final t = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [step1, step2],
+          );
+          expect(t.steps, [step1, step2]);
+        });
+      });
+
+      group('== & hashCode', () {
+        test('| verifies equality and hash code resolution', () {
+          final subject = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
+          );
+          final same = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
+          );
+          final other = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [KeepByRegexTransformation(RegExp('test/.*'))],
+          );
+          expect(subject, same);
+          expect(subject, isNot(other));
+          expect(subject.hashCode, same.hashCode);
+          expect(subject.hashCode, isNot(other.hashCode));
+        });
       });
     });
 
@@ -507,6 +591,106 @@ void main() {
           expect(subject.hashCode, same.hashCode);
           expect(subject.hashCode, isNot(other.hashCode));
         });
+      });
+    });
+  });
+
+  group('$Transformations', () {
+    group('flattenedSteps', () {
+      test('| returns the flattened steps', () {
+        final step_1_1 = KeepByRegexTransformation(RegExp('lib/.*'));
+        final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
+        final step_1 = PresetTransformation(
+          presetName: 'my-preset',
+          steps: [
+            step_1_1,
+            step_1_2,
+          ],
+        );
+        final step_2 = KeepByRegexTransformation(RegExp('test/.*'));
+        final steps = [step_1, step_2];
+        expect(steps.flattenedSteps, [step_1_1, step_1_2, step_2]);
+      });
+    });
+
+    group('getStepsWithPresetChains', () {
+      test('| returns the steps with preset chains', () {
+        final step_1_1 = KeepByRegexTransformation(RegExp('lib/.*'));
+        final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
+        final step_1 = PresetTransformation(
+          presetName: 'some-preset',
+          steps: [
+            step_1_1,
+            step_1_2,
+          ],
+        );
+        final step_2 = KeepByRegexTransformation(RegExp('test/.*'));
+        final step_3_1 = KeepByRegexTransformation(RegExp('test/.*'));
+        final step_3_2_1 = SkipByRegexTransformation(RegExp('test/.*'));
+        final step_3_2_2 = SkipByGlobTransformation(Glob('**/*.freezed.dart'));
+        final step_3_2 = PresetTransformation(
+          presetName: 'some-nested-preset',
+          steps: [
+            step_3_2_1,
+            step_3_2_2,
+          ],
+        );
+        final step_3_3 = SkipByGlobTransformation(Glob('**/*.freezed.dart'));
+        final step_3 = PresetTransformation(
+          presetName: 'some-other-preset',
+          steps: [
+            step_3_1,
+            step_3_2,
+            step_3_3,
+          ],
+        );
+        final steps = [
+          step_1,
+          step_2,
+          step_3,
+        ];
+        final result = steps.getStepsWithPresetChains().toList();
+        const presetsEquality = ListEquality<String>();
+        expect(
+          result,
+          pairwiseCompare<LeafTransformationWithPresetChains,
+              LeafTransformationWithPresetChains>(
+            [
+              (
+                transformation: step_1_1,
+                presets: ['some-preset'],
+              ),
+              (
+                transformation: step_1_2,
+                presets: ['some-preset'],
+              ),
+              (
+                transformation: step_2,
+                presets: <String>[],
+              ),
+              (
+                transformation: step_3_1,
+                presets: ['some-other-preset'],
+              ),
+              (
+                transformation: step_3_2_1,
+                presets: ['some-other-preset', 'some-nested-preset']
+              ),
+              (
+                transformation: step_3_2_2,
+                presets: ['some-other-preset', 'some-nested-preset']
+              ),
+              (
+                transformation: step_3_3,
+                presets: ['some-other-preset'],
+              ),
+            ],
+            (a, b) =>
+                a.transformation == b.transformation &&
+                presetsEquality.equals(a.presets, b.presets),
+            'transformations and presets',
+          ),
+        );
       });
     });
   });

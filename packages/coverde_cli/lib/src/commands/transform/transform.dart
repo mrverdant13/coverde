@@ -1,5 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -52,6 +53,8 @@ Transformation steps to apply in order.''',
                   '(with reference values between 0 and 100).',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the `<base-path>`.',
+          '${PresetTransformation.identifier}=<name>': //
+              'Expand a preset from `$_configFileName`.',
         },
         valueHelp: _transformationsHelpValue,
       )
@@ -114,12 +117,17 @@ Override the $_outputHelpValue content, if any, with the transformed content.'''
   @visibleForTesting
   static const modeOption = 'mode';
 
+  /// The name of the configuration file.
+  static const _configFileName = 'coverde.yaml';
+
   @override
   String get description => '''
 Transform a coverage trace file.
 
 Apply a sequence of transformations to the coverage data.
 The coverage data is taken from the $_inputHelpValue file and written to the $_outputHelpValue file.
+
+Presets can be defined in $_configFileName.
 ''';
 
   @override
@@ -134,8 +142,41 @@ The coverage data is taken from the $_inputHelpValue file and written to the $_o
     final rawTransformations = argResults.multiOption(transformationsOption);
     final explain = argResults.flag(explainFlag);
 
+    final coverdeConfigPath = p.joinAll([
+      Directory.current.path,
+      _configFileName,
+    ]);
+
+    final String rawCoverdeConfig;
+    try {
+      rawCoverdeConfig =
+          switch (FileSystemEntity.isFileSync(coverdeConfigPath)) {
+        true => File(coverdeConfigPath).readAsStringSync(),
+        false => '{}',
+      };
+    } on FileSystemException catch (exception) {
+      throw CoverdeTransformFileReadFailure.fromFileSystemException(
+        filePath: coverdeConfigPath,
+        exception: exception,
+      );
+    }
+    final CoverdeConfig config;
+    try {
+      config = CoverdeConfig.fromYaml(rawCoverdeConfig);
+    } on CoverdeConfigFromYamlFailure catch (failure, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeTransformInvalidConfigFileFailure(
+          configPath: coverdeConfigPath,
+          failure: failure,
+        ),
+        stackTrace,
+      );
+    }
+
     final steps = _resolveSteps(
       rawTransformations: rawTransformations,
+      presets: config.presets,
+      configPath: coverdeConfigPath,
     );
 
     if (explain) {
@@ -212,13 +253,21 @@ The coverage data is taken from the $_inputHelpValue file and written to the $_o
   }
 
   void _printExplain(List<Transformation> steps) {
-    for (final (index, transformation) in steps.indexed) {
-      logger.info('${index + 1}. ${transformation.describe}');
+    var i = 1;
+    final stepsWithPresetChains = steps.getStepsWithPresetChains();
+    for (final (:presets, :transformation) in stepsWithPresetChains) {
+      final suffix = presets.isEmpty
+          ? ''
+          : '   (from preset ${presets.join(presetChainSeparator)})';
+      logger.info('$i. ${transformation.describe}$suffix');
+      i++;
     }
   }
 
   List<Transformation> _resolveSteps({
     required List<String> rawTransformations,
+    required List<PresetTransformation> presets,
+    required String configPath,
   }) {
     final result = <Transformation>[];
 
@@ -228,6 +277,7 @@ The coverage data is taken from the $_inputHelpValue file and written to the $_o
         result.add(
           Transformation.fromCliOption(
             rawTransformation,
+            presets: presets,
           ),
         );
       } on TransformationFromCliOptionFailure catch (failure, stackTrace) {
@@ -251,7 +301,8 @@ The coverage data is taken from the $_inputHelpValue file and written to the $_o
         .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
         .toList();
 
-    for (final step in steps) {
+    final flatSteps = steps.flattenedSteps;
+    for (final step in flatSteps) {
       switch (step) {
         case KeepByRegexTransformation(:final regex):
           entries = entries.where((e) => regex.hasMatch(e.path)).toList();
