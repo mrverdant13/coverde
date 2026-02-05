@@ -141,6 +141,35 @@ void main() {
         });
       });
 
+      group('identifier: ${SkipByCoverageTransformation.identifier}', () {
+        test('| returns $SkipByCoverageTransformation', () {
+          final transformation = Transformation.fromCliOption(
+            '${SkipByCoverageTransformation.identifier}='
+            '${const EqualsNumericComparison(reference: 0.5).describe}',
+          );
+          expect(
+            transformation,
+            const SkipByCoverageTransformation(
+              comparison: EqualsNumericComparison(reference: 0.5),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidNumericComparisonFailure '
+            'when invalid numeric comparison description', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${SkipByCoverageTransformation.identifier}=invalid',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidNumericComparisonFailure>(),
+            ),
+          );
+        });
+      });
+
       group('identifier: ${RelativeTransformation.identifier}', () {
         test('| returns $RelativeTransformation', () {
           final transformation = Transformation.fromCliOption(
@@ -393,6 +422,43 @@ void main() {
             comparison: EqualsNumericComparison(reference: 0.5),
           );
           const other = KeepByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.6),
+          );
+          expect(subject, same);
+          expect(subject, isNot(other));
+          expect(subject.hashCode, same.hashCode);
+          expect(subject.hashCode, isNot(other.hashCode));
+        });
+      });
+    });
+
+    group('$SkipByCoverageTransformation', () {
+      group('describe', () {
+        test('| returns description', () {
+          const t = SkipByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          expect(t.describe, 'skip-by-coverage comparison=eq|0.5');
+        });
+      });
+
+      group('comparison', () {
+        test('| returns the comparison', () {
+          const comparison = EqualsNumericComparison(reference: 0.5);
+          const t = SkipByCoverageTransformation(comparison: comparison);
+          expect(t.comparison, comparison);
+        });
+      });
+
+      group('== & hashCode', () {
+        test('| verifies equality and hash code resolution', () {
+          const subject = SkipByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          const same = SkipByCoverageTransformation(
+            comparison: EqualsNumericComparison(reference: 0.5),
+          );
+          const other = SkipByCoverageTransformation(
             comparison: EqualsNumericComparison(reference: 0.6),
           );
           expect(subject, same);

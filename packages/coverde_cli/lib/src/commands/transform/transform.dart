@@ -48,6 +48,9 @@ Transformation steps to apply in order.''',
           '${KeepByCoverageTransformation.identifier}=<comparison>': //
               'Keep files that match the <comparison> '
                   '(with reference values between 0 and 100).',
+          '${SkipByCoverageTransformation.identifier}=<comparison>': //
+              'Skip files that match the <comparison> '
+                  '(with reference values between 0 and 100).',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the <base-path>.',
           '${PresetTransformation.identifier}=<name>': //
@@ -315,6 +318,9 @@ Presets can be defined in $_configFileName under transformations.<name>.''';
         case KeepByCoverageTransformation(:final comparison):
           entries =
               entries.where((e) => comparison.matches(e.coverage)).toList();
+        case SkipByCoverageTransformation(:final comparison):
+          entries =
+              entries.where((e) => !comparison.matches(e.coverage)).toList();
         case RelativeTransformation(basePath: final bp):
           entries = entries.map((e) {
             final newPath = p.relative(e.path, from: bp);

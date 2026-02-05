@@ -401,6 +401,65 @@ void main() {
         });
       });
 
+      group('identifier: ${SkipByCoverageTransformation.identifier}', () {
+        test('| returns $SkipByCoverageTransformation', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: eq|0.5
+              ''';
+          final config = CoverdeConfig.fromYaml(yamlString);
+          expect(
+            config,
+            const CoverdeConfig(
+              presets: [
+                PresetTransformation(
+                  presetName: 'preset',
+                  steps: [
+                    SkipByCoverageTransformation(
+                      comparison: EqualsNumericComparison(reference: 0.5),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when YAML transformation preset step comparison is not a string',
+            () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: 123
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when YAML transformation preset step comparison '
+            'is not a valid numeric comparison', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: skip-by-coverage
+                comparison: invalid
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+          );
+        });
+      });
+
       group('identifier: ${RelativeTransformation.identifier}', () {
         test('| returns $RelativeTransformation', () {
           const yamlString = '''

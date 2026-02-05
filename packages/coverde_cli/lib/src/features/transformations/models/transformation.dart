@@ -100,6 +100,23 @@ sealed class Transformation {
           );
         }
         return KeepByCoverageTransformation(comparison: comparison);
+      case SkipByCoverageTransformation.identifier:
+        final NumericComparison<double> comparison;
+        try {
+          comparison = NumericComparison.fromDescription(
+            argument,
+            double.parse,
+          );
+        } on Object catch (_, stackTrace) {
+          Error.throwWithStackTrace(
+            TransformationFromCliOptionInvalidNumericComparisonFailure(
+              transformationIdentifier: identifier,
+              comparison: argument,
+            ),
+            stackTrace,
+          );
+        }
+        return SkipByCoverageTransformation(comparison: comparison);
       case RelativeTransformation.identifier:
         final basePath = argument;
         return RelativeTransformation(basePath);
@@ -126,6 +143,7 @@ sealed class Transformation {
     KeepByGlobTransformation.identifier,
     SkipByGlobTransformation.identifier,
     KeepByCoverageTransformation.identifier,
+    SkipByCoverageTransformation.identifier,
     RelativeTransformation.identifier,
     PresetTransformation.identifier,
   ];
@@ -307,7 +325,7 @@ final class SkipByGlobTransformation extends LeafTransformation {
 }
 
 /// {@template keep_by_coverage_transformation}
-/// Keeps only files that have coverage data.
+/// Keeps only files whose coverage matches the [comparison].
 /// {@endtemplate}
 @immutable
 final class KeepByCoverageTransformation extends LeafTransformation {
@@ -328,6 +346,38 @@ final class KeepByCoverageTransformation extends LeafTransformation {
   @override
   bool operator ==(Object other) {
     if (other is! KeepByCoverageTransformation) return false;
+    return comparison == other.comparison;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        comparison,
+      ]);
+}
+
+/// {@template skip_by_coverage_transformation}
+/// Skips files whose coverage matches the [comparison].
+/// {@endtemplate}
+@immutable
+final class SkipByCoverageTransformation extends LeafTransformation {
+  /// {@macro skip_by_coverage_transformation}
+  const SkipByCoverageTransformation({
+    required this.comparison,
+  });
+
+  /// The identifier for this transformation.
+  static const identifier = 'skip-by-coverage';
+
+  /// The coverage comparison to apply.
+  final NumericComparison<double> comparison;
+
+  @override
+  String get describe => '$identifier comparison=${comparison.describe}';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! SkipByCoverageTransformation) return false;
     return comparison == other.comparison;
   }
 

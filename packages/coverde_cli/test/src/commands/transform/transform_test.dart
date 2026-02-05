@@ -378,6 +378,53 @@ end_of_record
       test(
           '--${TransformCommand.inputOption}=<file> '
           '--${TransformCommand.outputOption}=<file> '
+          // Long CLI option usage
+          // ignore: lines_longer_than_80_chars
+          '--${TransformCommand.transformationsOption}=skip-by-coverage=<comparison> '
+          '| skips files matching coverage comparison', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const keptPath = 'lib/foo.dart';
+        const skippedPath = 'lib/bar.dart';
+        const inputContent = '''
+SF:$keptPath
+DA:1,1
+DA:2,2
+LF:2
+LH:2
+end_of_record
+SF:$skippedPath
+DA:1,1
+DA:2,0
+LF:2
+LH:1
+end_of_record
+          ''';
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-coverage=lt|75',
+        ]);
+
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('SF:$keptPath'));
+        expect(outContent, isNot(contains('SF:$skippedPath')));
+      });
+
+      test(
+          '--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
           '--${TransformCommand.transformationsOption}=relative=<base-path> '
           '| rewrites paths to be relative to base path', () async {
         final directory =
