@@ -478,6 +478,40 @@ void main() {
             ),
           );
         });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure '
+            'when the lower bound is greater than to the upper bound', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(20,10)',
+              int.parse,
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure '
+            'when the lower bound is equal to the upper bound', () {
+          expect(
+            () => NumericComparison.fromDescription(
+              '${RangeNumericComparison.identifier}|(20,20)',
+              int.parse,
+            ),
+            throwsA(
+              // Long class name
+              // ignore: lines_longer_than_80_chars
+              isA<NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure>(),
+            ),
+          );
+        });
       });
 
       test(

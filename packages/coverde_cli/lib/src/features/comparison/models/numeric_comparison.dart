@@ -114,6 +114,12 @@ sealed class NumericComparison<T extends num> {
         };
         final lowerReference = parseReference(rawLowerBoundReference);
         final upperReference = parseReference(rawUpperBoundReference);
+        if (lowerReference >= upperReference) {
+          throw NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure(
+            lowerReference: lowerReference,
+            upperReference: upperReference,
+          );
+        }
         return RangeNumericComparison(
           lowerReference: lowerReference,
           upperReference: upperReference,
@@ -132,6 +138,7 @@ sealed class NumericComparison<T extends num> {
   static const List<String> identifiers = [
     EqualsNumericComparison.identifier,
     NotEqualToNumericComparison.identifier,
+    // TODO(mrverdant13): Consider "CloseToComparison" variant.
     GreaterThanNumericComparison.identifier,
     GreaterThanOrEqualToNumericComparison.identifier,
     LessThanNumericComparison.identifier,

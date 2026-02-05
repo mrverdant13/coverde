@@ -36,6 +36,30 @@ final class NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
 
 // Long doc template identifier.
 // ignore: lines_longer_than_80_chars
+/// {@template coverde.numeric_comparison_from_description_invalid_range_bounds_order_failure}
+/// Thrown when the lower bound of a range comparison is greater than or equal
+/// to the upper bound.
+/// {@endtemplate}
+@immutable
+final class NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure<
+    T extends num> extends NumericComparisonFromDescriptionFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde.numeric_comparison_from_description_invalid_range_bounds_order_failure}
+  const NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure({
+    required this.lowerReference,
+    required this.upperReference,
+  });
+
+  /// The lower bound of the range comparison.
+  final T lowerReference;
+
+  /// The upper bound of the range comparison.
+  final T upperReference;
+}
+
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
 /// {@template coverde.numeric_comparison_from_description_invalid_raw_reference_failure}
 /// Thrown when the reference value from the description cannot be parsed into
 /// the expected type.
