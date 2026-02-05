@@ -57,7 +57,7 @@ Transform a coverage trace file.
 Apply a sequence of transformations to the coverage data.
 The coverage data is taken from the INPUT_LCOV_FILE file and written to the OUTPUT_LCOV_FILE file.
 
-Presets can be defined in coverde.yaml under transformations.<name>.''';
+Presets can be defined in coverde.yaml under the `transformations` key.''';
 
       final result = TransformCommand().description;
 

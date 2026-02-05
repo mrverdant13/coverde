@@ -127,7 +127,7 @@ Transform a coverage trace file.
 Apply a sequence of transformations to the coverage data.
 The coverage data is taken from the $_inputHelpValue file and written to the $_outputHelpValue file.
 
-Presets can be defined in $_configFileName.
+Presets can be defined in $_configFileName under the `transformations` key.
 ''';
 
   @override
