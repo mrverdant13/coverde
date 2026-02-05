@@ -103,6 +103,16 @@ sealed class Transformation {
 
   /// Human-readable description of this transformation.
   String get describe;
+
+  /// The available transformation identifiers.
+  static const List<String> identifiers = [
+    KeepByRegexTransformation.identifier,
+    SkipByRegexTransformation.identifier,
+    KeepByGlobTransformation.identifier,
+    SkipByGlobTransformation.identifier,
+    RelativeTransformation.identifier,
+    PresetTransformation.identifier,
+  ];
 }
 
 /// {@template preset_transformation}
