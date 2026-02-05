@@ -46,7 +46,8 @@ Transformation steps to apply in order.''',
           '${SkipByGlobTransformation.identifier}=<glob>': //
               'Skip files that match the <glob>.',
           '${KeepByCoverageTransformation.identifier}=<comparison>': //
-              'Keep files that match the <comparison>.',
+              'Keep files that match the <comparison> '
+                  '(with reference values between 0 and 100).',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the <base-path>.',
           '${PresetTransformation.identifier}=<name>': //
