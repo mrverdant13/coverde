@@ -23,7 +23,7 @@ Given the following `coverde.yaml` configuration:
 
 transformations:
   implementation-without-generated:
-    - type: relative
+    - type: keep-by-glob
       glob: "lib/**"
     - type: skip-by-glob
       glob: "**/*.g.dart"
@@ -35,7 +35,7 @@ Running:
 $ coverde transform \
   --transformations relative="/packages/my_package/" \
   --transformations preset=implementation-without-generated \
-  --transformations keep-by-coverage="gte|80"
+  --transformations keep-by-coverage="lte|80"
 ```
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.

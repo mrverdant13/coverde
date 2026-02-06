@@ -7,7 +7,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![melos][melos_badge]][melos_link]
 
-A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, filter trace files, and generate HTML reports.
+A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, transform trace files, and generate HTML reports.
 
 ---
 
@@ -432,7 +432,7 @@ Given the following `coverde.yaml` configuration:
 
 transformations:
   implementation-without-generated:
-    - type: relative
+    - type: keep-by-glob
       glob: "lib/**"
     - type: skip-by-glob
       glob: "**/*.g.dart"
@@ -444,7 +444,7 @@ Running:
 $ coverde transform \
   --transformations relative="/packages/my_package/" \
   --transformations preset=implementation-without-generated \
-  --transformations keep-by-coverage="gte|80"
+  --transformations keep-by-coverage="lte|80"
 ```
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
@@ -567,7 +567,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
 The `coverde.yaml` file allows you to define reusable transformation presets for the [`coverde transform`](#coverde-transform) command.
 
-Place this file in your project root directory.
+The file is optional and is read from the **current working directory** when you run `coverde transform` (typically your project root).
 
 ## File Format
 
@@ -719,6 +719,8 @@ The `<range>` can be one of the following:
 
 The `[` and `]` brackets indicate that the lower and upper bounds are inclusive, while the `(` and `)` parentheses indicate that the lower and upper bounds are exclusive.
 
+Both lower and upper bounds should be between 0 and 100 inclusive, as they are coverage percentages.
+
 ## Example Configuration
 
 ```yaml
@@ -851,7 +853,7 @@ coverage.merge:
 This script:
 1. Removes any existing merged coverage file
 2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
-   - Rewrites file paths to be relative to the monorepo root
+   - Rewrites file paths to be relative to the monorepo root (using Melos’s `MELOS_ROOT_PATH` environment variable)
    - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
 
 The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
@@ -888,7 +890,7 @@ To solve this, after enabling Dart or Flutter in your CI workflow, according to 
 
 If you encounter any problems or you believe the CLI is missing a feature, feel free to [open an issue on GitHub][open_issue_link].
 
-Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
+Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 
 [_docs_contributing_link]: https://github.com/mrverdant13/coverde/blob/main/CONTRIBUTING.md
 [_docs_coverde_check_example_1]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_pass.png?raw=true
