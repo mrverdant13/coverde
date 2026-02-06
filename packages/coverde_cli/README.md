@@ -7,7 +7,7 @@
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![melos][melos_badge]][melos_link]
 
-A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, filter trace files, and generate HTML reports.
+A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, transform trace files, and generate HTML reports.
 
 ---
 
@@ -15,6 +15,7 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 
 - [Installing](#installing)
 - [Features](#features)
+- [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
 - [Usage with `melos`](#usage-with-melos)
 - [CI integration for coverage checks](#ci-integration-for-coverage-checks)
 
@@ -37,6 +38,7 @@ $ dart pub global activate coverde
 - [**Optimize tests by gathering them.**](#coverde-optimize-tests)
 - [**Check the coverage value (%) computed from a trace file.**](#coverde-check)
 - [**Filter a coverage trace file.**](#coverde-filter)
+- [**Transform a coverage trace file.**](#coverde-transform)
 - [**Generate the coverage report from a trace file.**](#coverde-report)
 - [**Remove a set of files and folders.**](#coverde-remove)
 - [**Compute the coverage value (%) of an info file.**](#coverde-value)
@@ -349,6 +351,105 @@ All the relative paths in the resulting coverage trace file will be resolved rel
   **Default value:** _None_
 
 
+## `coverde transform`
+
+Transform a coverage trace file.
+
+Apply a sequence of transformations to the coverage data.\
+The coverage data is taken from the INPUT_LCOV_FILE file and written to the OUTPUT_LCOV_FILE file.
+
+Presets can be defined in coverde.yaml under the `transformations` key.
+
+### Arguments
+
+#### Single-options
+
+- `--input`
+
+  Origin coverage info file to transform.\
+  **Default value:** `coverage/lcov.info`
+
+- `--output`
+
+  Destination coverage info file to dump the transformed coverage data into.\
+  **Default value:** `coverage/transformed.lcov.info`
+
+- `--mode`
+
+  The mode in which the OUTPUT_LCOV_FILE can be generated.\
+  **Default value:** `a`\
+  **Allowed values:**
+    - `a`: Append transformed content to the OUTPUT_LCOV_FILE content, if any.
+    - `w`: Override the OUTPUT_LCOV_FILE content, if any, with the transformed content.
+
+#### Multi-options
+
+- `--transformations`
+
+  Transformation steps to apply in order.\
+  **Default value:** _None_\
+  **Allowed values:**
+    - `keep-by-regex=<regex>`: Keep files that match the `<regex>`.
+    - `skip-by-regex=<regex>`: Skip files that match the `<regex>`.
+    - `keep-by-glob=<glob>`: Keep files that match the `<glob>`.
+    - `skip-by-glob=<glob>`: Skip files that match the `<glob>`.
+    - `keep-by-coverage=<comparison>`: Keep files that match the `<comparison>` (with reference values between 0 and 100).
+    - `skip-by-coverage=<comparison>`: Skip files that match the `<comparison>` (with reference values between 0 and 100).
+    - `relative=<base-path>`: Rewrite file paths to be relative to the `<base-path>`.
+    - `preset=<name>`: Expand a preset from `coverde.yaml`.
+
+#### Flags
+
+- `--explain`
+
+  Print the resolved transformation list and exit without modifying files.\
+  **Default value:** _Disabled_
+
+### Examples
+
+#### Inline Transformations
+
+```sh
+$ coverde transform \
+  --transformations relative="/packages/my_package/" \
+  --transformations keep-by-glob="lib/**" \
+  --transformations skip-by-glob="**/*.g.dart" \
+  --transformations keep-by-coverage="lte|80"
+```
+
+This transformation chain performs the following steps:
+1. Rewrite file paths to be relative to the `/packages/my_package/` directory (useful for monorepos).
+2. Keep files that match the `lib/**` glob pattern, i.e. implementation files.
+3. Skip files that match the `**/*.g.dart` glob pattern, i.e. generated files.
+4. Keep files that have a coverage value less than or equal to 80%.
+
+#### Preset Usage
+
+Given the following `coverde.yaml` configuration:
+
+```yaml
+# coverde.yaml
+
+transformations:
+  implementation-without-generated:
+    - type: keep-by-glob
+      glob: "lib/**"
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+```
+
+Running:
+
+```sh
+$ coverde transform \
+  --transformations relative="/packages/my_package/" \
+  --transformations preset=implementation-without-generated \
+  --transformations keep-by-coverage="lte|80"
+```
+
+Is equivalent to the [Inline Transformations](#inline-transformations) example.
+
+
 ## `coverde report`
 
 Generate the coverage report from a trace file.
@@ -462,6 +563,218 @@ Compute the coverage value of the LCOV_FILE info file.
 
 ---
 
+# `coverde.yaml` configuration file
+
+The `coverde.yaml` file allows you to define reusable transformation presets for the [`coverde transform`](#coverde-transform) command.
+
+The file is optional and is read from the **current working directory** when you run `coverde transform` (typically your project root).
+
+## File Format
+
+The configuration file uses YAML format with a `transformations` key at the root level. Each preset is defined as a named list of transformation steps.
+
+```yaml
+# coverde.yaml
+
+transformations:
+  preset-name:
+    - type: <transformation-type>
+      <parameter-1-name>: <value-1>
+      <parameter-2-name>: <value-2>
+    - type: <transformation-type>
+      <parameter-1-name>: <value-1>
+```
+
+## Transformation Types
+
+Each transformation step requires a `type` field and the corresponding parameters.
+
+### `keep-by-regex`
+
+Keep files whose paths match the provided regular expression pattern.
+
+```yaml
+type: keep-by-regex
+regex: <regex-pattern>  # Example: "^lib/.*\\.dart$"
+```
+
+### `skip-by-regex`
+
+Skip (exclude) files whose paths match the provided regular expression pattern.
+
+```yaml
+type: skip-by-regex
+regex: <regex-pattern>  # Example: "^test/.*_integration\\.dart$"
+```
+
+### `keep-by-glob`
+
+Keep files whose paths match the provided glob pattern.
+
+```yaml
+type: keep-by-glob
+glob: <glob-pattern>  # Example: "**/lib/**"
+```
+
+### `skip-by-glob`
+
+Skip (exclude) files whose paths match the provided glob pattern.
+
+```yaml
+type: skip-by-glob
+glob: <glob-pattern>  # Example: "**/*.g.dart"
+```
+
+### `keep-by-coverage`
+
+Keep files whose coverage meets the specified comparison.
+
+```yaml
+type: keep-by-coverage
+comparison: <comparison>  # Example: "lte|80" (less than or equal to 80%)
+```
+
+### `skip-by-coverage`
+
+Skip (exclude) files whose coverage meets the specified comparison.
+
+```yaml
+type: skip-by-coverage
+comparison: <comparison>  # Example: "gt|50" (greater than 50%)
+```
+
+See [Comparison Operators](#comparison-operators) for the allowed comparison operators.
+
+### `relative`
+
+Rewrite file paths so that they are relative to the given base path.
+
+```yaml
+type: relative
+base-path: <base-path>  # Example: "/path/to/project"
+```
+
+### `preset`
+
+Include transformations defined in another preset by name.
+
+> [!CAUTION]
+> Circular references between presets are detected and will result in an error.
+
+
+```yaml
+type: preset
+name: <other-preset-name>  # Example: "production-only"
+```
+
+## Comparison Operators
+
+### `eq`
+
+`eq|<value>`
+
+Checks if the value is equal to `<value>`.
+
+### `neq`
+
+`neq|<value>`
+
+Checks if the value is not equal to `<value>`.
+
+### `gt`
+
+`gt|<value>`
+
+Checks if the value is greater than `<value>`.
+
+### `gte`
+
+`gte|<value>`
+
+Checks if the value is greater than or equal to `<value>`.
+
+### `lt`
+
+`lt|<value>`
+
+Checks if the value is less than `<value>`.
+
+### `lte`
+
+`lte|<value>`
+
+Checks if the value is less than or equal to `<value>`.
+
+### `in`
+
+`in|<range>`
+
+Checks if the value is within the specified `<range>`.
+
+The `<range>` can be one of the following:
+- `[lowerValue,upperValue]`
+- `(lowerValue,upperValue]`
+- `[lowerValue,upperValue)`
+- `(lowerValue,upperValue)`
+
+The `[` and `]` brackets indicate that the lower and upper bounds are inclusive, while the `(` and `)` parentheses indicate that the lower and upper bounds are exclusive.
+
+Both lower and upper bounds should be between 0 and 100 inclusive, as they are coverage percentages.
+
+## Example Configuration
+
+```yaml
+# coverde.yaml
+
+transformations:
+  # Exclude generated code files
+  exclude-generated:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+    - type: skip-by-glob
+      glob: "**/*.freezed.dart"
+    - type: skip-by-glob
+      glob: "**/*.gen.dart"
+
+  # Keep only production code (lib folder), excluding generated files
+  production-only:
+    - type: keep-by-glob
+      glob: "**/lib/**"
+    - type: preset
+      name: exclude-generated
+
+  # Filter to files with high coverage
+  high-coverage-only:
+    - type: keep-by-coverage
+      comparison: "gte|80"
+
+  # Common CI workflow preset
+  ci-workflow:
+    - type: preset
+      name: production-only
+    - type: relative
+      base-path: "/path/to/project"
+```
+
+## Using Presets
+
+Once defined, presets can be used with the `coverde transform` command.
+
+```sh
+# Use a single preset
+$ coverde transform --transformations preset=exclude-generated
+
+# Combine presets with inline transformations
+$ coverde transform \
+  --transformations preset=production-only \
+  --transformations skip-by-coverage="gt|50"
+
+# Preview transformations without applying them
+$ coverde transform --transformations preset=ci-workflow --explain
+```
+
+---
+
 # Update checks
 
 If `coverde` is installed via `dart pub global activate --source=hosted`, i.e. as a global package from the Pub.dev, it can prompt the user to update the package if a new compatible version is available.
@@ -526,22 +839,24 @@ coverage.merge:
     MELOS_ROOT_PATH/coverage/filtered.lcov.info
     &&
     melos exec
-    --file-exists=coverage/lcov.info
+    --file-exists coverage/lcov.info
     --
     "
-    dart run coverde filter
-    --base-directory MELOS_ROOT_PATH
+    dart run coverde transform
     --input coverage/lcov.info
     --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+    --transformations relative=MELOS_ROOT_PATH
+    --transformations skip-by-glob='**/*.g.dart'
     "
 ```
 
 This script:
 1. Removes any existing merged coverage file
-2. Executes `coverde filter` for each package that contains a `coverage/lcov.info` file
-3. Merges all coverage data into a single trace file at the project root, prefixing file paths with the corresponding package paths using `--base-directory` to maintain the project structure
+2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
+   - Rewrites file paths to be relative to the monorepo root (using Melos’s `MELOS_ROOT_PATH` environment variable)
+   - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
 
-The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo.
+The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
 
 ## Coverage Check
 
@@ -575,7 +890,7 @@ To solve this, after enabling Dart or Flutter in your CI workflow, according to 
 
 If you encounter any problems or you believe the CLI is missing a feature, feel free to [open an issue on GitHub][open_issue_link].
 
-Pull request are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
+Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 
 [_docs_contributing_link]: https://github.com/mrverdant13/coverde/blob/main/CONTRIBUTING.md
 [_docs_coverde_check_example_1]: https://github.com/mrverdant13/coverde/blob/main/packages/coverde_cli/doc/check_result_pass.png?raw=true

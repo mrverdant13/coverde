@@ -184,11 +184,11 @@ melos:
         --file-exists coverage/lcov.info
         --
         "
-        dart run coverde filter
-        --base-directory MELOS_ROOT_PATH
-        --filters '\.asset\.dart'
+        dart run coverde transform
         --input coverage/lcov.info
         --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+        --transformations relative=MELOS_ROOT_PATH
+        --transformations skip-by-glob='**/*.asset.dart'
         "
     coverage.check:
       description: Check test coverage

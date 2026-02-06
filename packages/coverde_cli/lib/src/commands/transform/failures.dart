@@ -1,4 +1,5 @@
 import 'package:coverde/coverde.dart';
+import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:universal_io/universal_io.dart';
 
@@ -8,6 +9,78 @@ import 'package:universal_io/universal_io.dart';
 sealed class CoverdeTransformFailure extends CoverdeFailure {
   /// {@macro coverde_cli.transform_failure}
   const CoverdeTransformFailure();
+}
+
+/// {@template coverde_cli.transform_invalid_config_file_failure}
+/// A [TransformCommand] failure that indicates that the config file is invalid.
+/// {@endtemplate}
+final class CoverdeTransformInvalidConfigFileFailure
+    extends CoverdeTransformFailure {
+  /// {@macro coverde_cli.transform_invalid_config_file_failure}
+  const CoverdeTransformInvalidConfigFileFailure({
+    required this.configPath,
+    required this.failure,
+  });
+
+  /// The path to the config file.
+  final String configPath;
+
+  /// The underlying failure.
+  final CoverdeConfigFromYamlFailure failure;
+
+  @override
+  String get readableMessage => [
+        'Invalid config file at `$configPath`.',
+        ...switch (failure) {
+          CoverdeConfigFromYamlInvalidYamlFailure(:final yamlException) => [
+              'Invalid YAML: ${yamlException.message}.',
+            ],
+          CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+            :final key,
+            :final expectedType,
+            :final value
+          ) =>
+            [
+              'Invalid YAML member type.',
+              'Key: `${key ?? '<root>'}`.',
+              'Expected type: `$expectedType`.',
+              'Value: `$value`.',
+            ],
+          CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+            :final key,
+            :final value,
+            :final hint
+          ) =>
+            [
+              'Invalid YAML member value.',
+              'Key: `${key ?? '<root>'}`.',
+              if (hint != null) 'Hint: $hint.',
+              'Value: `$value`.',
+            ],
+          CoverdeConfigFromYamlUnknownPresetFailure(
+            :final unknownPreset,
+            :final availablePresets
+          ) =>
+            [
+              'Unknown preset: `$unknownPreset`.',
+              'Available presets:',
+              for (final preset in availablePresets) '- `$preset`',
+            ],
+          CoverdeConfigFromYamlPresetCycleFailure(:final cycle) => [
+              'Preset cycle detected: ${cycle.join(' -> ')}.',
+            ],
+          CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+            :final key,
+            :final invalidReferences
+          ) =>
+            [
+              'Invalid coverage percentage.',
+              'Key: `$key`.',
+              'Coverage values must be between 0 and 100.',
+              'Invalid values: ${invalidReferences.join(', ')}.',
+            ],
+        },
+      ].join('\n');
 }
 
 /// {@template coverde_cli.transform_invalid_transform_cli_option_failure}

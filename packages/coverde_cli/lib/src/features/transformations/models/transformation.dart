@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
@@ -41,8 +42,9 @@ sealed class Transformation {
   ///
   /// Throws [TransformationFromCliOptionFailure] if an issue occurs.
   factory Transformation.fromCliOption(
-    String option,
-  ) {
+    String option, {
+    List<PresetTransformation> presets = const [],
+  }) {
     final [identifier, ...rest] = option.split('=');
     final argument = rest.join('=');
     switch (identifier) {
@@ -153,6 +155,15 @@ sealed class Transformation {
       case RelativeTransformation.identifier:
         final basePath = argument;
         return RelativeTransformation(basePath);
+      case PresetTransformation.identifier:
+        final presetName = argument;
+        return presets.singleWhere(
+          (p) => p.presetName == presetName,
+          orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
+            unknownPreset: presetName,
+            availablePresets: [for (final preset in presets) preset.presetName],
+          ),
+        );
       default:
         throw TransformationFromCliOptionUnsupportedTransformationFailure(
           unsupportedTransformation: identifier,
@@ -162,6 +173,7 @@ sealed class Transformation {
 
   /// The available transformation identifiers.
   static const List<String> identifiers = [
+    PresetTransformation.identifier,
     KeepByRegexTransformation.identifier,
     SkipByRegexTransformation.identifier,
     KeepByGlobTransformation.identifier,
@@ -173,6 +185,48 @@ sealed class Transformation {
 
   /// Human-readable description of this transformation.
   String get describe;
+}
+
+/// {@template preset_transformation}
+/// Groups a set of transformations under a preset name (may include nested
+/// [PresetTransformation]s).
+/// {@endtemplate}
+@immutable
+final class PresetTransformation extends Transformation {
+  /// {@macro preset_transformation}
+  const PresetTransformation({
+    required this.presetName,
+    required this.steps,
+  });
+
+  /// The identifier for this transformation.
+  static const identifier = 'preset';
+
+  /// The preset name.
+  final String presetName;
+
+  /// The transformations in this preset (may include nested
+  /// [PresetTransformation]s).
+  final List<Transformation> steps;
+
+  @override
+  String get describe => '$identifier name=$presetName';
+
+  static const _stepsEquality = ListEquality<Transformation>();
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! PresetTransformation) return false;
+    return presetName == other.presetName &&
+        _stepsEquality.equals(steps, other.steps);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        presetName,
+        _stepsEquality.hash(steps),
+      ]);
 }
 
 /// {@template leaf_transformation}
@@ -435,3 +489,43 @@ typedef LeafTransformationWithPresetChains = ({
   LeafTransformation transformation,
   List<String> presets,
 });
+
+/// Extension methods for [Iterable<Transformation>].
+extension ExtendedTransformations on Iterable<Transformation> {
+  /// Flattens this transformation to leaf steps only.
+  ///
+  /// [PresetTransformation] is expanded; leaf transformations return
+  /// themselves.
+  Iterable<LeafTransformation> get flattenedSteps sync* {
+    for (final step in this) {
+      switch (step) {
+        case PresetTransformation(:final steps):
+          yield* steps.flattenedSteps;
+        case LeafTransformation():
+          yield step;
+      }
+    }
+  }
+
+  /// Returns a list of transformations with their preset chains.
+  Iterable<LeafTransformationWithPresetChains> getStepsWithPresetChains({
+    List<String> precedingPresets = const [],
+  }) sync* {
+    for (final step in this) {
+      switch (step) {
+        case PresetTransformation(:final steps):
+          yield* steps.getStepsWithPresetChains(
+            precedingPresets: [
+              ...precedingPresets,
+              step.presetName,
+            ],
+          );
+        case LeafTransformation():
+          yield (
+            transformation: step,
+            presets: precedingPresets,
+          );
+      }
+    }
+  }
+}
