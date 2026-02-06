@@ -837,22 +837,24 @@ coverage.merge:
     MELOS_ROOT_PATH/coverage/filtered.lcov.info
     &&
     melos exec
-    --file-exists=coverage/lcov.info
+    --file-exists coverage/lcov.info
     --
     "
-    dart run coverde filter
-    --base-directory MELOS_ROOT_PATH
+    dart run coverde transform
     --input coverage/lcov.info
     --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+    --transformations relative=MELOS_ROOT_PATH
+    --transformations skip-by-glob='**/*.g.dart'
     "
 ```
 
 This script:
 1. Removes any existing merged coverage file
-2. Executes `coverde filter` for each package that contains a `coverage/lcov.info` file
-3. Merges all coverage data into a single trace file at the project root, prefixing file paths with the corresponding package paths using `--base-directory` to maintain the project structure
+2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
+   - Rewrites file paths to be relative to the monorepo root
+   - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
 
-The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo.
+The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
 
 ## Coverage Check
 
