@@ -69,25 +69,31 @@ Map<String, List<_PresetEntry>> _parseRawPresets(
   if (rawPresets == null) return {};
   if (rawPresets is! yaml.YamlMap) {
     throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-      key: null,
+      key: _CoverdeConfigYamlKeys.transformations,
       expectedType: yaml.YamlMap,
       value: rawPresets,
     );
   }
   final result = <String, List<_PresetEntry>>{};
   for (final MapEntry(key: presetName, value: rawSteps) in rawPresets.entries) {
-    final presetKey = '[key=$presetName]';
     if (presetName is! String) {
       throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-        key: presetKey,
-        expectedType: MapEntry<String, yaml.YamlList>,
+        key: [
+          _CoverdeConfigYamlKeys.transformations,
+          '[key=$presetName]',
+        ].join('.'),
+        expectedType: String,
         value: presetName,
       );
     }
-    if (rawSteps is! List) {
+    final presetKey = [
+      _CoverdeConfigYamlKeys.transformations,
+      presetName,
+    ].join('.');
+    if (rawSteps is! yaml.YamlList) {
       throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
         key: presetKey,
-        expectedType: List<yaml.YamlMap>,
+        expectedType: yaml.YamlList,
         value: rawSteps,
       );
     }
@@ -97,7 +103,7 @@ Map<String, List<_PresetEntry>> _parseRawPresets(
 }
 
 List<_PresetEntry> _parsePresetSteps(
-  List<dynamic> list, {
+  yaml.YamlList list, {
   required String keyPrefix,
 }) {
   if (list.isEmpty) return [];
@@ -107,10 +113,10 @@ List<_PresetEntry> _parsePresetSteps(
       keyPrefix,
       '[$index]',
     ].join('.');
-    if (rawStep is! Map) {
+    if (rawStep is! yaml.YamlMap) {
       throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
         key: stepKey,
-        expectedType: Map,
+        expectedType: yaml.YamlMap,
         value: rawStep,
       );
     }

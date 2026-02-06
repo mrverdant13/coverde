@@ -4,12 +4,13 @@ import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 void main() {
   group('$CoverdeConfig', () {
     test('| can be instantiated', () {
       const config = CoverdeConfig(presets: []);
-      expect(config, isA<CoverdeConfig>());
+      expect(config, const CoverdeConfig(presets: []));
     });
 
     group('fromYaml', () {
@@ -24,7 +25,25 @@ void main() {
               regex: test/.*
         ''';
         final config = CoverdeConfig.fromYaml(yamlString);
-        expect(config, isA<CoverdeConfig>());
+        expect(
+          config,
+          CoverdeConfig(
+            presets: [
+              PresetTransformation(
+                presetName: 'preset-1',
+                steps: [
+                  KeepByRegexTransformation(RegExp('lib/.*')),
+                ],
+              ),
+              PresetTransformation(
+                presetName: 'preset-2',
+                steps: [
+                  KeepByRegexTransformation(RegExp('test/.*')),
+                ],
+              ),
+            ],
+          ),
+        );
       });
 
       test(
@@ -33,24 +52,40 @@ void main() {
         const yamlString = 'invalid: [yaml';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlFailure>()),
+          throwsA(
+            isA<CoverdeConfigFromYamlInvalidYamlFailure>()
+                .having(
+                  (failure) => failure.yamlString,
+                  'yamlString',
+                  yamlString,
+                )
+                .having(
+                  (failure) => failure.yamlException,
+                  'yamlException',
+                  isA<yaml.YamlException>(),
+                ),
+          ),
         );
       });
 
       test(
           '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML root is not a map', () {
-        const yamlString = '- transformations: 123';
+        const yamlString = '[]';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
+              yaml.YamlMap>(
+            key: null,
+            failingValue: <dynamic>[],
+          ),
         );
       });
 
       test('| returns $CoverdeConfig even without transformations member', () {
-        const yamlString = 'presets: [preset-1, preset-2]';
+        const yamlString = 'other: []';
         final config = CoverdeConfig.fromYaml(yamlString);
-        expect(config, isA<CoverdeConfig>());
+        expect(config, const CoverdeConfig(presets: []));
       });
 
       test(
@@ -59,7 +94,11 @@ void main() {
         const yamlString = 'transformations: 123';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
+              yaml.YamlMap>(
+            key: 'transformations',
+            failingValue: 123,
+          ),
         );
       });
 
@@ -74,7 +113,10 @@ void main() {
         ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+            key: 'transformations.[key=123]',
+            failingValue: 123,
+          ),
         );
       });
 
@@ -87,7 +129,11 @@ void main() {
         ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
+              yaml.YamlList>(
+            key: 'transformations.preset',
+            failingValue: 123,
+          ),
         );
       });
 
@@ -101,7 +147,11 @@ void main() {
         ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
+              yaml.YamlMap>(
+            key: 'transformations.preset.[0]',
+            failingValue: 123,
+          ),
         );
       });
 
@@ -115,7 +165,10 @@ void main() {
         ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+            key: 'transformations.preset.[0].type',
+            failingValue: 123,
+          ),
         );
       });
 
@@ -154,7 +207,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].regex',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -170,7 +226,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].regex',
+              value: '[invalid',
+              hint: 'a valid regex pattern',
+            ),
           );
         });
       });
@@ -210,7 +270,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].regex',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -226,7 +289,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].regex',
+              value: '[invalid',
+              hint: 'a valid regex pattern',
+            ),
           );
         });
       });
@@ -268,7 +335,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].glob',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -284,7 +354,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].glob',
+              value: '[invalid',
+              hint: 'a valid glob pattern',
+            ),
           );
         });
       });
@@ -326,7 +400,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].glob',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -342,7 +419,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].glob',
+              value: '[invalid',
+              hint: 'a valid glob pattern',
+            ),
           );
         });
       });
@@ -385,7 +466,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].comparison',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -401,7 +485,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].comparison',
+              value: 'invalid',
+              hint: 'a valid numeric comparison',
+            ),
           );
         });
 
@@ -416,8 +504,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [-5],
             ),
           );
         });
@@ -433,8 +522,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [150],
             ),
           );
         });
@@ -450,8 +540,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [-10, 110],
             ),
           );
         });
@@ -495,7 +586,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].comparison',
+              failingValue: 123,
+            ),
           );
         });
 
@@ -511,7 +605,11 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].comparison',
+              value: 'invalid',
+              hint: 'a valid numeric comparison',
+            ),
           );
         });
 
@@ -526,8 +624,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [-5],
             ),
           );
         });
@@ -543,8 +642,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [150],
             ),
           );
         });
@@ -560,8 +660,9 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(
-              isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>(),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'transformations.preset.[0].comparison',
+              invalidReferences: [-10, 110],
             ),
           );
         });
@@ -603,7 +704,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].base-path',
+              failingValue: 123,
+            ),
           );
         });
       });
@@ -657,7 +761,10 @@ void main() {
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].name',
+              failingValue: 123,
+            ),
           );
         });
       });
@@ -674,7 +781,16 @@ void main() {
           ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()),
+          _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+            key: 'transformations.preset.[0].type',
+            value: 'invalid-step-type',
+            hint: 'one of: '
+                '`preset`, '
+                '`keep-by-regex`, `skip-by-regex`, '
+                '`keep-by-glob`, `skip-by-glob`, '
+                '`keep-by-coverage`, `skip-by-coverage`, '
+                '`relative`',
+          ),
         );
       });
 
@@ -690,7 +806,19 @@ void main() {
           ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlUnknownPresetFailure>()),
+          throwsA(
+            isA<CoverdeConfigFromYamlUnknownPresetFailure>()
+                .having(
+              (failure) => failure.unknownPreset,
+              'unknownPreset',
+              'invalid-preset',
+            )
+                .having(
+              (failure) => failure.availablePresets,
+              'availablePresets',
+              ['preset'],
+            ),
+          ),
         );
       });
 
@@ -709,7 +837,13 @@ void main() {
           ''';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(isA<CoverdeConfigFromYamlPresetCycleFailure>()),
+          throwsA(
+            isA<CoverdeConfigFromYamlPresetCycleFailure>().having(
+              (failure) => failure.cycle,
+              'cycle',
+              ['preset', 'nested-preset', 'preset'],
+            ),
+          ),
         );
       });
     });
@@ -730,4 +864,77 @@ void main() {
       });
     });
   });
+}
+
+Matcher _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<ExpectedType>({
+  required String? key,
+  required dynamic failingValue,
+}) {
+  return throwsA(
+    isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()
+        .having(
+          (failure) => failure.key,
+          'key',
+          key,
+        )
+        .having(
+          (failure) => failure.expectedType,
+          'expectedType',
+          ExpectedType,
+        )
+        .having(
+          (failure) => failure.value,
+          'value',
+          failingValue,
+        )
+        .having(
+          (failure) => failure.value,
+          'value',
+          isNot(isA<ExpectedType>()),
+        ),
+  );
+}
+
+Matcher _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure({
+  required String key,
+  required dynamic value,
+  required String hint,
+}) {
+  return throwsA(
+    isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()
+        .having(
+          (failure) => failure.key,
+          'key',
+          key,
+        )
+        .having(
+          (failure) => failure.value,
+          'value',
+          value,
+        )
+        .having(
+          (failure) => failure.hint,
+          'hint',
+          hint,
+        ),
+  );
+}
+
+Matcher _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure({
+  required String key,
+  required List<double> invalidReferences,
+}) {
+  return throwsA(
+    isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>()
+        .having(
+          (failure) => failure.key,
+          'key',
+          key,
+        )
+        .having(
+          (failure) => failure.invalidReferences,
+          'invalidReferences',
+          invalidReferences,
+        ),
+  );
 }
