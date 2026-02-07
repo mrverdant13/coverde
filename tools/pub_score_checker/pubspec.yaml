@@ -13,7 +13,7 @@ dependencies:
   pana: ^0.23.8
 
 dev_dependencies:
-  very_good_analysis: ^10.0.0
+  very_good_analysis: ^10.1.0
 
 executables:
   pub_score_checker: pub_score_checker
