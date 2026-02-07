@@ -403,6 +403,12 @@ extension on String {
 extension on CoverdeCommand {
   String get sanitizedSummary {
     return switch (this) {
+      FilterCommand() => () {
+          final withoutDeprecationTag =
+              summary.replaceAll(RegExp(r'\[DEPRECATED\] '), '');
+          final firstSentence = withoutDeprecationTag.split('.').first;
+          return '$firstSentence.';
+        }(),
       _ => summary,
     };
   }
@@ -422,6 +428,10 @@ extension on CoverdeCommand {
 
   String? get descriptionHeader {
     return switch (this) {
+      FilterCommand() => '''
+> [!CAUTION]
+> The `filter` command will be removed in the next major update. Use [`coverde transform`](#coverde-transform) instead.
+''',
       _ => null,
     };
   }
@@ -443,6 +453,30 @@ extension on CoverdeCommand {
 
   String? get argumentsFooter {
     return switch (this) {
+      FilterCommand() => r'''
+### Migration to `transform`
+
+Use `coverde transform` with equivalent options:
+
+| Filter option                   | Transform equivalent                                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| `--filters pattern1,pattern2`   | `--transformations skip-by-regex=pattern1 --transformations skip-by-regex=pattern2` |
+| `--base-directory B`            | `--transformations relative=B`                                                      |
+| `--input`, `--output`, `--mode` | Same options                                                                        |
+
+Example:
+
+```sh
+# Before (filter)
+coverde filter --input coverage/lcov.info --output coverage/filtered.lcov.info \
+  --filters '\.g\.dart$' --base-directory /project --mode w
+
+# After (transform)
+coverde transform --input coverage/lcov.info --output coverage/filtered.lcov.info \
+  --transformations skip-by-regex='\.g\.dart$' --transformations relative=/project --mode w
+```
+'''
+          .trim(),
       _ => null,
     };
   }
