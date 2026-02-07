@@ -430,7 +430,7 @@ extension on CoverdeCommand {
     return switch (this) {
       FilterCommand() => '''
 > [!CAUTION]
-> The `filter` command will be removed in the next major version. Use [`coverde transform`](#coverde-transform) instead.
+> The `filter` command will be removed in the next major update. Use [`coverde transform`](#coverde-transform) instead.
 ''',
       _ => null,
     };

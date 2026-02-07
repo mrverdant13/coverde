@@ -309,7 +309,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
 ## `coverde filter`
 
 > [!CAUTION]
-> The `filter` command will be removed in the next major version. Use [`coverde transform`](#coverde-transform) instead.
+> The `filter` command will be removed in the next major update. Use [`coverde transform`](#coverde-transform) instead.
 
 Filter a coverage trace file.
 
