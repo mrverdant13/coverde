@@ -57,7 +57,7 @@ void main() {
       '| description',
       () {
         const expected = '''
-Filter a coverage trace file.
+[DEPRECATED] Filter a coverage trace file. Use `coverde transform` instead.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.
 The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
@@ -163,6 +163,16 @@ end_of_record
           splitter.convert(expectedFilteredFileContent),
           reason: 'Error: Non-matching filtered file content.',
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
           verify(
@@ -267,6 +277,16 @@ end_of_record
           splitter.convert(expectedFilteredFileContent),
           reason: 'Error: Non-matching filtered file content.',
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
           verify(
@@ -382,6 +402,16 @@ end_of_record
           expectedTraceFile,
           reason: 'Error: Non-matching trace files.',
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
           verify(
@@ -517,6 +547,16 @@ end_of_record
           expectedTraceFile,
           reason: 'Error: Non-matching trace files.',
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
         for (final fileData in filesDataToBeRemoved) {
           final path = fileData.source.path;
           verify(
@@ -559,6 +599,16 @@ end_of_record
             ),
           ),
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
       },
     );
 
@@ -600,6 +650,16 @@ end_of_record
             ),
           ),
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
       },
     );
 
@@ -642,6 +702,16 @@ end_of_record
             ),
           ),
         );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
       },
     );
 
@@ -722,6 +792,16 @@ end_of_record
                 '(mode: ${testCase.mode}).',
           );
         }
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(2);
       },
     );
 
@@ -760,6 +840,16 @@ end_of_record
               ),
             ),
           );
+          verify(
+            () => logger.warn(
+              any(
+                that: startsWith(
+                  'The `filter` command is deprecated '
+                  'and will be removed in the next major update.',
+                ),
+              ),
+            ),
+          ).called(1);
         },
         createDirectory: (path) => _FilterTestDirectory(path: path),
       );
@@ -807,6 +897,16 @@ end_of_record
               ),
             ),
           );
+          verify(
+            () => logger.warn(
+              any(
+                that: startsWith(
+                  'The `filter` command is deprecated '
+                  'and will be removed in the next major update.',
+                ),
+              ),
+            ),
+          ).called(1);
         },
         createFile: (path) {
           if (p.basename(path) == 'input.info') {
@@ -863,6 +963,16 @@ end_of_record
               ),
             ),
           );
+          verify(
+            () => logger.warn(
+              any(
+                that: startsWith(
+                  'The `filter` command is deprecated '
+                  'and will be removed in the next major update.',
+                ),
+              ),
+            ),
+          ).called(1);
         },
         createFile: (path) {
           if (p.basename(path) == 'input.info') {

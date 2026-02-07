@@ -1,5 +1,7 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/transformations/transformations.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -94,7 +96,7 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
 
   @override
   String get description => '''
-Filter a coverage trace file.
+[DEPRECATED] Filter a coverage trace file. Use `coverde transform` instead.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
 The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.
@@ -110,6 +112,44 @@ All the relative paths in the resulting coverage trace file will be resolved rel
   @override
   bool get takesArguments => false;
 
+  /// Builds the equivalent `coverde transform` command for migration guidance.
+  @visibleForTesting
+  static String buildEquivalentTransformCommand({
+    required String inputPath,
+    required String outputPath,
+    required List<String> filters,
+    required String? baseDirectory,
+    required String mode,
+  }) {
+    const inputOpt = 'input';
+    const outputOpt = 'output';
+    const transformationsOpt = 'transformations';
+    const modeOpt = 'mode';
+    final parts = <String>[
+      'coverde transform',
+      '--$inputOpt',
+      inputPath,
+      '--$outputOpt',
+      outputPath,
+    ];
+    for (final pattern in filters) {
+      parts.add(
+        '--$transformationsOpt '
+        '${SkipByRegexTransformation.identifier}=$pattern',
+      );
+    }
+    if (baseDirectory != null && baseDirectory.isNotEmpty) {
+      parts.add(
+        '--$transformationsOpt '
+        '${RelativeTransformation.identifier}=$baseDirectory',
+      );
+    }
+    parts
+      ..add('--$modeOpt')
+      ..add(mode);
+    return parts.join(' ');
+  }
+
   @override
   Future<void> run() async {
     final argResults = this.argResults!;
@@ -117,7 +157,26 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final destinationPath = argResults.option(outputOption)!;
     final baseDirectory = argResults.option(baseDirectoryOptionName);
     final ignorePatterns = argResults.multiOption(filtersOption);
-    final shouldOverride = argResults.option(modeOption) == 'w';
+    final mode = argResults.option(modeOption)!;
+
+    final equivalentCommand = buildEquivalentTransformCommand(
+      inputPath: originPath,
+      outputPath: destinationPath,
+      filters: ignorePatterns,
+      baseDirectory: baseDirectory,
+      mode: mode,
+    );
+
+    logger.warn(
+      [
+        '''The `filter` command is deprecated and will be removed in the next major update.''',
+        'Use `coverde transform` instead.',
+        'Equivalent command:',
+        styleBold.wrap(equivalentCommand),
+      ].nonNulls.join('\n'),
+    );
+
+    final shouldOverride = mode == 'w';
 
     // Validate regex patterns before use.
     final validatedPatterns = <RegExp>[];
