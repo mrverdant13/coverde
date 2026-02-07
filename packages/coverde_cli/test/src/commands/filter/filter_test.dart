@@ -71,6 +71,89 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       },
     );
 
+    group('buildEquivalentTransformCommand', () {
+      test('returns command with skip-by-regex for one filter', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'coverage/lcov.info',
+          outputPath: 'coverage/filtered.lcov.info',
+          filters: [r'\.g\.dart$'],
+          baseDirectory: null,
+          mode: 'w',
+        );
+        expect(result, contains('coverde transform'));
+        expect(result, contains('skip-by-regex='));
+        expect(result, contains(r'\.g\.dart$'));
+        expect(result, contains('--input coverage/lcov.info'));
+        expect(result, contains('--output coverage/filtered.lcov.info'));
+        expect(result, contains('--mode w'));
+        expect(result, isNot(contains('relative=')));
+      });
+
+      test('includes multiple skip-by-regex for multiple filters', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'in.lcov',
+          outputPath: 'out.lcov',
+          filters: ['pattern1', 'pattern2'],
+          baseDirectory: null,
+          mode: 'a',
+        );
+        expect(result, contains('skip-by-regex=pattern1'));
+        expect(result, contains('skip-by-regex=pattern2'));
+      });
+
+      test('includes relative when baseDirectory is provided', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'in.lcov',
+          outputPath: 'out.lcov',
+          filters: [],
+          baseDirectory: '/project',
+          mode: 'w',
+        );
+        expect(result, contains('relative=/project'));
+      });
+
+      test('omits relative when baseDirectory is null', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'in.lcov',
+          outputPath: 'out.lcov',
+          filters: ['p'],
+          baseDirectory: null,
+          mode: 'a',
+        );
+        expect(result, isNot(contains('relative=')));
+      });
+
+      test('omits relative when baseDirectory is empty', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'in.lcov',
+          outputPath: 'out.lcov',
+          filters: [],
+          baseDirectory: '',
+          mode: 'a',
+        );
+        expect(result, isNot(contains('relative=')));
+      });
+
+      test('produces exact expected format for full equivalent', () {
+        final result = FilterCommand.buildEquivalentTransformCommand(
+          inputPath: 'coverage/lcov.info',
+          outputPath: 'coverage/filtered.lcov.info',
+          filters: [r'\.g\.dart$', 'test/'],
+          baseDirectory: '/repo',
+          mode: 'w',
+        );
+        expect(
+          result,
+          'coverde transform --input coverage/lcov.info '
+          '--output coverage/filtered.lcov.info '
+          r'--transformations skip-by-regex=\.g\.dart$ '
+          '--transformations skip-by-regex=test/ '
+          '--transformations relative=/repo '
+          '--mode w',
+        );
+      });
+    });
+
     test(
       '--${FilterCommand.inputOption}=<trace_file> '
       '--${FilterCommand.outputOption}=<output_file> '
