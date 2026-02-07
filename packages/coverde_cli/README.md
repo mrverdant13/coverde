@@ -308,6 +308,9 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 ## `coverde filter`
 
+> [!CAUTION]
+> The `filter` command will be removed in the next major version. Use [`coverde transform`](#coverde-transform) instead.
+
 Filter a coverage trace file.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.\
@@ -349,6 +352,28 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
   Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
   **Default value:** _None_
+
+### Migration to `transform`
+
+Use `coverde transform` with equivalent options:
+
+| Filter option                   | Transform equivalent                                                                |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| `--filters pattern1,pattern2`   | `--transformations skip-by-regex=pattern1 --transformations skip-by-regex=pattern2` |
+| `--base-directory B`            | `--transformations relative=B`                                                      |
+| `--input`, `--output`, `--mode` | Same options                                                                        |
+
+Example:
+
+```sh
+# Before (filter)
+coverde filter --input coverage/lcov.info --output coverage/filtered.lcov.info \
+  --filters '\.g\.dart$' --base-directory /project --mode w
+
+# After (transform)
+coverde transform --input coverage/lcov.info --output coverage/filtered.lcov.info \
+  --transformations skip-by-regex='\.g\.dart$' --transformations relative=/project --mode w
+```
 
 
 ## `coverde transform`
