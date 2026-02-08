@@ -33,6 +33,7 @@ void main() {
           isA<OptimizeTestsCommand>(),
           isA<CheckCommand>(),
           isA<FilterCommand>(),
+          isA<TransformCommand>(),
           isA<ReportCommand>(),
           isA<RmCommand>(),
           isA<ValueCommand>(),

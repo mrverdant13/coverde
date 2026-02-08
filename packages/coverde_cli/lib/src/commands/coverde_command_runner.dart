@@ -25,6 +25,7 @@ class CoverdeCommandRunner extends CommandRunner<void> {
     addCommand(OptimizeTestsCommand());
     addCommand(CheckCommand());
     addCommand(FilterCommand());
+    addCommand(TransformCommand());
     addCommand(ReportCommand());
     addCommand(RmCommand());
     addCommand(ValueCommand());
