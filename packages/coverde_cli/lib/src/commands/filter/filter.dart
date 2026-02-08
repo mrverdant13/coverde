@@ -121,31 +121,27 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     required String? baseDirectory,
     required String mode,
   }) {
-    const inputOpt = 'input';
-    const outputOpt = 'output';
-    const transformationsOpt = 'transformations';
-    const modeOpt = 'mode';
     final parts = <String>[
       'coverde transform',
-      '--$inputOpt',
+      '--${TransformCommand.inputOption}',
       inputPath,
-      '--$outputOpt',
+      '--${TransformCommand.outputOption}',
       outputPath,
     ];
     for (final pattern in filters) {
       parts.add(
-        '--$transformationsOpt '
+        '--${TransformCommand.transformationsOption} '
         '${SkipByRegexTransformation.identifier}=$pattern',
       );
     }
     if (baseDirectory != null && baseDirectory.isNotEmpty) {
       parts.add(
-        '--$transformationsOpt '
+        '--${TransformCommand.transformationsOption} '
         '${RelativeTransformation.identifier}=$baseDirectory',
       );
     }
     parts
-      ..add('--$modeOpt')
+      ..add('--${TransformCommand.modeOption}')
       ..add(mode);
     return parts.join(' ');
   }
