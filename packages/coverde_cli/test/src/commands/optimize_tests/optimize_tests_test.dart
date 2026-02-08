@@ -1280,8 +1280,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
               return _OptimizeTestsTestFile(
                 path: path,
                 existsSync: () => true,
-                deleteSync: ({bool recursive = false}) =>
-                    throw FileSystemException(
+                deleteSync: ({recursive = false}) => throw FileSystemException(
                   'Fake file delete error',
                   path,
                 ),
@@ -1329,8 +1328,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
           getCurrentDirectory: () => _OptimizeTestsTestDirectory(
             path: directory.path,
             listSync: ({
-              bool recursive = false,
-              bool followLinks = true,
+              recursive = false,
+              followLinks = true,
             }) =>
                 throw FileSystemException(
               'Fake directory list error',
@@ -1461,7 +1460,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
               return _OptimizeTestsTestDirectory(
                 path: path,
                 existsSync: () => false,
-                createSync: ({bool recursive = false}) {
+                createSync: ({recursive = false}) {
                   throw FileSystemException(
                     'Fake directory create error',
                     path,

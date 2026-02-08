@@ -817,7 +817,7 @@ end_of_record
           if (p.basename(path) == 'report_style.css') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {
+              createSync: ({recursive = false, exclusive = false}) {
                 throw FileSystemException(
                   'Fake file create error',
                   path,
@@ -912,11 +912,11 @@ end_of_record
           if (p.basename(path) == 'report_style.css') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsBytesSync: (
                 bytes, {
-                FileMode mode = FileMode.write,
-                bool flush = false,
+                mode = FileMode.write,
+                flush = false,
               }) {
                 throw FileSystemException(
                   'Fake file write error',
@@ -1020,7 +1020,7 @@ end_of_record
           if (p.basename(path) == 'sort_alpha.png') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {
+              createSync: ({recursive = false, exclusive = false}) {
                 throw FileSystemException(
                   'Fake file create error',
                   path,
@@ -1123,11 +1123,11 @@ end_of_record
           if (p.basename(path) == 'sort_alpha.png') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsBytesSync: (
                 bytes, {
-                FileMode mode = FileMode.write,
-                bool flush = false,
+                mode = FileMode.write,
+                flush = false,
               }) {
                 throw FileSystemException(
                   'Fake file write error',
@@ -1239,7 +1239,7 @@ end_of_record
           if (p.basename(path) == 'sort_numeric.png') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {
+              createSync: ({recursive = false, exclusive = false}) {
                 throw FileSystemException(
                   'Fake file create error',
                   path,
@@ -1350,11 +1350,11 @@ end_of_record
           if (p.basename(path) == 'sort_numeric.png') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsBytesSync: (
                 bytes, {
-                FileMode mode = FileMode.write,
-                bool flush = false,
+                mode = FileMode.write,
+                flush = false,
               }) {
                 throw FileSystemException(
                   'Fake file write error',
@@ -1414,7 +1414,7 @@ end_of_record
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              readAsLinesSync: (Encoding encoding) => throw FileSystemException(
+              readAsLinesSync: (encoding) => throw FileSystemException(
                 'Fake file read error',
                 path,
               ),
@@ -1538,7 +1538,7 @@ end_of_record
           if (path == rootIndexHtmlFilePath) {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {
+              createSync: ({recursive = false, exclusive = false}) {
                 throw FileSystemException(
                   'Fake directory index create error',
                   path,
@@ -1549,12 +1549,12 @@ end_of_record
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsStringSync: (
                 contents, {
-                FileMode mode = FileMode.write,
-                Encoding encoding = utf8,
-                bool flush = false,
+                mode = FileMode.write,
+                encoding = utf8,
+                flush = false,
               }) {},
             );
           }
@@ -1631,12 +1631,12 @@ end_of_record
           if (path == rootIndexHtmlFilePath) {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsStringSync: (
                 contents, {
-                FileMode mode = FileMode.write,
-                Encoding encoding = utf8,
-                bool flush = false,
+                mode = FileMode.write,
+                encoding = utf8,
+                flush = false,
               }) {
                 throw FileSystemException(
                   'Fake directory index write error',
@@ -1648,12 +1648,12 @@ end_of_record
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsStringSync: (
                 contents, {
-                FileMode mode = FileMode.write,
-                Encoding encoding = utf8,
-                bool flush = false,
+                mode = FileMode.write,
+                encoding = utf8,
+                flush = false,
               }) {},
             );
           }
@@ -1722,14 +1722,14 @@ end_of_record
               !path.contains('lib')) {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
             );
           }
           // Source file HTML report - should fail on create
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {
+              createSync: ({recursive = false, exclusive = false}) {
                 throw FileSystemException(
                   'Fake source HTML create error',
                   path,
@@ -1802,19 +1802,19 @@ end_of_record
               !path.contains('lib')) {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
             );
           }
           // Source file HTML report - should fail on write
           if (p.basename(path) == 'some_source_file.dart.html') {
             return _ReportTestFile(
               path: path,
-              createSync: ({bool recursive = false, bool exclusive = false}) {},
+              createSync: ({recursive = false, exclusive = false}) {},
               writeAsStringSync: (
                 contents, {
-                FileMode mode = FileMode.write,
-                Encoding encoding = utf8,
-                bool flush = false,
+                mode = FileMode.write,
+                encoding = utf8,
+                flush = false,
               }) {
                 throw FileSystemException(
                   'Fake source HTML write error',
