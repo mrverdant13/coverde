@@ -131,13 +131,13 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     for (final pattern in filters) {
       parts.add(
         '--${TransformCommand.transformationsOption} '
-        '${SkipByRegexTransformation.identifier}=$pattern',
+        "${SkipByRegexTransformation.identifier}='$pattern'",
       );
     }
     if (baseDirectory != null && baseDirectory.isNotEmpty) {
       parts.add(
         '--${TransformCommand.transformationsOption} '
-        '${RelativeTransformation.identifier}=$baseDirectory',
+        "${RelativeTransformation.identifier}='$baseDirectory'",
       );
     }
     parts

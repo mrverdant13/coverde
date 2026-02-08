@@ -97,8 +97,8 @@ All the relative paths in the resulting coverage trace file will be resolved rel
           baseDirectory: null,
           mode: 'a',
         );
-        expect(result, contains('skip-by-regex=pattern1'));
-        expect(result, contains('skip-by-regex=pattern2'));
+        expect(result, contains("skip-by-regex='pattern1'"));
+        expect(result, contains("skip-by-regex='pattern2'"));
       });
 
       test('includes relative when baseDirectory is provided', () {
@@ -109,7 +109,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
           baseDirectory: '/project',
           mode: 'w',
         );
-        expect(result, contains('relative=/project'));
+        expect(result, contains("relative='/project'"));
       });
 
       test('omits relative when baseDirectory is null', () {
@@ -146,9 +146,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
           result,
           'coverde transform --input coverage/lcov.info '
           '--output coverage/filtered.lcov.info '
-          r'--transformations skip-by-regex=\.g\.dart$ '
-          '--transformations skip-by-regex=test/ '
-          '--transformations relative=/repo '
+          r"--transformations skip-by-regex='\.g\.dart$' "
+          "--transformations skip-by-regex='test/' "
+          "--transformations relative='/repo' "
           '--mode w',
         );
       });
