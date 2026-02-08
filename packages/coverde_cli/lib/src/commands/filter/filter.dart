@@ -94,7 +94,7 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
 
   @override
   String get description => '''
-Filter a coverage trace file.
+[DEPRECATED] Filter a coverage trace file. Use `coverde transform` instead.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.
 The coverage data is taken from the $_inputHelpValue file and the result is appended to the $_outputHelpValue file.
@@ -118,6 +118,13 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final baseDirectory = argResults.option(baseDirectoryOptionName);
     final ignorePatterns = argResults.multiOption(filtersOption);
     final shouldOverride = argResults.option(modeOption) == 'w';
+
+    logger.warn(
+      [
+        '''The `filter` command is deprecated and will be removed in the next major update.''',
+        'Use `coverde transform` instead.',
+      ].join('\n'),
+    );
 
     // Validate regex patterns before use.
     final validatedPatterns = <RegExp>[];
