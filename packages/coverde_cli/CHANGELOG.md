@@ -1,6 +1,9 @@
 ## UNRELEASED
 
 - **BREAKING FEAT**: full support for analyzer package v8-v10 (#263).
+- **FEAT**: add `transform` command (#276).
+- **FEAT**: support transformation presets in `coverde.yaml` to be used in `transform` command (#278).
+- **CHORE**: deprecate `filter` command in favor of `transform` command (#280).
 
 ## 0.3.0+1
 

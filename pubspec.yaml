@@ -6,7 +6,7 @@ environment:
 dev_dependencies:
   coverde:
     path: packages/coverde_cli
-  melos: ^7.3.0
+  melos: ^7.4.0
   pub_score_checker:
     path: tools/pub_score_checker
 
@@ -184,11 +184,11 @@ melos:
         --file-exists coverage/lcov.info
         --
         "
-        dart run coverde filter
-        --base-directory MELOS_ROOT_PATH
-        --filters '\.asset\.dart'
+        dart run coverde transform
         --input coverage/lcov.info
         --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
+        --transformations relative=MELOS_ROOT_PATH
+        --transformations skip-by-glob='**/*.asset.dart'
         "
     coverage.check:
       description: Check test coverage
@@ -231,7 +231,6 @@ melos:
       description: Resolve CLI README file
       run: >
         dart run MELOS_ROOT_PATH/tools/readmes_resolver/lib/resolve_root_readme.dart
-        --description-footer-dir=MELOS_ROOT_PATH/packages/coverde_cli/doc/details/command-description-footers/
         --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/browser/
         --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/terminal/
         --example-dirs=MELOS_ROOT_PATH/packages/coverde_cli/doc/examples/markdown/
