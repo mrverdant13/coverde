@@ -97,12 +97,15 @@ Override the $_outputHelpValue content, if any, with the transformed content.'''
   };
 
   /// Option name for the transformation steps to apply in order.
+  @visibleForTesting
   static const transformationsOption = 'transformations';
 
   /// Option name for the origin trace file to be transformed.
+  @visibleForTesting
   static const inputOption = 'input';
 
   /// Option name for the resulting transformed trace file.
+  @visibleForTesting
   static const outputOption = 'output';
 
   /// Option name for the flag to print the resolved transformation list and
@@ -111,6 +114,7 @@ Override the $_outputHelpValue content, if any, with the transformed content.'''
   static const explainFlag = 'explain';
 
   /// Option name for the mode in which the $_outputHelpValue can be generated.
+  @visibleForTesting
   static const modeOption = 'mode';
 
   /// The name of the configuration file.

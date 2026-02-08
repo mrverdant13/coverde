@@ -1,7 +1,5 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
-import 'package:coverde/src/features/transformations/transformations.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -112,40 +110,6 @@ All the relative paths in the resulting coverage trace file will be resolved rel
   @override
   bool get takesArguments => false;
 
-  /// Builds the equivalent `coverde transform` command for migration guidance.
-  @visibleForTesting
-  static String buildEquivalentTransformCommand({
-    required String inputPath,
-    required String outputPath,
-    required List<String> filters,
-    required String? baseDirectory,
-    required String mode,
-  }) {
-    final parts = <String>[
-      'coverde transform',
-      '--${TransformCommand.inputOption}',
-      inputPath,
-      '--${TransformCommand.outputOption}',
-      outputPath,
-    ];
-    for (final pattern in filters) {
-      parts.add(
-        '--${TransformCommand.transformationsOption} '
-        "${SkipByRegexTransformation.identifier}='$pattern'",
-      );
-    }
-    if (baseDirectory != null && baseDirectory.isNotEmpty) {
-      parts.add(
-        '--${TransformCommand.transformationsOption} '
-        "${RelativeTransformation.identifier}='$baseDirectory'",
-      );
-    }
-    parts
-      ..add('--${TransformCommand.modeOption}')
-      ..add(mode);
-    return parts.join(' ');
-  }
-
   @override
   Future<void> run() async {
     final argResults = this.argResults!;
@@ -155,21 +119,11 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final ignorePatterns = argResults.multiOption(filtersOption);
     final mode = argResults.option(modeOption)!;
 
-    final equivalentCommand = buildEquivalentTransformCommand(
-      inputPath: originPath,
-      outputPath: destinationPath,
-      filters: ignorePatterns,
-      baseDirectory: baseDirectory,
-      mode: mode,
-    );
-
     logger.warn(
       [
         '''The `filter` command is deprecated and will be removed in the next major update.''',
         'Use `coverde transform` instead.',
-        'Equivalent command:',
-        styleBold.wrap(equivalentCommand),
-      ].nonNulls.join('\n'),
+      ].join('\n'),
     );
 
     final shouldOverride = mode == 'w';
