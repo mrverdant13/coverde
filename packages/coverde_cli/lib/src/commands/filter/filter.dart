@@ -117,7 +117,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final destinationPath = argResults.option(outputOption)!;
     final baseDirectory = argResults.option(baseDirectoryOptionName);
     final ignorePatterns = argResults.multiOption(filtersOption);
-    final mode = argResults.option(modeOption)!;
+    final shouldOverride = argResults.option(modeOption) == 'w';
 
     logger.warn(
       [
@@ -125,8 +125,6 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         'Use `coverde transform` instead.',
       ].join('\n'),
     );
-
-    final shouldOverride = mode == 'w';
 
     // Validate regex patterns before use.
     final validatedPatterns = <RegExp>[];
