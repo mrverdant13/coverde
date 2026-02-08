@@ -34,7 +34,7 @@ dependencies:
   http: ^1.6.0
   io: ^1.0.5
   mason_logger: ^0.3.3
-  meta: ^1.18.0
+  meta: ^1.18.1
   path: ^1.9.1
   process: ^5.0.5
   pub_semver: ^2.2.0
