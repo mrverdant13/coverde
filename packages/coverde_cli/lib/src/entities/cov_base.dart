@@ -88,15 +88,15 @@ abstract class CovElement extends CovComputable {
     required double medium,
     required double high,
   }) {
-    relativePath = path.url.joinAll(path.split(relativePath));
+    final sanitizedRelativePath = path.url.joinAll(path.split(relativePath));
     final row = _folderReportRowTemplate.clone(true);
     final suffix = getClassSuffix(medium: medium, high: high);
     final link = source is Directory
-        ? path.url.join(relativePath, 'index.html')
-        : '$relativePath.html';
+        ? path.url.join(sanitizedRelativePath, 'index.html')
+        : '$sanitizedRelativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link
-      ..text = relativePath;
+      ..text = sanitizedRelativePath;
     {
       final covBar = row.querySelector('.barCov');
       if (coverage < 1) {
