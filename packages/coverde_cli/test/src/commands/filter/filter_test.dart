@@ -124,9 +124,7 @@ end_of_record
         if (filteredFile.existsSync()) {
           filteredFile.deleteSync(recursive: true);
         }
-        final originalTraceFile = TraceFile.parse(
-          originalFile.readAsStringSync(),
-        );
+        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
         final originalFileIncludeFileThatMatchPatterns =
             originalTraceFile.includeFileThatMatchPatterns(patterns);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
@@ -155,7 +153,7 @@ end_of_record
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = acceptedSourceFileData;
         final filteredFileIncludeFileThatMatchPatterns =
-            TraceFile.parse(filteredFileContent)
+            (await TraceFile.parseStreaming(filteredFile))
                 .includeFileThatMatchPatterns(patterns);
         expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
         expect(
@@ -238,9 +236,7 @@ end_of_record
         if (filteredFile.existsSync()) {
           filteredFile.deleteSync(recursive: true);
         }
-        final originalTraceFile = TraceFile.parse(
-          originalFile.readAsStringSync(),
-        );
+        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
         final originalFileIncludeFileThatMatchPatterns =
             originalTraceFile.includeFileThatMatchPatterns(patterns);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
@@ -269,7 +265,7 @@ end_of_record
         final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = acceptedSourceFileData;
         final filteredFileIncludeFileThatMatchPatterns =
-            TraceFile.parse(filteredFileContent)
+            (await TraceFile.parseStreaming(filteredFile))
                 .includeFileThatMatchPatterns(patterns);
         expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
         expect(
@@ -354,9 +350,7 @@ $ignoredSourceFileData
         if (filteredFile.existsSync()) {
           filteredFile.deleteSync(recursive: true);
         }
-        final originalTraceFile = TraceFile.parse(
-          originalFile.readAsStringSync(),
-        );
+        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
         final originalFileIncludeFileThatMatchPatterns =
             originalTraceFile.includeFileThatMatchPatterns(patterns);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
@@ -383,7 +377,6 @@ $ignoredSourceFileData
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isTrue);
-        final filteredFileContent = filteredFile.readAsStringSync();
         final expectedFilteredFileContent = '''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
@@ -392,8 +385,10 @@ LH:1
 end_of_record
 '''
             .trim();
-        final filteredTraceFile = TraceFile.parse(filteredFileContent);
-        final expectedTraceFile = TraceFile.parse(expectedFilteredFileContent);
+        final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
+        final expectedTraceFile = TraceFile(
+          sourceFilesCovData: [CovFile.parse(expectedFilteredFileContent)],
+        );
         final filteredFileIncludeFileThatMatchPatterns =
             filteredTraceFile.includeFileThatMatchPatterns(patterns);
         expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
@@ -494,9 +489,7 @@ $absoluteSourceFileData
         if (filteredFile.existsSync()) {
           filteredFile.deleteSync(recursive: true);
         }
-        final originalTraceFile = TraceFile.parse(
-          originalFile.readAsStringSync(),
-        );
+        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
         final originalFileIncludeFileThatMatchPatterns =
             originalTraceFile.includeFileThatMatchPatterns(patterns);
         final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
@@ -523,22 +516,31 @@ $absoluteSourceFileData
 
         expect(originalFile.existsSync(), isTrue);
         expect(filteredFile.existsSync(), isTrue);
-        final filteredFileContent = filteredFile.readAsStringSync();
-        final expectedFilteredFileContent = '''
+        final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
+        final expectedTraceFile = TraceFile(
+          sourceFilesCovData: [
+            CovFile.parse(
+              '''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
+'''
+                  .trim(),
+            ),
+            CovFile.parse(
+              '''
 SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
 '''
-            .trim();
-        final filteredTraceFile = TraceFile.parse(filteredFileContent);
-        final expectedTraceFile = TraceFile.parse(expectedFilteredFileContent);
+                  .trim(),
+            ),
+          ],
+        );
         final filteredFileIncludeFileThatMatchPatterns =
             filteredTraceFile.includeFileThatMatchPatterns(patterns);
         expect(filteredFileIncludeFileThatMatchPatterns, isFalse);

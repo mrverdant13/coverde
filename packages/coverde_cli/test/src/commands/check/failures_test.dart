@@ -1,4 +1,5 @@
 import 'package:coverde/src/commands/check/failures.dart';
+import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/universal_io.dart';
@@ -220,12 +221,13 @@ Usage message
         'readableMessage '
         '| returns formatted message with coverage values',
         () {
-          final traceFile = TraceFile.parse('''
-SF:path/to/file.dart
-DA:1,1
-DA:2,0
-end_of_record
-''');
+          final traceFile = TraceFile(
+            sourceFilesCovData: [
+              CovFile.parse(
+                'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
+              ),
+            ],
+          );
           final failure = CoverdeCheckCoverageBelowMinimumFailure(
             minimumCoverage: 75,
             traceFile: traceFile,
@@ -246,11 +248,13 @@ end_of_record
         'minimumCoverage '
         '| returns the minimum coverage threshold',
         () {
-          final traceFile = TraceFile.parse('''
-SF:path/to/file.dart
-DA:1,1
-end_of_record
-''');
+          final traceFile = TraceFile(
+            sourceFilesCovData: [
+              CovFile.parse(
+                'SF:path/to/file.dart\nDA:1,1\nend_of_record',
+              ),
+            ],
+          );
           final failure = CoverdeCheckCoverageBelowMinimumFailure(
             minimumCoverage: 80.5,
             traceFile: traceFile,
@@ -266,12 +270,13 @@ end_of_record
         'actualCoverage '
         '| returns the actual coverage from trace file',
         () {
-          final traceFile = TraceFile.parse('''
-SF:path/to/file.dart
-DA:1,1
-DA:2,0
-end_of_record
-''');
+          final traceFile = TraceFile(
+            sourceFilesCovData: [
+              CovFile.parse(
+                'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
+              ),
+            ],
+          );
           final failure = CoverdeCheckCoverageBelowMinimumFailure(
             minimumCoverage: 75,
             traceFile: traceFile,
@@ -287,11 +292,13 @@ end_of_record
         'traceFile '
         '| returns the trace file',
         () {
-          final traceFile = TraceFile.parse('''
-SF:path/to/file.dart
-DA:1,1
-end_of_record
-''');
+          final traceFile = TraceFile(
+            sourceFilesCovData: [
+              CovFile.parse(
+                'SF:path/to/file.dart\nDA:1,1\nend_of_record',
+              ),
+            ],
+          );
           final failure = CoverdeCheckCoverageBelowMinimumFailure(
             minimumCoverage: 75,
             traceFile: traceFile,

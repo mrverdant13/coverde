@@ -23,31 +23,10 @@ class TraceFile extends CovComputable {
     required Iterable<CovFile> sourceFilesCovData,
   }) : _sourceFilesCovData = Iterable.castFrom(sourceFilesCovData);
 
-  /// Create a source file coverage data instance from the content string of a
-  /// file coverage data block.
-  ///
-  /// {@macro trace_file}
-  ///
-  /// **Note:** This method loads the entire content into memory.\
-  /// For large files, consider using [parseStreaming] instead.
-  factory TraceFile.parse(String traceFileContent) {
-    final filesCovDataStr = traceFileContent
-        .split(CovFile.endOfRecordTag)
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .map((s) => '$s\n${CovFile.endOfRecordTag}');
-    final sourceFilesCovData = filesCovDataStr
-        .map(CovFile.parse)
-        .where((fileCovData) => fileCovData.linesFound > 0);
-    return TraceFile(
-      sourceFilesCovData: sourceFilesCovData,
-    );
-  }
-
   /// Create a trace file instance by parsing a file using streaming.
   ///
-  /// This method processes the file line-by-line, which is more
-  /// memory-efficient for large trace files compared to [TraceFile.parse].
+  /// This method processes the file line-by-line, which is memory-efficient
+  /// for large trace files.
   ///
   /// {@macro trace_file}
   static Future<TraceFile> parseStreaming(File file) async {

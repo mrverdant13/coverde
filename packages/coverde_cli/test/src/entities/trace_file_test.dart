@@ -81,42 +81,6 @@ void main() {
       },
     );
 
-    group('parse', () {
-      test(
-        '| parses valid string representation',
-        () async {
-          final result = TraceFile.parse(
-            traceFileString,
-          );
-
-          expect(result, traceFile);
-        },
-      );
-
-      test(
-        '| throws $CovFileFormatFailure when a block has no source file tag',
-        () async {
-          const invalidBlock = 'DA:1,1\nend_of_record\n';
-
-          void action() => TraceFile.parse(invalidBlock);
-
-          expect(action, throwsA(isA<CovFileFormatFailure>()));
-        },
-      );
-
-      test(
-        '| throws $FormatException when a line entry is malformed',
-        () async {
-          const malformedBlock =
-              'SF:some/file.dart\nDA:not_an_int,1\nend_of_record\n';
-
-          void action() => TraceFile.parse(malformedBlock);
-
-          expect(action, throwsA(isA<FormatException>()));
-        },
-      );
-    });
-
     test(
       'sourceFilesCovData '
       '| returns source files coverage data',
@@ -164,7 +128,7 @@ void main() {
 
     group('parseStreaming', () {
       test(
-        '| parses valid file and produces same result as parse',
+        '| parses valid file',
         () async {
           final tempDir = Directory.systemTemp.createTempSync();
           addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -219,7 +183,10 @@ ${buildRawCovFileString(3)}
             ..writeAsStringSync(multiBlockContent);
 
           final result = await TraceFile.parseStreaming(tempFile);
-          final expected = TraceFile.parse(multiBlockContent);
+          final expected = TraceFile(
+            sourceFilesCovData:
+                [5, 10, 3].map(buildRawCovFileString).map(CovFile.parse),
+          );
 
           expect(result, expected);
         },
@@ -237,7 +204,7 @@ ${buildRawCovFileString(3)}
             ..writeAsStringSync(largeContent);
 
           final result = await TraceFile.parseStreaming(tempFile);
-          final expected = TraceFile.parse(largeContent);
+          final expected = buildTraceFile(100);
 
           expect(result.sourceFilesCovData.length, 100);
           expect(result, expected);
