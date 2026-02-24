@@ -77,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: build_runner
-      sha256: ac78098de97893812b7aff1154f29008fa2464cad9e8e7044d39bc905dad4fbc
+      sha256: "39ad4ca8a2876779737c60e4228b4bcd35d4352ef7e14e47514093edc012c734"
       url: "https://pub.dev"
     source: hosted
-    version: "2.11.0"
+    version: "2.11.1"
   build_verify:
     dependency: transitive
     description:
@@ -405,10 +405,10 @@ packages:
     dependency: transitive
     description:
       name: pana
-      sha256: "8505825414005c57ba477874b98c4d47ec3e12fccb54af43730c055980bfa143"
+      sha256: d7bd85f18a14909f0baab69a13895dc4ff163be51c9884f73a506982adeac57d
       url: "https://pub.dev"
     source: hosted
-    version: "0.23.9"
+    version: "0.23.10"
   path:
     dependency: transitive
     description:
