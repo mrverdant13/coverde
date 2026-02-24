@@ -381,9 +381,9 @@ List<Transformation> _expandPreset({
   final result = <Transformation>[];
   for (final entry in entries) {
     switch (entry) {
-      case _PresetEntryStep(step: final step):
+      case _PresetEntryStep(:final step):
         result.add(step);
-      case _PresetEntryRef(name: final name):
+      case _PresetEntryRef(:final name):
         result.add(
           PresetTransformation(
             presetName: name,

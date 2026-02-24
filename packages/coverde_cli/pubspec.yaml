@@ -60,7 +60,7 @@ dev_dependencies:
       path: tools/package_data_generator
       ref: 95ddc13ebb5ff7540e3eec3b83ccd5c53ae5414b
   test: ^1.29.0
-  very_good_analysis: ^10.1.0
+  very_good_analysis: ^10.2.0
 
 executables:
   coverde:
