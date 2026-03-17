@@ -6,7 +6,7 @@ environment:
 dev_dependencies:
   coverde:
     path: packages/coverde_cli
-  melos: ^7.4.0
+  melos: ^7.4.1
   pub_score_checker:
     path: tools/pub_score_checker
 
