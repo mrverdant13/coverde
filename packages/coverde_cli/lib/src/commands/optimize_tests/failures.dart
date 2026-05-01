@@ -242,3 +242,83 @@ final class CoverdeOptimizeTestsDirectoryCreateFailure
           ].join('\n'),
         );
 }
+
+/// {@template coverde_cli.optimize_tests_invalid_shard_options_failure}
+/// A [OptimizeTestsCommand] failure that indicates that invalid shard options
+/// were provided (unable to parse as integers).
+/// {@endtemplate}
+final class CoverdeOptimizeTestsInvalidShardOptionsFailure
+    extends CoverdeOptimizeTestsInvalidInputFailure {
+  /// {@macro coverde_cli.optimize_tests_invalid_shard_options_failure}
+  const CoverdeOptimizeTestsInvalidShardOptionsFailure({
+    required super.usageMessage,
+    required this.totalShardsStr,
+    required this.shardIndexStr,
+  }) : super(
+          invalidInputDescription: 'Invalid shard options: '
+              '${OptimizeTestsCommand.totalShardsOptionName}=$totalShardsStr '
+              '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndexStr. '
+              'Both values must be integers.',
+        );
+
+  /// The unparsed total shards value.
+  final String totalShardsStr;
+
+  /// The unparsed shard index value.
+  final String shardIndexStr;
+}
+
+/// {@template coverde_cli.optimize_tests_shard_index_out_of_range_failure}
+/// A [OptimizeTestsCommand] failure that indicates that the shard index is
+/// out of range.
+/// {@endtemplate}
+final class CoverdeOptimizeTestsShardIndexOutOfRangeFailure
+    extends CoverdeOptimizeTestsInvalidInputFailure {
+  /// {@macro coverde_cli.optimize_tests_shard_index_out_of_range_failure}
+  const CoverdeOptimizeTestsShardIndexOutOfRangeFailure({
+    required super.usageMessage,
+    required this.totalShards,
+    required this.shardIndex,
+  }) : super(
+          invalidInputDescription: 'Shard index out of range: '
+              '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndex '
+              'must be between 0 and ${totalShards - 1} '
+              '(${OptimizeTestsCommand.totalShardsOptionName}=$totalShards).',
+        );
+
+  /// The total number of shards.
+  final int totalShards;
+
+  /// The shard index that was out of range.
+  final int shardIndex;
+}
+
+/// {@template coverde_cli.optimize_tests_shard_options_mismatch_failure}
+/// A [OptimizeTestsCommand] failure that indicates that one of the shard
+/// options was provided without the other.
+/// {@endtemplate}
+final class CoverdeOptimizeTestsShardOptionsMismatchFailure
+    extends CoverdeOptimizeTestsInvalidInputFailure {
+  /// {@macro coverde_cli.optimize_tests_shard_options_mismatch_failure}
+  const CoverdeOptimizeTestsShardOptionsMismatchFailure({
+    required super.usageMessage,
+    required this.totalShardsProvided,
+    required this.shardIndexProvided,
+  }) : super(
+          invalidInputDescription:
+              'Both ${OptimizeTestsCommand.totalShardsOptionName} '
+              'and ${OptimizeTestsCommand.shardIndexOptionName} '
+              'must be provided together. '
+              'Got: '
+              '${OptimizeTestsCommand.totalShardsOptionName}='
+              '${totalShardsProvided ? "provided" : "not provided"}, '
+              '${OptimizeTestsCommand.shardIndexOptionName}='
+              '${shardIndexProvided ? "provided" : "not provided"}.',
+        );
+
+  /// Whether --total-shards was provided.
+  final bool totalShardsProvided;
+
+  /// Whether --shard-index was provided.
+  final bool shardIndexProvided;
+}

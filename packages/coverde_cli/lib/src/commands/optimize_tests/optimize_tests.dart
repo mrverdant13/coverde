@@ -35,6 +35,16 @@ class OptimizeTestsCommand extends CoverdeCommand {
         help: 'The path to the optimized tests file.',
         defaultsTo: 'test/optimized_test.dart',
       )
+      ..addOption(
+        totalShardsOptionName,
+        help: 'The total number of shards to split tests across. '
+            'Requires --shard-index to also be specified.',
+      )
+      ..addOption(
+        shardIndexOptionName,
+        help: 'The index of the current shard (0-based). '
+            'Requires --total-shards to also be specified.',
+      )
       ..addFlag(
         useFlutterGoldenTestsFlagName,
         help: 'Whether to use golden tests in case of a Flutter package.',
@@ -65,6 +75,12 @@ class OptimizeTestsCommand extends CoverdeCommand {
 
   /// The name of the option for the generated optimized tests file.
   static const outputOptionName = 'output';
+
+  /// The name of the option for the total number of shards.
+  static const totalShardsOptionName = 'total-shards';
+
+  /// The name of the option for the shard index.
+  static const shardIndexOptionName = 'shard-index';
 
   /// The regex to match the onPlatform annotation.
   static final onPlatformRegex = RegExp(
@@ -105,6 +121,46 @@ class OptimizeTestsCommand extends CoverdeCommand {
   FutureOr<void> run() async {
     final argResults = this.argResults!;
     final projectDir = Directory.current;
+
+    // Validate shard options
+    final totalShardsStr = argResults.option(totalShardsOptionName);
+    final shardIndexStr = argResults.option(shardIndexOptionName);
+    final (totalShards, shardIndex) = switch ((totalShardsStr, shardIndexStr)) {
+      (null, null) => (null, null),
+      (null, final si?) =>
+        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+          usageMessage: usageWithoutDescription,
+          totalShardsProvided: false,
+          shardIndexProvided: true,
+        ),
+      (final ts?, null) =>
+        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+          usageMessage: usageWithoutDescription,
+          totalShardsProvided: true,
+          shardIndexProvided: false,
+        ),
+      (final ts?, final si?) => () {
+          final totalShardsInt = int.tryParse(ts);
+          final shardIndexInt = int.tryParse(si);
+          if (totalShardsInt == null || shardIndexInt == null) {
+            throw CoverdeOptimizeTestsInvalidShardOptionsFailure(
+              usageMessage: usageWithoutDescription,
+              totalShardsStr: ts,
+              shardIndexStr: si,
+            );
+          }
+          if (totalShardsInt <= 0 ||
+              shardIndexInt < 0 ||
+              shardIndexInt >= totalShardsInt) {
+            throw CoverdeOptimizeTestsShardIndexOutOfRangeFailure(
+              usageMessage: usageWithoutDescription,
+              totalShards: totalShardsInt,
+              shardIndex: shardIndexInt,
+            );
+          }
+          return (totalShardsInt, shardIndexInt);
+        }(),
+    };
     final pubspecFilePath = p.join(projectDir.path, 'pubspec.yaml');
     if (!File(pubspecFilePath).existsSync()) {
       throw CoverdeOptimizeTestsPubspecNotFoundFailure(
@@ -205,9 +261,16 @@ class OptimizeTestsCommand extends CoverdeCommand {
         ),
     };
 
+    final shardedFileRelativePaths = switch ((totalShards, shardIndex)) {
+      (final ts?, final si?) => validFileRelativePaths.indexed
+          .where((indexed) => indexed.$1 % ts == si)
+          .map((indexed) => indexed.$2),
+      _ => validFileRelativePaths,
+    };
+
     final testFileGroupsStatements = <coder.Code>[];
     var hasAsyncEntryPoints = false;
-    for (final fileRelativePath in validFileRelativePaths) {
+    for (final fileRelativePath in shardedFileRelativePaths) {
       final fileContent = () {
         final file = File(fileRelativePath.platformRelativePath).absolute;
         try {

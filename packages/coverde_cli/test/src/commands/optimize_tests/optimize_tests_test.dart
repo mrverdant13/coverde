@@ -46,6 +46,8 @@ Usage: coverde optimize-tests [arguments]
     --exclude                 The glob pattern for the tests files to exclude.
     --output                  The path to the optimized tests file.
                               (defaults to "test/optimized_test.dart")
+    --total-shards            The total number of shards to split tests across. Requires --shard-index to also be specified.
+    --shard-index             The index of the current shard (0-based). Requires --total-shards to also be specified.
     --[no-]flutter-goldens    Whether to use golden tests in case of a Flutter package.
                               (defaults to on)
 
@@ -1191,6 +1193,288 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
         );
       }
     });
+
+    test(
+      '| throws $CoverdeOptimizeTestsShardOptionsMismatchFailure '
+      'when only --total-shards is provided',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=4',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsShardOptionsMismatchFailure>()
+                    .having(
+                      (e) => e.totalShardsProvided,
+                      'totalShardsProvided',
+                      isTrue,
+                    )
+                    .having(
+                      (e) => e.shardIndexProvided,
+                      'shardIndexProvided',
+                      isFalse,
+                    ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsShardOptionsMismatchFailure '
+      'when only --shard-index is provided',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=0',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsShardOptionsMismatchFailure>()
+                    .having(
+                      (e) => e.totalShardsProvided,
+                      'totalShardsProvided',
+                      isFalse,
+                    )
+                    .having(
+                      (e) => e.shardIndexProvided,
+                      'shardIndexProvided',
+                      isTrue,
+                    ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsInvalidShardOptionsFailure '
+      'when --total-shards is not a valid integer',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=abc',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=0',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsInvalidShardOptionsFailure>().having(
+                  (e) => e.totalShardsStr,
+                  'totalShardsStr',
+                  'abc',
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsInvalidShardOptionsFailure '
+      'when --shard-index is not a valid integer',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=4',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=xyz',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsInvalidShardOptionsFailure>().having(
+                  (e) => e.shardIndexStr,
+                  'shardIndexStr',
+                  'xyz',
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsShardIndexOutOfRangeFailure '
+      'when --shard-index >= --total-shards',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=4',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=4',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsShardIndexOutOfRangeFailure>()
+                    .having(
+                      (e) => e.totalShards,
+                      'totalShards',
+                      4,
+                    )
+                    .having(
+                      (e) => e.shardIndex,
+                      'shardIndex',
+                      4,
+                    ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsShardIndexOutOfRangeFailure '
+      'when --total-shards <= 0',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=0',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=0',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsShardIndexOutOfRangeFailure>().having(
+                  (e) => e.totalShards,
+                  'totalShards',
+                  0,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
+
+    test(
+      '| throws $CoverdeOptimizeTestsShardIndexOutOfRangeFailure '
+      'when --shard-index < 0',
+      () async {
+        final currentDirectory = Directory.current;
+        final projectPath = p.joinAll([
+          'test',
+          'src',
+          'commands',
+          'optimize_tests',
+          'fixtures',
+          'no_pubspec',
+        ]);
+        IOOverrides.runZoned(
+          () {
+            Future<void> action() => cmdRunner.run([
+                  'optimize-tests',
+                  '--${OptimizeTestsCommand.totalShardsOptionName}=4',
+                  '--${OptimizeTestsCommand.shardIndexOptionName}=-1',
+                ]);
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeOptimizeTestsShardIndexOutOfRangeFailure>().having(
+                  (e) => e.shardIndex,
+                  'shardIndex',
+                  -1,
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => Directory(
+            p.join(currentDirectory.path, projectPath),
+          ),
+        );
+      },
+    );
 
     test(
       '| throws $CoverdeOptimizeTestsFileReadFailure '
