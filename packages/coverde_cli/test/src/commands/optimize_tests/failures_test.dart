@@ -330,7 +330,8 @@ Usage message
     group('$CoverdeOptimizeTestsShardOptionsMismatchFailure', () {
       test(
         'readableMessage '
-        '| returns formatted message when total-shards is provided without shard-index',
+        '| returns formatted message '
+        'when total-shards is provided without shard-index',
         () {
           final failure = CoverdeOptimizeTestsShardOptionsMismatchFailure(
             usageMessage: 'Usage message',
@@ -353,7 +354,8 @@ Usage message
 
       test(
         'readableMessage '
-        '| returns formatted message when shard-index is provided without total-shards',
+        '| returns formatted message '
+        'when shard-index is provided without total-shards',
         () {
           final failure = CoverdeOptimizeTestsShardOptionsMismatchFailure(
             usageMessage: 'Usage message',
