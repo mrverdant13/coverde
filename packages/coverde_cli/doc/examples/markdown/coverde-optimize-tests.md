@@ -189,13 +189,15 @@ For large test suites, you can split tests across multiple shards to run them in
 
 **Example:** Splitting 4 test files across 2 shards
 
-Given the following test files:
-- `test/auth_test.dart`
-- `test/user_test.dart`
-- `test/product_test.dart`
-- `test/order_test.dart`
+Given the following test files (sorted alphabetically):
+- `test/auth_test.dart` (index 0)
+- `test/order_test.dart` (index 1)
+- `test/product_test.dart` (index 2)
+- `test/user_test.dart` (index 3)
 
-To run shard 0 (first half):
+Tests are distributed using round-robin assignment by index: `index % total_shards == shard_index`.
+
+To run shard 0 (gets indices 0 and 2):
 
 ```sh
 $ coverde optimize-tests --total-shards=2 --shard-index=0 --output=test/optimized_test_shard_0.dart
@@ -227,7 +229,7 @@ void main() {
 }
 ```
 
-To run shard 1 (second half):
+To run shard 1 (gets indices 1 and 3):
 
 ```sh
 $ coverde optimize-tests --total-shards=2 --shard-index=1 --output=test/optimized_test_shard_1.dart
