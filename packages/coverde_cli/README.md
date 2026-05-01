@@ -72,6 +72,14 @@ Optimize tests by gathering them.
   The path to the optimized tests file.\
   **Default value:** `test/optimized_test.dart`
 
+- `--total-shards`
+
+  The total number of shards to split tests across. Requires `--shard-index` to also be specified.
+
+- `--shard-index`
+
+  The index of the current shard (0-based). Requires `--total-shards` to also be specified.
+
 #### Flags
 
 - `--flutter-goldens`
@@ -265,6 +273,113 @@ $ coverde optimize-tests --no-flutter-goldens
 ```
 
 This prevents the command from adding golden test setup code, which is only relevant for Flutter packages.
+
+#### Sharding Tests
+
+For large test suites, you can split tests across multiple shards to run them in parallel in different processes or CI jobs. Sharding requires both `--total-shards` and `--shard-index` options to be specified together.
+
+**Example:** Splitting 4 test files across 2 shards
+
+Given the following test files (sorted alphabetically):
+- `test/auth_test.dart` (index 0)
+- `test/order_test.dart` (index 1)
+- `test/product_test.dart` (index 2)
+- `test/user_test.dart` (index 3)
+
+Tests are distributed using round-robin assignment by index: `index % <total shards> == <shard index>`.
+
+To run shard 0 (gets indices 0 and 2):
+
+```sh
+$ coverde optimize-tests --total-shards=2 --shard-index=0 --output=test/optimized_test_shard_0.dart
+```
+
+**Output:** `test/optimized_test_shard_0.dart`
+```dart
+// ignore_for_file: deprecated_member_use, type=lint
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:test_api/test_api.dart';
+
+import 'auth_test.dart' as _i1;
+import 'product_test.dart' as _i2;
+
+void main() {
+  group(
+    'auth_test.dart',
+    () {
+      _i1.main();
+    },
+  );
+  group(
+    'product_test.dart',
+    () {
+      _i2.main();
+    },
+  );
+}
+```
+
+To run shard 1 (gets indices 1 and 3):
+
+```sh
+$ coverde optimize-tests --total-shards=2 --shard-index=1 --output=test/optimized_test_shard_1.dart
+```
+
+**Output:** `test/optimized_test_shard_1.dart`
+```dart
+// ignore_for_file: deprecated_member_use, type=lint
+
+// ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:test_api/test_api.dart';
+
+import 'order_test.dart' as _i1;
+import 'user_test.dart' as _i2;
+
+void main() {
+  group(
+    'order_test.dart',
+    () {
+      _i1.main();
+    },
+  );
+  group(
+    'user_test.dart',
+    () {
+      _i2.main();
+    },
+  );
+}
+```
+
+In a CI/CD pipeline, you could run both shards in parallel:
+
+```sh
+# Job 1
+$ dart test test/optimized_test_shard_0.dart
+
+# Job 2 (running concurrently)
+$ dart test test/optimized_test_shard_1.dart
+```
+
+**Sharding with 3 shards:**
+
+```sh
+# Shard 0
+$ coverde optimize-tests --total-shards=3 --shard-index=0 --output=test/optimized_test_0.dart
+
+# Shard 1
+$ coverde optimize-tests --total-shards=3 --shard-index=1 --output=test/optimized_test_1.dart
+
+# Shard 2
+$ coverde optimize-tests --total-shards=3 --shard-index=2 --output=test/optimized_test_2.dart
+```
+
+**Notes:**
+- Shard indices are 0-based (start from 0)
+- The `--shard-index` must be less than `--total-shards`
+- Tests are distributed as evenly as possible across shards
+- Both `--total-shards` and `--shard-index` must be provided together; specifying only one will result in an error
 
 
 ## `coverde check`
