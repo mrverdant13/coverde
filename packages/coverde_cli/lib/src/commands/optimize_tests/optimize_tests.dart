@@ -149,9 +149,13 @@ class OptimizeTestsCommand extends CoverdeCommand {
               shardIndexStr: si,
             );
           }
-          if (totalShardsInt <= 0 ||
-              shardIndexInt < 0 ||
-              shardIndexInt >= totalShardsInt) {
+          if (totalShardsInt <= 0) {
+            throw CoverdeOptimizeTestsInvalidTotalShardsFailure(
+              usageMessage: usageWithoutDescription,
+              totalShards: totalShardsInt,
+            );
+          }
+          if (shardIndexInt < 0 || shardIndexInt >= totalShardsInt) {
             throw CoverdeOptimizeTestsShardIndexOutOfRangeFailure(
               usageMessage: usageWithoutDescription,
               totalShards: totalShardsInt,

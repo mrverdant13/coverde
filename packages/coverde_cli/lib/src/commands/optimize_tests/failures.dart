@@ -268,6 +268,26 @@ final class CoverdeOptimizeTestsInvalidShardOptionsFailure
   final String shardIndexStr;
 }
 
+/// {@template coverde_cli.optimize_tests_invalid_total_shards_failure}
+/// A [OptimizeTestsCommand] failure that indicates that the total shards
+/// value is invalid (must be > 0).
+/// {@endtemplate}
+final class CoverdeOptimizeTestsInvalidTotalShardsFailure
+    extends CoverdeOptimizeTestsInvalidInputFailure {
+  /// {@macro coverde_cli.optimize_tests_invalid_total_shards_failure}
+  const CoverdeOptimizeTestsInvalidTotalShardsFailure({
+    required super.usageMessage,
+    required this.totalShards,
+  }) : super(
+          invalidInputDescription:
+              '${OptimizeTestsCommand.totalShardsOptionName}=$totalShards '
+              'is invalid. Total shards must be greater than 0.',
+        );
+
+  /// The total number of shards that was invalid.
+  final int totalShards;
+}
+
 /// {@template coverde_cli.optimize_tests_shard_index_out_of_range_failure}
 /// A [OptimizeTestsCommand] failure that indicates that the shard index is
 /// out of range.

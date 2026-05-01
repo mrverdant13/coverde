@@ -1401,7 +1401,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
     );
 
     test(
-      '| throws $CoverdeOptimizeTestsShardIndexOutOfRangeFailure '
+      '| throws $CoverdeOptimizeTestsInvalidTotalShardsFailure '
       'when --total-shards <= 0',
       () async {
         final currentDirectory = Directory.current;
@@ -1423,7 +1423,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             expect(
               action,
               throwsA(
-                isA<CoverdeOptimizeTestsShardIndexOutOfRangeFailure>().having(
+                isA<CoverdeOptimizeTestsInvalidTotalShardsFailure>().having(
                   (e) => e.totalShards,
                   'totalShards',
                   0,
