@@ -1497,7 +1497,7 @@ dev_dependencies:
 
         // Create a test directory with no test files - this will generate an
         // empty optimized test file
-        Directory(p.join(directory.path, 'test'))..createSync();
+        Directory(p.join(directory.path, 'test')).createSync();
 
         await IOOverrides.runZoned(
           () async {
@@ -1521,7 +1521,8 @@ dev_dependencies:
             expect(
               content,
               isNotEmpty,
-              reason: 'Optimized test file should contain boilerplate even with '
+              reason:
+                  'Optimized test file should contain boilerplate even with '
                   'no tests',
             );
             // Verify it has the main() entry point but no test groups
