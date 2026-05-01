@@ -127,14 +127,12 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final shardIndexStr = argResults.option(shardIndexOptionName);
     final (totalShards, shardIndex) = switch ((totalShardsStr, shardIndexStr)) {
       (null, null) => (null, null),
-      (null, final si?) =>
-        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+      (null, final _?) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
           usageMessage: usageWithoutDescription,
           totalShardsProvided: false,
           shardIndexProvided: true,
         ),
-      (final ts?, null) =>
-        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+      (final _?, null) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
           usageMessage: usageWithoutDescription,
           totalShardsProvided: true,
           shardIndexProvided: false,
