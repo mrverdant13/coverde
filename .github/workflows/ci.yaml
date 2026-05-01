@@ -85,7 +85,7 @@ jobs:
         with:
           name: filtered.lcov.info
       - name: Upload coverage data to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
