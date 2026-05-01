@@ -1498,13 +1498,13 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
           reason: '${OptimizeTestsCommand.shardIndexOptionName} option '
               'should be registered',
         );
-        
+
         // Test that valid shard values are accepted and parsed correctly
         final results = command.argParser.parse([
           '--${OptimizeTestsCommand.totalShardsOptionName}=4',
           '--${OptimizeTestsCommand.shardIndexOptionName}=2',
         ]);
-        
+
         expect(
           results[OptimizeTestsCommand.totalShardsOptionName],
           '4',
