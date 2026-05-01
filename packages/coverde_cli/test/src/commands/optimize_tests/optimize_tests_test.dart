@@ -1955,6 +1955,70 @@ void main() {
         );
       },
     );
+
+    test(
+      '| generates optimized tests correctly with valid shard options',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        File(pubspecFilePath).writeAsStringSync(
+          '''
+name: test_package
+version: 0.1.0
+
+dev_dependencies:
+  test: ^1.0.0
+''',
+        );
+
+        final testDir = Directory(p.join(directory.path, 'test'));
+        testDir.createSync();
+
+        // Create multiple test files to ensure sharding filters them
+        for (int i = 0; i < 4; i++) {
+          final testFile = File(p.join(testDir.path, 'test_$i.dart'));
+          testFile.writeAsStringSync(
+            '''
+void main() {
+  test('test $i', () {
+    expect(true, isTrue);
+  });
+}
+''',
+          );
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'optimize-tests',
+              '--${OptimizeTestsCommand.totalShardsOptionName}=2',
+              '--${OptimizeTestsCommand.shardIndexOptionName}=0',
+              '--${OptimizeTestsCommand.outputOptionName}=test/optimized_test_shard_0.dart',
+            ]);
+
+            final optimizedFile =
+                File(p.join(testDir.path, 'optimized_test_shard_0.dart'));
+            expect(
+              optimizedFile.existsSync(),
+              isTrue,
+              reason: 'Optimized test file should exist',
+            );
+
+            final content = optimizedFile.readAsStringSync();
+            expect(
+              content,
+              isNotEmpty,
+              reason: 'Optimized test file should contain content',
+            );
+          },
+          getCurrentDirectory: () => directory,
+        );
+      },
+    );
   });
 }
 
