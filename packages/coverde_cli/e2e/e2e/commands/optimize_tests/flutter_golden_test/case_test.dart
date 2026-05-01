@@ -8,6 +8,37 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
+  late final Directory temporaryDirectory;
+  late final String coverdeExecutablePath;
+
+  setUpAll(() async {
+    temporaryDirectory = Directory.systemTemp.createTempSync();
+    final coverdeCliPath = p.joinAll([
+      Directory.current.path,
+      '..',
+    ]);
+    coverdeExecutablePath = p.join(temporaryDirectory.path, 'coverde');
+    final [command, ...arguments] = 'dart compile exe '
+            '$coverdeCliPath/bin/coverde.dart '
+            '-o $coverdeExecutablePath'
+        .split(' ');
+    final result = await Process.run(
+      command,
+      arguments,
+      workingDirectory: Directory.current.path,
+      runInShell: true,
+    );
+    if (result.exitCode != 0) {
+      throw Exception(
+        'Failed to compile coverde executable:\n${result.stderr}',
+      );
+    }
+  });
+
+  tearDownAll(() async {
+    temporaryDirectory.deleteSync(recursive: true);
+  });
+
   test('Flutter golden test', () async {
     final testCases = [
       (
@@ -157,7 +188,7 @@ void main() {
           final [
             command,
             ...arguments,
-          ] = 'dart run coverde optimize-tests'.split(' ');
+          ] = '$coverdeExecutablePath optimize-tests'.split(' ');
           return Process.start(
             command,
             arguments,

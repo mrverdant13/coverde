@@ -6,7 +6,5 @@ environment:
   sdk: ^3.0.0
 
 dev_dependencies:
-  coverde:
-    path: ../../../../../../../
   flutter_test:
     sdk: flutter
