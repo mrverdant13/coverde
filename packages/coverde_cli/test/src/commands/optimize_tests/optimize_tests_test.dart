@@ -46,8 +46,8 @@ Usage: coverde optimize-tests [arguments]
     --exclude                 The glob pattern for the tests files to exclude.
     --output                  The path to the optimized tests file.
                               (defaults to "test/optimized_test.dart")
-    --total-shards            The total number of shards to split tests across. Requires --shard-index to also be specified.
-    --shard-index             The index of the current shard (0-based). Requires --total-shards to also be specified.
+    --total-shards            The total number of shards to split tests across. Requires `--shard-index` to also be specified.
+    --shard-index             The index of the current shard (0-based). Requires `--total-shards` to also be specified.
     --[no-]flutter-goldens    Whether to use golden tests in case of a Flutter package.
                               (defaults to on)
 
