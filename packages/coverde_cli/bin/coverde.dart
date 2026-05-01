@@ -154,6 +154,10 @@ extension on CoverdeOptimizeTestsDirectoryOperationFailure {
 extension on CoverdeOptimizeTestsInvalidInputFailure {
   ExitCode get exitCode => switch (this) {
         CoverdeOptimizeTestsPubspecNotFoundFailure() => ExitCode.noInput,
+        CoverdeOptimizeTestsInvalidShardOptionsFailure() => ExitCode.usage,
+        CoverdeOptimizeTestsInvalidTotalShardsFailure() => ExitCode.usage,
+        CoverdeOptimizeTestsShardIndexOutOfRangeFailure() => ExitCode.usage,
+        CoverdeOptimizeTestsShardOptionsMismatchFailure() => ExitCode.usage,
       };
 }
 

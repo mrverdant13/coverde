@@ -13,3 +13,4 @@
 /**/melos_overrides.yaml
 /**/pubspec_overrides.yaml
 /**/melos_*.iml
+.DS_Store
