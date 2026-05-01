@@ -1976,7 +1976,11 @@ dev_dependencies:
         final testDir = Directory(p.join(directory.path, 'test'))..createSync();
 
         // Create 4 test files with names matching the default include glob
-        // Sorted order: auth_test.dart, order_test.dart, product_test.dart, user_test.dart
+        // Sorted order:
+        //  - auth_test.dart
+        //  - order_test.dart
+        //  - product_test.dart
+        //  - user_test.dart
         final testFileNames = [
           'auth_test.dart',
           'order_test.dart',
@@ -1999,7 +2003,8 @@ void main() {
 
         await IOOverrides.runZoned(
           () async {
-            // Run shard 0 (should get indices 0, 2 -> auth_test.dart, product_test.dart)
+            // Run shard 0
+            // Should get indices 0, 2 -> auth_test.dart, product_test.dart
             await cmdRunner.run([
               'optimize-tests',
               '--${OptimizeTestsCommand.totalShardsOptionName}=2',
@@ -2046,7 +2051,8 @@ void main() {
               reason: 'Shard 0 should NOT import user_test.dart',
             );
 
-            // Run shard 1 (should get indices 1, 3 -> order_test.dart, user_test.dart)
+            // Run shard 1
+            // Should get indices 1, 3 -> order_test.dart, user_test.dart
             await cmdRunner.run([
               'optimize-tests',
               '--${OptimizeTestsCommand.totalShardsOptionName}=2',
