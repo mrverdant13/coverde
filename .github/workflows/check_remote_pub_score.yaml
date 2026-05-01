@@ -3,7 +3,7 @@ name: Check remote Pub.dev score for Coverde CLI
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 concurrency:
   cancel-in-progress: true
@@ -19,7 +19,7 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install melos
-        run: dart pub global activate melos 7.3.0
+        run: dart pub global activate melos 7.5.1
       - name: Initialize melos
         run: melos bs
       - name: Install dependencies
@@ -31,7 +31,8 @@ jobs:
           melos run pub-score.remote
           echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
       - name: Set step summary
-        run: echo "$(cat packages/coverde_cli/.dart_tool/remote_pub_score.md)" >> $GITHUB_STEP_SUMMARY
+        run: echo "$(cat packages/coverde_cli/.dart_tool/remote_pub_score.md)" >>
+          $GITHUB_STEP_SUMMARY
       - name: Create or update issue
         run: |
           issueNumber=$(\
