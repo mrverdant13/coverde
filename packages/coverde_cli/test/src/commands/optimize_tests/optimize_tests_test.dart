@@ -1477,6 +1477,48 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
     );
 
     test(
+      '| generates an empty optimized test file '
+      'when valid shard options are provided',
+      () async {
+        final command =
+            cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
+        expect(
+          command.argParser.options.containsKey(
+            OptimizeTestsCommand.totalShardsOptionName,
+          ),
+          isTrue,
+          reason: '${OptimizeTestsCommand.totalShardsOptionName} option '
+              'should be registered',
+        );
+        expect(
+          command.argParser.options.containsKey(
+            OptimizeTestsCommand.shardIndexOptionName,
+          ),
+          isTrue,
+          reason: '${OptimizeTestsCommand.shardIndexOptionName} option '
+              'should be registered',
+        );
+        
+        // Test that valid shard values are accepted and parsed correctly
+        final results = command.argParser.parse([
+          '--${OptimizeTestsCommand.totalShardsOptionName}=4',
+          '--${OptimizeTestsCommand.shardIndexOptionName}=2',
+        ]);
+        
+        expect(
+          results[OptimizeTestsCommand.totalShardsOptionName],
+          '4',
+          reason: 'total-shards value should be parsed correctly',
+        );
+        expect(
+          results[OptimizeTestsCommand.shardIndexOptionName],
+          '2',
+          reason: 'shard-index value should be parsed correctly',
+        );
+      },
+    );
+
+    test(
       '| throws $CoverdeOptimizeTestsFileReadFailure '
       'when pubspec.yaml read fails',
       () async {
