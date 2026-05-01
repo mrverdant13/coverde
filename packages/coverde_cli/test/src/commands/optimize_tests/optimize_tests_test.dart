@@ -1480,40 +1480,58 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
       '| generates an empty optimized test file '
       'when valid shard options are provided',
       () async {
-        final command =
-            cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
-        expect(
-          command.argParser.options.containsKey(
-            OptimizeTestsCommand.totalShardsOptionName,
-          ),
-          isTrue,
-          reason: '${OptimizeTestsCommand.totalShardsOptionName} option '
-              'should be registered',
-        );
-        expect(
-          command.argParser.options.containsKey(
-            OptimizeTestsCommand.shardIndexOptionName,
-          ),
-          isTrue,
-          reason: '${OptimizeTestsCommand.shardIndexOptionName} option '
-              'should be registered',
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        File(pubspecFilePath).writeAsStringSync(
+          '''
+name: test_package
+version: 0.1.0
+
+dev_dependencies:
+  test: ^1.0.0
+''',
         );
 
-        // Test that valid shard values are accepted and parsed correctly
-        final results = command.argParser.parse([
-          '--${OptimizeTestsCommand.totalShardsOptionName}=4',
-          '--${OptimizeTestsCommand.shardIndexOptionName}=2',
-        ]);
+        // Create a test directory with no test files - this will generate an
+        // empty optimized test file
+        Directory(p.join(directory.path, 'test'))..createSync();
 
-        expect(
-          results[OptimizeTestsCommand.totalShardsOptionName],
-          '4',
-          reason: 'total-shards value should be parsed correctly',
-        );
-        expect(
-          results[OptimizeTestsCommand.shardIndexOptionName],
-          '2',
-          reason: 'shard-index value should be parsed correctly',
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'optimize-tests',
+              '--${OptimizeTestsCommand.totalShardsOptionName}=2',
+              '--${OptimizeTestsCommand.shardIndexOptionName}=0',
+              '--${OptimizeTestsCommand.outputOptionName}=test/optimized_test.dart',
+            ]);
+
+            final optimizedFile = File(
+              p.join(directory.path, 'test', 'optimized_test.dart'),
+            );
+            expect(
+              optimizedFile.existsSync(),
+              isTrue,
+              reason: 'Optimized test file should exist even with no tests',
+            );
+
+            final content = optimizedFile.readAsStringSync();
+            expect(
+              content,
+              isNotEmpty,
+              reason: 'Optimized test file should contain boilerplate even with '
+                  'no tests',
+            );
+            // Verify it has the main() entry point but no test groups
+            expect(
+              content,
+              contains('void main() {'),
+              reason: 'Should have main() entry point',
+            );
+          },
+          getCurrentDirectory: () => directory,
         );
       },
     );
