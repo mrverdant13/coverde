@@ -1519,6 +1519,82 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
     );
 
     test(
+      '| parses exclude option when not provided',
+      () {
+        final command =
+            cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
+        
+        // Parse arguments without --exclude option
+        final results = command.argParser.parse([
+          'optimize-tests',
+        ]);
+        
+        // Verify that excludeOptionName is null when not provided
+        expect(
+          results[OptimizeTestsCommand.excludeOptionName],
+          isNull,
+          reason: 'exclude option should be null when not provided',
+        );
+      },
+    );
+
+    test(
+      '| allows output filename starting with a dot',
+      () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        
+        final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
+        File(pubspecFilePath).writeAsStringSync(
+          '''
+name: test_package
+version: 0.1.0
+
+dev_dependencies:
+  test: ^1.0.0
+''',
+        );
+        
+        final testDir = Directory(p.join(directory.path, 'test'));
+        testDir.createSync();
+        
+        final testFile = File(p.join(testDir.path, 'example_test.dart'));
+        testFile.writeAsStringSync(
+          '''
+void main() {
+  test('example', () {
+    expect(true, isTrue);
+  });
+}
+''',
+        );
+
+        await IOOverrides.runZoned(
+          () async {
+            // Run with output path starting with dot
+            await cmdRunner.run([
+              'optimize-tests',
+              '--${OptimizeTestsCommand.outputOptionName}=test/.optimized_test.dart',
+            ]);
+            
+            // Verify that a warning was logged about the dot-prefixed filename
+            verify(
+              () => logger.warn(any(
+                that: isA<String>().having(
+                  (s) => s.contains('Beware that test files starting with a dot'),
+                  'message',
+                  true,
+                ),
+              )),
+            ).called(greaterThan(0));
+          },
+          getCurrentDirectory: () => directory,
+        );
+      },
+    );
+
+    test(
       '| throws $CoverdeOptimizeTestsFileReadFailure '
       'when pubspec.yaml read fails',
       () async {
