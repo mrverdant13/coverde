@@ -1556,11 +1556,9 @@ dev_dependencies:
 ''',
         );
 
-        final testDir = Directory(p.join(directory.path, 'test'));
-        testDir.createSync();
+        final testDir = Directory(p.join(directory.path, 'test'))..createSync();
 
-        final testFile = File(p.join(testDir.path, 'example_test.dart'));
-        testFile.writeAsStringSync(
+        File(p.join(testDir.path, 'example_test.dart')).writeAsStringSync(
           '''
 void main() {
   test('example', () {
@@ -1580,14 +1578,16 @@ void main() {
 
             // Verify that a warning was logged about the dot-prefixed filename
             verify(
-              () => logger.warn(any(
-                that: isA<String>().having(
-                  (s) =>
-                      s.contains('Beware that test files starting with a dot'),
-                  'message',
-                  true,
+              () => logger.warn(
+                any(
+                  that: isA<String>().having(
+                    (s) => s
+                        .contains('Beware that test files starting with a dot'),
+                    'message',
+                    true,
+                  ),
                 ),
-              )),
+              ),
             ).called(greaterThan(0));
           },
           getCurrentDirectory: () => directory,
@@ -1975,13 +1975,11 @@ dev_dependencies:
 ''',
         );
 
-        final testDir = Directory(p.join(directory.path, 'test'));
-        testDir.createSync();
+        final testDir = Directory(p.join(directory.path, 'test'))..createSync();
 
         // Create multiple test files to ensure sharding filters them
-        for (int i = 0; i < 4; i++) {
-          final testFile = File(p.join(testDir.path, 'test_$i.dart'));
-          testFile.writeAsStringSync(
+        for (var i = 0; i < 4; i++) {
+          File(p.join(testDir.path, 'test_$i.dart')).writeAsStringSync(
             '''
 void main() {
   test('test $i', () {
