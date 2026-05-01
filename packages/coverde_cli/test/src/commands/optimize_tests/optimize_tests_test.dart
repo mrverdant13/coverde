@@ -1523,12 +1523,12 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
       () {
         final command =
             cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
-        
+
         // Parse arguments without --exclude option
         final results = command.argParser.parse([
           'optimize-tests',
         ]);
-        
+
         // Verify that excludeOptionName is null when not provided
         expect(
           results[OptimizeTestsCommand.excludeOptionName],
@@ -1544,7 +1544,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
         final directory =
             Directory.systemTemp.createTempSync('coverde-optimize-tests-test-');
         addTearDown(() => directory.deleteSync(recursive: true));
-        
+
         final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
         File(pubspecFilePath).writeAsStringSync(
           '''
@@ -1555,10 +1555,10 @@ dev_dependencies:
   test: ^1.0.0
 ''',
         );
-        
+
         final testDir = Directory(p.join(directory.path, 'test'));
         testDir.createSync();
-        
+
         final testFile = File(p.join(testDir.path, 'example_test.dart'));
         testFile.writeAsStringSync(
           '''
@@ -1577,12 +1577,13 @@ void main() {
               'optimize-tests',
               '--${OptimizeTestsCommand.outputOptionName}=test/.optimized_test.dart',
             ]);
-            
+
             // Verify that a warning was logged about the dot-prefixed filename
             verify(
               () => logger.warn(any(
                 that: isA<String>().having(
-                  (s) => s.contains('Beware that test files starting with a dot'),
+                  (s) =>
+                      s.contains('Beware that test files starting with a dot'),
                   'message',
                   true,
                 ),
