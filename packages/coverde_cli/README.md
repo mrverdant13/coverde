@@ -286,7 +286,7 @@ Given the following test files (sorted alphabetically):
 - `test/product_test.dart` (index 2)
 - `test/user_test.dart` (index 3)
 
-Tests are distributed using round-robin assignment by index: `index % total_shards == shard_index`.
+Tests are distributed using round-robin assignment by index: `index % <total shards> == <shard index>`.
 
 To run shard 0 (gets indices 0 and 2):
 
@@ -378,7 +378,7 @@ $ coverde optimize-tests --total-shards=3 --shard-index=2 --output=test/optimize
 **Notes:**
 - Shard indices are 0-based (start from 0)
 - The `--shard-index` must be less than `--total-shards`
-- Tests are distributed using round-robin by sorted file index
+- Tests are distributed as evenly as possible across shards
 - Both `--total-shards` and `--shard-index` must be provided together; specifying only one will result in an error
 
 

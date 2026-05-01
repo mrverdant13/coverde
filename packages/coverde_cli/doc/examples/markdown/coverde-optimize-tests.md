@@ -195,7 +195,7 @@ Given the following test files (sorted alphabetically):
 - `test/product_test.dart` (index 2)
 - `test/user_test.dart` (index 3)
 
-Tests are distributed using round-robin assignment by index: `index % total_shards == shard_index`.
+Tests are distributed using round-robin assignment by index: `index % <total shards> == <shard index>`.
 
 To run shard 0 (gets indices 0 and 2):
 
