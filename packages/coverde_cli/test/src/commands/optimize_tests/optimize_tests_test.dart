@@ -1525,9 +1525,7 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
 
         // Parse arguments without --exclude option
-        final results = command.argParser.parse([
-          'optimize-tests',
-        ]);
+        final results = command.argParser.parse([]);
 
         // Verify that excludeOptionName is null when not provided
         expect(
@@ -1977,12 +1975,21 @@ dev_dependencies:
 
         final testDir = Directory(p.join(directory.path, 'test'))..createSync();
 
-        // Create multiple test files to ensure sharding filters them
-        for (var i = 0; i < 4; i++) {
-          File(p.join(testDir.path, 'test_$i.dart')).writeAsStringSync(
+        // Create 4 test files with names matching the default include glob
+        // Sorted order: auth_test.dart, order_test.dart, product_test.dart, user_test.dart
+        final testFileNames = [
+          'auth_test.dart',
+          'order_test.dart',
+          'product_test.dart',
+          'user_test.dart',
+        ];
+        for (var i = 0; i < testFileNames.length; i++) {
+          File(p.join(testDir.path, testFileNames[i])).writeAsStringSync(
             '''
+import 'package:test/test.dart';
+
 void main() {
-  test('test $i', () {
+  test('test from ${testFileNames[i]}', () {
     expect(true, isTrue);
   });
 }
@@ -1992,6 +1999,7 @@ void main() {
 
         await IOOverrides.runZoned(
           () async {
+            // Run shard 0 (should get indices 0, 2 -> auth_test.dart, product_test.dart)
             await cmdRunner.run([
               'optimize-tests',
               '--${OptimizeTestsCommand.totalShardsOptionName}=2',
@@ -1999,19 +2007,90 @@ void main() {
               '--${OptimizeTestsCommand.outputOptionName}=test/optimized_test_shard_0.dart',
             ]);
 
-            final optimizedFile =
+            final optimizedFile0 =
                 File(p.join(testDir.path, 'optimized_test_shard_0.dart'));
             expect(
-              optimizedFile.existsSync(),
+              optimizedFile0.existsSync(),
               isTrue,
               reason: 'Optimized test file should exist',
             );
 
-            final content = optimizedFile.readAsStringSync();
+            final content0 = optimizedFile0.readAsStringSync();
             expect(
-              content,
+              content0,
               isNotEmpty,
               reason: 'Optimized test file should contain content',
+            );
+
+            // Verify shard 0 contains expected imports
+            expect(
+              content0,
+              contains("import 'auth_test.dart'"),
+              reason: 'Shard 0 should import auth_test.dart',
+            );
+            expect(
+              content0,
+              contains("import 'product_test.dart'"),
+              reason: 'Shard 0 should import product_test.dart',
+            );
+
+            // Verify shard 0 does NOT contain unexpected imports
+            expect(
+              content0,
+              isNot(contains("import 'order_test.dart'")),
+              reason: 'Shard 0 should NOT import order_test.dart',
+            );
+            expect(
+              content0,
+              isNot(contains("import 'user_test.dart'")),
+              reason: 'Shard 0 should NOT import user_test.dart',
+            );
+
+            // Run shard 1 (should get indices 1, 3 -> order_test.dart, user_test.dart)
+            await cmdRunner.run([
+              'optimize-tests',
+              '--${OptimizeTestsCommand.totalShardsOptionName}=2',
+              '--${OptimizeTestsCommand.shardIndexOptionName}=1',
+              '--${OptimizeTestsCommand.outputOptionName}=test/optimized_test_shard_1.dart',
+            ]);
+
+            final optimizedFile1 =
+                File(p.join(testDir.path, 'optimized_test_shard_1.dart'));
+            expect(
+              optimizedFile1.existsSync(),
+              isTrue,
+              reason: 'Optimized test file should exist for shard 1',
+            );
+
+            final content1 = optimizedFile1.readAsStringSync();
+            expect(
+              content1,
+              isNotEmpty,
+              reason: 'Optimized test file should contain content for shard 1',
+            );
+
+            // Verify shard 1 contains expected imports
+            expect(
+              content1,
+              contains("import 'order_test.dart'"),
+              reason: 'Shard 1 should import order_test.dart',
+            );
+            expect(
+              content1,
+              contains("import 'user_test.dart'"),
+              reason: 'Shard 1 should import user_test.dart',
+            );
+
+            // Verify shard 1 does NOT contain unexpected imports
+            expect(
+              content1,
+              isNot(contains("import 'auth_test.dart'")),
+              reason: 'Shard 1 should NOT import auth_test.dart',
+            );
+            expect(
+              content1,
+              isNot(contains("import 'product_test.dart'")),
+              reason: 'Shard 1 should NOT import product_test.dart',
             );
           },
           getCurrentDirectory: () => directory,
