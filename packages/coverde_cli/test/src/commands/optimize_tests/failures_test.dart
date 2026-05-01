@@ -529,6 +529,85 @@ Usage message
       );
     });
 
+    group('$CoverdeOptimizeTestsInvalidTotalShardsFailure', () {
+      test(
+        'readableMessage '
+        '| returns formatted message when total-shards is 0',
+        () {
+          final failure = CoverdeOptimizeTestsInvalidTotalShardsFailure(
+            usageMessage: 'Usage message',
+            totalShards: 0,
+          );
+
+          final result = failure.readableMessage;
+
+          expect(
+            result,
+            '''
+total-shards=0 is invalid. Total shards must be greater than 0.
+
+Usage message
+''',
+          );
+        },
+      );
+
+      test(
+        'readableMessage '
+        '| returns formatted message when total-shards is negative',
+        () {
+          final failure = CoverdeOptimizeTestsInvalidTotalShardsFailure(
+            usageMessage: 'Usage message',
+            totalShards: -5,
+          );
+
+          final result = failure.readableMessage;
+
+          expect(
+            result,
+            '''
+total-shards=-5 is invalid. Total shards must be greater than 0.
+
+Usage message
+''',
+          );
+        },
+      );
+
+      test(
+        'totalShards '
+        '| returns the total number of shards',
+        () {
+          final failure = CoverdeOptimizeTestsInvalidTotalShardsFailure(
+            usageMessage: 'Usage message',
+            totalShards: 0,
+          );
+
+          final result = failure.totalShards;
+
+          expect(result, 0);
+        },
+      );
+
+      test(
+        'invalidInputDescription '
+        '| returns the invalid input description',
+        () {
+          final failure = CoverdeOptimizeTestsInvalidTotalShardsFailure(
+            usageMessage: 'Usage message',
+            totalShards: -3,
+          );
+
+          final result = failure.invalidInputDescription;
+
+          expect(
+            result,
+            'total-shards=-3 is invalid. Total shards must be greater than 0.',
+          );
+        },
+      );
+    });
+
     group('$CoverdeOptimizeTestsShardIndexOutOfRangeFailure', () {
       test(
         'readableMessage '
