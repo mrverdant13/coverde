@@ -1538,7 +1538,7 @@ dev_dependencies:
     );
 
     test(
-      '| parses exclude option when not provided',
+      '| defaults exclude option to null when not provided',
       () {
         final command =
             cmdRunner.commands['optimize-tests']! as OptimizeTestsCommand;
