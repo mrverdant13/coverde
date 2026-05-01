@@ -38,12 +38,12 @@ class OptimizeTestsCommand extends CoverdeCommand {
       ..addOption(
         totalShardsOptionName,
         help: 'The total number of shards to split tests across. '
-            'Requires --shard-index to also be specified.',
+            'Requires `--$shardIndexOptionName` to also be specified.',
       )
       ..addOption(
         shardIndexOptionName,
         help: 'The index of the current shard (0-based). '
-            'Requires --total-shards to also be specified.',
+            'Requires `--$totalShardsOptionName` to also be specified.',
       )
       ..addFlag(
         useFlutterGoldenTestsFlagName,
