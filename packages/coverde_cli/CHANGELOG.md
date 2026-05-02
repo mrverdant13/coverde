@@ -1,13 +1,12 @@
 ## UNRELEASED
 
-- **FEAT**: add `transform` command (#276).
-- **FEAT**: support transformation presets in `coverde.yaml` to be used in `transform` command (#278).
-- **CHORE**: deprecate `filter` command in favor of `transform` command (#280).
-
 ## 0.4.0
 
 - **BREAKING FEAT**: require analyzer v11+ (#263).
 - **FEAT**: add test sharding support with `--total-shards` and `--shard-index` options to `optimize-tests` command (#303).
+- **FEAT**: add `transform` command (#276).
+- **FEAT**: support transformation presets in `coverde.yaml` to be used in `transform` command (#278).
+- **CHORE**: deprecate `filter` command in favor of `transform` command (#280).
 
 ## 0.3.0+1
 
