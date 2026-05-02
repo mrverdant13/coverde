@@ -974,7 +974,7 @@ Merge coverage trace files from all packages into a unified trace file:
 coverage.merge:
   description: Merge all packages coverage trace files
   run: >
-    dart run coverde rm
+    dart run coverde remove
     --no-dry-run
     MELOS_ROOT_PATH/coverage/filtered.lcov.info
     &&
