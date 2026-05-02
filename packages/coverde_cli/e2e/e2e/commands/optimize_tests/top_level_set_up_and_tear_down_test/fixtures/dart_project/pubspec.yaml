@@ -6,6 +6,4 @@ environment:
   sdk: ^3.0.0
 
 dev_dependencies:
-  coverde:
-    path: ../../../../../../../
   test: ^1.26.3
