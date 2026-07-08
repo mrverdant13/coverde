@@ -43,7 +43,7 @@ dependencies:
   yaml: ^3.1.3
 
 dev_dependencies:
-  build: ^4.0.6
+  build: ^4.0.7
   build_config: ^1.3.0
   build_runner: ^2.15.0
   build_verify: ^3.1.1
