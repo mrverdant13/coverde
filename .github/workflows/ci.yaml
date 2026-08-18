@@ -19,7 +19,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Check spelling
-        uses: streetsidesoftware/cspell-action@v8
+        uses: streetsidesoftware/cspell-action@v9
         with:
           config: ./.cspell/cspell.yaml
       - name: Install dart
