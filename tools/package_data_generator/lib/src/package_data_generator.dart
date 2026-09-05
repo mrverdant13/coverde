@@ -22,14 +22,20 @@ class PackageDataBuilder implements Builder {
     if (assetId != origin) return;
     final assetContent = await buildStep.readAsString(origin);
     final pubspec = Pubspec.parse(assetContent, sourceUrl: origin.uri);
-    final packageName = pubspec.name;
-    final buff = StringBuffer()
-      ..writeln('// ! GENERATED CODE - DO NOT MODIFY BY HAND !')
-      ..writeln()
-      ..writeln('/// Package name.')
-      ..writeln("const packageName = '$packageName';");
+    final version = pubspec.version;
+    if (version == null) {
+      throw Exception(
+        'The `version` field is required in ${origin.path}.',
+      );
+    }
     final outputId = buildStep.allowedOutputs.single;
-    await buildStep.writeAsString(outputId, buff.toString());
+    await buildStep.writeAsString(
+      outputId,
+      generatePackageDataSource(
+        packageName: pubspec.name,
+        packageVersion: version.toString(),
+      ),
+    );
   }
 }
 
@@ -48,4 +54,20 @@ Builder packageDataBuilder(BuilderOptions options) {
   return PackageDataBuilder(
     output: output,
   );
+}
+
+/// Generates the Dart source written by [PackageDataBuilder].
+String generatePackageDataSource({
+  required String packageName,
+  required String packageVersion,
+}) {
+  return '''
+// ! GENERATED CODE - DO NOT MODIFY BY HAND !
+
+/// Package name.
+const packageName = '$packageName';
+
+/// Package version.
+const packageVersion = '$packageVersion';
+''';
 }
