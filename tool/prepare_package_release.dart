@@ -316,8 +316,6 @@ List<ConventionalCommit> filterConventionalCommits({
   return filtered;
 }
 
-const _devPrereleaseId = 'dev';
-
 final _breakingChangeFooterPattern = RegExp(
   'BREAKING CHANGE:',
   caseSensitive: false,
@@ -329,23 +327,6 @@ enum ExplicitVersionBump {
   patch,
   minor,
   major,
-}
-
-/// Returns `true` when [version] uses the v1 `-dev.N` prerelease format.
-bool isDevPrereleaseVersion(Version version) {
-  if (version.preRelease.isEmpty) {
-    return false;
-  }
-  if (version.preRelease.length != 2) {
-    return false;
-  }
-  if (version.preRelease.first != _devPrereleaseId) {
-    return false;
-  }
-  final buildPart = version.preRelease[1];
-  final buildNumber =
-      buildPart is int ? buildPart : int.tryParse(buildPart as String);
-  return buildNumber != null && buildNumber > 0;
 }
 
 /// Parses [versionText] as any valid semver version.

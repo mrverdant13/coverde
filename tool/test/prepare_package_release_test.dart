@@ -771,20 +771,6 @@ issue_tracker: https://github.com/example/clay/issues
     });
   });
 
-  group('isDevPrereleaseVersion', () {
-    test('accepts -dev.N versions', () {
-      expect(isDevPrereleaseVersion(Version.parse('0.0.1-dev.2')), isTrue);
-      expect(isDevPrereleaseVersion(Version.parse('1.2.3-dev.99')), isTrue);
-    });
-
-    test('rejects stable and non-dev prereleases', () {
-      expect(isDevPrereleaseVersion(Version.parse('1.0.0')), isFalse);
-      expect(isDevPrereleaseVersion(Version.parse('0.1.0')), isFalse);
-      expect(isDevPrereleaseVersion(Version.parse('1.0.0-beta.1')), isFalse);
-      expect(isDevPrereleaseVersion(Version.parse('0.0.1-dev')), isFalse);
-    });
-  });
-
   group('parseSemverVersionText', () {
     test('parses stable, build, and prerelease versions', () {
       expect(
