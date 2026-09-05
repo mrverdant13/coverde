@@ -789,8 +789,8 @@ enum ReleaseSafetyFailure {
       failure: ReleaseSafetyFailure.pubspecAheadOfTag,
       errorMessage:
           'Package version $currentVersion is ahead of latest release '
-          'tag $latestTag ($latestTagVersion). '
-          'Expected tag for current version: $expectedTag.',
+              'tag $latestTag ($latestTagVersion). '
+              'Expected tag for current version: $expectedTag.',
     );
   }
 
@@ -799,8 +799,8 @@ enum ReleaseSafetyFailure {
     failure: ReleaseSafetyFailure.pubspecBehindTag,
     errorMessage:
         'Package version $currentVersion is behind latest release tag '
-        '$latestTag ($latestTagVersion). Update pubspec version to match the '
-        'latest tag or pass --allow-unsafe-bump for local recovery.',
+            '$latestTag ($latestTagVersion). Update pubspec version to match '
+            'the latest tag or pass --allow-unsafe-bump for local recovery.',
   );
 }
 
