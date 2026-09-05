@@ -109,11 +109,11 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
 ### Release runbook
 
 1. **Prepare commits on `main`.** Merged work should use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) with scope `coverde-cli` so the prepare tool can include them.
-2. **Prepare the release.** Run **Actions → Prepare Dart package release** and choose `coverde`. The workflow runs `MELOS_PACKAGES=coverde melos run release.prepare`, which invokes [`tool/prepare_package_release.dart`](tool/prepare_package_release.dart) in auto-bump mode, prepends a changelog from `coverde-cli`-scoped commits since the latest `coverde-v*` tag, regenerates `package_data.dart`, then commits those files. It pushes `coverde/chore/release-<version>` and opens a PR titled `chore(coverde): release <version>`.
+2. **Prepare the release.** Run **Actions → Prepare Dart package release** and choose `coverde`. The workflow runs `MELOS_PACKAGES=coverde melos run release.prepare`, which invokes [`tool/prepare_package_release/prepare_package_release.dart`](tool/prepare_package_release/prepare_package_release.dart) in auto-bump mode, prepends a changelog from `coverde-cli`-scoped commits since the latest `coverde-v*` tag, regenerates `package_data.dart`, then commits those files. It pushes `coverde/chore/release-<version>` and opens a PR titled `chore(coverde): release <version>`.
    - **Local writes:** `MELOS_PACKAGES=coverde melos run release.prepare`
    - **Local preview (dry-run):**
      ```bash
-     dart run tool/prepare_package_release.dart \
+     dart run tool/prepare_package_release/prepare_package_release.dart \
        --cwd packages/coverde_cli \
        --tag-format '{name}-v{version}' \
        --scopes coverde-cli \
@@ -122,7 +122,7 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
 3. **Review the release PR.** Confirm version, changelog, and generated `packageVersion`.
 4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs scoped `release.check`.
 5. **Merge the release PR** into `main`. [Release tag on merge](.github/workflows/release-tag.yaml) pushes `coverde-v<version>`.
-6. **Publish to pub.dev.** Run **Actions → Publish Dart package**, choose **Use workflow from: Tags**, select `coverde-v<version>`, set `dry_run: false`, and approve `pub-dev-publish`. The workflow publishes via OIDC and polls pub.dev ([`tool/wait_for_pub_dev_version.dart`](tool/wait_for_pub_dev_version.dart)).
+6. **Publish to pub.dev.** Run **Actions → Publish Dart package**, choose **Use workflow from: Tags**, select `coverde-v<version>`, set `dry_run: false`, and approve `pub-dev-publish`. The workflow publishes via OIDC and polls pub.dev ([`tool/wait_for_pub_dev_version/wait_for_pub_dev_version.dart`](tool/wait_for_pub_dev_version/wait_for_pub_dev_version.dart)).
    - **Failure recovery:** If publish or the poll fails, the workflow deletes the tag. Recreate it with **Release tag on merge** (`workflow_dispatch` on `main`), then dispatch publish again.
    - **Pre-publish gate:** Dispatch the same workflow with `dry_run: true` to run `release.check` only.
 

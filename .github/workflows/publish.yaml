@@ -141,7 +141,7 @@ jobs:
         working-directory: packages/coverde_cli
         run: |
           version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
-          dart run ../../tool/wait_for_pub_dev_version.dart \
+          dart run ../../tool/wait_for_pub_dev_version/wait_for_pub_dev_version.dart \
             --package ${{ inputs.package }} \
             --version "$version"
       - name: Delete release tag on failure

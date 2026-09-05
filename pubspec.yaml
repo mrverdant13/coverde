@@ -193,7 +193,7 @@ melos:
         Bump version and changelog for a single package release. Set
         MELOS_PACKAGES=<package> to scope to one package.
       run: >
-        dart run MELOS_ROOT_PATH/tool/prepare_package_release.dart
+        dart run MELOS_ROOT_PATH/tool/prepare_package_release/prepare_package_release.dart
         --cwd "MELOS_PACKAGE_PATH"
         --tag-format '{name}-v{version}'
         --scopes coverde-cli

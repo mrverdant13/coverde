@@ -105,6 +105,6 @@ jobs:
           Automated version bump for \`${package}\` via the **Prepare Dart package release** workflow.
 
           - Entry point: \`MELOS_PACKAGES=${package} melos run release.prepare\`
-          - Version bump: \`tool/prepare_package_release.dart\` auto-bump from scoped conventional commits
+          - Version bump: \`tool/prepare_package_release/prepare_package_release.dart\` auto-bump from scoped conventional commits
           - Changelog: commits scoped \`coverde-cli\` since the latest \`coverde-v<version>\` tag
           EOF

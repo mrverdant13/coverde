@@ -32,19 +32,25 @@ jobs:
         run: melos run format.ci && melos run analyze.ci
 
   release-tools:
-    name: Test release tools
+    name: Test release tools (${{ matrix.package }})
     runs-on: ubuntu-latest
     needs: min-conditions
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - tool/prepare_package_release
+          - tool/wait_for_pub_dev_version
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install dependencies
-        working-directory: tool
+        working-directory: ${{ matrix.package }}
         run: dart pub get
       - name: Format, analyze, and test
-        working-directory: tool
+        working-directory: ${{ matrix.package }}
         run: >
           dart format --set-exit-if-changed . &&
           dart analyze --fatal-infos --fatal-warnings . &&
