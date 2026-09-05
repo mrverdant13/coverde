@@ -1,4 +1,4 @@
-name: coverde_tooling
+name: prepare_package_release
 publish_to: none
 
 environment:

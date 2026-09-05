@@ -1206,7 +1206,10 @@ ArgParser buildPrepareReleaseArgParser() {
 
 void printPrepareReleaseUsage() {
   stdout
-    ..writeln('Usage: dart run tool/prepare_package_release.dart [options]')
+    ..writeln(
+      'Usage: dart run tool/prepare_package_release/prepare_package_release.dart '
+      '[options]',
+    )
     ..writeln()
     ..writeln(buildPrepareReleaseArgParser().usage);
 }
