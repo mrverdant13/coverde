@@ -1,6 +1,6 @@
 ## 0.4.1
 
-- **FEAT**: add wider support for analyzer package v12-v14.
+- **FEAT**: add wider support for analyzer package v12-v14 (#320).
 
 ## 0.4.0
 
