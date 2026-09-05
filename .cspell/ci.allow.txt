@@ -1,5 +1,7 @@
 # Allowed words for CI files
 codecov
+mapfile
 mrverdant13
+pipefail
 subosito
 webp

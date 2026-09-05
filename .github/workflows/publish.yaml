@@ -1,0 +1,154 @@
+# Manual pub.dev publish for coverde (OIDC via setup-dart).
+# Trigger via Actions → Publish Dart package.
+#
+# Two-step flow:
+# 1. Merge the release PR — release-tag.yaml pushes coverde-v<version> on the merge commit.
+# 2. Dispatch this workflow on that tag ref with dry_run: false (Use workflow from: Tags).
+#    OIDC auth succeeds on tag refs; publish runs and pub.dev is polled.
+#    On failure, the release tag is deleted so unpublished versions are not permanently tagged.
+#
+# dry_run: true (default) runs release.check only — dispatch from main or a tag ref.
+# dry_run: false publishes via OIDC — must dispatch on the matching release tag ref.
+name: Publish Dart package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to publish
+        required: true
+        type: choice
+        options:
+          - coverde
+      dry_run:
+        description: Pre-publish gate only via release.check (no pub.dev publish)
+        required: true
+        type: boolean
+        default: true
+
+concurrency:
+  cancel-in-progress: false
+  group: publish-${{ inputs.package }}
+
+jobs:
+  check:
+    name: Pre-publish checks (${{ inputs.package }})
+    runs-on: ubuntu-latest
+    env:
+      MELOS_PACKAGES: ${{ inputs.package }}
+      PACKAGE_DIR: packages/coverde_cli
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Require release tag ref for live publish
+        if: inputs.dry_run == false
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.ref_type }}" != "tag" ]]; then
+            echo "::error::Live publish must be dispatched on the release tag ref, not a branch. Merge the release PR, wait for the release-tag workflow to finish, then re-run this workflow and select tag \`${PACKAGE}-v<version>\` (Use workflow from: Tags)."
+            exit 1
+          fi
+          version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          expected_tag="${PACKAGE}-v${version}"
+          if [[ "${{ github.ref_name }}" != "$expected_tag" ]]; then
+            echo "::error::Selected tag ref \`${{ github.ref_name }}\` does not match \`${expected_tag}\` from ${{ env.PACKAGE_DIR }}/pubspec.yaml."
+            exit 1
+          fi
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: melos 7.5.1
+      - name: Bootstrap workspace
+        run: melos bs
+      - name: Run pre-publish gate
+        run: melos run release.check
+
+  publish:
+    name: Publish (${{ inputs.package }})
+    needs: check
+    if: inputs.dry_run == false
+    runs-on: ubuntu-latest
+    environment: pub-dev-publish
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      PACKAGE_DIR: packages/coverde_cli
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Require release tag ref for live publish
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.ref_type }}" != "tag" ]]; then
+            echo "::error::Live publish must be dispatched on the release tag ref, not a branch. Merge the release PR, wait for the release-tag workflow to finish, then re-run this workflow and select tag \`${PACKAGE}-v<version>\` (Use workflow from: Tags)."
+            exit 1
+          fi
+          version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          expected_tag="${PACKAGE}-v${version}"
+          if [[ "${{ github.ref_name }}" != "$expected_tag" ]]; then
+            echo "::error::Selected tag ref \`${{ github.ref_name }}\` does not match \`${expected_tag}\` from ${{ env.PACKAGE_DIR }}/pubspec.yaml."
+            exit 1
+          fi
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: melos 7.5.1
+      - name: Bootstrap workspace
+        run: melos bs
+      - name: Verify release tag on HEAD
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          expected_tag="${PACKAGE}-v${version}"
+          tag_ref="refs/tags/${expected_tag}"
+
+          if ! git rev-parse --verify "$tag_ref" >/dev/null 2>&1; then
+            echo "::error::Release tag ${expected_tag} is missing on this checkout."
+            exit 1
+          fi
+
+          tag_type=$(git cat-file -t "$tag_ref")
+          if [[ "$tag_type" != "tag" ]]; then
+            echo "::error::Release tag ${expected_tag} exists but is not annotated."
+            exit 1
+          fi
+
+          head_commit=$(git rev-parse HEAD)
+          tag_commit=$(git rev-list -n 1 "$expected_tag")
+          if [[ "$tag_commit" != "$head_commit" ]]; then
+            echo "::error::Release tag ${expected_tag} points at ${tag_commit} but HEAD is ${head_commit}."
+            exit 1
+          fi
+
+          echo "Verified annotated tag ${expected_tag} on HEAD."
+      - name: Publish to pub.dev
+        working-directory: packages/coverde_cli
+        run: dart pub publish --force
+      - name: Wait for pub.dev to list the published version
+        working-directory: packages/coverde_cli
+        run: |
+          version=$(grep '^version:' pubspec.yaml | awk '{print $2}')
+          dart run ../../tool/wait_for_pub_dev_version.dart \
+            --package ${{ inputs.package }} \
+            --version "$version"
+      - name: Delete release tag on failure
+        if: failure()
+        env:
+          PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+          version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          git push --delete origin "${PACKAGE}-v${version}"

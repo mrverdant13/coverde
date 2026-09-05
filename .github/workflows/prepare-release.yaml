@@ -1,0 +1,110 @@
+# Opens a version-bump release PR for coverde via workflow_dispatch.
+# Runs melos release.prepare, pushes coverde/chore/release-<version>, and opens a PR.
+# Does not publish to pub.dev or create git tags.
+name: Prepare Dart package release
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to prepare for release
+        required: true
+        type: choice
+        options:
+          - coverde
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  cancel-in-progress: false
+  group: prepare-release-${{ inputs.package }}
+
+jobs:
+  prepare:
+    name: Prepare release (${{ inputs.package }})
+    runs-on: ubuntu-latest
+    env:
+      PACKAGE_DIR: packages/coverde_cli
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install melos
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: melos 7.5.1
+
+      - name: Bootstrap workspace
+        run: melos bs
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version and changelog
+        run: MELOS_PACKAGES=${{ inputs.package }} melos run release.prepare
+
+      - name: Read release version
+        id: version
+        run: |
+          set -euo pipefail
+          version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          if [[ -z "$version" ]]; then
+            echo "::error::Could not read version from ${{ env.PACKAGE_DIR }}/pubspec.yaml"
+            exit 1
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "branch=${{ inputs.package }}/chore/release-${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Commit release changes
+        run: |
+          set -euo pipefail
+          package="${{ inputs.package }}"
+          version="${{ steps.version.outputs.value }}"
+
+          git add \
+            "${{ env.PACKAGE_DIR }}/pubspec.yaml" \
+            "${{ env.PACKAGE_DIR }}/CHANGELOG.md" \
+            "${{ env.PACKAGE_DIR }}/lib/src/utils/package_data.dart"
+
+          if git diff --cached --quiet; then
+            echo "::error::No release changes to commit for ${package}."
+            exit 1
+          fi
+
+          git commit -m "chore(${package}): release ${version}"
+
+      - name: Push release branch and open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="${{ steps.version.outputs.branch }}"
+          version="${{ steps.version.outputs.value }}"
+          package="${{ inputs.package }}"
+
+          git checkout -b "$branch"
+          git push --set-upstream origin "$branch"
+
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "chore(${package}): release ${version}" \
+            --body-file - <<EOF
+          ## Release PR
+
+          Automated version bump for \`${package}\` via the **Prepare Dart package release** workflow.
+
+          - Entry point: \`MELOS_PACKAGES=${package} melos run release.prepare\`
+          - Version bump: \`tool/prepare_package_release.dart\` auto-bump from scoped conventional commits
+          - Changelog: commits scoped \`coverde-cli\` since the latest \`coverde-v<version>\` tag
+          EOF

@@ -31,6 +31,25 @@ jobs:
       - name: Format and analyze
         run: melos run format.ci && melos run analyze.ci
 
+  release-tools:
+    name: Test release tools
+    runs-on: ubuntu-latest
+    needs: min-conditions
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install dependencies
+        working-directory: tool
+        run: dart pub get
+      - name: Format, analyze, and test
+        working-directory: tool
+        run: >
+          dart format --set-exit-if-changed . &&
+          dart analyze --fatal-infos --fatal-warnings . &&
+          dart test
+
   src-gen:
     name: Ensure up-to-date source generation
     runs-on: ubuntu-latest

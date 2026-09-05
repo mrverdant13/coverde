@@ -1,0 +1,147 @@
+# Runs MELOS_PACKAGES-scoped release.check on Dart package release pull requests.
+name: Dart release PR check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - packages/coverde_cli/pubspec.yaml
+      - packages/coverde_cli/CHANGELOG.md
+
+jobs:
+  parse-title:
+    name: Parse release PR title
+    runs-on: ubuntu-latest
+    outputs:
+      matched: ${{ steps.parse.outputs.matched }}
+      package: ${{ steps.parse.outputs.package }}
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Identify package and version from PR title
+        id: parse
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -euo pipefail
+
+          pattern='^chore\(([^)]+)\): release (.+)$'
+          if [[ "$PR_TITLE" =~ $pattern ]]; then
+            echo "matched=true" >> "$GITHUB_OUTPUT"
+            echo "package=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+            echo "version=${BASH_REMATCH[2]}" >> "$GITHUB_OUTPUT"
+          else
+            echo "matched=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  resolve-package:
+    name: Resolve release package
+    needs: parse-title
+    if: needs.parse-title.outputs.matched == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: melos 7.5.1
+      - name: Bootstrap workspace
+        run: melos bs
+      - name: Verify release manifest changes match title
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          TITLE_PACKAGE: ${{ needs.parse-title.outputs.package }}
+          TITLE_VERSION: ${{ needs.parse-title.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          expected_branch="${TITLE_PACKAGE}/chore/release-${TITLE_VERSION}"
+          if [[ "$PR_BRANCH" != "$expected_branch" ]]; then
+            echo "::error::Release PR branch must be named '$expected_branch' (got '$PR_BRANCH')."
+            exit 1
+          fi
+
+          mapfile -t publishable_packages < <(melos list --category=publishable)
+
+          is_publishable() {
+            local candidate="$1"
+            for package in "${publishable_packages[@]}"; do
+              if [[ "$package" == "$candidate" ]]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          if ! is_publishable "$TITLE_PACKAGE"; then
+            echo "::error::Unknown publishable package '$TITLE_PACKAGE'. Expected one of: ${publishable_packages[*]}"
+            exit 1
+          fi
+
+          declare -A changed_packages=()
+
+          while IFS= read -r file; do
+            if [[ "$file" == packages/coverde_cli/pubspec.yaml || \
+                  "$file" == packages/coverde_cli/CHANGELOG.md ]]; then
+              if is_publishable "coverde"; then
+                changed_packages["coverde"]=1
+              fi
+            fi
+          done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          if [[ "${#changed_packages[@]}" -eq 0 ]]; then
+            echo "::error::No release manifest changes detected in this pull request."
+            exit 1
+          fi
+
+          if [[ "${#changed_packages[@]}" -gt 1 ]]; then
+            packages_list="$(printf '%s, ' "${!changed_packages[@]}")"
+            packages_list="${packages_list%, }"
+            echo "::error::Release PRs must change exactly one publishable package. Multiple packages were modified: $packages_list. Split into separate release PRs — see CONTRIBUTING.md."
+            exit 1
+          fi
+
+          changed_package="${!changed_packages[@]}"
+
+          if [[ "$changed_package" != "$TITLE_PACKAGE" ]]; then
+            echo "::error::Release manifest changes target $changed_package but the PR title indicates $TITLE_PACKAGE."
+            exit 1
+          fi
+
+  release-check:
+    name: release.check (${{ needs.parse-title.outputs.package }} ${{ needs.parse-title.outputs.version }})
+    needs:
+      - parse-title
+      - resolve-package
+    if: needs.parse-title.outputs.matched == 'true'
+    runs-on: ubuntu-latest
+    env:
+      MELOS_PACKAGES: ${{ needs.parse-title.outputs.package }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install melos
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: melos 7.5.1
+      - name: Bootstrap workspace
+        run: melos bs
+      - name: Run pre-publish gate
+        run: melos run release.check
+      - name: Set step summary
+        if: always()
+        run: |
+          report="packages/coverde_cli/.dart_tool/local_pub_score.md"
+          if [[ -f "$report" ]]; then
+            echo "### ${MELOS_PACKAGES}" >> "$GITHUB_STEP_SUMMARY"
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          fi

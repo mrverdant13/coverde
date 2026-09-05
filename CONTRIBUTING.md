@@ -14,6 +14,13 @@ If you'd like to report a bug or join in the development of `coverde`, then here
   - [Coding Guidelines](#coding-guidelines)
     - [Pre-requisites](#pre-requisites)
     - [Pull Requests](#pull-requests)
+  - [Releasing `coverde`](#releasing-coverde)
+    - [pub.dev automated publishing setup](#pubdev-automated-publishing-setup)
+    - [CI release workflows](#ci-release-workflows)
+    - [Release runbook](#release-runbook)
+    - [How CI scopes `release.check`](#how-ci-scopes-releasecheck)
+    - [Prepare tool flags](#prepare-tool-flags)
+    - [Release tagging](#release-tagging)
 
 ## Reporting bugs and opening issues
 
@@ -50,6 +57,113 @@ For commits, this repo follows the [Conventional Commits Specification][conventi
 - PRs should keep a resultant pub score with the maximum tolerance defined in the [`melos` configuration of the `pubspec.yaml`][_docs_pubspec_file].
 
 To easily check if these conditions are satisfied, you can use a collection of melos scripts defined in the same [`melos` configuration][_docs_pubspec_file].
+
+Keep PRs scoped to **one package** when possible. Repo-root wiring (workflows, Melos scripts, this guide) should not mix with package source changes.
+
+Commit scopes used by release changelog generation:
+
+- `coverde-cli` — the publishable `coverde` package in `packages/coverde_cli/`
+- Tool packages use a `t-` prefix (for example `t-readmes-resolver`)
+
+## Releasing `coverde`
+
+The publishable package is **`coverde`** (directory [`packages/coverde_cli/`](packages/coverde_cli/)). Version is declared in `pubspec.yaml` and generated into `lib/src/utils/package_data.dart` as `packageVersion`.
+
+**Release invariants:**
+
+- **One package per release PR** — a release touches only `packages/coverde_cli/pubspec.yaml`, `CHANGELOG.md`, and `lib/src/utils/package_data.dart`.
+- **Tag before OIDC publish** — merging a release PR pushes annotated tag `coverde-v<version>` on the merge commit via [Release tag on merge](.github/workflows/release-tag.yaml).
+- **Poll after publish** — the publish workflow polls pub.dev until the version appears.
+- **No permanent tag for failed publishes** — if publish or the pub.dev poll fails, the publish workflow deletes the release tag.
+- **Explicit publish opt-in** — live pub.dev publishes require a manual **Publish Dart package** dispatch with `dry_run: false` on the matching tag ref.
+
+### pub.dev automated publishing setup
+
+Live pub.dev publishes use **GitHub OIDC** via [`dart-lang/setup-dart@v1`](https://github.com/dart-lang/setup-dart) — no long-lived publish tokens. Complete this one-time setup on [pub.dev](https://pub.dev/packages/coverde) → **Admin** → **Automated publishing**. See [Dart automated publishing](https://dart.dev/tools/pub/automated-publishing#configuring-automated-publishing-from-github-actions-on-pubdev).
+
+| Package   | pub.dev package | Tag pattern on pub.dev |
+| --------- | --------------- | ---------------------- |
+| `coverde` | `coverde`       | `coverde-v{{version}}` |
+
+1. Enable **Publishing from GitHub Actions**.
+2. Set **Repository** to `mrverdant13/coverde`.
+3. Set **Tag pattern** to `coverde-v{{version}}` (for example `coverde-v0.4.1`), **not** `v{{version}}`.
+4. Enable **Publishing from `workflow_dispatch` events**.
+5. Optionally enable **Require GitHub Actions environment** and name it `pub-dev-publish`.
+
+Create the GitHub environment `pub-dev-publish` with required reviewers. After the first successful OIDC publish, remove any leftover `PUB_CREDENTIALS` secret.
+
+**Baseline tag:** `main` is `0.4.1` but the latest historical tag is `coverde-v0.4.0`. Create annotated tag `coverde-v0.4.1` on the `0.4.1` commit before the first automated prepare, or the safety gate fails (`pubspecAheadOfTag`).
+
+### CI release workflows
+
+Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or publish. Release automation uses four dedicated workflows:
+
+| Workflow | Trigger | Purpose |
+| -------- | ------- | ------- |
+| **[Prepare Dart package release](.github/workflows/prepare-release.yaml)** | `workflow_dispatch` — choose `coverde` | Runs scoped `release.prepare`, pushes `coverde/chore/release-<version>`, and opens a release PR |
+| **[Dart release PR check](.github/workflows/release-pr.yaml)** | Pull request to `main` when release manifests change | Runs `MELOS_PACKAGES`-scoped `release.check` when the PR title and branch match |
+| **[Release tag on merge](.github/workflows/release-tag.yaml)** | Merged release PR to `main`; optional `workflow_dispatch` | Creates annotated tag `coverde-v<version>` on the merge commit |
+| **[Publish Dart package](.github/workflows/publish.yaml)** | `workflow_dispatch` — choose package and `dry_run` | Pre-publish gate (`dry_run: true`) or OIDC live publish (`dry_run: false` on the matching tag ref) |
+
+### Release runbook
+
+1. **Prepare commits on `main`.** Merged work should use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) with scope `coverde-cli` so the prepare tool can include them.
+2. **Prepare the release.** Run **Actions → Prepare Dart package release** and choose `coverde`. The workflow runs `MELOS_PACKAGES=coverde melos run release.prepare`, which invokes [`tool/prepare_package_release.dart`](tool/prepare_package_release.dart) in auto-bump mode, prepends a changelog from `coverde-cli`-scoped commits since the latest `coverde-v*` tag, regenerates `package_data.dart`, then commits those files. It pushes `coverde/chore/release-<version>` and opens a PR titled `chore(coverde): release <version>`.
+   - **Local writes:** `MELOS_PACKAGES=coverde melos run release.prepare`
+   - **Local preview (dry-run):**
+     ```bash
+     dart run tool/prepare_package_release.dart \
+       --cwd packages/coverde_cli \
+       --tag-format '{name}-v{version}' \
+       --scopes coverde-cli \
+       --commit-types feat,fix,docs,refactor,perf,test,build,chore
+     ```
+3. **Review the release PR.** Confirm version, changelog, and generated `packageVersion`.
+4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs scoped `release.check`.
+5. **Merge the release PR** into `main`. [Release tag on merge](.github/workflows/release-tag.yaml) pushes `coverde-v<version>`.
+6. **Publish to pub.dev.** Run **Actions → Publish Dart package**, choose **Use workflow from: Tags**, select `coverde-v<version>`, set `dry_run: false`, and approve `pub-dev-publish`. The workflow publishes via OIDC and polls pub.dev ([`tool/wait_for_pub_dev_version.dart`](tool/wait_for_pub_dev_version.dart)).
+   - **Failure recovery:** If publish or the poll fails, the workflow deletes the tag. Recreate it with **Release tag on merge** (`workflow_dispatch` on `main`), then dispatch publish again.
+   - **Pre-publish gate:** Dispatch the same workflow with `dry_run: true` to run `release.check` only.
+
+Auto-bump rules (stable versions):
+
+- `feat` → minor (`0.4.1` → `0.5.0`)
+- `fix` → patch (`0.4.1` → `0.4.2`)
+- other allowed types only → build (`0.4.1` → `0.4.1+1`)
+- breaking `feat` in `0.x` → minor; once `major >= 1`, breaking `feat` → major
+
+### How CI scopes `release.check`
+
+`release.check` is a composite Melos script. CI sets `MELOS_PACKAGES=coverde` so nested Melos steps scope to that package. Passing `--scope` on the outer command would **not** propagate.
+
+`format.ci` and `analyze.ci` still validate the **whole workspace**. Only Melos `exec` / filtered steps honor `MELOS_PACKAGES`.
+
+### Prepare tool flags
+
+| Flag | Purpose |
+| --- | --- |
+| `--cwd` | Package root (`packages/coverde_cli`). |
+| `--tag-format` | Embedded value: `'{name}-v{version}'` (for example `coverde-v0.4.1`). |
+| `--scopes` | Embedded value: `coverde-cli`. |
+| `--commit-types` | Embedded value: `feat,fix,docs,refactor,perf,test,build,chore`. |
+| *(no `--bump`)* | Auto-bump from scoped commits. |
+| `--bump patch\|minor\|major\|build` | Explicit segment bump (direct tool invocation). |
+| `--version <semver>` | Exact target version. Mutually exclusive with `--bump`. |
+| `--allow-unsafe-bump` | Skip the tag/pubspec equality safety gate. |
+| `--apply` | Write `pubspec.yaml` and prepend `CHANGELOG.md`. Always passed by `release.prepare`. |
+
+### Release tagging
+
+Format:
+
+```
+coverde-v<version>
+```
+
+Examples: `coverde-v0.4.1`, `coverde-v0.4.1+1`. No extra `v` prefix beyond the historical `coverde-v` style.
+
+When a tag is missing on `main`, run **Actions → Release tag on merge** on branch `main` and choose `coverde`.
 
 [_docs_pubspec_file]: https://github.com/mrverdant13/coverde/blob/main/pubspec.yaml
 [conventional_commit_specification_link]: https://www.conventionalcommits.org/en/v1.0.0/
