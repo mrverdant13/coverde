@@ -1,0 +1,107 @@
+{
+  "currentVersion": "0.4.1",
+  "cases": [
+    {
+      "name": "docs-only increments build metadata",
+      "commits": [
+        {
+          "type": "docs",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "document preview commands",
+          "subject": "docs(coverde-cli): document preview commands"
+        }
+      ],
+      "expectedVersion": "0.4.1+1"
+    },
+    {
+      "name": "fix increments patch",
+      "commits": [
+        {
+          "type": "fix",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "resolve relative paths",
+          "subject": "fix(coverde-cli): resolve relative paths"
+        }
+      ],
+      "expectedVersion": "0.4.2"
+    },
+    {
+      "name": "feat increments minor",
+      "commits": [
+        {
+          "type": "feat",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "add preview command",
+          "subject": "feat(coverde-cli): add preview command"
+        }
+      ],
+      "expectedVersion": "0.5.0"
+    },
+    {
+      "name": "0.x breaking feat increments minor",
+      "commits": [
+        {
+          "type": "feat",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "drop legacy flag",
+          "subject": "feat(coverde-cli)!: drop legacy flag",
+          "isBreakingChange": true
+        }
+      ],
+      "expectedVersion": "0.5.0"
+    },
+    {
+      "name": "0.x breaking footer on feat increments minor",
+      "commits": [
+        {
+          "type": "feat",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "reshape preview API",
+          "subject": "feat(coverde-cli): reshape preview API",
+          "body": "BREAKING CHANGE: preview command flags were renamed."
+        }
+      ],
+      "expectedVersion": "0.5.0"
+    },
+    {
+      "name": "feat wins over fix and docs",
+      "commits": [
+        {
+          "type": "docs",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "update readme",
+          "subject": "docs(coverde-cli): update readme"
+        },
+        {
+          "type": "fix",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "resolve paths",
+          "subject": "fix(coverde-cli): resolve paths"
+        },
+        {
+          "type": "feat",
+          "scopes": [
+            "coverde-cli"
+          ],
+          "description": "add preview",
+          "subject": "feat(coverde-cli): add preview"
+        }
+      ],
+      "expectedVersion": "0.5.0"
+    }
+  ]
+}
