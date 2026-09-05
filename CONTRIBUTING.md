@@ -63,7 +63,10 @@ Keep PRs scoped to **one package** when possible. Repo-root wiring (workflows, M
 Commit scopes used by release changelog generation:
 
 - `coverde-cli` — the publishable `coverde` package in `packages/coverde_cli/`
-- Tool packages use a `t-` prefix (for example `t-readmes-resolver`)
+- Tool packages use a `t-` prefix:
+  - `t-readmes-resolver`
+  - `t-prepare-package-release`
+  - `t-wait-for-pub-dev-version`
 
 ## Releasing `coverde`
 
