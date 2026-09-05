@@ -1,3 +1,7 @@
+## 0.4.1
+
+- **FEAT**: add wider support for analyzer package v12-v14.
+
 ## 0.4.0
 
 - **BREAKING FEAT**: require analyzer v11+ (#306).
