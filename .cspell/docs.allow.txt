@@ -1,3 +1,4 @@
 # Allowed words for documentation files
 codecov
 Karlo
+runbook

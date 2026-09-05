@@ -16,6 +16,8 @@ melos:
       - ./tools/**
     e2e:
       - "**/e2e"
+    publishable:
+      - packages/coverde_cli
 
   command:
     bootstrap:
@@ -161,7 +163,8 @@ melos:
       exec:
         concurrency: 1
       packageFilters:
-        scope: coverde
+        category:
+          - publishable
     pub-score.local:
       description: Check pub score for a selected package.
       run: >
@@ -171,7 +174,37 @@ melos:
       exec:
         concurrency: 1
       packageFilters:
-        scope: coverde
+        category:
+          - publishable
+
+    release.check:
+      description: >
+        Pre-publish gate. Set MELOS_PACKAGES=<package> to scope Melos-driven
+        steps to one package; omit for all publishable packages.
+      steps:
+        - format.ci
+        - analyze.ci
+        - test.ci
+        - pub-score.local
+        - melos publish --dry-run --category publishable --yes
+
+    release.prepare:
+      description: >
+        Bump version and changelog for a single package release. Set
+        MELOS_PACKAGES=<package> to scope to one package.
+      run: >
+        dart run MELOS_ROOT_PATH/tool/prepare_package_release/prepare_package_release.dart
+        --cwd "MELOS_PACKAGE_PATH"
+        --tag-format '{name}-v{version}'
+        --scopes coverde-cli
+        --commit-types feat,fix,docs,refactor,perf,test,build,chore
+        --apply
+        &&
+        dart run build_runner build --delete-conflicting-outputs
+      exec: {}
+      packageFilters:
+        category:
+          - publishable
 
     # Documentation
     docs.cli:
