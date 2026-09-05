@@ -11,6 +11,12 @@ dev_dependencies:
     path: tools/pub_score_checker
 
 melos:
+  # dart install AOT binaries cannot resolve package:melos, so bootstrap
+  # crashes while writing IntelliJ templates (getMelosRoot null check).
+  ide:
+    intellij:
+      enabled: false
+
   categories:
     tools:
       - ./tools/**
