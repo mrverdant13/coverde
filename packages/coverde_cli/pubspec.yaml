@@ -58,7 +58,7 @@ dev_dependencies:
     git:
       url: https://github.com/mrverdant13/coverde.git
       path: tools/package_data_generator
-      ref: 95ddc13ebb5ff7540e3eec3b83ccd5c53ae5414b
+      ref: a89c5cbb4a4eb97e316734f15334e50ee1563970
   test: ^1.31.1
   very_good_analysis: ^10.2.0
 
