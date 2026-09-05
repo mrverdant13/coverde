@@ -10,8 +10,29 @@ runs:
     - shell: bash
       run: |
         set -euo pipefail
-        output="$(dart install ${{ inputs.package }})"
-        echo "$output"
-        installed="$(echo "$output" | grep '^Installed:' | sed 's|^Installed: ||')"
-        bin_dir="$(dirname -- "$installed")"
+        dart install ${{ inputs.package }}
+
+        candidates=()
+        if [[ -n "${DART_DATA_HOME:-}" ]]; then
+          candidates+=("${DART_DATA_HOME}/install/bin")
+        fi
+        candidates+=(
+          "${HOME}/Library/Application Support/Dart/install/bin"
+          "${XDG_STATE_HOME:-${HOME}/.local/state}/Dart/install/bin"
+          "${XDG_DATA_HOME:-${HOME}/.local/share}/dart/install/bin"
+        )
+
+        bin_dir=""
+        for dir in "${candidates[@]}"; do
+          if [[ -d "$dir" ]]; then
+            bin_dir="$dir"
+            break
+          fi
+        done
+
+        if [[ -z "$bin_dir" ]]; then
+          echo "::error::dart install bin directory not found after installing ${{ inputs.package }}."
+          exit 1
+        fi
+
         echo "$bin_dir" >> "$GITHUB_PATH"
