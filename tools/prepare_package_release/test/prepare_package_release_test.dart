@@ -2620,7 +2620,7 @@ void _runChmod(String path, String mode) {
 
 File _readTestFixture(String name) {
   for (final path in [
-    'tool/prepare_package_release/test/fixtures/$name',
+    'tools/prepare_package_release/test/fixtures/$name',
     'test/fixtures/$name',
   ]) {
     final file = File(path);
@@ -2638,7 +2638,7 @@ ProcessResult _runPrepareReleaseCli({
 }) {
   final coverdeRepoRoot = _resolveCoverdeRepoRoot();
   final scriptPath =
-      '${coverdeRepoRoot.path}/tool/prepare_package_release/prepare_package_release.dart';
+      '${coverdeRepoRoot.path}/tools/prepare_package_release/prepare_package_release.dart';
   return Process.runSync(
     'dart',
     ['run', scriptPath, ...arguments],
@@ -2650,7 +2650,7 @@ Directory _resolveCoverdeRepoRoot() {
   var dir = Directory.current;
   for (var i = 0; i < 6; i++) {
     final candidate = File(
-      '${dir.path}/tool/prepare_package_release/prepare_package_release.dart',
+      '${dir.path}/tools/prepare_package_release/prepare_package_release.dart',
     );
     if (candidate.existsSync()) {
       return dir;

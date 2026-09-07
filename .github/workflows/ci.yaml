@@ -39,8 +39,8 @@ jobs:
       fail-fast: false
       matrix:
         package:
-          - tool/prepare_package_release
-          - tool/wait_for_pub_dev_version
+          - tools/prepare_package_release
+          - tools/wait_for_pub_dev_version
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
