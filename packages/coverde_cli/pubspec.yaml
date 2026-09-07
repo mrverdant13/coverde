@@ -18,8 +18,6 @@ screenshots:
     path: doc/examples/terminal/coverde-check-50.png
   - description: Coverage value example
     path: doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png
-resolution: workspace
-
 environment:
   sdk: ">=3.5.0 <4.0.0"
 
