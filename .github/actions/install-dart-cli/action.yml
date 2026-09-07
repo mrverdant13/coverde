@@ -24,5 +24,7 @@ runs:
           exit 1
         fi
 
+        # Git Bash dirname only splits on '/', so normalize Windows separators.
+        installed="${installed//\\//}"
         bin_dir="$(dirname -- "$installed")"
         echo "$bin_dir" >> "$GITHUB_PATH"
