@@ -15,29 +15,14 @@ runs:
         PACKAGE_DESCRIPTOR: ${{ inputs.package }}
       run: |
         set -euo pipefail
-        dart install "$PACKAGE_DESCRIPTOR"
+        output="$(dart install "$PACKAGE_DESCRIPTOR")"
+        echo "$output"
 
-        candidates=()
-        if [[ -n "${DART_DATA_HOME:-}" ]]; then
-          candidates+=("${DART_DATA_HOME}/install/bin")
-        fi
-        candidates+=(
-          "${HOME}/Library/Application Support/Dart/install/bin"
-          "${XDG_STATE_HOME:-${HOME}/.local/state}/Dart/install/bin"
-          "${XDG_DATA_HOME:-${HOME}/.local/share}/dart/install/bin"
-        )
-
-        bin_dir=""
-        for dir in "${candidates[@]}"; do
-          if [[ -d "$dir" ]]; then
-            bin_dir="$dir"
-            break
-          fi
-        done
-
-        if [[ -z "$bin_dir" ]]; then
-          echo "::error::dart install bin directory not found after installing ${PACKAGE_DESCRIPTOR}."
+        installed="$(echo "$output" | grep '^Installed:' | sed 's|^Installed: ||')"
+        if [[ -z "$installed" ]]; then
+          echo "::error::dart install did not report an Installed: path for ${PACKAGE_DESCRIPTOR}."
           exit 1
         fi
 
+        bin_dir="$(dirname -- "$installed")"
         echo "$bin_dir" >> "$GITHUB_PATH"
