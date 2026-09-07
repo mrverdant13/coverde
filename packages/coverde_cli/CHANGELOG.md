@@ -1,3 +1,8 @@
+## 0.4.1
+
+ - **FEAT**: add wider support for analyzer v12-v14 ([#320](https://github.com/mrverdant13/coverde/issues/320)). ([7f9d154c](https://github.com/mrverdant13/coverde/commit/7f9d154c6eb9eb3de74c0f09298770e5c58d3810))
+ - **CHORE**: restore 0.4.0 version baseline ([#328](https://github.com/mrverdant13/coverde/issues/328)). ([ebc9f002](https://github.com/mrverdant13/coverde/commit/ebc9f002c2856f56350dfe9ff2725ed607f83483))
+
 ## 0.4.0
 
 - **BREAKING FEAT**: require analyzer v11+ (#306).
