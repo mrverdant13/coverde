@@ -64,6 +64,8 @@ jobs:
           package: melos 7.5.1
       - name: Bootstrap workspace
         run: melos bs
+      - name: Install webp
+        run: sudo apt-get install -y webp
       - name: Run pre-publish gate
         run: melos run release.check
 
