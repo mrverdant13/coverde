@@ -3,5 +3,6 @@ codecov
 mapfile
 mrverdant13
 pipefail
+ripple
 subosito
 webp

@@ -18,17 +18,22 @@ jobs:
         uses: actions/checkout@v7
       - name: Install dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
-        run: dart pub global activate melos 7.5.1
-      - name: Initialize melos
-        run: melos bs
+      - name: Install ripple
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Install dependencies
         run: sudo apt-get install -y webp
       - name: Verify remote Pub.dev score
         id: remote-pub-score-check
         run: |
           set +e
-          melos run pub-score.remote
+          ripple run pub-score.remote
           echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
       - name: Set step summary
         run: echo "$(cat packages/coverde_cli/.dart_tool/remote_pub_score.md)" >>

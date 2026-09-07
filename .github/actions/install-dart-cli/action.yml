@@ -2,37 +2,29 @@ name: Install Dart CLI package
 description: Run dart install and add the install bin directory to PATH
 inputs:
   package:
-    description: Package name and optional version constraint (e.g. melos 7.5.1)
+    description: >-
+      Package descriptor for dart install (e.g. coverde 0.4.1, or a git
+      package descriptor such as
+      ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: <sha>}})
     required: true
 runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        PACKAGE_DESCRIPTOR: ${{ inputs.package }}
       run: |
         set -euo pipefail
-        dart install ${{ inputs.package }}
+        output="$(dart install "$PACKAGE_DESCRIPTOR")"
+        echo "$output"
 
-        candidates=()
-        if [[ -n "${DART_DATA_HOME:-}" ]]; then
-          candidates+=("${DART_DATA_HOME}/install/bin")
-        fi
-        candidates+=(
-          "${HOME}/Library/Application Support/Dart/install/bin"
-          "${XDG_STATE_HOME:-${HOME}/.local/state}/Dart/install/bin"
-          "${XDG_DATA_HOME:-${HOME}/.local/share}/dart/install/bin"
-        )
-
-        bin_dir=""
-        for dir in "${candidates[@]}"; do
-          if [[ -d "$dir" ]]; then
-            bin_dir="$dir"
-            break
-          fi
-        done
-
-        if [[ -z "$bin_dir" ]]; then
-          echo "::error::dart install bin directory not found after installing ${{ inputs.package }}."
+        installed="$(echo "$output" | grep '^Installed:' | sed 's|^Installed: ||')"
+        if [[ -z "$installed" ]]; then
+          echo "::error::dart install did not report an Installed: path for ${PACKAGE_DESCRIPTOR}."
           exit 1
         fi
 
+        # Git Bash dirname only splits on '/', so normalize Windows separators.
+        installed="${installed//\\//}"
+        bin_dir="$(dirname -- "$installed")"
         echo "$bin_dir" >> "$GITHUB_PATH"
