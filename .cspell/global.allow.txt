@@ -5,6 +5,11 @@ goldens
 lcov
 melos
 mrverdant13
+ripple
+RIPPLE_PACKAGE_NAME
+RIPPLE_PACKAGE_PATH
+RIPPLE_PACKAGES
+RIPPLE_ROOT_PATH
 pubspec
 recase
 termshot
