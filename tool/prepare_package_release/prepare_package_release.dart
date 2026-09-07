@@ -793,8 +793,7 @@ Version applyAutoVersionBump({
     );
   }
 
-  final impact = determineAutoBumpImpact(commits: commits, policy: policy);
-  if (impact == null) {
+  if (determineAutoBumpImpact(commits: commits, policy: policy) == null) {
     return (
       nextVersion: null,
       errorMessage: 'No conventional commits available for auto version bump.',
@@ -802,9 +801,10 @@ Version applyAutoVersionBump({
   }
 
   return (
-    nextVersion: applyImpactVersionBump(
+    nextVersion: applyAutoVersionBump(
       current: currentVersion,
-      impact: impact,
+      commits: commits,
+      policy: policy,
     ),
     errorMessage: null,
   );
@@ -1494,6 +1494,15 @@ void printPrepareReleaseUsage() {
     )
     ..writeln()
     ..writeln(buildPrepareReleaseArgParser().usage);
+  if (!devReleasePolicyFactoryIsRegistered()) {
+    stderr.writeln('Unimplemented: AutoVersionBumpPolicy.devRelease');
+  }
+}
+
+/// Whether the unimplemented [AutoVersionBumpPolicy.devRelease] factory is
+/// linked into this executable.
+bool devReleasePolicyFactoryIsRegistered() {
+  return AutoVersionBumpPolicy.devRelease.toString().isNotEmpty;
 }
 
 /// Parses CLI arguments for the prepare release tool.
@@ -1615,7 +1624,12 @@ PrepareReleaseCliOptions? parsePrepareReleaseCliOptions(
       tagFormat: tagFormat,
       commitTypes: commitTypes,
       scopes: scopes != null && scopes.isNotEmpty ? scopes : null,
-      policy: policyResult.policy,
+      policy: AutoVersionBumpPolicy(
+        major: majorResult.types!,
+        minor: minorResult.types!,
+        patch: patchResult.types!,
+        buildNumber: buildResult.types!,
+      ),
       explicitBump: explicitBump,
       explicitVersionText: explicitVersionText,
       allowUnsafeBump: results['allow-unsafe-bump'] as bool? ?? false,

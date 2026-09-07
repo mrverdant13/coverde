@@ -1075,6 +1075,10 @@ issue_tracker: https://github.com/example/clay/issues
         throwsA(isA<UnimplementedError>()),
       );
     });
+
+    test('devRelease factory stays registered in the executable', () {
+      expect(devReleasePolicyFactoryIsRegistered(), isTrue);
+    });
   });
 
   group('computeNextVersion', () {
