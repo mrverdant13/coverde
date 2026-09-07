@@ -2,7 +2,7 @@ name: Install Dart CLI package
 description: Run dart install and add the install bin directory to PATH
 inputs:
   package:
-    description: Package name and optional version constraint (e.g. melos 7.5.1)
+    description: Package name and optional version constraint (e.g. coverde 0.4.1)
     required: true
 runs:
   using: composite

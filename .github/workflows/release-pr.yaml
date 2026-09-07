@@ -1,4 +1,4 @@
-# Runs MELOS_PACKAGES-scoped release.check on Dart package release pull requests.
+# Runs RIPPLE_PACKAGES-scoped pre-publish checks on Dart package release pull requests.
 name: Dart release PR check
 
 on:
@@ -46,12 +46,15 @@ jobs:
           fetch-depth: 0
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
+      - name: Install ripple
         uses: ./.github/actions/install-dart-cli
         with:
-          package: melos 7.5.1
-      - name: Bootstrap workspace
-        run: melos bs
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Verify release manifest changes match title
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -68,20 +71,12 @@ jobs:
             exit 1
           fi
 
-          mapfile -t publishable_packages < <(melos list --category=publishable)
-
           is_publishable() {
-            local candidate="$1"
-            for package in "${publishable_packages[@]}"; do
-              if [[ "$package" == "$candidate" ]]; then
-                return 0
-              fi
-            done
-            return 1
+            [[ -n "$(ripple list --group publishable --match "$1")" ]]
           }
 
           if ! is_publishable "$TITLE_PACKAGE"; then
-            echo "::error::Unknown publishable package '$TITLE_PACKAGE'. Expected one of: ${publishable_packages[*]}"
+            echo "::error::Unknown publishable package '$TITLE_PACKAGE'."
             exit 1
           fi
 
@@ -122,28 +117,40 @@ jobs:
       - resolve-package
     if: needs.parse-title.outputs.matched == 'true'
     runs-on: ubuntu-latest
-    env:
-      MELOS_PACKAGES: ${{ needs.parse-title.outputs.package }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
+      - name: Install ripple
         uses: ./.github/actions/install-dart-cli
         with:
-          package: melos 7.5.1
-      - name: Bootstrap workspace
-        run: melos bs
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Install webp
         run: sudo apt-get install -y webp
-      - name: Run pre-publish gate
-        run: melos run release.check
+      - name: Format and analyze
+        run: |
+          ripple run format.ci
+          ripple run analyze.ci --fail-fast
+      - name: Run package-scoped pre-publish checks
+        env:
+          RIPPLE_PACKAGES: ${{ needs.parse-title.outputs.package }}
+        run: |
+          ripple run test.ci --fail-fast
+          ripple run pub-score.local --fail-fast
+          ripple exec --group publishable --fail-fast -- dart pub publish --dry-run
       - name: Set step summary
         if: always()
+        env:
+          PACKAGE: ${{ needs.parse-title.outputs.package }}
         run: |
           report="packages/coverde_cli/.dart_tool/local_pub_score.md"
           if [[ -f "$report" ]]; then
-            echo "### ${MELOS_PACKAGES}" >> "$GITHUB_STEP_SUMMARY"
+            echo "### ${PACKAGE}" >> "$GITHUB_STEP_SUMMARY"
             cat "$report" >> "$GITHUB_STEP_SUMMARY"
           fi

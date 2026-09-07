@@ -7,7 +7,7 @@
 #    OIDC auth succeeds on tag refs; publish runs and pub.dev is polled.
 #    On failure, the release tag is deleted so unpublished versions are not permanently tagged.
 #
-# dry_run: true (default) runs release.check only — dispatch from main or a tag ref.
+# dry_run: true (default) runs the pre-publish gate only — dispatch from main or a tag ref.
 # dry_run: false publishes via OIDC — must dispatch on the matching release tag ref.
 name: Publish Dart package
 
@@ -21,7 +21,7 @@ on:
         options:
           - coverde
       dry_run:
-        description: Pre-publish gate only via release.check (no pub.dev publish)
+        description: Pre-publish gate only (no pub.dev publish)
         required: true
         type: boolean
         default: true
@@ -35,7 +35,7 @@ jobs:
     name: Pre-publish checks (${{ inputs.package }})
     runs-on: ubuntu-latest
     env:
-      MELOS_PACKAGES: ${{ inputs.package }}
+      RIPPLE_PACKAGES: ${{ inputs.package }}
       PACKAGE_DIR: packages/coverde_cli
     steps:
       - name: Check out repository
@@ -58,16 +58,26 @@ jobs:
           fi
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
+      - name: Install ripple
         uses: ./.github/actions/install-dart-cli
         with:
-          package: melos 7.5.1
-      - name: Bootstrap workspace
-        run: melos bs
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Install webp
         run: sudo apt-get install -y webp
-      - name: Run pre-publish gate
-        run: melos run release.check
+      - name: Format and analyze
+        run: |
+          ripple run format.ci
+          ripple run analyze.ci --fail-fast
+      - name: Run package-scoped pre-publish checks
+        run: |
+          ripple run test.ci --fail-fast
+          ripple run pub-score.local --fail-fast
+          ripple exec --group publishable --fail-fast -- dart pub publish --dry-run
 
   publish:
     name: Publish (${{ inputs.package }})
@@ -102,12 +112,15 @@ jobs:
           fi
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
+      - name: Install ripple
         uses: ./.github/actions/install-dart-cli
         with:
-          package: melos 7.5.1
-      - name: Bootstrap workspace
-        run: melos bs
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Verify release tag on HEAD
         env:
           PACKAGE: ${{ inputs.package }}

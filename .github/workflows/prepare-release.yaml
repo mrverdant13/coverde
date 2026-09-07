@@ -1,5 +1,5 @@
 # Opens a version-bump release PR for coverde via workflow_dispatch.
-# Runs melos release.prepare, pushes coverde/chore/release-<version>, and opens a PR.
+# Runs ripple release.prepare, pushes coverde/chore/release-<version>, and opens a PR.
 # Does not publish to pub.dev or create git tags.
 name: Prepare Dart package release
 
@@ -37,13 +37,16 @@ jobs:
       - name: Install Dart
         uses: dart-lang/setup-dart@v1
 
-      - name: Install melos
+      - name: Install ripple
         uses: ./.github/actions/install-dart-cli
         with:
-          package: melos 7.5.1
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
 
-      - name: Bootstrap workspace
-        run: melos bs
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
 
       - name: Configure git author
         run: |
@@ -51,7 +54,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Bump version and changelog
-        run: MELOS_PACKAGES=${{ inputs.package }} melos run release.prepare
+        run: RIPPLE_PACKAGES=${{ inputs.package }} ripple run release.prepare
 
       - name: Read release version
         id: version
@@ -104,7 +107,7 @@ jobs:
 
           Automated version bump for \`${package}\` via the **Prepare Dart package release** workflow.
 
-          - Entry point: \`MELOS_PACKAGES=${package} melos run release.prepare\`
+          - Entry point: \`RIPPLE_PACKAGES=${package} ripple run release.prepare\`
           - Version bump: \`tools/prepare_package_release/prepare_package_release.dart\` auto-bump from scoped conventional commits
           - Changelog: commits scoped \`coverde-cli\` since the latest \`coverde-v<version>\` tag
           EOF

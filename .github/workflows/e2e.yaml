@@ -23,9 +23,14 @@ jobs:
         uses: actions/checkout@v7
       - name: Install Flutter
         uses: subosito/flutter-action@v2
-      - name: Install melos
-        run: dart pub global activate melos 7.5.1
-      - name: Initialize E2E tests
-        run: melos bs --category=e2e
+      - name: Install ripple
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+      - name: Bootstrap packages
+        run: |
+          dart pub get
+          ripple exec --fail-fast -- dart pub get
       - name: Run E2E tests
-        run: melos run test.e2e.all
+        run: ripple run test.e2e.ci --fail-fast
