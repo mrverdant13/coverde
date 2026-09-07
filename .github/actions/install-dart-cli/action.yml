@@ -2,15 +2,20 @@ name: Install Dart CLI package
 description: Run dart install and add the install bin directory to PATH
 inputs:
   package:
-    description: Package name and optional version constraint (e.g. coverde 0.4.1)
+    description: >-
+      Package descriptor for dart install (e.g. coverde 0.4.1, or a git
+      package descriptor such as
+      ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: <sha>}})
     required: true
 runs:
   using: composite
   steps:
     - shell: bash
+      env:
+        PACKAGE_DESCRIPTOR: ${{ inputs.package }}
       run: |
         set -euo pipefail
-        dart install ${{ inputs.package }}
+        dart install "$PACKAGE_DESCRIPTOR"
 
         candidates=()
         if [[ -n "${DART_DATA_HOME:-}" ]]; then
@@ -31,7 +36,7 @@ runs:
         done
 
         if [[ -z "$bin_dir" ]]; then
-          echo "::error::dart install bin directory not found after installing ${{ inputs.package }}."
+          echo "::error::dart install bin directory not found after installing ${PACKAGE_DESCRIPTOR}."
           exit 1
         fi
 
