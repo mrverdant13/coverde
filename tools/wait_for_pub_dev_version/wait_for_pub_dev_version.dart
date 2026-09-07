@@ -389,7 +389,7 @@ Duration? _parseDurationSeconds(String rawValue, String flagName) {
 void _printUsage() {
   stderr
     ..writeln(
-      'Usage: dart run tool/wait_for_pub_dev_version/wait_for_pub_dev_version.dart '
+      'Usage: dart run tools/wait_for_pub_dev_version/wait_for_pub_dev_version.dart '
       '--package <name> --version <version> '
       '[--timeout <seconds>] [--interval <seconds>]',
     )
