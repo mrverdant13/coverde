@@ -96,8 +96,6 @@ Live pub.dev publishes use **GitHub OIDC** via [`dart-lang/setup-dart@v1`](https
 
 Create the GitHub environment `pub-dev-publish` with required reviewers. After the first successful OIDC publish, remove any leftover `PUB_CREDENTIALS` secret.
 
-**Baseline tag:** `main` is `0.4.1` but the latest historical tag is `coverde-v0.4.0`. Create annotated tag `coverde-v0.4.1` on the `0.4.1` commit before the first automated prepare, or the safety gate fails (`pubspecAheadOfTag`).
-
 ### CI release workflows
 
 Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or publish. Release automation uses four dedicated workflows:
@@ -120,7 +118,11 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
        --cwd packages/coverde_cli \
        --tag-format '{name}-v{version}' \
        --scopes coverde-cli \
-       --commit-types feat,fix,docs,refactor,perf,test,build,chore
+       --commit-types feat,fix,docs,refactor,perf,test,build,chore \
+       --major-types '' \
+       --minor-types feat!,fix! \
+       --patch-types feat,fix \
+       --build-types docs,refactor,perf,test,build,chore
      ```
 3. **Review the release PR.** Confirm version, changelog, and generated `packageVersion`.
 4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs scoped `release.check`.
@@ -129,12 +131,14 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
    - **Failure recovery:** If publish or the poll fails, the workflow deletes the tag. Recreate it with **Release tag on merge** (`workflow_dispatch` on `main`), then dispatch publish again.
    - **Pre-publish gate:** Dispatch the same workflow with `dry_run: true` to run `release.check` only.
 
-Auto-bump rules (stable versions):
+Auto-bump is policy-driven. `release.prepare` passes coverde's `0.x` map (no constructor defaults in the tool):
 
-- `feat` → minor (`0.4.1` → `0.5.0`)
-- `fix` → patch (`0.4.1` → `0.4.2`)
-- other allowed types only → build (`0.4.1` → `0.4.1+1`)
-- breaking `feat` in `0.x` → minor; once `major >= 1`, breaking `feat` → major
+- `--major-types` empty — auto-bump never produces `1.0.0`
+- breaking `feat` / `fix` (`feat!`, `fix!`, or a `BREAKING CHANGE` footer) → minor (`0.4.0` → `0.5.0`)
+- non-breaking `feat` or `fix` → patch (`0.4.0` → `0.4.1`)
+- `docs`, `refactor`, `perf`, `test`, `build`, `chore` → build (`0.4.0` → `0.4.0+1`)
+
+Highest matching component wins. A breaking type not listed as `type!` falls back to `type` (`chore!` still bumps build). Promoting to 1.x SemVer later is a Melos flag change (`--major-types feat!,fix!`, `--minor-types feat`, …).
 
 ### How CI scopes `release.check`
 
@@ -149,8 +153,12 @@ Auto-bump rules (stable versions):
 | `--cwd` | Package root (`packages/coverde_cli`). |
 | `--tag-format` | Embedded value: `'{name}-v{version}'` (for example `coverde-v0.4.1`). |
 | `--scopes` | Embedded value: `coverde-cli`. |
-| `--commit-types` | Embedded value: `feat,fix,docs,refactor,perf,test,build,chore`. |
-| *(no `--bump`)* | Auto-bump from scoped commits. |
+| `--commit-types` | Embedded value: `feat,fix,docs,refactor,perf,test,build,chore`. Changelog inclusion filter. |
+| `--major-types` | Embedded value: empty. Types that bump major. Required; empty opts out of `1.0.0`. |
+| `--minor-types` | Embedded value: `feat!,fix!`. Types that bump minor. Required. |
+| `--patch-types` | Embedded value: `feat,fix`. Types that bump patch. Required. |
+| `--build-types` | Embedded value: `docs,refactor,perf,test,build,chore`. Types that bump `+N`. Required. |
+| *(no `--bump`)* | Auto-bump from scoped commits using the type-set policy. |
 | `--bump patch\|minor\|major\|build` | Explicit segment bump (direct tool invocation). |
 | `--version <semver>` | Exact target version. Mutually exclusive with `--bump`. |
 | `--allow-unsafe-bump` | Skip the tag/pubspec equality safety gate. |

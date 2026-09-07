@@ -440,51 +440,280 @@ enum AutoBumpImpact {
   build,
 }
 
-/// Derives the highest semver impact from filtered [commits].
-AutoBumpImpact determineAutoBumpImpact(List<ConventionalCommit> commits) {
-  var hasBreakingFeat = false;
-  var hasFeat = false;
-  var hasFix = false;
+final _policyTokenPattern = RegExp(r'^([a-z]+)(!)?$');
+
+/// Maps conventional commit types (with optional `!`) to semver components.
+///
+/// All four sets are required. A single set may be empty. Every set empty is
+/// invalid because auto-bump could never choose a component.
+class AutoVersionBumpPolicy {
+  factory AutoVersionBumpPolicy({
+    required Set<String> major,
+    required Set<String> minor,
+    required Set<String> patch,
+    required Set<String> buildNumber,
+  }) {
+    final parsed = parseAutoVersionBumpPolicy(
+      major: major,
+      minor: minor,
+      patch: patch,
+      buildNumber: buildNumber,
+    );
+    if (parsed.errorMessage != null) {
+      throw ArgumentError(parsed.errorMessage);
+    }
+    return parsed.policy!;
+  }
+
+  AutoVersionBumpPolicy._({
+    required this.major,
+    required this.minor,
+    required this.patch,
+    required this.buildNumber,
+  });
+
+  /// Prerelease auto-bump policy. Not implemented yet.
+  factory AutoVersionBumpPolicy.devRelease({required String prefix}) {
+    throw UnimplementedError(
+      'AutoVersionBumpPolicy.devRelease(prefix: $prefix) '
+      'is not implemented yet.',
+    );
+  }
+
+  final Set<String> major;
+  final Set<String> minor;
+  final Set<String> patch;
+  final Set<String> buildNumber;
+}
+
+/// Parses a single policy token such as `feat` or `feat!`.
+({String? token, String? errorMessage}) parseAutoBumpPolicyToken(String input) {
+  final trimmed = input.trim().toLowerCase();
+  if (trimmed.isEmpty) {
+    return (token: null, errorMessage: 'Policy type token must not be empty.');
+  }
+
+  final match = _policyTokenPattern.firstMatch(trimmed);
+  if (match == null) {
+    return (
+      token: null,
+      errorMessage: 'Invalid policy type token: $input. '
+          'Expected a conventional commit type, optionally ending with !.',
+    );
+  }
+
+  final type = match.group(1)!;
+  if (!supportedConventionalCommitTypes.contains(type)) {
+    return (
+      token: null,
+      errorMessage: 'Unknown commit type(s): $input',
+    );
+  }
+
+  final isBreaking = match.group(2) != null;
+  return (token: isBreaking ? '$type!' : type, errorMessage: null);
+}
+
+/// Parses a comma-separated policy type set. An empty string is an empty set.
+({Set<String>? types, String? errorMessage}) parseAutoBumpTypeSet(
+  String input,
+) {
+  final tokens = <String>{};
+  final segments = input
+      .split(',')
+      .map((segment) => segment.trim())
+      .where((segment) => segment.isNotEmpty);
+
+  for (final segment in segments) {
+    final parsed = parseAutoBumpPolicyToken(segment);
+    if (parsed.errorMessage != null) {
+      return (types: null, errorMessage: parsed.errorMessage);
+    }
+    tokens.add(parsed.token!);
+  }
+
+  return (types: tokens, errorMessage: null);
+}
+
+String? _autoBumpPolicyOverlapError({
+  required Set<String> major,
+  required Set<String> minor,
+  required Set<String> patch,
+  required Set<String> buildNumber,
+}) {
+  final seen = <String, String>{};
+
+  String? addAll(String component, Set<String> types) {
+    for (final token in types) {
+      final existing = seen[token];
+      if (existing != null) {
+        return 'Policy type "$token" is listed in both $existing and '
+            '$component.';
+      }
+      seen[token] = component;
+    }
+    return null;
+  }
+
+  return addAll('major', major) ??
+      addAll('minor', minor) ??
+      addAll('patch', patch) ??
+      addAll('build', buildNumber);
+}
+
+/// Validates and copies type sets into an [AutoVersionBumpPolicy].
+({AutoVersionBumpPolicy? policy, String? errorMessage})
+    parseAutoVersionBumpPolicy({
+  required Set<String> major,
+  required Set<String> minor,
+  required Set<String> patch,
+  required Set<String> buildNumber,
+}) {
+  ({Set<String>? types, String? errorMessage}) normalize(Set<String> input) {
+    final tokens = <String>{};
+    for (final token in input) {
+      final parsed = parseAutoBumpPolicyToken(token);
+      if (parsed.errorMessage != null) {
+        return (types: null, errorMessage: parsed.errorMessage);
+      }
+      tokens.add(parsed.token!);
+    }
+    return (types: tokens, errorMessage: null);
+  }
+
+  final normalizedMajor = normalize(major);
+  if (normalizedMajor.errorMessage != null) {
+    return (policy: null, errorMessage: normalizedMajor.errorMessage);
+  }
+  final normalizedMinor = normalize(minor);
+  if (normalizedMinor.errorMessage != null) {
+    return (policy: null, errorMessage: normalizedMinor.errorMessage);
+  }
+  final normalizedPatch = normalize(patch);
+  if (normalizedPatch.errorMessage != null) {
+    return (policy: null, errorMessage: normalizedPatch.errorMessage);
+  }
+  final normalizedBuild = normalize(buildNumber);
+  if (normalizedBuild.errorMessage != null) {
+    return (policy: null, errorMessage: normalizedBuild.errorMessage);
+  }
+
+  final overlap = _autoBumpPolicyOverlapError(
+    major: normalizedMajor.types!,
+    minor: normalizedMinor.types!,
+    patch: normalizedPatch.types!,
+    buildNumber: normalizedBuild.types!,
+  );
+  if (overlap != null) {
+    return (policy: null, errorMessage: overlap);
+  }
+
+  if (normalizedMajor.types!.isEmpty &&
+      normalizedMinor.types!.isEmpty &&
+      normalizedPatch.types!.isEmpty &&
+      normalizedBuild.types!.isEmpty) {
+    return (
+      policy: null,
+      errorMessage: 'Auto-bump policy must include at least one commit type.',
+    );
+  }
+
+  return (
+    policy: AutoVersionBumpPolicy._(
+      major: Set<String>.unmodifiable(normalizedMajor.types!),
+      minor: Set<String>.unmodifiable(normalizedMinor.types!),
+      patch: Set<String>.unmodifiable(normalizedPatch.types!),
+      buildNumber: Set<String>.unmodifiable(normalizedBuild.types!),
+    ),
+    errorMessage: null,
+  );
+}
+
+/// Returns the policy key for [commit]: `type!` when breaking, else `type`.
+String autoBumpPolicyKey(ConventionalCommit commit) {
+  if (hasBreakingChange(commit)) {
+    return '${commit.type}!';
+  }
+  return commit.type;
+}
+
+AutoBumpImpact? _impactForPolicyKey(
+  String key,
+  AutoVersionBumpPolicy policy,
+) {
+  if (policy.major.contains(key)) {
+    return AutoBumpImpact.major;
+  }
+  if (policy.minor.contains(key)) {
+    return AutoBumpImpact.minor;
+  }
+  if (policy.patch.contains(key)) {
+    return AutoBumpImpact.patch;
+  }
+  if (policy.buildNumber.contains(key)) {
+    return AutoBumpImpact.build;
+  }
+  return null;
+}
+
+/// Resolves [commit] against [policy], falling back from `type!` to `type`.
+AutoBumpImpact? autoBumpImpactForCommit({
+  required ConventionalCommit commit,
+  required AutoVersionBumpPolicy policy,
+}) {
+  final key = autoBumpPolicyKey(commit);
+  final impact = _impactForPolicyKey(key, policy);
+  if (impact != null) {
+    return impact;
+  }
+  if (key.endsWith('!')) {
+    return _impactForPolicyKey(commit.type, policy);
+  }
+  return null;
+}
+
+int _autoBumpImpactRank(AutoBumpImpact impact) {
+  switch (impact) {
+    case AutoBumpImpact.major:
+      return 4;
+    case AutoBumpImpact.minor:
+      return 3;
+    case AutoBumpImpact.patch:
+      return 2;
+    case AutoBumpImpact.build:
+      return 1;
+  }
+}
+
+/// Derives the highest semver impact from filtered [commits] using [policy].
+///
+/// Returns `null` when no commit matches any policy set.
+AutoBumpImpact? determineAutoBumpImpact({
+  required List<ConventionalCommit> commits,
+  required AutoVersionBumpPolicy policy,
+}) {
+  AutoBumpImpact? highest;
 
   for (final commit in commits) {
-    switch (commit.type) {
-      case 'feat':
-        if (hasBreakingChange(commit)) {
-          hasBreakingFeat = true;
-        } else {
-          hasFeat = true;
-        }
-      case 'fix':
-        hasFix = true;
-      default:
-        break;
+    final impact = autoBumpImpactForCommit(commit: commit, policy: policy);
+    if (impact == null) {
+      continue;
+    }
+    if (highest == null ||
+        _autoBumpImpactRank(impact) > _autoBumpImpactRank(highest)) {
+      highest = impact;
     }
   }
 
-  if (hasBreakingFeat) {
-    return AutoBumpImpact.major;
-  }
-  if (hasFeat) {
-    return AutoBumpImpact.minor;
-  }
-  if (hasFix) {
-    return AutoBumpImpact.patch;
-  }
-  return AutoBumpImpact.build;
+  return highest;
 }
 
-/// Applies auto bump rules from [commits] to [current].
-///
-/// In `0.x`, a breaking feat bumps minor (not major) to match coverde history.
-Version applyAutoVersionBump({
+Version applyImpactVersionBump({
   required Version current,
-  required List<ConventionalCommit> commits,
+  required AutoBumpImpact impact,
 }) {
-  switch (determineAutoBumpImpact(commits)) {
+  switch (impact) {
     case AutoBumpImpact.major:
-      if (current.major == 0) {
-        return Version(0, current.minor + 1, 0);
-      }
       return Version(current.major + 1, 0, 0);
     case AutoBumpImpact.minor:
       return Version(current.major, current.minor + 1, 0);
@@ -498,15 +727,32 @@ Version applyAutoVersionBump({
   }
 }
 
+/// Applies auto bump rules from [commits] to [current] using [policy].
+Version applyAutoVersionBump({
+  required Version current,
+  required List<ConventionalCommit> commits,
+  required AutoVersionBumpPolicy policy,
+}) {
+  final impact = determineAutoBumpImpact(commits: commits, policy: policy);
+  if (impact == null) {
+    throw StateError(
+      'No conventional commits available for auto version bump.',
+    );
+  }
+  return applyImpactVersionBump(current: current, impact: impact);
+}
+
 /// Computes the next stable version from [currentVersion].
 ///
 /// When [explicitBump] and [explicitVersionText] are both set, returns a
-/// structured error. Auto mode requires at least one commit.
+/// structured error. Auto mode requires [policy] and at least one matching
+/// commit.
 ({Version? nextVersion, String? errorMessage}) computeNextVersion({
   required Version currentVersion,
   ExplicitVersionBump? explicitBump,
   String? explicitVersionText,
   List<ConventionalCommit> commits = const [],
+  AutoVersionBumpPolicy? policy,
 }) {
   if (explicitBump != null && explicitVersionText != null) {
     return (
@@ -533,7 +779,21 @@ Version applyAutoVersionBump({
     );
   }
 
+  if (policy == null) {
+    return (
+      nextVersion: null,
+      errorMessage: 'Auto version bump requires a policy.',
+    );
+  }
+
   if (commits.isEmpty) {
+    return (
+      nextVersion: null,
+      errorMessage: 'No conventional commits available for auto version bump.',
+    );
+  }
+
+  if (determineAutoBumpImpact(commits: commits, policy: policy) == null) {
     return (
       nextVersion: null,
       errorMessage: 'No conventional commits available for auto version bump.',
@@ -544,6 +804,7 @@ Version applyAutoVersionBump({
     nextVersion: applyAutoVersionBump(
       current: currentVersion,
       commits: commits,
+      policy: policy,
     ),
     errorMessage: null,
   );
@@ -934,6 +1195,7 @@ class PrepareReleasePlan {
   required String cwd,
   required String tagFormat,
   required String commitTypesInput,
+  required AutoVersionBumpPolicy policy,
   String? scopesInput,
   bool allowUnsafeBump = false,
   ExplicitVersionBump? explicitBump,
@@ -1001,6 +1263,7 @@ class PrepareReleasePlan {
     explicitBump: explicitBump,
     explicitVersionText: explicitVersionText,
     commits: commits,
+    policy: policy,
   );
   if (nextVersionResult.errorMessage != null) {
     return (plan: null, errorMessage: nextVersionResult.errorMessage);
@@ -1183,6 +1446,25 @@ ArgParser buildPrepareReleaseArgParser() {
           'Defaults to the package name from pubspec.yaml.',
     )
     ..addOption(
+      'major-types',
+      help: 'Comma-separated policy types that bump major. '
+          'Required. Empty means major is never auto-bumped. '
+          'Use type! for breaking commits (e.g. feat!).',
+    )
+    ..addOption(
+      'minor-types',
+      help: 'Comma-separated policy types that bump minor. Required.',
+    )
+    ..addOption(
+      'patch-types',
+      help: 'Comma-separated policy types that bump patch. Required.',
+    )
+    ..addOption(
+      'build-types',
+      help: 'Comma-separated policy types that bump build metadata (+N). '
+          'Required.',
+    )
+    ..addOption(
       'bump',
       help: 'Explicit semver bump (build, patch, minor, major). '
           'Mutually exclusive with --version.',
@@ -1212,6 +1494,15 @@ void printPrepareReleaseUsage() {
     )
     ..writeln()
     ..writeln(buildPrepareReleaseArgParser().usage);
+  if (!devReleasePolicyFactoryIsRegistered()) {
+    stderr.writeln('Unimplemented: AutoVersionBumpPolicy.devRelease');
+  }
+}
+
+/// Whether the unimplemented [AutoVersionBumpPolicy.devRelease] factory is
+/// linked into this executable.
+bool devReleasePolicyFactoryIsRegistered() {
+  return AutoVersionBumpPolicy.devRelease.toString().isNotEmpty;
 }
 
 /// Parses CLI arguments for the prepare release tool.
@@ -1279,11 +1570,66 @@ PrepareReleaseCliOptions? parsePrepareReleaseCliOptions(
 
     final scopes = results['scopes'] as String?;
 
+    final majorTypes = _requireParsedOption(results, 'major-types');
+    if (majorTypes == null) {
+      return null;
+    }
+    final minorTypes = _requireParsedOption(results, 'minor-types');
+    if (minorTypes == null) {
+      return null;
+    }
+    final patchTypes = _requireParsedOption(results, 'patch-types');
+    if (patchTypes == null) {
+      return null;
+    }
+    final buildTypes = _requireParsedOption(results, 'build-types');
+    if (buildTypes == null) {
+      return null;
+    }
+
+    final majorResult = parseAutoBumpTypeSet(majorTypes);
+    if (majorResult.errorMessage != null) {
+      stderr.writeln(majorResult.errorMessage);
+      return null;
+    }
+    final minorResult = parseAutoBumpTypeSet(minorTypes);
+    if (minorResult.errorMessage != null) {
+      stderr.writeln(minorResult.errorMessage);
+      return null;
+    }
+    final patchResult = parseAutoBumpTypeSet(patchTypes);
+    if (patchResult.errorMessage != null) {
+      stderr.writeln(patchResult.errorMessage);
+      return null;
+    }
+    final buildResult = parseAutoBumpTypeSet(buildTypes);
+    if (buildResult.errorMessage != null) {
+      stderr.writeln(buildResult.errorMessage);
+      return null;
+    }
+
+    final policyResult = parseAutoVersionBumpPolicy(
+      major: majorResult.types!,
+      minor: minorResult.types!,
+      patch: patchResult.types!,
+      buildNumber: buildResult.types!,
+    );
+    if (policyResult.errorMessage != null) {
+      stderr.writeln(policyResult.errorMessage);
+      return null;
+    }
+
     return PrepareReleaseCliOptions(
       cwd: cwd,
       tagFormat: tagFormat,
       commitTypes: commitTypes,
       scopes: scopes != null && scopes.isNotEmpty ? scopes : null,
+      policy: AutoVersionBumpPolicy(
+        major: majorResult.types!,
+        minor: minorResult.types!,
+        patch: patchResult.types!,
+        buildNumber: buildResult.types!,
+      ),
       explicitBump: explicitBump,
       explicitVersionText: explicitVersionText,
       allowUnsafeBump: results['allow-unsafe-bump'] as bool? ?? false,
@@ -1303,6 +1649,7 @@ class PrepareReleaseCliOptions {
     this.tagFormat,
     this.commitTypes,
     this.scopes,
+    this.policy,
     this.explicitBump,
     this.explicitVersionText,
     this.allowUnsafeBump = false,
@@ -1314,10 +1661,19 @@ class PrepareReleaseCliOptions {
   final String? tagFormat;
   final String? commitTypes;
   final String? scopes;
+  final AutoVersionBumpPolicy? policy;
   final ExplicitVersionBump? explicitBump;
   final String? explicitVersionText;
   final bool allowUnsafeBump;
   final bool apply;
+}
+
+String? _requireParsedOption(ArgResults results, String name) {
+  if (!results.wasParsed(name)) {
+    stderr.writeln('Missing value for --$name');
+    return null;
+  }
+  return results[name] as String? ?? '';
 }
 
 void main(List<String> arguments) {
@@ -1336,6 +1692,7 @@ void main(List<String> arguments) {
     cwd: options.cwd!,
     tagFormat: options.tagFormat!,
     commitTypesInput: options.commitTypes!,
+    policy: options.policy!,
     scopesInput: options.scopes,
     allowUnsafeBump: options.allowUnsafeBump,
     explicitBump: options.explicitBump,

@@ -204,6 +204,10 @@ melos:
         --tag-format '{name}-v{version}'
         --scopes coverde-cli
         --commit-types feat,fix,docs,refactor,perf,test,build,chore
+        --major-types=
+        --minor-types feat!,fix!
+        --patch-types feat,fix
+        --build-types docs,refactor,perf,test,build,chore
         --apply
         &&
         dart run build_runner build --delete-conflicting-outputs

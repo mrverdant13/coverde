@@ -6,6 +6,55 @@ import 'package:test/test.dart';
 
 import '../prepare_package_release.dart';
 
+final _zeroMajorPolicy = AutoVersionBumpPolicy(
+  major: {},
+  minor: {'feat!', 'fix!'},
+  patch: {'feat', 'fix'},
+  buildNumber: {
+    'docs',
+    'refactor',
+    'perf',
+    'test',
+    'build',
+    'chore',
+  },
+);
+
+final _semver1Policy = AutoVersionBumpPolicy(
+  major: {'feat!', 'fix!'},
+  minor: {'feat'},
+  patch: {'fix'},
+  buildNumber: {
+    'docs',
+    'refactor',
+    'perf',
+    'test',
+    'build',
+    'chore',
+  },
+);
+
+const _zeroMajorPolicyCliArgs = <String>[
+  '--major-types',
+  '',
+  '--minor-types',
+  'feat!,fix!',
+  '--patch-types',
+  'feat,fix',
+  '--build-types',
+  'docs,refactor,perf,test,build,chore',
+];
+
+AutoVersionBumpPolicy _policyFromFixture(Map<Object?, Object?> fixture) {
+  final policy = fixture['policy']! as Map;
+  return AutoVersionBumpPolicy(
+    major: (policy['major'] as List).cast<String>().toSet(),
+    minor: (policy['minor'] as List).cast<String>().toSet(),
+    patch: (policy['patch'] as List).cast<String>().toSet(),
+    buildNumber: (policy['buildNumber'] as List).cast<String>().toSet(),
+  );
+}
+
 void main() {
   late Directory tempRoot;
 
@@ -927,14 +976,19 @@ issue_tracker: https://github.com/example/clay/issues
         final expected = Version.parse(testCase['expectedVersion'] as String);
 
         expect(
-          applyAutoVersionBump(current: currentVersion, commits: commits),
+          applyAutoVersionBump(
+            current: currentVersion,
+            commits: commits,
+            policy: _policyFromFixture(fixture),
+          ),
           expected,
           reason: testCase['name'] as String,
         );
       }
     });
 
-    test('1.x breaking feat increments major', () {
+    test('1.x breaking feat increments major when policy maps feat! to major',
+        () {
       expect(
         applyAutoVersionBump(
           current: Version.parse('1.2.3'),
@@ -947,9 +1001,83 @@ issue_tracker: https://github.com/example/clay/issues
               isBreakingChange: true,
             ),
           ],
+          policy: _semver1Policy,
         ),
         Version.parse('2.0.0'),
       );
+    });
+
+    test('1.x feat increments minor when policy maps feat to minor', () {
+      expect(
+        applyAutoVersionBump(
+          current: Version.parse('1.2.3'),
+          commits: const [
+            ConventionalCommit(
+              type: 'feat',
+              scopes: ['coverde-cli'],
+              description: 'add preview command',
+              subject: 'feat(coverde-cli): add preview command',
+              isBreakingChange: false,
+            ),
+          ],
+          policy: _semver1Policy,
+        ),
+        Version.parse('1.3.0'),
+      );
+    });
+  });
+
+  group('AutoVersionBumpPolicy', () {
+    test('accepts an empty major set when other sets are populated', () {
+      expect(_zeroMajorPolicy.major, isEmpty);
+      expect(_zeroMajorPolicy.patch, contains('feat'));
+    });
+
+    test('throws when every component set is empty', () {
+      expect(
+        () => AutoVersionBumpPolicy(
+          major: {},
+          minor: {},
+          patch: {},
+          buildNumber: {},
+        ),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('at least one commit type'),
+          ),
+        ),
+      );
+    });
+
+    test('throws when the same token appears in two sets', () {
+      expect(
+        () => AutoVersionBumpPolicy(
+          major: {},
+          minor: {'feat'},
+          patch: {'feat'},
+          buildNumber: {'docs'},
+        ),
+        throwsA(
+          isA<ArgumentError>().having(
+            (error) => error.message,
+            'message',
+            contains('listed in both'),
+          ),
+        ),
+      );
+    });
+
+    test('devRelease is unimplemented', () {
+      expect(
+        () => AutoVersionBumpPolicy.devRelease(prefix: '-dev.'),
+        throwsA(isA<UnimplementedError>()),
+      );
+    });
+
+    test('devRelease factory stays registered in the executable', () {
+      expect(devReleasePolicyFactoryIsRegistered(), isTrue);
     });
   });
 
@@ -968,6 +1096,7 @@ issue_tracker: https://github.com/example/clay/issues
             isBreakingChange: false,
           ),
         ],
+        policy: _zeroMajorPolicy,
       );
 
       expect(result.errorMessage, isNull);
@@ -1015,7 +1144,34 @@ issue_tracker: https://github.com/example/clay/issues
     });
 
     test('rejects auto mode without commits', () {
-      final result = computeNextVersion(currentVersion: current);
+      final result = computeNextVersion(
+        currentVersion: current,
+        policy: _zeroMajorPolicy,
+      );
+
+      expect(result.nextVersion, isNull);
+      expect(result.errorMessage, contains('No conventional commits'));
+    });
+
+    test('rejects auto mode when no commit matches the policy', () {
+      final result = computeNextVersion(
+        currentVersion: current,
+        policy: AutoVersionBumpPolicy(
+          major: {},
+          minor: {'feat!'},
+          patch: {'feat'},
+          buildNumber: {},
+        ),
+        commits: [
+          const ConventionalCommit(
+            type: 'docs',
+            scopes: ['coverde-cli'],
+            description: 'update readme',
+            subject: 'docs(coverde-cli): update readme',
+            isBreakingChange: false,
+          ),
+        ],
+      );
 
       expect(result.nextVersion, isNull);
       expect(result.errorMessage, contains('No conventional commits'));
@@ -1554,6 +1710,7 @@ issue_tracker: https://github.com/example/clay/issues
         cwd: packageDir.path,
         tagFormat: '{name}/{version}',
         commitTypesInput: 'feat,fix,docs,refactor,test,build',
+        policy: _zeroMajorPolicy,
       );
 
       expect(result.errorMessage, isNull);
@@ -1561,12 +1718,12 @@ issue_tracker: https://github.com/example/clay/issues
       expect(plan.packageName, 'synthetic_pkg');
       expect(plan.latestTag, 'synthetic_pkg/0.0.1-dev.2');
       expect(plan.currentVersion, Version.parse('0.0.1-dev.2'));
-      expect(plan.nextVersion, Version.parse('0.1.0'));
+      expect(plan.nextVersion, Version.parse('0.0.2'));
       expect(plan.commits, hasLength(2));
-      expect(plan.changelogSection, contains('## 0.1.0'));
+      expect(plan.changelogSection, contains('## 0.0.2'));
       expect(
         plan.suggestedCommitMessage,
-        'chore(synthetic_pkg): release 0.1.0',
+        'chore(synthetic_pkg): release 0.0.2',
       );
     });
 
@@ -1596,13 +1753,14 @@ issue_tracker: https://github.com/example/clay/issues
         tagFormat: '{name}-v{version}',
         commitTypesInput: 'feat,fix,docs,refactor,perf,test,build,chore',
         scopesInput: 'coverde-cli',
+        policy: _zeroMajorPolicy,
       );
 
       expect(result.errorMessage, isNull);
       final plan = result.plan!;
       expect(plan.packageName, 'coverde');
       expect(plan.latestTag, 'coverde-v0.4.1');
-      expect(plan.nextVersion, Version.parse('0.5.0'));
+      expect(plan.nextVersion, Version.parse('0.4.2'));
       expect(plan.commits, hasLength(1));
       expect(
         plan.commits.single.subject,
@@ -1610,7 +1768,7 @@ issue_tracker: https://github.com/example/clay/issues
       );
       expect(
         plan.suggestedCommitMessage,
-        'chore(coverde): release 0.5.0',
+        'chore(coverde): release 0.4.2',
       );
     });
 
@@ -1638,6 +1796,7 @@ issue_tracker: https://github.com/example/clay/issues
         tagFormat: '{name}/{version}',
         commitTypesInput: 'feat,fix,docs,refactor,test,build',
         explicitBump: ExplicitVersionBump.build,
+        policy: _zeroMajorPolicy,
       );
 
       expect(result.errorMessage, isNull);
@@ -1729,6 +1888,7 @@ version: "0.0.1-dev.2"
         cwd: packageDir.path,
         tagFormat: '{name}/{version}',
         commitTypesInput: 'feat,fix,docs,refactor,test,build',
+        policy: _zeroMajorPolicy,
       );
       expect(planResult.errorMessage, isNull);
       return planResult.plan!;
@@ -1748,12 +1908,12 @@ version: "0.0.1-dev.2"
       expect(result.errorMessage, isNull);
       expect(
         readPubspecNameAndVersion(pubspecFile).version,
-        '0.1.0',
+        '0.0.2',
       );
       expect(pubspecFile.readAsStringSync(), isNot(pubspecBefore));
       expect(
         changelogFile.readAsStringSync(),
-        startsWith('## 0.1.0'),
+        startsWith('## 0.0.2'),
       );
       expect(
         changelogFile.readAsStringSync(),
@@ -1786,6 +1946,7 @@ environment:
         cwd: packageDir.path,
         tagFormat: '{name}/{version}',
         commitTypesInput: 'feat,fix,docs,refactor,test,build',
+        policy: _zeroMajorPolicy,
       );
       expect(planResult.errorMessage, isNull);
 
@@ -1796,7 +1957,7 @@ environment:
           File('${packageDir.path}/pubspec.yaml').readAsStringSync();
       expect(updated, contains('description: Keep this line intact'));
       expect(updated, contains('environment:\n  sdk: ^3.0.0'));
-      expect(updated, contains('version: 0.1.0'));
+      expect(updated, contains('version: 0.0.2'));
     });
 
     test('rolls back pubspec when changelog write fails', () {
@@ -1847,13 +2008,14 @@ environment:
         '{name}/{version}',
         '--commit-types',
         'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
       ]);
 
       expect(options, isNotNull);
-      expect(options!.showHelp, isFalse);
-      expect(options.cwd, 'packages/synthetic_pkg');
-      expect(options.tagFormat, '{name}/{version}');
-      expect(options.commitTypes, 'feat,fix');
+      expect(options!.commitTypes, 'feat,fix');
+      expect(options.policy, isNotNull);
+      expect(options.policy!.major, isEmpty);
+      expect(options.policy!.patch, containsAll({'feat', 'fix'}));
       expect(options.scopes, isNull);
       expect(options.explicitBump, isNull);
       expect(options.explicitVersionText, isNull);
@@ -1868,6 +2030,7 @@ environment:
         '{name}-v{version}',
         '--commit-types',
         'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
         '--scopes',
         'coverde-cli',
       ]);
@@ -1884,6 +2047,7 @@ environment:
         '{name}/{version}',
         '--commit-types',
         'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
         '--bump',
         'patch',
         '--allow-unsafe-bump',
@@ -1903,6 +2067,7 @@ environment:
         '{name}/{version}',
         '--commit-types',
         'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
         '--version',
         '0.0.1-dev.99',
       ]);
@@ -1921,6 +2086,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat',
+          ..._zeroMajorPolicyCliArgs,
           '--bump',
           'patch',
           '--version',
@@ -1939,6 +2105,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat',
+          ..._zeroMajorPolicyCliArgs,
           '--bump',
           'invalid',
         ]),
@@ -1954,6 +2121,7 @@ environment:
         '{name}/{version}',
         '--commit-types',
         'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
         '--apply',
       ]);
 
@@ -1970,7 +2138,59 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat',
+          ..._zeroMajorPolicyCliArgs,
           '--unknown-flag',
+        ]),
+        isNull,
+      );
+    });
+
+    test('accepts an empty --major-types value', () {
+      final options = parsePrepareReleaseCliOptions([
+        '--cwd',
+        'packages/synthetic_pkg',
+        '--tag-format',
+        '{name}/{version}',
+        '--commit-types',
+        'feat,fix',
+        ..._zeroMajorPolicyCliArgs,
+      ]);
+
+      expect(options, isNotNull);
+      expect(options!.policy!.major, isEmpty);
+    });
+
+    test('rejects missing policy type flags', () {
+      expect(
+        parsePrepareReleaseCliOptions([
+          '--cwd',
+          'packages/synthetic_pkg',
+          '--tag-format',
+          '{name}/{version}',
+          '--commit-types',
+          'feat,fix',
+        ]),
+        isNull,
+      );
+    });
+
+    test('rejects an all-empty auto-bump policy', () {
+      expect(
+        parsePrepareReleaseCliOptions([
+          '--cwd',
+          'packages/synthetic_pkg',
+          '--tag-format',
+          '{name}/{version}',
+          '--commit-types',
+          'feat,fix',
+          '--major-types',
+          '',
+          '--minor-types',
+          '',
+          '--patch-types',
+          '',
+          '--build-types',
+          '',
         ]),
         isNull,
       );
@@ -2008,17 +2228,18 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
         ],
       );
 
       expect(result.exitCode, 0, reason: result.stderr.toString());
       expect(result.stdout, contains('Dry run'));
       expect(result.stdout, contains('package_name=synthetic_pkg'));
-      expect(result.stdout, contains('release_version=0.1.0'));
+      expect(result.stdout, contains('release_version=0.0.2'));
       expect(result.stdout, contains('latest_tag=synthetic_pkg/0.0.1-dev.2'));
       expect(
         result.stdout,
-        contains('chore(synthetic_pkg): release 0.1.0'),
+        contains('chore(synthetic_pkg): release 0.0.2'),
       );
       expect(
         File('${packageDir.path}/pubspec.yaml').readAsStringSync(),
@@ -2040,6 +2261,10 @@ environment:
       expect(result.stdout, contains('--cwd'));
       expect(result.stdout, contains('--tag-format'));
       expect(result.stdout, contains('--commit-types'));
+      expect(result.stdout, contains('--major-types'));
+      expect(result.stdout, contains('--minor-types'));
+      expect(result.stdout, contains('--patch-types'));
+      expect(result.stdout, contains('--build-types'));
       expect(result.stdout, contains('--scopes'));
       expect(result.stdout, contains('--bump'));
       expect(result.stdout, contains('--version'));
@@ -2054,6 +2279,31 @@ environment:
       );
 
       expect(result.exitCode, 64);
+    });
+
+    test('all-empty policy type flags exit 64', () {
+      final result = _runPrepareReleaseCli(
+        repoRoot: tempRoot,
+        arguments: [
+          '--cwd',
+          'packages/synthetic_pkg',
+          '--tag-format',
+          '{name}/{version}',
+          '--commit-types',
+          'feat,fix',
+          '--major-types',
+          '',
+          '--minor-types',
+          '',
+          '--patch-types',
+          '',
+          '--build-types',
+          '',
+        ],
+      );
+
+      expect(result.exitCode, 64);
+      expect(result.stderr, contains('at least one commit type'));
     });
 
     test('--bump patch produces expected next version in dry-run output', () {
@@ -2086,6 +2336,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
           '--bump',
           'patch',
         ],
@@ -2128,6 +2379,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
           '--version',
           '0.0.1-dev.99',
         ],
@@ -2147,6 +2399,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat',
+          ..._zeroMajorPolicyCliArgs,
           '--bump',
           'patch',
           '--version',
@@ -2191,6 +2444,7 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
         ],
       );
       expect(withoutFlag.exitCode, 1);
@@ -2205,12 +2459,13 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
           '--allow-unsafe-bump',
         ],
       );
 
       expect(withFlag.exitCode, 0, reason: withFlag.stderr.toString());
-      expect(withFlag.stdout, contains('release_version=0.1.0'));
+      expect(withFlag.stdout, contains('release_version=0.0.2'));
     });
 
     test('--apply writes pubspec version and prepends changelog', () {
@@ -2246,21 +2501,22 @@ environment:
           '{name}/{version}',
           '--commit-types',
           'feat,fix,docs,refactor,test,build',
+          ..._zeroMajorPolicyCliArgs,
           '--apply',
         ],
       );
 
       expect(result.exitCode, 0, reason: result.stderr.toString());
       expect(result.stdout, contains('Applied release changes'));
-      expect(result.stdout, contains('release_version=0.1.0'));
+      expect(result.stdout, contains('release_version=0.0.2'));
       expect(
         readPubspecNameAndVersion(File('${packageDir.path}/pubspec.yaml'))
             .version,
-        '0.1.0',
+        '0.0.2',
       );
       expect(
         File('${packageDir.path}/CHANGELOG.md').readAsStringSync(),
-        contains('## 0.1.0'),
+        contains('## 0.0.2'),
       );
       expect(
         File('${tempRoot.path}/README.md').readAsStringSync(),
