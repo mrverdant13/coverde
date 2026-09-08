@@ -42,10 +42,21 @@ jobs:
           ripple run pub-score.local
           echo "PUB_SCORE_CHECK_RESULT=$?" >> $GITHUB_OUTPUT
       - name: Set step summary
-        run: echo "$(cat packages/coverde_cli/.dart_tool/local_pub_score.md)" >>
-          $GITHUB_STEP_SUMMARY
+        if: always()
+        run: |
+          report="packages/coverde_cli/.dart_tool/local_pub_score.md"
+          if [[ -f "$report" ]]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Create or update issue
         run: |
+          set -euo pipefail
+          result="${{ steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT }}"
+          report="${{ env.ISSUE_BODY_FILEPATH }}"
+          if [[ "$result" != "0" && ! -f "$report" ]]; then
+            echo "::error::pub-score checker failed without writing a report (exit $result)"
+            exit 1
+          fi
           issueNumber=$(\
             gh issue list \
               --search "${{ env.ISSUE_SEARCH_TERM }}" \
@@ -54,7 +65,7 @@ jobs:
               --json number \
               --jq '.[0].number // empty'
             )
-          if [[ "${{ steps.local-pub-score-check.outputs.PUB_SCORE_CHECK_RESULT }}" == "0" ]]; then
+          if [[ "$result" == "0" ]]; then
             if [[ -n $issueNumber ]]; then
               echo "Issue already exists: $issueNumber"
               gh issue close $issueNumber --comment "Local Pub.dev score is valid"
@@ -63,12 +74,12 @@ jobs:
             if [[ -n $issueNumber ]]; then
               echo "Issue already exists: $issueNumber"
               gh issue edit $issueNumber \
-                --body-file "${{ env.ISSUE_BODY_FILEPATH }}"
+                --body-file "$report"
             else
               echo "Issue does not exist"
               gh issue create \
                 --title "${{ env.ISSUE_TITLE }}" \
-                --body-file "${{ env.ISSUE_BODY_FILEPATH }}" \
+                --body-file "$report" \
                 --label "triage" \
                 --label "p:coverde" \
                 --assignee "mrverdant13"
