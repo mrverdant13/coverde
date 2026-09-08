@@ -46,8 +46,7 @@ If you can include screenshots, trace data or any additional context, it could b
 Bootstrap after clone:
 
 ```bash
-dart pub get
-ripple exec --fail-fast -- dart pub get
+ripple run get
 ```
 
 Named scripts live in [`ripple.yaml`](ripple.yaml). Common checks:
