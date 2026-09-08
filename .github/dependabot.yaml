@@ -6,8 +6,68 @@ updates:
     schedule:
       interval: daily
     labels: []
+    commit-message:
+      prefix: ci
+
   - package-ecosystem: pub
-    directory: /
+    directory: /tools/package_assets_generator
     schedule:
       interval: daily
     labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-package-assets-generator)"
+
+  - package-ecosystem: pub
+    directory: /tools/package_data_generator
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-package-data-generator)"
+
+  - package-ecosystem: pub
+    directory: /tools/prepare_package_release
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-prepare-package-release)"
+
+  - package-ecosystem: pub
+    directory: /tools/pub_score_checker
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-pub-score-checker)"
+
+  - package-ecosystem: pub
+    directory: /tools/readmes_resolver
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-readmes-resolver)"
+
+  - package-ecosystem: pub
+    directory: /tools/wait_for_pub_dev_version
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-wait-for-pub-dev-version)"
+
+  - package-ecosystem: pub
+    directory: /packages/coverde_cli/e2e
+    schedule:
+      interval: daily
+    labels: []
+    versioning-strategy: increase
+    commit-message:
+      prefix: "test(coverde-cli)"
