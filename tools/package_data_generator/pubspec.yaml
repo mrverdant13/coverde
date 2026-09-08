@@ -2,7 +2,6 @@ name: package_data_generator
 description: Package data generator.
 version: 0.1.0+1
 publish_to: none
-resolution: workspace
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

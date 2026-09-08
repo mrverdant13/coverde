@@ -1,0 +1,4 @@
+analyzer:
+  exclude:
+    - tools/prepare_package_release/**
+    - tools/wait_for_pub_dev_version/**
