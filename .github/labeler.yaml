@@ -1,0 +1,106 @@
+# Package and tool labels from changed files or conventional branch scopes.
+"p:coverde":
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/coverde_cli/**
+  - head-branch:
+      - (^|/)coverde-cli(/|$)
+      - ^coverde(/|$)
+
+"t:package-assets-generator":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/package_assets_generator/**
+  - head-branch:
+      - (^|/)t-package-assets-generator(/|$)
+
+"t:package-data-generator":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/package_data_generator/**
+  - head-branch:
+      - (^|/)t-package-data-generator(/|$)
+
+"t:pub-score-checker":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/pub_score_checker/**
+  - head-branch:
+      - (^|/)t-pub-score-checker(/|$)
+
+"t:readmes-resolver":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/readmes_resolver/**
+  - head-branch:
+      - (^|/)t-readmes-resolver(/|$)
+
+"t:prepare-package-release":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/prepare_package_release/**
+  - head-branch:
+      - (^|/)t-prepare-package-release(/|$)
+
+"t:wait-for-pub-dev-version":
+  - changed-files:
+      - any-glob-to-any-file:
+          - tools/wait_for_pub_dev_version/**
+  - head-branch:
+      - (^|/)t-wait-for-pub-dev-version(/|$)
+
+# Type labels from conventional branch names, paths, or Dependabot ecosystems.
+feature:
+  - head-branch:
+      - (^|/)feat(/|$)
+      - (^|/)feature(/|$)
+
+fix:
+  - head-branch:
+      - (^|/)fix(/|$)
+
+refactor:
+  - head-branch:
+      - (^|/)refactor(/|$)
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/CHANGELOG.md"
+          - "**/README.md"
+          - CONTRIBUTING.md
+          - doc/**
+  - head-branch:
+      - (^|/)docs(/|$)
+
+test:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/test/**"
+          - "**/e2e/**"
+          - "**/*_test.dart"
+  - head-branch:
+      - (^|/)test(/|$)
+      - ^dependabot/pub/packages/coverde_cli/e2e/.+
+
+chore:
+  - head-branch:
+      - (^|/)chore(/|$)
+      - ^dependabot/pub/tools/.+
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+  - head-branch:
+      - (^|/)ci(/|$)
+      - ^dependabot/github_actions/.+
+
+build:
+  - head-branch:
+      - (^|/)build(/|$)
+
+performance:
+  - head-branch:
+      - (^|/)perf(/|$)
+      - (^|/)performance(/|$)
