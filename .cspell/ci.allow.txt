@@ -1,5 +1,6 @@
 # Allowed words for CI files
 codecov
+labeler
 mapfile
 mrverdant13
 pipefail
