@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Resolve whether to publish coverage
         id: coverage-publish
-        run: echo "publish=${{ github.event_name != 'pull_request' && secrets.CODECOV_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+        run: echo "publish=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Check spelling
