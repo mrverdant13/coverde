@@ -163,7 +163,7 @@ Highest matching component wins. A breaking type not listed as `type!` falls bac
 
 `release.check` in [`ripple.yaml`](ripple.yaml) is an unscoped `run:` gate and **rejects** `RIPPLE_PACKAGES`. Use it locally for the full repo.
 
-CI inlines the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- dart pub publish --dry-run`.
+CI runs the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- dart pub publish --dry-run`.
 
 ### Prepare tool flags
 
