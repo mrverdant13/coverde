@@ -3,7 +3,10 @@ ansi
 canonicalize
 csslib
 endtemplate
+linkifies
 mocktail
 pana
 posix
+toplevel
+unparseable
 writeln

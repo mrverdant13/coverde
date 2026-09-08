@@ -1,0 +1,46 @@
+{
+  "packageName": "clay_cli",
+  "allowedTypes": ["feat", "fix", "docs", "refactor", "test", "build"],
+  "subjects": [
+    {
+      "subject": "feat(clay_cli,clay_vsc_extension): wire preview command through extension",
+      "included": true
+    },
+    {
+      "subject": "fix(clay_cli): resolve relative paths from project root",
+      "included": true
+    },
+    {
+      "subject": "test(clay_cli): add annotation validator unit tests",
+      "included": true
+    },
+    {
+      "subject": "build(clay_cli): tighten sdk constraint for release",
+      "included": true
+    },
+    {
+      "subject": "feat(clay_core): add validation helpers",
+      "included": false
+    },
+    {
+      "subject": "chore(clay_cli): release 0.0.1-dev.2",
+      "included": false
+    },
+    {
+      "subject": "chore: update CI workflow",
+      "included": false
+    },
+    {
+      "subject": "Merge pull request #99 from example/feature-branch",
+      "included": false
+    },
+    {
+      "subject": "fix(clay_cli): handle missing config (#140)",
+      "included": true
+    },
+    {
+      "subject": "docs(clay_cli): document marker syntax with examples",
+      "included": true
+    }
+  ]
+}
