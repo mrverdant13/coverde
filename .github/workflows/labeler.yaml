@@ -1,0 +1,22 @@
+# Applies type and package labels from .github/labeler.yaml.
+# pull_request_target runs on the base branch so the config is trusted.
+name: Pull Request Labeler
+
+on:
+  - pull_request_target
+
+jobs:
+  labeler:
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Label pull request
+        uses: actions/labeler@v7
+        with:
+          configuration-path: .github/labeler.yaml
+          sync-labels: true
