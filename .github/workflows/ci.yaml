@@ -15,7 +15,12 @@ jobs:
   min-conditions:
     name: Check spelling, format and analyze codebase
     runs-on: ubuntu-latest
+    outputs:
+      publish_coverage: ${{ steps.coverage-publish.outputs.publish }}
     steps:
+      - name: Resolve whether to publish coverage
+        id: coverage-publish
+        run: echo "publish=${{ github.event_name != 'pull_request' && secrets.CODECOV_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
       - name: Check out repository
         uses: actions/checkout@v7
       - name: Check spelling
@@ -117,19 +122,22 @@ jobs:
 
   codecov:
     name: Publish coverage results
-    needs: test
+    needs:
+      - min-conditions
+      - test
+    if: needs.min-conditions.outputs.publish_coverage == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download coverage trace file artifacts
         uses: actions/download-artifact@v8
         with:
           name: filtered.lcov.info
+          path: coverage
       - name: Upload coverage data to Codecov
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
-          directory: ./coverage/
-          files: ./filtered.lcov.info
+          files: coverage/filtered.lcov.info
           fail_ci_if_error: true
           verbose: true
