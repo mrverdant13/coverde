@@ -17,6 +17,8 @@ packages:
   groups:
     e2e:
       - packages/coverde_cli/e2e/suite
+    min-sdk-consumer:
+      - packages/coverde_cli/e2e/min_sdk_smoke
     publishable:
       - packages/coverde_cli
     tools:
@@ -102,6 +104,15 @@ scripts:
     filters:
       - group: e2e
       - dirExists: [e2e]
+
+  test.min-sdk:
+    description: Resolve and smoke-run coverde as a consumer on PATH Dart
+    exec:
+      - "{{dart}} pub get"
+      - "{{dart}} run coverde --help"
+      - "{{dart}} run coverde value --input coverage/lcov.info"
+    filters:
+      - group: min-sdk-consumer
 
   pub-score.local:
     description: Check local pub.dev score for publishable packages
