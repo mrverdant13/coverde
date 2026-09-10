@@ -8,6 +8,9 @@
 # Coverage
 /coverage/
 
+# Ripple
+/ripple_overrides.yaml
+
 # Melos
 /**/.idea/
 /**/melos_overrides.yaml
