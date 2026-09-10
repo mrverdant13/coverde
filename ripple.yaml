@@ -5,6 +5,7 @@ packages:
     - .
     - packages/*
     - packages/*/e2e
+    - packages/*/e2e/*
     - tools/*
   exclude:
     - '**/example/**'
