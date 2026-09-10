@@ -81,7 +81,7 @@ void main() {
         addTearDown(() => tempDir.deleteSync(recursive: true));
         when(() => dependencies.globalLockFilePath)
             .thenReturn(p.join(tempDir.path, 'pubspec.lock'));
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -95,7 +95,7 @@ void main() {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
         when(() => dependencies.globalLockFilePath).thenReturn(tempDir.path);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -113,7 +113,7 @@ void main() {
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
         await IOOverrides.runZoned(
           () async {
-            Future<void> action() async =>
+            Future<void> action() =>
                 packageVersionManager.getGlobalPackageInstallationInfo();
             expect(
               action,
@@ -159,7 +159,7 @@ packages:
       name: "unclosed quote
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -185,7 +185,7 @@ packages:
 12345
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -219,7 +219,7 @@ packages:
   12345
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -254,7 +254,7 @@ packages:
   p2: 67890
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -303,7 +303,7 @@ sdks:
   dart: ">=3.6.0 <4.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -345,7 +345,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -403,7 +403,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -462,7 +462,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -521,7 +521,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -580,7 +580,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -638,7 +638,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -696,7 +696,7 @@ packages:
     version: "2.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -752,7 +752,7 @@ sdks:
   other: ">=3.6.0 <4.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,
@@ -808,7 +808,7 @@ sdks:
   dart: ">=3.6.0 asdf <4.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() async =>
+        Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
           action,

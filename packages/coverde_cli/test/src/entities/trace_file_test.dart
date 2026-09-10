@@ -241,7 +241,7 @@ DA:1,1
           final tempFile = File(path.join(tempDir.path, 'invalid_no_sf.info'))
             ..writeAsStringSync(content);
 
-          Future<void> action() async => TraceFile.parseStreaming(tempFile);
+          Future<void> action() => TraceFile.parseStreaming(tempFile);
 
           await expectLater(
             action,
@@ -260,7 +260,7 @@ DA:1,1
           final tempFile = File(path.join(tempDir.path, 'invalid_da_line.info'))
             ..writeAsStringSync(content);
 
-          Future<void> action() async => TraceFile.parseStreaming(tempFile);
+          Future<void> action() => TraceFile.parseStreaming(tempFile);
 
           await expectLater(
             action,
@@ -281,7 +281,7 @@ DA:1,1
               File(path.join(tempDir.path, 'invalid_last_block.info'))
                 ..writeAsStringSync(content);
 
-          Future<void> action() async => TraceFile.parseStreaming(tempFile);
+          Future<void> action() => TraceFile.parseStreaming(tempFile);
 
           await expectLater(
             action,
@@ -298,7 +298,7 @@ DA:1,1
           final file = MockFile();
           when(file.openRead).thenAnswer((_) => fileStream.stream);
 
-          Future<void> action() async => TraceFile.parseStreaming(file);
+          Future<void> action() => TraceFile.parseStreaming(file);
 
           unawaited(expectLater(action, throwsA('error')));
 
