@@ -127,7 +127,7 @@ class RemoteCommand extends PubScoreCheckerCommand {
   Future<void> run() async {
     final argResults = this.argResults!;
     final packageName = argResults.option('package-name')!;
-    await super.report((analyzer, options) async {
+    await super.report((analyzer, options) {
       return analyzer.inspectPackage(
         packageName,
         options: options,
@@ -156,7 +156,7 @@ class LocalCommand extends PubScoreCheckerCommand {
   Future<void> run() async {
     final argResults = this.argResults!;
     final packagePath = argResults.option('package-path')!;
-    await super.report((analyzer, options) async {
+    await super.report((analyzer, options) {
       return analyzer.inspectDir(
         packagePath,
         options: options,
