@@ -1,0 +1,10 @@
+name: coverde_min_sdk_smoke
+description: Resolves and runs coverde as a consumer (no VGA).
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  coverde:
+    path: ../..
