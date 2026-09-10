@@ -77,7 +77,7 @@ updates:
       prefix: "chore(t-wait-for-pub-dev-version)"
 
   - package-ecosystem: pub
-    directory: /packages/coverde_cli/e2e
+    directory: /packages/coverde_cli/e2e/suite
     schedule:
       interval: daily
     labels:

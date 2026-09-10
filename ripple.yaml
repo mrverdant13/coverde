@@ -4,7 +4,6 @@ packages:
   include:
     - .
     - packages/*
-    - packages/*/e2e
     - packages/*/e2e/*
     - tools/*
   exclude:
@@ -17,7 +16,7 @@ packages:
     - tools/readmes_resolver/lib/sample_project
   groups:
     e2e:
-      - packages/coverde_cli/e2e
+      - packages/coverde_cli/e2e/suite
     publishable:
       - packages/coverde_cli
     tools:
