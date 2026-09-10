@@ -37,11 +37,18 @@ If you can include screenshots, trace data or any additional context, it could b
 
 ### Pre-requisites
 
-- [Dart SDK][dart_link] - min version: 3.5.0
+- [Dart SDK][dart_link] — the published CLI advertises `>=3.5.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.5.0`.
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
   dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 72a3a97b2615fe1b133573320bdb187335f8adf4}}'
   ```
+- Optional local Dart binary via a gitignored `ripple_overrides.yaml` (do not commit it). CI uses PATH `dart` and needs no overlay:
+
+```yaml
+# ripple_overrides.yaml
+replacements:
+  dart: fvm dart
+```
 
 Bootstrap after clone:
 

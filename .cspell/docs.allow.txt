@@ -1,5 +1,6 @@
 # Allowed words for documentation files
 codecov
+fvm
 Karlo
 ripple
 runbook
