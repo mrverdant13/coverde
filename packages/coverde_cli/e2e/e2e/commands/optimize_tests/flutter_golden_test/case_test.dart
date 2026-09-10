@@ -76,7 +76,7 @@ void main() {
       ]);
       {
         // Clean generated files
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -115,7 +115,7 @@ void main() {
 
       {
         // Install dependencies
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -184,7 +184,7 @@ void main() {
 
       {
         // Optimize tests
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -238,7 +238,7 @@ void main() {
 
       {
         // Run optimized test
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
