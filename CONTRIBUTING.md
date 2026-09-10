@@ -40,7 +40,7 @@ If you can include screenshots, trace data or any additional context, it could b
 - [Dart SDK][dart_link] - min version: 3.5.0
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
-  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}'
+  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 72a3a97b2615fe1b133573320bdb187335f8adf4}}'
   ```
 
 Bootstrap after clone:

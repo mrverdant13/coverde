@@ -41,7 +41,7 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 72a3a97b2615fe1b133573320bdb187335f8adf4}}
 
       - name: Bootstrap packages
         run: |
