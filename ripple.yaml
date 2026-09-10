@@ -25,28 +25,31 @@ packages:
       - tools/pub_score_checker
       - tools/readmes_resolver
 
+replacements:
+  dart: dart
+
 scripts:
   get:
     description: Get all packages
-    exec: dart pub get
+    exec: "{{dart}} pub get"
 
   format:
     description: Format a package
-    exec: dart format .
+    exec: "{{dart}} format ."
   format.ci:
     description: Format all packages (CI)
-    exec: dart format --set-exit-if-changed .
+    exec: "{{dart}} format --set-exit-if-changed ."
 
   analyze:
     description: Analyze a package
-    exec: dart analyze .
+    exec: "{{dart}} analyze ."
   analyze.ci:
     description: Analyze all packages (CI)
-    exec: dart analyze --fatal-infos --fatal-warnings .
+    exec: "{{dart}} analyze --fatal-infos --fatal-warnings ."
 
   gen:
     description: Run code generation for a package
-    exec: dart run build_runner build --delete-conflicting-outputs
+    exec: "{{dart}} run build_runner build --delete-conflicting-outputs"
     filters:
       - dependsOn: [build_runner]
 
@@ -57,16 +60,16 @@ scripts:
   test:
     description: Run tests and generate coverage trace file for a package
     exec:
-      - dart run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart
-      - dart test --color --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart
+      - "{{dart}} run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
+      - "{{dart}} test --color --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
       - dependsOn: [test]
       - dirExists: [test]
   test.ci:
     description: Run tests for all packages (CI)
     exec:
-      - dart run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart
-      - dart test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart
+      - "{{dart}} run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
+      - "{{dart}} test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
       - dependsOn: [test]
       - dirExists: [test]
@@ -74,20 +77,20 @@ scripts:
   coverage.merge:
     description: Merge all packages coverage trace files
     run:
-      - dart run coverde rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info
-      - ripple exec --file-exists coverage/lcov.info -- dart run coverde transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'
+      - "{{dart}} run coverde rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
+      - "ripple exec --file-exists coverage/lcov.info -- {{dart}} run coverde transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
   coverage.check:
     description: Check test coverage
-    run: dart run coverde check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100
+    run: "{{dart}} run coverde check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100"
   coverage.report:
     description: Generate HTML coverage report
-    run: dart run coverde report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/
+    run: "{{dart}} run coverde report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
 
   test.e2e:
     description: Run E2E tests
     exec:
       - git clean -dfX .
-      - dart test --color --run-skipped --tags e2e e2e
+      - "{{dart}} test --color --run-skipped --tags e2e e2e"
     filters:
       - group: e2e
       - dirExists: [e2e]
@@ -95,19 +98,19 @@ scripts:
     description: Run E2E tests for all packages (CI)
     exec:
       - git clean -dfX .
-      - dart test --run-skipped --tags e2e e2e
+      - "{{dart}} test --run-skipped --tags e2e e2e"
     filters:
       - group: e2e
       - dirExists: [e2e]
 
   pub-score.local:
     description: Check local pub.dev score for publishable packages
-    exec: dart run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score local --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/local_pub_score.md --package-path ${RIPPLE_PACKAGE_PATH} --threshold 0
+    exec: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score local --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/local_pub_score.md --package-path ${RIPPLE_PACKAGE_PATH} --threshold 0"
     filters:
       - group: publishable
   pub-score.remote:
     description: Check remote pub.dev score for publishable packages
-    exec: dart run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score remote --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/remote_pub_score.md --package-name ${RIPPLE_PACKAGE_NAME} --threshold 0
+    exec: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score remote --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/remote_pub_score.md --package-name ${RIPPLE_PACKAGE_NAME} --threshold 0"
     filters:
       - group: publishable
 
@@ -116,8 +119,8 @@ scripts:
       Bump version and changelog for a single package release. Set
       RIPPLE_PACKAGES=<package> to scope to one package.
     exec:
-      - dart run ${RIPPLE_ROOT_PATH}/tools/prepare_package_release/prepare_package_release.dart --cwd ${RIPPLE_PACKAGE_PATH} --tag-format '{name}-v{version}' --scopes coverde-cli --commit-types feat,fix,docs,refactor,perf,test,build,chore --major-types= --minor-types feat!,fix! --patch-types feat,fix --build-types docs,refactor,perf,test,build,chore --apply
-      - dart run build_runner build --delete-conflicting-outputs
+      - "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/prepare_package_release/prepare_package_release.dart --cwd ${RIPPLE_PACKAGE_PATH} --tag-format '{name}-v{version}' --scopes coverde-cli --commit-types feat,fix,docs,refactor,perf,test,build,chore --major-types= --minor-types feat!,fix! --patch-types feat,fix --build-types docs,refactor,perf,test,build,chore --apply"
+      - "{{dart}} run build_runner build --delete-conflicting-outputs"
     filters:
       - group: publishable
 
@@ -130,11 +133,11 @@ scripts:
       - ripple run analyze.ci --fail-fast
       - ripple run test.ci --fail-fast
       - ripple run pub-score.local --fail-fast
-      - ripple exec --group publishable --fail-fast -- dart pub publish --dry-run
+      - "ripple exec --group publishable --fail-fast -- {{dart}} pub publish --dry-run"
 
   docs.cli:
     description: Resolve CLI README file
-    run: dart run ${RIPPLE_ROOT_PATH}/tools/readmes_resolver/lib/resolve_root_readme.dart --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/browser/ --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/terminal/ --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/markdown/ --readme=${RIPPLE_ROOT_PATH}/packages/coverde_cli/README.md
+    run: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/readmes_resolver/lib/resolve_root_readme.dart --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/browser/ --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/terminal/ --example-dirs=${RIPPLE_ROOT_PATH}/packages/coverde_cli/doc/examples/markdown/ --readme=${RIPPLE_ROOT_PATH}/packages/coverde_cli/README.md"
 
   clean:
     description: Deep clean-up

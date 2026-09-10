@@ -54,7 +54,7 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- dart pub get
+          ripple exec --fail-fast -- {{dart}} pub get
       - name: Verify release manifest changes match title
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -130,7 +130,7 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- dart pub get
+          ripple exec --fail-fast -- {{dart}} pub get
       - name: Install webp
         run: sudo apt-get install -y webp
       - name: Format and analyze
@@ -143,7 +143,7 @@ jobs:
         run: |
           ripple run test.ci --fail-fast
           ripple run pub-score.local --fail-fast
-          ripple exec --group publishable --fail-fast -- dart pub publish --dry-run
+          ripple exec --group publishable --fail-fast -- {{dart}} pub publish --dry-run
       - name: Set step summary
         if: always()
         env:

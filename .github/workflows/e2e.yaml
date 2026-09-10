@@ -31,6 +31,6 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- dart pub get
+          ripple exec --fail-fast -- {{dart}} pub get
       - name: Run E2E tests
         run: ripple run test.e2e.ci --fail-fast
