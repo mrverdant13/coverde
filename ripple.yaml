@@ -112,7 +112,7 @@ scripts:
     exec:
       - "{{dart}} pub get"
       - "{{coverde}} --help"
-      - "{{coverde}} value --input coverage/lcov.info"
+      - "{{coverde}} value --input fixtures/lcov.info"
     filters:
       - group: min-sdk-consumer
 
