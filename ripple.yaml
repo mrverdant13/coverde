@@ -110,8 +110,8 @@ scripts:
     description: Resolve and smoke-run coverde as a consumer on PATH Dart
     exec:
       - "{{dart}} pub get"
-      - "{{dart}} run coverde --help"
-      - "{{dart}} run coverde value --input coverage/lcov.info"
+      - "{{coverde}} --help"
+      - "{{coverde}} value --input coverage/lcov.info"
     filters:
       - group: min-sdk-consumer
 
