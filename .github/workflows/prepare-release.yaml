@@ -46,7 +46,7 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- {{dart}} pub get
+          ripple exec --fail-fast -- "{{dart}}" pub get
 
       - name: Configure git author
         run: |
