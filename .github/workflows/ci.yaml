@@ -50,10 +50,10 @@ jobs:
         with:
           sdk: 3.10.8
       - name: Install ripple
-        uses: ./.github/actions/install-dart-cli
-        with:
-          package: https://github.com/mrverdant13/ripple.git
-          git-ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076
+        run: >
+          dart pub global activate --source git
+          https://github.com/mrverdant13/ripple.git
+          --git-ref ccc3d80a9ff466b4219ff969b06361c7b7d7e076
       - name: Run min-SDK consumer smoke
         run: ripple run test.min-sdk --fail-fast
 

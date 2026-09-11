@@ -3,29 +3,19 @@ description: Run dart install and add the install bin directory to PATH
 inputs:
   package:
     description: >-
-      Package for dart install: a Dart 3.13+ package descriptor, a hosted
-      name, or a Git URL (use git-ref on Dart 3.10).
+      Package descriptor for dart install (e.g. coverde 0.4.1, or a git
+      package descriptor such as
+      ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: <sha>}})
     required: true
-  git-ref:
-    description: >-
-      Passed as --git-ref. Required with a Git URL on Dart 3.10, which does
-      not parse package descriptors.
-    required: false
-    default: ''
 runs:
   using: composite
   steps:
     - shell: bash
       env:
         PACKAGE_DESCRIPTOR: ${{ inputs.package }}
-        GIT_REF: ${{ inputs.git-ref }}
       run: |
         set -euo pipefail
-        install_args=("$PACKAGE_DESCRIPTOR")
-        if [[ -n "$GIT_REF" ]]; then
-          install_args+=(--git-ref "$GIT_REF")
-        fi
-        output="$(dart install "${install_args[@]}")"
+        output="$(dart install "$PACKAGE_DESCRIPTOR")"
         echo "$output"
 
         installed="$(echo "$output" | grep '^Installed:' | sed 's|^Installed: ||')"
