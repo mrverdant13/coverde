@@ -48,6 +48,7 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
         with:
+          # Keep in range with packages/coverde_cli/e2e/min_sdk_smoke (3.10.8 ≤ sdk < 3.11.0).
           sdk: 3.10.8
       - name: Install ripple
         uses: ./.github/actions/install-dart-cli
