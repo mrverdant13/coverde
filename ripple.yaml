@@ -33,9 +33,6 @@ scripts:
   get:
     description: Get all packages
     exec: "{{dart}} pub get"
-  get.ci:
-    description: Get all packages (CI)
-    exec: "{{dart}} pub get"
 
   format:
     description: Format a package
