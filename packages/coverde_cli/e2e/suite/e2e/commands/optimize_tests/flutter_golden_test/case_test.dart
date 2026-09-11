@@ -16,6 +16,7 @@ void main() {
     final coverdeCliPath = p.joinAll([
       Directory.current.path,
       '..',
+      '..',
     ]);
     coverdeExecutablePath = p.join(temporaryDirectory.path, 'coverde');
     final [command, ...arguments] = 'dart compile exe '
