@@ -27,6 +27,7 @@ packages:
 
 replacements:
   dart: dart
+  coverde: "{{dart}} run coverde"
 
 scripts:
   get:
@@ -60,7 +61,7 @@ scripts:
   test:
     description: Run tests and generate coverage trace file for a package
     exec:
-      - "{{dart}} run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
+      - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
       - "{{dart}} test --color --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
       - dependsOn: [test]
@@ -68,7 +69,7 @@ scripts:
   test.ci:
     description: Run tests for all packages (CI)
     exec:
-      - "{{dart}} run coverde optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
+      - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
       - "{{dart}} test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
       - dependsOn: [test]
@@ -77,14 +78,14 @@ scripts:
   coverage.merge:
     description: Merge all packages coverage trace files
     run:
-      - "{{dart}} run coverde rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
-      - "ripple exec --file-exists coverage/lcov.info -- \"{{dart}}\" run coverde transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
+      - "{{coverde}} rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
+      - "ripple exec --file-exists coverage/lcov.info -- '{{coverde}}' transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
   coverage.check:
     description: Check test coverage
-    run: "{{dart}} run coverde check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100"
+    run: "{{coverde}} check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100"
   coverage.report:
     description: Generate HTML coverage report
-    run: "{{dart}} run coverde report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
+    run: "{{coverde}} report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
 
   test.e2e:
     description: Run E2E tests
@@ -133,7 +134,7 @@ scripts:
       - ripple run analyze.ci --fail-fast
       - ripple run test.ci --fail-fast
       - ripple run pub-score.local --fail-fast
-      - "ripple exec --group publishable --fail-fast -- \"{{dart}}\" pub publish --dry-run"
+      - "ripple exec --group publishable --fail-fast -- '{{dart}}' pub publish --dry-run"
 
   docs.cli:
     description: Resolve CLI README file
