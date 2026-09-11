@@ -24,6 +24,9 @@ packages:
       - tools/package_data_generator
       - tools/pub_score_checker
       - tools/readmes_resolver
+  filtersPresets:
+    skipMinSdkConsumer:
+      - noMatch: [coverde_min_sdk_smoke]
 
 replacements:
   dart: dart
@@ -34,20 +37,30 @@ scripts:
   get:
     description: Get all packages
     exec: "{{dart}} pub get"
+    filters:
+      - preset: skipMinSdkConsumer
 
   format:
     description: Format a package
     exec: "{{dart}} format ."
+    filters:
+      - preset: skipMinSdkConsumer
   format.ci:
     description: Format all packages (CI)
     exec: "{{dart}} format --set-exit-if-changed ."
+    filters:
+      - preset: skipMinSdkConsumer
 
   analyze:
     description: Analyze a package
     exec: "{{dart}} analyze ."
+    filters:
+      - preset: skipMinSdkConsumer
   analyze.ci:
     description: Analyze all packages (CI)
     exec: "{{dart}} analyze --fatal-infos --fatal-warnings ."
+    filters:
+      - preset: skipMinSdkConsumer
 
   gen:
     description: Run code generation for a package
