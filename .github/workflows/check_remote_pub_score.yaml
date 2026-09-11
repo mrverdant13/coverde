@@ -22,11 +22,9 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
-        run: |
-          dart pub get
-          ripple exec --fail-fast -- dart pub get
+        run: ripple run get --fail-fast
       - name: Install dependencies
         run: sudo apt-get install -y webp
       - name: Verify remote Pub.dev score

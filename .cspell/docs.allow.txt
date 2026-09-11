@@ -1,5 +1,7 @@
 # Allowed words for documentation files
 codecov
+fvm
 Karlo
+powershell
 ripple
 runbook

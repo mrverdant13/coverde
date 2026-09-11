@@ -33,11 +33,9 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
-        run: |
-          dart pub get
-          ripple exec --fail-fast -- dart pub get
+        run: ripple run get --fail-fast
       - name: Format and analyze
         run: ripple run format.ci && ripple run analyze.ci --fail-fast
 
@@ -79,11 +77,9 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
-        run: |
-          dart pub get
-          ripple exec --fail-fast -- dart pub get
+        run: ripple run get --fail-fast
       - name: Verify up-to-date generated source files
         working-directory: packages/coverde_cli/
         run: dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
@@ -105,11 +101,9 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 364f05aa0db1dd2a0f8a70856f312cfb1a6df73a}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
-        run: |
-          dart pub get
-          ripple exec --fail-fast -- dart pub get
+        run: ripple run get --fail-fast
       - name: Run tests, merge tests if needed, and check 100% coverage
         run: ripple run test.ci --fail-fast && ripple run coverage.merge && ripple run coverage.check
       - name: Update coverage trace file as artifact
