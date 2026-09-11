@@ -40,15 +40,17 @@ If you can include screenshots, trace data or any additional context, it could b
 - [Dart SDK][dart_link] — the published CLI advertises `>=3.5.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.5.0`.
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
-  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: c7c50f41fd43570316a1d85bdcacf31e0db4f2df}}'
+  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}'
   ```
-- Optional local Dart binary via a gitignored `ripple_overrides.yaml` (do not commit it). CI uses PATH `dart` and needs no overlay:
+- Optional local Dart binary via a gitignored `ripple_overrides.yaml` (do not commit it). CI uses PATH `dart` and needs no overlay. A local `dart:` overlay also flows into `coverde: "{{dart}} run coverde"` in [`ripple.yaml`](ripple.yaml):
 
 ```yaml
 # ripple_overrides.yaml
 replacements:
   dart: fvm dart
 ```
+
+Shell `ripple exec` must quote each `{{key}}` token (`'{{dart}}'`) so PowerShell does not treat it as a script block. Quote only the placeholder, not the rest of the command.
 
 Bootstrap after clone:
 
@@ -169,7 +171,7 @@ Highest matching component wins. A breaking type not listed as `type!` falls bac
 
 `release.check` in [`ripple.yaml`](ripple.yaml) is an unscoped `run:` gate and **rejects** `RIPPLE_PACKAGES`. Use it locally for the full repo.
 
-CI runs the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- "{{dart}}" pub publish --dry-run`.
+CI runs the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- '{{dart}}' pub publish --dry-run`.
 
 ### Prepare tool flags
 
