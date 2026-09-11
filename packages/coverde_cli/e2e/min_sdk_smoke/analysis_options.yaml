@@ -1,4 +1,4 @@
-# No very_good_analysis — this package is pinned to Dart 3.10 (CI uses 3.10.8).
+# No very_good_analysis — this package must resolve on Dart 3.10.
 analyzer:
   language:
     strict-casts: true
