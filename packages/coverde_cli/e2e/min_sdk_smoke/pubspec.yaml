@@ -3,7 +3,7 @@ description: Resolves and runs coverde as a consumer (no VGA).
 publish_to: none
 
 environment:
-  sdk: ">=3.5.0 <4.0.0"
+  sdk: ">=3.10.8 <3.11.0"
 
 dependencies:
   coverde:
