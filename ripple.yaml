@@ -30,6 +30,7 @@ packages:
 replacements:
   dart: dart
   coverde: "{{dart}} run coverde"
+  check_pub_score: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score"
 
 scripts:
   get:
@@ -117,12 +118,12 @@ scripts:
 
   pub-score.local:
     description: Check local pub.dev score for publishable packages
-    exec: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score local --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/local_pub_score.md --package-path ${RIPPLE_PACKAGE_PATH} --threshold 0"
+    exec: "{{check_pub_score}} local --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/local_pub_score.md --package-path ${RIPPLE_PACKAGE_PATH} --threshold 0"
     filters:
       - group: publishable
   pub-score.remote:
     description: Check remote pub.dev score for publishable packages
-    exec: "{{dart}} run ${RIPPLE_ROOT_PATH}/tools/pub_score_checker/bin/pub_score_checker.dart check_pub_score remote --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/remote_pub_score.md --package-name ${RIPPLE_PACKAGE_NAME} --threshold 0"
+    exec: "{{check_pub_score}} remote --markdown-output ${RIPPLE_PACKAGE_PATH}/.dart_tool/remote_pub_score.md --package-name ${RIPPLE_PACKAGE_NAME} --threshold 0"
     filters:
       - group: publishable
 
