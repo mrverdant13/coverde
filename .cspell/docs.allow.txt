@@ -2,5 +2,6 @@
 codecov
 fvm
 Karlo
+powershell
 ripple
 runbook
