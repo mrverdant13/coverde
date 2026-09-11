@@ -62,11 +62,11 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: c7c50f41fd43570316a1d85bdcacf31e0db4f2df}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- "{{dart}}" pub get
+          ripple exec --fail-fast -- '{{dart}}' pub get
       - name: Install webp
         run: sudo apt-get install -y webp
       - name: Format and analyze
@@ -77,7 +77,7 @@ jobs:
         run: |
           ripple run test.ci --fail-fast
           ripple run pub-score.local --fail-fast
-          ripple exec --group publishable --fail-fast -- "{{dart}}" pub publish --dry-run
+          ripple exec --group publishable --fail-fast -- '{{dart}}' pub publish --dry-run
 
   publish:
     name: Publish (${{ inputs.package }})
@@ -116,11 +116,11 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: c7c50f41fd43570316a1d85bdcacf31e0db4f2df}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- "{{dart}}" pub get
+          ripple exec --fail-fast -- '{{dart}}' pub get
       - name: Verify release tag on HEAD
         env:
           PACKAGE: ${{ inputs.package }}
