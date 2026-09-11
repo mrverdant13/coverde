@@ -44,9 +44,7 @@ jobs:
             ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
 
       - name: Bootstrap packages
-        run: |
-          dart pub get
-          ripple exec --fail-fast -- '{{dart}}' pub get
+        run: ripple run get.ci --fail-fast
 
       - name: Configure git author
         run: |
