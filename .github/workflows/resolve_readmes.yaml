@@ -29,7 +29,7 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- {{dart}} pub get
+          ripple exec --fail-fast -- "{{dart}}" pub get
       - name: Resolve CLI README file
         run: ripple run docs.cli
       - name: Create PR

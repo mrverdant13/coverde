@@ -32,7 +32,7 @@ jobs:
       - name: Bootstrap packages
         run: |
           dart pub get
-          ripple exec --fail-fast -- {{dart}} pub get
+          ripple exec --fail-fast -- "{{dart}}" pub get
       - name: Install dependencies
         run: sudo apt-get install -y webp
       - name: Verify local Pub.dev score

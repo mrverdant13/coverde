@@ -80,7 +80,7 @@ scripts:
     description: Merge all packages coverage trace files
     run:
       - "{{dart}} run coverde rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
-      - "ripple exec --file-exists coverage/lcov.info -- {{dart}} run coverde transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
+      - "ripple exec --file-exists coverage/lcov.info -- \"{{dart}}\" run coverde transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
   coverage.check:
     description: Check test coverage
     run: "{{dart}} run coverde check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100"
@@ -144,7 +144,7 @@ scripts:
       - ripple run analyze.ci --fail-fast
       - ripple run test.ci --fail-fast
       - ripple run pub-score.local --fail-fast
-      - "ripple exec --group publishable --fail-fast -- {{dart}} pub publish --dry-run"
+      - "ripple exec --group publishable --fail-fast -- \"{{dart}}\" pub publish --dry-run"
 
   docs.cli:
     description: Resolve CLI README file
