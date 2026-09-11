@@ -39,6 +39,24 @@ jobs:
       - name: Format and analyze
         run: ripple run format.ci && ripple run analyze.ci --fail-fast
 
+  min-sdk-consumer:
+    name: Min-SDK consumer smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.10.8
+      - name: Install ripple
+        run: >
+          dart pub global activate --source git
+          https://github.com/mrverdant13/ripple.git
+          --git-ref ccc3d80a9ff466b4219ff969b06361c7b7d7e076
+      - name: Run min-SDK consumer smoke
+        run: ripple run test.min-sdk --fail-fast
+
   release-tools:
     name: Test release tools (${{ matrix.package }})
     runs-on: ubuntu-latest
