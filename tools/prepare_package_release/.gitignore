@@ -5,3 +5,7 @@
 .packages
 build/
 pubspec.lock
+
+# Testing and coverage
+/coverage/
+/test/optimized_test.dart
