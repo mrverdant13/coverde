@@ -5,5 +5,7 @@ environment:
   sdk: ">=3.5.0 <4.0.0"
 
 dev_dependencies:
+  coverde:
+    path: ../../packages/coverde_cli
   test: ^1.25.0
   very_good_analysis: ^11.0.0
