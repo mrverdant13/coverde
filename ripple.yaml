@@ -11,8 +11,6 @@ packages:
     - '**/test/fixtures/**'
     - '**/e2e/fixtures/**'
     - '**/e2e/e2e/fixtures/**'
-    - tools/prepare_package_release
-    - tools/wait_for_pub_dev_version
     - tools/readmes_resolver/lib/sample_project
   groups:
     e2e:
@@ -26,6 +24,8 @@ packages:
       - tools/package_data_generator
       - tools/pub_score_checker
       - tools/readmes_resolver
+      - tools/prepare_package_release
+      - tools/wait_for_pub_dev_version
 
 replacements:
   dart: dart
