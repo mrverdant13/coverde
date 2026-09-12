@@ -140,6 +140,10 @@ jobs:
     if: needs.min-conditions.outputs.publish_coverage == 'true'
     runs-on: ubuntu-latest
     steps:
+      # Codecov needs a git checkout so the CLI can build the file network and
+      # map LCOV SF: paths; without it uploads succeed but reports are unusable.
+      - name: Check out repository
+        uses: actions/checkout@v7
       - name: Download coverage trace file artifacts
         uses: actions/download-artifact@v8
         with:
