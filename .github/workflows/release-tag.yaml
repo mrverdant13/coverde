@@ -1,0 +1,153 @@
+# Creates annotated release tags when Dart package release PRs merge to main.
+# Live pub.dev publish is a separate manual workflow_dispatch on the tag ref (OIDC).
+# Tags pushed from this workflow cannot trigger the publish workflow via push:tags.
+name: Release tag on merge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package to recreate release tag for on main
+        required: true
+        type: choice
+        options:
+          - coverde
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    name: Resolve release target
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.resolve.outputs.should_run }}
+      package: ${{ steps.resolve.outputs.package }}
+      version: ${{ steps.resolve.outputs.version }}
+      checkout_ref: ${{ steps.resolve.outputs.checkout_ref }}
+    steps:
+      - name: Resolve release target
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          MERGE_COMMIT_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          DISPATCH_PACKAGE: ${{ inputs.package }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            if [[ "$PR_MERGED" != "true" ]]; then
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            release_title_re='^chore\(([^)]+)\): release (.+)$'
+            if [[ ! "$PR_TITLE" =~ $release_title_re ]]; then
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            package="${BASH_REMATCH[1]}"
+            version="${BASH_REMATCH[2]}"
+            expected_branch="${package}/chore/release-${version}"
+
+            if [[ "$PR_BRANCH" != "$expected_branch" ]]; then
+              echo "::error::Release PR branch must be named '$expected_branch' (got '$PR_BRANCH')."
+              exit 1
+            fi
+
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+            echo "package=$package" >> "$GITHUB_OUTPUT"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "checkout_ref=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "package=$DISPATCH_PACKAGE" >> "$GITHUB_OUTPUT"
+          echo "checkout_ref=main" >> "$GITHUB_OUTPUT"
+
+  tag:
+    name: Tag release (${{ needs.resolve.outputs.package }})
+    needs: resolve
+    if: needs.resolve.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      cancel-in-progress: false
+      group: release-tag-${{ needs.resolve.outputs.package }}
+    env:
+      PACKAGE_DIR: packages/coverde_cli
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.resolve.outputs.checkout_ref }}
+          fetch-depth: 0
+
+      - name: Validate release version
+        id: version
+        env:
+          PACKAGE: ${{ needs.resolve.outputs.package }}
+          EXPECTED_VERSION: ${{ needs.resolve.outputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          pubspec_version=$(grep '^version:' "${{ env.PACKAGE_DIR }}/pubspec.yaml" | awk '{print $2}')
+          if [[ -z "$pubspec_version" ]]; then
+            echo "::error::Could not read version from ${{ env.PACKAGE_DIR }}/pubspec.yaml"
+            exit 1
+          fi
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "value=$pubspec_version" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ "$pubspec_version" != "$EXPECTED_VERSION" ]]; then
+            echo "::error::${{ env.PACKAGE_DIR }}/pubspec.yaml version is $pubspec_version but the release PR title indicates $EXPECTED_VERSION."
+            exit 1
+          fi
+
+          echo "value=$pubspec_version" >> "$GITHUB_OUTPUT"
+
+      - name: Skip when release tag already exists
+        id: skip
+        env:
+          PACKAGE: ${{ needs.resolve.outputs.package }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          tag_name="${PACKAGE}-v${VERSION}"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag_name}" >/dev/null 2>&1; then
+            echo "Tag ${tag_name} already exists on origin; skipping tag creation."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure git author
+        if: steps.skip.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push annotated release tag
+        if: steps.skip.outputs.skip != 'true'
+        env:
+          PACKAGE: ${{ needs.resolve.outputs.package }}
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          tag_name="${PACKAGE}-v${VERSION}"
+          git tag -a "$tag_name" -m "${PACKAGE} ${VERSION}"
+          git push origin "$tag_name"

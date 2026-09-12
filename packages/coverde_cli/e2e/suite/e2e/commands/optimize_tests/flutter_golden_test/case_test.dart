@@ -16,6 +16,7 @@ void main() {
     final coverdeCliPath = p.joinAll([
       Directory.current.path,
       '..',
+      '..',
     ]);
     coverdeExecutablePath = p.join(temporaryDirectory.path, 'coverde');
     final [command, ...arguments] = 'dart compile exe '
@@ -76,7 +77,7 @@ void main() {
       ]);
       {
         // Clean generated files
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -115,7 +116,7 @@ void main() {
 
       {
         // Install dependencies
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -184,7 +185,7 @@ void main() {
 
       {
         // Optimize tests
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,
@@ -238,7 +239,7 @@ void main() {
 
       {
         // Run optimized test
-        final process = await () async {
+        final process = await () {
           final [
             command,
             ...arguments,

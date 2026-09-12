@@ -5,9 +5,84 @@ updates:
     directory: /
     schedule:
       interval: daily
-    labels: []
+    labels:
+      - ci
+    commit-message:
+      prefix: ci
+
   - package-ecosystem: pub
-    directory: /
+    directory: /tools/package_assets_generator
     schedule:
       interval: daily
-    labels: []
+    labels:
+      - chore
+      - t:package-assets-generator
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-package-assets-generator)"
+
+  - package-ecosystem: pub
+    directory: /tools/package_data_generator
+    schedule:
+      interval: daily
+    labels:
+      - chore
+      - t:package-data-generator
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-package-data-generator)"
+
+  - package-ecosystem: pub
+    directory: /tools/prepare_package_release
+    schedule:
+      interval: daily
+    labels:
+      - chore
+      - t:prepare-package-release
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-prepare-package-release)"
+
+  - package-ecosystem: pub
+    directory: /tools/pub_score_checker
+    schedule:
+      interval: daily
+    labels:
+      - chore
+      - t:pub-score-checker
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-pub-score-checker)"
+
+  - package-ecosystem: pub
+    directory: /tools/readmes_resolver
+    schedule:
+      interval: daily
+    labels:
+      - chore
+      - t:readmes-resolver
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-readmes-resolver)"
+
+  - package-ecosystem: pub
+    directory: /tools/wait_for_pub_dev_version
+    schedule:
+      interval: daily
+    labels:
+      - chore
+      - t:wait-for-pub-dev-version
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(t-wait-for-pub-dev-version)"
+
+  - package-ecosystem: pub
+    directory: /packages/coverde_cli/e2e/suite
+    schedule:
+      interval: daily
+    labels:
+      - test
+      - p:coverde
+    versioning-strategy: increase
+    commit-message:
+      prefix: "test(coverde-cli)"

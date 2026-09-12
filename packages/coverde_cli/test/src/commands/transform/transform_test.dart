@@ -972,7 +972,7 @@ final class _TransformTestFile extends Fake implements File {
   @override
   Future<RandomAccessFile> open({
     FileMode mode = FileMode.read,
-  }) async {
+  }) {
     if (_open case final cb?) return cb();
     throw UnimplementedError();
   }

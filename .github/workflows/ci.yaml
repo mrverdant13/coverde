@@ -15,21 +15,72 @@ jobs:
   min-conditions:
     name: Check spelling, format and analyze codebase
     runs-on: ubuntu-latest
+    outputs:
+      publish_coverage: ${{ steps.coverage-publish.outputs.publish }}
     steps:
+      - name: Resolve whether to publish coverage
+        id: coverage-publish
+        run: echo "publish=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Check spelling
-        uses: streetsidesoftware/cspell-action@v8
+        uses: streetsidesoftware/cspell-action@v9
         with:
           config: ./.cspell/cspell.yaml
       - name: Install dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
-        run: dart pub global activate melos 7.5.1
-      - name: Initialize melos
-        run: melos bs
+      - name: Install ripple
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+      - name: Bootstrap packages
+        run: ripple run get --fail-fast
       - name: Format and analyze
-        run: melos run format.ci && melos run analyze.ci
+        run: ripple run format.ci && ripple run analyze.ci --fail-fast
+
+  min-sdk-consumer:
+    name: Min-SDK consumer smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.10.8
+      - name: Install ripple
+        run: >
+          dart pub global activate --source git
+          https://github.com/mrverdant13/ripple.git
+          --git-ref ccc3d80a9ff466b4219ff969b06361c7b7d7e076
+      - name: Run min-SDK consumer smoke
+        run: ripple run test.min-sdk --fail-fast
+
+  release-tools:
+    name: Test release tools (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    needs: min-conditions
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - tools/prepare_package_release
+          - tools/wait_for_pub_dev_version
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Install dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install dependencies
+        working-directory: ${{ matrix.package }}
+        run: dart pub get
+      - name: Format, analyze, and test
+        working-directory: ${{ matrix.package }}
+        run: >
+          dart format --set-exit-if-changed . &&
+          dart analyze --fatal-infos --fatal-warnings . &&
+          dart test
 
   src-gen:
     name: Ensure up-to-date source generation
@@ -37,13 +88,16 @@ jobs:
     needs: min-conditions
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
-        run: dart pub global activate melos 7.5.1
-      - name: Initialize melos
-        run: melos bs
+      - name: Install ripple
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+      - name: Bootstrap packages
+        run: ripple run get --fail-fast
       - name: Verify up-to-date generated source files
         working-directory: packages/coverde_cli/
         run: dart test --run-skipped -t ci-only test/ensure_up_to_date_src_gen_test.dart
@@ -58,15 +112,18 @@ jobs:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install dart
         uses: dart-lang/setup-dart@v1
-      - name: Install melos
-        run: dart pub global activate melos 7.5.1
-      - name: Initialize melos
-        run: melos bs
+      - name: Install ripple
+        uses: ./.github/actions/install-dart-cli
+        with:
+          package: >-
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+      - name: Bootstrap packages
+        run: ripple run get --fail-fast
       - name: Run tests, merge tests if needed, and check 100% coverage
-        run: melos run test.ci && melos run coverage.merge && melos run coverage.check
+        run: ripple run test.ci --fail-fast && ripple run coverage.merge && ripple run coverage.check
       - name: Update coverage trace file as artifact
         uses: actions/upload-artifact@v7
         if: matrix.os == 'ubuntu-latest'
@@ -77,19 +134,22 @@ jobs:
 
   codecov:
     name: Publish coverage results
-    needs: test
+    needs:
+      - min-conditions
+      - test
+    if: needs.min-conditions.outputs.publish_coverage == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Download coverage trace file artifacts
         uses: actions/download-artifact@v8
         with:
           name: filtered.lcov.info
+          path: coverage
       - name: Upload coverage data to Codecov
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
-          directory: ./coverage/
-          files: ./filtered.lcov.info
+          files: coverage/filtered.lcov.info
           fail_ci_if_error: true
           verbose: true

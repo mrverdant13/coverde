@@ -1,0 +1,45 @@
+{
+  "version": "0.0.1-dev.3",
+  "latestTag": "synthetic_pkg/0.0.1-dev.2",
+  "packageName": "synthetic_pkg",
+  "allowedTypes": ["feat", "fix", "docs", "refactor", "test", "build"],
+  "linkContext": {
+    "issueBase": "https://github.com/example/clay/issues",
+    "commitBase": "https://github.com/example/clay/commit"
+  },
+  "existingChangelog": "## 0.0.1-dev.2\n\n - **FEAT**: add compatibility check ([#41](https://github.com/example/clay/issues/41)). ([11111111](https://github.com/example/clay/commit/1111111111111111111111111111111111111111))\n",
+  "commits": [
+    {
+      "type": "feat",
+      "scopes": ["synthetic_pkg"],
+      "description": "add preview command ([#42](https://github.com/example/clay/issues/42))",
+      "subject": "feat(synthetic_pkg): add preview command ([#42](https://github.com/example/clay/issues/42))",
+      "isBreakingChange": false,
+      "body": "([abc1234](https://github.com/example/clay/commit/abc1234def5678901234567890abcdef12345678))"
+    },
+    {
+      "type": "fix",
+      "scopes": ["synthetic_pkg"],
+      "description": "handle missing config (#43)",
+      "subject": "fix(synthetic_pkg): handle missing config (#43)",
+      "isBreakingChange": false,
+      "sha": "def56789abcdef0123456789abcdef0123456789"
+    },
+    {
+      "type": "docs",
+      "scopes": ["synthetic_pkg"],
+      "description": "document marker syntax with examples",
+      "subject": "docs(synthetic_pkg): document marker syntax with examples",
+      "isBreakingChange": false
+    },
+    {
+      "type": "build",
+      "scopes": ["synthetic_pkg"],
+      "description": "tighten sdk constraint for release",
+      "subject": "build(synthetic_pkg): tighten sdk constraint for release",
+      "isBreakingChange": false
+    }
+  ],
+  "expectedSection": "## 0.0.1-dev.3\n\n - **FEAT**: add preview command ([#42](https://github.com/example/clay/issues/42)). ([abc1234](https://github.com/example/clay/commit/abc1234def5678901234567890abcdef12345678))\n - **FIX**: handle missing config ([#43](https://github.com/example/clay/issues/43)). ([def56789](https://github.com/example/clay/commit/def56789abcdef0123456789abcdef0123456789))\n - **DOCS**: document marker syntax with examples.\n - **BUILD**: tighten sdk constraint for release.",
+  "expectedChangelog": "## 0.0.1-dev.3\n\n - **FEAT**: add preview command ([#42](https://github.com/example/clay/issues/42)). ([abc1234](https://github.com/example/clay/commit/abc1234def5678901234567890abcdef12345678))\n - **FIX**: handle missing config ([#43](https://github.com/example/clay/issues/43)). ([def56789](https://github.com/example/clay/commit/def56789abcdef0123456789abcdef0123456789))\n - **DOCS**: document marker syntax with examples.\n - **BUILD**: tighten sdk constraint for release.\n\n## 0.0.1-dev.2\n\n - **FEAT**: add compatibility check ([#41](https://github.com/example/clay/issues/41)). ([11111111](https://github.com/example/clay/commit/1111111111111111111111111111111111111111))\n"
+}

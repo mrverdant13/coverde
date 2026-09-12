@@ -1029,7 +1029,7 @@ final class _FilterTestFile extends Fake implements File {
   Directory get parent => Directory(p.dirname(path));
 
   @override
-  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) async {
+  Future<RandomAccessFile> open({FileMode mode = FileMode.read}) {
     if (_open case final cb?) return cb();
     throw UnimplementedError();
   }

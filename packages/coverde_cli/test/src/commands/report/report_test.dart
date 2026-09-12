@@ -200,7 +200,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
               runInShell: any(named: 'runInShell'),
             ),
           ).thenAnswer(
-            (_) async => Future.value(
+            (_) => Future.value(
               ProcessResult(0, 0, '', ''),
             ),
           );
