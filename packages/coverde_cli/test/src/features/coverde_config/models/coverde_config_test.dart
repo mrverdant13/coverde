@@ -712,6 +712,106 @@ void main() {
         });
       });
 
+      group('identifier: ${ExternalPresetTransformation.identifier}', () {
+        test('| returns an unresolved $ExternalPresetTransformation', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: external-preset
+                file: ../coverde.yaml
+                name: ci-workflow
+            wrapper:
+              - type: preset
+                name: preset
+          ''';
+          final config = CoverdeConfig.fromYaml(
+            yamlString,
+            baseDirectory: '/repo/packages/app',
+          );
+          const external = ExternalPresetTransformation(
+            filePath: '../coverde.yaml',
+            presetName: 'ci-workflow',
+            baseDirectory: '/repo/packages/app',
+          );
+          expect(
+            config,
+            const CoverdeConfig(
+              presets: [
+                PresetTransformation(
+                  presetName: 'preset',
+                  steps: [external],
+                ),
+                PresetTransformation(
+                  presetName: 'wrapper',
+                  steps: [
+                    PresetTransformation(
+                      presetName: 'preset',
+                      steps: [external],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when YAML transformation preset step file is missing', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: external-preset
+                name: ci-workflow
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].file',
+              failingValue: null,
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when YAML transformation preset step file is not a string', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: external-preset
+                file: 123
+                name: ci-workflow
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].file',
+              failingValue: 123,
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when YAML transformation preset step name is not a string', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: external-preset
+                file: ../coverde.yaml
+                name: 123
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'transformations.preset.[0].name',
+              failingValue: 123,
+            ),
+          );
+        });
+      });
+
       group('identifier: ${PresetTransformation.identifier}', () {
         test('| returns $PresetTransformation', () {
           const yamlString = '''
@@ -785,7 +885,7 @@ void main() {
             key: 'transformations.preset.[0].type',
             value: 'invalid-step-type',
             hint: 'one of: '
-                '`preset`, '
+                '`preset`, `external-preset`, '
                 '`keep-by-regex`, `skip-by-regex`, '
                 '`keep-by-glob`, `skip-by-glob`, '
                 '`keep-by-coverage`, `skip-by-coverage`, '
