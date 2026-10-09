@@ -3,6 +3,7 @@ import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:universal_io/io.dart';
 
 part 'transformation_from_cli_option_failure.dart';
 
@@ -44,6 +45,7 @@ sealed class Transformation {
   factory Transformation.fromCliOption(
     String option, {
     List<PresetTransformation> presets = const [],
+    String? externalPresetBaseDirectory,
   }) {
     final [identifier, ...rest] = option.split('=');
     final argument = rest.join('=');
@@ -164,6 +166,11 @@ sealed class Transformation {
             availablePresets: [for (final preset in presets) preset.presetName],
           ),
         );
+      case ExternalPresetTransformation.identifier:
+        return ExternalPresetTransformation.fromCliArgument(
+          argument,
+          baseDirectory: externalPresetBaseDirectory ?? Directory.current.path,
+        );
       default:
         throw TransformationFromCliOptionUnsupportedTransformationFailure(
           unsupportedTransformation: identifier,
@@ -174,6 +181,7 @@ sealed class Transformation {
   /// The available transformation identifiers.
   static const List<String> identifiers = [
     PresetTransformation.identifier,
+    ExternalPresetTransformation.identifier,
     KeepByRegexTransformation.identifier,
     SkipByRegexTransformation.identifier,
     KeepByGlobTransformation.identifier,
@@ -226,6 +234,80 @@ final class PresetTransformation extends Transformation {
         runtimeType,
         presetName,
         _stepsEquality.hash(steps),
+      ]);
+}
+
+/// {@template external_preset_transformation}
+/// A reference to a preset defined in another `coverde.yaml` file.
+///
+/// The file is not read until the reference is resolved.
+/// {@endtemplate}
+@immutable
+final class ExternalPresetTransformation extends Transformation {
+  /// {@macro external_preset_transformation}
+  const ExternalPresetTransformation({
+    required this.filePath,
+    required this.presetName,
+    required this.baseDirectory,
+  });
+
+  /// Creates an [ExternalPresetTransformation] from the CLI argument that
+  /// follows `external-preset=`.
+  ///
+  /// [argument] is `<file>::<name>`, split on the last `::`.
+  ///
+  /// Throws [TransformationFromCliOptionInvalidExternalPresetValueFailure]
+  /// when [argument] does not contain both a file path and a preset name.
+  factory ExternalPresetTransformation.fromCliArgument(
+    String argument, {
+    required String baseDirectory,
+  }) {
+    const separator = '::';
+    final separatorIndex = argument.lastIndexOf(separator);
+    final hasBothParts = separatorIndex > 0 &&
+        separatorIndex < argument.length - separator.length;
+    if (!hasBothParts) {
+      throw TransformationFromCliOptionInvalidExternalPresetValueFailure(
+        transformationIdentifier: identifier,
+        value: argument,
+      );
+    }
+    return ExternalPresetTransformation(
+      filePath: argument.substring(0, separatorIndex),
+      presetName: argument.substring(separatorIndex + separator.length),
+      baseDirectory: baseDirectory,
+    );
+  }
+
+  /// The identifier for this transformation.
+  static const identifier = 'external-preset';
+
+  /// The authored path of the `coverde.yaml` file that defines [presetName].
+  final String filePath;
+
+  /// The preset name to load from [filePath].
+  final String presetName;
+
+  /// Directory used to resolve a relative [filePath].
+  final String baseDirectory;
+
+  @override
+  String get describe => '$identifier file=$filePath name=$presetName';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! ExternalPresetTransformation) return false;
+    return filePath == other.filePath &&
+        presetName == other.presetName &&
+        baseDirectory == other.baseDirectory;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        filePath,
+        presetName,
+        baseDirectory,
       ]);
 }
 
@@ -481,6 +563,12 @@ final class RelativeTransformation extends LeafTransformation {
       ]);
 }
 
+Never _throwUnresolvedExternalPreset(ExternalPresetTransformation step) {
+  throw StateError(
+    'Unresolved external preset `${step.presetName}` from `${step.filePath}`.',
+  );
+}
+
 /// A collection of transformations.
 typedef Transformations = Iterable<Transformation>;
 
@@ -501,6 +589,8 @@ extension ExtendedTransformations on Iterable<Transformation> {
       switch (step) {
         case PresetTransformation(:final steps):
           yield* steps.flattenedSteps;
+        case ExternalPresetTransformation():
+          _throwUnresolvedExternalPreset(step);
         case LeafTransformation():
           yield step;
       }
@@ -520,6 +610,8 @@ extension ExtendedTransformations on Iterable<Transformation> {
               step.presetName,
             ],
           );
+        case ExternalPresetTransformation():
+          _throwUnresolvedExternalPreset(step);
         case LeafTransformation():
           yield (
             transformation: step,

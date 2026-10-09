@@ -361,6 +361,32 @@ void main() {
             ].join('\n'),
           );
         });
+
+        test(
+            '| returns formatted message '
+            'for invalid external preset value failure', () {
+          const failure =
+              TransformationFromCliOptionInvalidExternalPresetValueFailure(
+            transformationIdentifier: 'external-preset',
+            value: 'ci-workflow',
+          );
+          final transformFailure =
+              CoverdeTransformInvalidTransformCliOptionFailure(
+            failure: failure,
+          );
+
+          final result = transformFailure.readableMessage;
+
+          expect(
+            result,
+            [
+              'Invalid transformation CLI option.',
+              'Transformation: `external-preset`.',
+              'Expected `<file>::<name>`.',
+              'Value: `ci-workflow`.',
+            ].join('\n'),
+          );
+        });
       });
     });
 
