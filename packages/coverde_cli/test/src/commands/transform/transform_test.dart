@@ -758,6 +758,392 @@ end_of_record
       });
 
       test(
+          '--${TransformCommand.explainFlag} '
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| prints the authored file and nested preset', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final sharedDir = Directory(p.join(directory.path, 'shared'))
+          ..createSync();
+        final sharedConfig = File(p.join(sharedDir.path, 'coverde.yaml'))
+          ..writeAsStringSync('''
+transformations:
+  outer:
+    - type: preset
+      name: inner
+  inner:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+        final inputPath = p.join(directory.path, 'in.info');
+        File(inputPath).writeAsStringSync(
+          'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+        );
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.explainFlag}',
+              '--${TransformCommand.transformationsOption}',
+              'external-preset=${p.basename(sharedDir.path)}/coverde.yaml::outer',
+            ]);
+          },
+          getCurrentDirectory: () => directory,
+        );
+
+        verify(
+          () => logger.info(
+            '1. skip-by-glob pattern=**/*.g.dart   '
+            '(from preset outer in shared/coverde.yaml → inner)',
+          ),
+        ).called(1);
+        expect(sharedConfig.existsSync(), isTrue);
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| applies steps from the external preset', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final configPath = p.join(directory.path, 'shared.yaml');
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(configPath).writeAsStringSync(r'''
+transformations:
+  ci-workflow:
+    - type: keep-by-regex
+      regex: "lib[/\\\\].*"
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+        const inputContent = '''
+SF:lib/foo.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+SF:test/foo_test.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+SF:lib/bar.g.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+''';
+        File(inputPath).writeAsStringSync(inputContent);
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.outputOption}',
+              outputPath,
+              '--${TransformCommand.transformationsOption}',
+              'external-preset=$configPath::ci-workflow',
+            ]);
+          },
+          getCurrentDirectory: () => directory,
+        );
+
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains('lib/foo.dart'));
+        expect(outContent, isNot(contains('test/foo_test.dart')));
+        expect(outContent, isNot(contains('bar.g.dart')));
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=preset=<name> '
+          '| resolves an external preset relative to the file that cites it',
+          () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final appDir = Directory(p.join(directory.path, 'packages', 'app'))
+          ..createSync(recursive: true);
+        final sharedDir =
+            Directory(p.join(directory.path, 'packages', 'shared', 'nested'))
+              ..createSync(recursive: true);
+        File(p.join(appDir.path, 'coverde.yaml')).writeAsStringSync('''
+transformations:
+  local:
+    - type: external-preset
+      file: ../shared/coverde.yaml
+      name: mid
+''');
+        File(p.join(directory.path, 'packages', 'shared', 'coverde.yaml'))
+            .writeAsStringSync('''
+transformations:
+  mid:
+    - type: external-preset
+      file: nested/coverde.yaml
+      name: leaf
+''');
+        File(p.join(sharedDir.path, 'coverde.yaml')).writeAsStringSync('''
+transformations:
+  leaf:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+        final inputPath = p.join(appDir.path, 'in.info');
+        File(inputPath).writeAsStringSync(
+          'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+        );
+
+        await IOOverrides.runZoned(
+          () async {
+            await cmdRunner.run([
+              'transform',
+              '--${TransformCommand.inputOption}',
+              inputPath,
+              '--${TransformCommand.explainFlag}',
+              '--${TransformCommand.transformationsOption}',
+              'preset=local',
+            ]);
+          },
+          getCurrentDirectory: () => appDir,
+        );
+
+        verify(
+          () => logger.info(
+            '1. skip-by-glob pattern=**/*.g.dart   '
+            '(from preset local → mid in ../shared/coverde.yaml → '
+            'leaf in nested/coverde.yaml)',
+          ),
+        ).called(1);
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| throws $CoverdeTransformExternalPresetFileNotFoundFailure '
+          'when the file is missing', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final missingPath = p.join(directory.path, 'missing.yaml');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'external-preset=missing.yaml::ci-workflow',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformExternalPresetFileNotFoundFailure>().having(
+                  (failure) => failure.filePath,
+                  'filePath',
+                  p.normalize(missingPath),
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+        );
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| throws $CoverdeTransformFileReadFailure '
+          'when the external file cannot be read', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final configPath = p.join(directory.path, 'shared.yaml');
+        File(configPath).writeAsStringSync('''
+transformations:
+  ci-workflow:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'external-preset=shared.yaml::ci-workflow',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformFileReadFailure>().having(
+                  (failure) => failure.filePath,
+                  'filePath',
+                  p.normalize(configPath),
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (filePath) {
+            if (p.normalize(filePath) == p.normalize(configPath)) {
+              return _TransformTestFile(
+                path: filePath,
+                readAsStringSync: () => throw FileSystemException(
+                  'Cannot read external config',
+                  filePath,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $filePath should not be opened in this test',
+            );
+          },
+        );
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| throws $CoverdeTransformInvalidConfigFileFailure '
+          'when the external file is invalid', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final configPath = p.join(directory.path, 'shared.yaml');
+        File(configPath).writeAsStringSync('transformations: [');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'external-preset=shared.yaml::ci-workflow',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformInvalidConfigFileFailure>().having(
+                  (failure) => failure.configPath,
+                  'configPath',
+                  p.normalize(configPath),
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+        );
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| throws $CoverdeTransformUnknownExternalPresetFailure '
+          'when the preset name is missing', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        File(p.join(directory.path, 'shared.yaml')).writeAsStringSync('''
+transformations:
+  other:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'external-preset=shared.yaml::missing',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformUnknownExternalPresetFailure>()
+                    .having(
+                      (failure) => failure.presetName,
+                      'presetName',
+                      'missing',
+                    )
+                    .having(
+                      (failure) => failure.filePath,
+                      'filePath',
+                      'shared.yaml',
+                    )
+                    .having(
+                  (failure) => failure.availablePresets,
+                  'availablePresets',
+                  ['other'],
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+        );
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=external-preset '
+          '| throws $CoverdeTransformExternalPresetCycleFailure '
+          'when external presets form a cycle', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final aDir = Directory(p.join(directory.path, 'a'))..createSync();
+        final bDir = Directory(p.join(directory.path, 'b'))..createSync();
+        File(p.join(aDir.path, 'coverde.yaml')).writeAsStringSync('''
+transformations:
+  a-preset:
+    - type: external-preset
+      file: ../b/coverde.yaml
+      name: b-preset
+''');
+        File(p.join(bDir.path, 'coverde.yaml')).writeAsStringSync('''
+transformations:
+  b-preset:
+    - type: external-preset
+      file: ../a/coverde.yaml
+      name: a-preset
+''');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'external-preset=../b/coverde.yaml::b-preset',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformExternalPresetCycleFailure>().having(
+                  (failure) => failure.cycle,
+                  'cycle',
+                  [
+                    'b-preset in ../b/coverde.yaml',
+                    'a-preset in ../a/coverde.yaml',
+                    'b-preset in ../b/coverde.yaml',
+                  ],
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => aDir,
+        );
+      });
+
+      test(
           '--${TransformCommand.transformationsOption}=<unsupported> '
           '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
           () async {

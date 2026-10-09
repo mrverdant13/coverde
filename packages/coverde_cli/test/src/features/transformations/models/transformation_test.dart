@@ -783,6 +783,26 @@ void main() {
         );
       });
 
+      test('| includes the authored file on an external preset', () {
+        final leaf = KeepByRegexTransformation(RegExp('lib/.*'));
+        final nested = PresetTransformation(
+          presetName: 'also-there',
+          steps: [leaf],
+        );
+        final external = PresetTransformation(
+          presetName: 'ci-workflow',
+          sourceFile: '../coverde.yaml',
+          steps: [nested],
+        );
+        final result = [external].getStepsWithPresetChains().toList();
+        expect(result, hasLength(1));
+        expect(
+          result.single.presets,
+          ['ci-workflow in ../coverde.yaml', 'also-there'],
+        );
+        expect(result.single.transformation, leaf);
+      });
+
       test('| returns the steps with preset chains', () {
         final step_1_1 = KeepByRegexTransformation(RegExp('lib/.*'));
         final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));

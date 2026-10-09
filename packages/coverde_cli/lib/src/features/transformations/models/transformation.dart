@@ -205,6 +205,7 @@ final class PresetTransformation extends Transformation {
   const PresetTransformation({
     required this.presetName,
     required this.steps,
+    this.sourceFile,
   });
 
   /// The identifier for this transformation.
@@ -213,9 +214,19 @@ final class PresetTransformation extends Transformation {
   /// The preset name.
   final String presetName;
 
+  /// The authored path of the file this preset was loaded from.
+  ///
+  /// `null` when the preset comes from the same file as the step that
+  /// referenced it.
+  final String? sourceFile;
+
   /// The transformations in this preset (may include nested
   /// [PresetTransformation]s).
   final List<Transformation> steps;
+
+  /// Label used in `--explain` preset chains.
+  String get presetChainLabel =>
+      sourceFile == null ? presetName : '$presetName in $sourceFile';
 
   @override
   String get describe => '$identifier name=$presetName';
@@ -226,6 +237,7 @@ final class PresetTransformation extends Transformation {
   bool operator ==(Object other) {
     if (other is! PresetTransformation) return false;
     return presetName == other.presetName &&
+        sourceFile == other.sourceFile &&
         _stepsEquality.equals(steps, other.steps);
   }
 
@@ -233,6 +245,7 @@ final class PresetTransformation extends Transformation {
   int get hashCode => Object.hashAll([
         runtimeType,
         presetName,
+        sourceFile,
         _stepsEquality.hash(steps),
       ]);
 }
@@ -607,7 +620,7 @@ extension ExtendedTransformations on Iterable<Transformation> {
           yield* steps.getStepsWithPresetChains(
             precedingPresets: [
               ...precedingPresets,
-              step.presetName,
+              step.presetChainLabel,
             ],
           );
         case ExternalPresetTransformation():
