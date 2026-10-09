@@ -537,6 +537,7 @@ Presets can be defined in coverde.yaml under the `transformations` key.
     - `skip-by-coverage=<comparison>`: Skip files that match the `<comparison>` (with reference values between 0 and 100).
     - `relative=<base-path>`: Rewrite file paths to be relative to the `<base-path>`.
     - `preset=<name>`: Expand a preset from `coverde.yaml`.
+    - `external-preset=<file>::<name>`: Expand the `<name>` preset from the `coverde.yaml` at `<file>`.
 
 #### Flags
 
@@ -588,6 +589,29 @@ $ coverde transform \
 ```
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
+
+#### External Preset
+
+```sh
+$ coverde transform \
+  --transformations external-preset=../coverde.yaml::ci-workflow
+```
+
+The same preset can be cited from a package `coverde.yaml`. `file` is relative to the yaml file that contains the step:
+
+```yaml
+# packages/my_package/coverde.yaml
+
+transformations:
+  package:
+    - type: external-preset
+      file: ../coverde.yaml
+      name: ci-workflow
+```
+
+```sh
+$ coverde transform --transformations preset=package
+```
 
 
 ## `coverde report`
@@ -805,6 +829,26 @@ Include transformations defined in another preset by name.
 ```yaml
 type: preset
 name: <other-preset-name>  # Example: "production-only"
+```
+
+### `external-preset`
+
+Load a preset from another `coverde.yaml`.
+
+`file` is relative to the directory of the yaml file that contains this step. An absolute path is used as given.
+
+A `preset` step inside the loaded file still looks up names in that file. An `external-preset` step inside it is relative to that file's directory. A cycle across files fails.
+
+```yaml
+type: external-preset
+file: <file>  # Example: "../coverde.yaml"
+name: <preset-name>  # Example: "ci-workflow"
+```
+
+On the command line the same reference is `<file>::<name>`, split on the last `::`. That path is relative to the working directory:
+
+```sh
+coverde transform --transformations external-preset=../coverde.yaml::ci-workflow
 ```
 
 ## Comparison Operators

@@ -39,3 +39,26 @@ $ coverde transform \
 ```
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
+
+#### External Preset
+
+```sh
+$ coverde transform \
+  --transformations external-preset=../coverde.yaml::ci-workflow
+```
+
+The same preset can be cited from a package `coverde.yaml`. `file` is relative to the yaml file that contains the step:
+
+```yaml
+# packages/my_package/coverde.yaml
+
+transformations:
+  package:
+    - type: external-preset
+      file: ../coverde.yaml
+      name: ci-workflow
+```
+
+```sh
+$ coverde transform --transformations preset=package
+```
