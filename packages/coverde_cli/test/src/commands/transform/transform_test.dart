@@ -1146,6 +1146,107 @@ transformations:
       });
 
       test(
+          '--${TransformCommand.transformationsOption}=preset '
+          '| throws $CoverdeTransformExternalPresetCycleFailure '
+          'when a directory symlink repeats the same preset', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final real = Directory(p.join(directory.path, 'real'))..createSync();
+        File(p.join(real.path, 'coverde.yaml')).writeAsStringSync('''
+transformations:
+  loop:
+    - type: preset
+      file: via/coverde.yaml
+      name: loop
+''');
+        try {
+          Link(p.join(real.path, 'via')).createSync(real.path);
+        } on FileSystemException {
+          markTestSkipped('Directory symlinks are unavailable.');
+        }
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'preset={file: coverde.yaml, name: loop}',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformExternalPresetCycleFailure>().having(
+                  (failure) => failure.cycle,
+                  'cycle',
+                  [
+                    'loop in coverde.yaml',
+                    'loop in via/coverde.yaml',
+                  ],
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => real,
+        );
+      });
+
+      test(
+          '--${TransformCommand.transformationsOption}=preset '
+          '| throws $CoverdeTransformFileReadFailure '
+          'when the external file links cannot be resolved', () async {
+        final directory =
+            Directory.systemTemp.createTempSync('coverde-transform-test-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final configPath = p.join(directory.path, 'shared.yaml');
+        File(configPath).writeAsStringSync('''
+transformations:
+  ci-workflow:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
+''');
+
+        await IOOverrides.runZoned(
+          () async {
+            Future<void> action() => cmdRunner.run([
+                  'transform',
+                  '--${TransformCommand.explainFlag}',
+                  '--${TransformCommand.transformationsOption}',
+                  'preset={file: shared.yaml, name: ci-workflow}',
+                ]);
+
+            expect(
+              action,
+              throwsA(
+                isA<CoverdeTransformFileReadFailure>().having(
+                  (failure) => failure.filePath,
+                  'filePath',
+                  p.normalize(configPath),
+                ),
+              ),
+            );
+          },
+          getCurrentDirectory: () => directory,
+          createFile: (filePath) {
+            if (p.normalize(filePath) == p.normalize(configPath)) {
+              return _TransformTestFile(
+                path: filePath,
+                resolveSymbolicLinksSync: () => throw FileSystemException(
+                  'Cannot resolve external config',
+                  filePath,
+                ),
+              );
+            }
+            throw UnsupportedError(
+              'This file $filePath should not be opened in this test',
+            );
+          },
+        );
+      });
+
+      test(
           '--${TransformCommand.transformationsOption}=<unsupported> '
           '| throws $CoverdeTransformInvalidTransformCliOptionFailure',
           () async {
