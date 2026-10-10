@@ -879,13 +879,13 @@ void main() {
             preset:
               - type: preset
                 name: nested-preset
-                flie: ../coverde.yaml
+                extra: ../coverde.yaml
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
             _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
               key: 'transformations.preset.[0]',
-              value: 'flie',
+              value: 'extra',
               hint: 'only `type`, `name`, and `file`',
             ),
           );
