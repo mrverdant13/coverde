@@ -1343,13 +1343,16 @@ final class _TransformTestFile extends Fake implements File {
     Future<RandomAccessFile> Function()? open,
     Stream<List<int>> Function([int? start, int? end])? openRead,
     String Function()? readAsStringSync,
+    String Function()? resolveSymbolicLinksSync,
   })  : _open = open,
         _openRead = openRead,
-        _readAsStringSync = readAsStringSync;
+        _readAsStringSync = readAsStringSync,
+        _resolveSymbolicLinksSync = resolveSymbolicLinksSync;
 
   final Future<RandomAccessFile> Function()? _open;
   final Stream<List<int>> Function([int? start, int? end])? _openRead;
   final String Function()? _readAsStringSync;
+  final String Function()? _resolveSymbolicLinksSync;
 
   @override
   final String path;
@@ -1376,5 +1379,12 @@ final class _TransformTestFile extends Fake implements File {
     final cb = _readAsStringSync;
     if (cb != null) return cb();
     throw UnimplementedError();
+  }
+
+  @override
+  String resolveSymbolicLinksSync() {
+    final cb = _resolveSymbolicLinksSync;
+    if (cb != null) return cb();
+    return path;
   }
 }

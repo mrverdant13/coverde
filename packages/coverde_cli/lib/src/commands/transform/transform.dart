@@ -9,7 +9,7 @@ import 'package:universal_io/io.dart';
 export 'failures.dart';
 
 typedef _ExternalPresetVisit = ({
-  String resolvedPath,
+  String canonicalPath,
   String presetName,
   String label,
 });
@@ -399,9 +399,26 @@ Presets can be defined in $_configFileName under the `transformations` key.
           : p.join(step.baseDirectory, step.filePath),
     );
     final label = '${step.presetName} in ${step.filePath}';
+    if (!FileSystemEntity.isFileSync(resolvedPath)) {
+      throw CoverdeTransformExternalPresetFileNotFoundFailure(
+        filePath: resolvedPath,
+      );
+    }
+
+    final String canonicalPath;
+    try {
+      canonicalPath = p.normalize(
+        File(resolvedPath).resolveSymbolicLinksSync(),
+      );
+    } on FileSystemException catch (exception) {
+      throw CoverdeTransformFileReadFailure.fromFileSystemException(
+        filePath: resolvedPath,
+        exception: exception,
+      );
+    }
     if (visiting.any(
       (visit) =>
-          visit.resolvedPath == resolvedPath &&
+          visit.canonicalPath == canonicalPath &&
           visit.presetName == step.presetName,
     )) {
       throw CoverdeTransformExternalPresetCycleFailure(
@@ -409,12 +426,6 @@ Presets can be defined in $_configFileName under the `transformations` key.
           for (final visit in visiting) visit.label,
           label,
         ],
-      );
-    }
-
-    if (!FileSystemEntity.isFileSync(resolvedPath)) {
-      throw CoverdeTransformExternalPresetFileNotFoundFailure(
-        filePath: resolvedPath,
       );
     }
 
@@ -463,7 +474,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
 
     visiting.add(
       (
-        resolvedPath: resolvedPath,
+        canonicalPath: canonicalPath,
         presetName: step.presetName,
         label: label,
       ),
