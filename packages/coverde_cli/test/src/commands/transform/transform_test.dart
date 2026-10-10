@@ -840,6 +840,7 @@ LH:1
 end_of_record
 ''';
         File(inputPath).writeAsStringSync(inputContent);
+        final quotedPath = "'${configPath.replaceAll("'", "''")}'";
 
         await IOOverrides.runZoned(
           () async {
@@ -850,7 +851,7 @@ end_of_record
               '--${TransformCommand.outputOption}',
               outputPath,
               '--${TransformCommand.transformationsOption}',
-              'preset={file: "$configPath", name: ci-workflow}',
+              'preset={file: $quotedPath, name: ci-workflow}',
             ]);
           },
           getCurrentDirectory: () => directory,
