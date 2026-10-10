@@ -526,7 +526,8 @@ Presets can be defined in coverde.yaml under the `transformations` key.
 
 - `--transformations`
 
-  Transformation steps to apply in order.\
+  Transformation steps to apply in order.
+  Repeat this option for each step. A value may contain commas.\
   **Default value:** _None_\
   **Allowed values:**
     - `keep-by-regex=<regex>`: Keep files that match the `<regex>`.
@@ -536,8 +537,8 @@ Presets can be defined in coverde.yaml under the `transformations` key.
     - `keep-by-coverage=<comparison>`: Keep files that match the `<comparison>` (with reference values between 0 and 100).
     - `skip-by-coverage=<comparison>`: Skip files that match the `<comparison>` (with reference values between 0 and 100).
     - `relative=<base-path>`: Rewrite file paths to be relative to the `<base-path>`.
-    - `preset=<name>`: Expand a preset from `coverde.yaml`.
-    - `external-preset=<file>::<name>`: Expand the `<name>` preset from the `coverde.yaml` at `<file>`.
+    - `preset=<name>`: Expand the `<name>` preset from `coverde.yaml`.
+    - `preset={name: <name>, file: <file>}`: Expand the `<name>` preset from the `coverde.yaml` at `<file>`.
 
 #### Flags
 
@@ -590,11 +591,13 @@ $ coverde transform \
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
 
-#### External Preset
+#### Preset from another file
+
+A plain `preset` value is a name in the working directory's `coverde.yaml`. A YAML map with `file` loads that name from another file. Quote a path or name that contains `:` or `#`.
 
 ```sh
 $ coverde transform \
-  --transformations external-preset=../coverde.yaml::ci-workflow
+  --transformations 'preset={file: ../coverde.yaml, name: ci-workflow}'
 ```
 
 The same preset can be cited from a package `coverde.yaml`. `file` is relative to the yaml file that contains the step:
@@ -604,7 +607,7 @@ The same preset can be cited from a package `coverde.yaml`. `file` is relative t
 
 transformations:
   package:
-    - type: external-preset
+    - type: preset
       file: ../coverde.yaml
       name: ci-workflow
 ```
@@ -825,30 +828,25 @@ Include transformations defined in another preset by name.
 > [!CAUTION]
 > Circular references between presets are detected and will result in an error.
 
-
 ```yaml
 type: preset
 name: <other-preset-name>  # Example: "production-only"
 ```
 
-### `external-preset`
+Add `file` to load that preset from another `coverde.yaml`. A relative `file` is resolved from the directory of the yaml file that contains the step. An absolute path is used as given.
 
-Load a preset from another `coverde.yaml`.
-
-`file` is relative to the directory of the yaml file that contains this step. An absolute path is used as given.
-
-A `preset` step inside the loaded file still looks up names in that file. An `external-preset` step inside it is relative to that file's directory. A cycle across files fails.
+A `preset` step inside the loaded file still looks up names in that file. A `file` inside it is relative to that file's directory. A cycle across files fails.
 
 ```yaml
-type: external-preset
+type: preset
 file: <file>  # Example: "../coverde.yaml"
 name: <preset-name>  # Example: "ci-workflow"
 ```
 
-On the command line the same reference is `<file>::<name>`, split on the last `::`. That path is relative to the working directory:
+On the command line, a plain string is a preset in the working directory's `coverde.yaml`. A YAML map with `file` loads the preset from that file, relative to the working directory. Quote a path or name that contains `:` or `#`.
 
 ```sh
-coverde transform --transformations external-preset=../coverde.yaml::ci-workflow
+coverde transform --transformations 'preset={file: ../coverde.yaml, name: ci-workflow}'
 ```
 
 ## Comparison Operators
