@@ -3,6 +3,8 @@ import 'package:coverde/src/features/comparison/comparison.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:universal_io/io.dart';
+import 'package:yaml/yaml.dart';
 
 part 'transformation_from_cli_option_failure.dart';
 
@@ -44,6 +46,7 @@ sealed class Transformation {
   factory Transformation.fromCliOption(
     String option, {
     List<PresetTransformation> presets = const [],
+    String? presetBaseDirectory,
   }) {
     final [identifier, ...rest] = option.split('=');
     final argument = rest.join('=');
@@ -156,13 +159,10 @@ sealed class Transformation {
         final basePath = argument;
         return RelativeTransformation(basePath);
       case PresetTransformation.identifier:
-        final presetName = argument;
-        return presets.singleWhere(
-          (p) => p.presetName == presetName,
-          orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
-            unknownPreset: presetName,
-            availablePresets: [for (final preset in presets) preset.presetName],
-          ),
+        return _presetFromCliArgument(
+          argument,
+          presets: presets,
+          baseDirectory: presetBaseDirectory ?? Directory.current.path,
         );
       default:
         throw TransformationFromCliOptionUnsupportedTransformationFailure(
@@ -197,6 +197,7 @@ final class PresetTransformation extends Transformation {
   const PresetTransformation({
     required this.presetName,
     required this.steps,
+    this.sourceFile,
   });
 
   /// The identifier for this transformation.
@@ -205,9 +206,19 @@ final class PresetTransformation extends Transformation {
   /// The preset name.
   final String presetName;
 
+  /// The authored path of the file this preset was loaded from.
+  ///
+  /// `null` when the preset comes from the same file as the step that
+  /// referenced it.
+  final String? sourceFile;
+
   /// The transformations in this preset (may include nested
   /// [PresetTransformation]s).
   final List<Transformation> steps;
+
+  /// Label used in `--explain` preset chains.
+  String get presetChainLabel =>
+      sourceFile == null ? presetName : '$presetName in $sourceFile';
 
   @override
   String get describe => '$identifier name=$presetName';
@@ -218,6 +229,7 @@ final class PresetTransformation extends Transformation {
   bool operator ==(Object other) {
     if (other is! PresetTransformation) return false;
     return presetName == other.presetName &&
+        sourceFile == other.sourceFile &&
         _stepsEquality.equals(steps, other.steps);
   }
 
@@ -225,7 +237,52 @@ final class PresetTransformation extends Transformation {
   int get hashCode => Object.hashAll([
         runtimeType,
         presetName,
+        sourceFile,
         _stepsEquality.hash(steps),
+      ]);
+}
+
+/// {@template external_preset_transformation}
+/// A reference to a preset defined in another `coverde.yaml` file.
+///
+/// The file is not read until the reference is resolved.
+/// {@endtemplate}
+@immutable
+final class ExternalPresetTransformation extends Transformation {
+  /// {@macro external_preset_transformation}
+  const ExternalPresetTransformation({
+    required this.filePath,
+    required this.presetName,
+    required this.baseDirectory,
+  });
+
+  /// The authored path of the `coverde.yaml` file that defines [presetName].
+  final String filePath;
+
+  /// The preset name to load from [filePath].
+  final String presetName;
+
+  /// Directory used to resolve a relative [filePath].
+  final String baseDirectory;
+
+  @override
+  String get describe =>
+      '${PresetTransformation.identifier} file=$filePath name=$presetName';
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! ExternalPresetTransformation) return false;
+    return filePath == other.filePath &&
+        presetName == other.presetName &&
+        baseDirectory == other.baseDirectory;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        filePath,
+        presetName,
+        baseDirectory,
       ]);
 }
 
@@ -481,6 +538,93 @@ final class RelativeTransformation extends LeafTransformation {
       ]);
 }
 
+Never _throwUnresolvedExternalPreset(ExternalPresetTransformation step) {
+  throw StateError(
+    'Unresolved external preset `${step.presetName}` from `${step.filePath}`.',
+  );
+}
+
+const _presetDescriptorKeys = {'name', 'file'};
+
+Transformation _presetFromCliArgument(
+  String argument, {
+  required List<PresetTransformation> presets,
+  required String baseDirectory,
+}) {
+  final trimmed = argument.trim();
+  if (!trimmed.startsWith('{')) {
+    if (trimmed.isEmpty) {
+      throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'a non-empty preset name',
+      );
+    }
+    return _lookupLocalPreset(trimmed, presets);
+  }
+
+  final dynamic parsed;
+  try {
+    parsed = loadYaml(trimmed);
+  } on YamlException catch (exception, stackTrace) {
+    Error.throwWithStackTrace(
+      TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'valid YAML (${exception.message})',
+      ),
+      stackTrace,
+    );
+  }
+  final map = parsed as YamlMap;
+  for (final key in map.keys) {
+    if (key is! String || !_presetDescriptorKeys.contains(key)) {
+      throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'only `name` and `file` keys',
+      );
+    }
+  }
+  final name = map['name'];
+  if (name is! String || name.isEmpty) {
+    throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+      transformationIdentifier: PresetTransformation.identifier,
+      value: argument,
+      hint: 'a non-empty string `name`',
+    );
+  }
+  if (!map.containsKey('file')) {
+    return _lookupLocalPreset(name, presets);
+  }
+  final file = map['file'];
+  if (file is! String || file.isEmpty) {
+    throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+      transformationIdentifier: PresetTransformation.identifier,
+      value: argument,
+      hint: 'a non-empty string `file`',
+    );
+  }
+  return ExternalPresetTransformation(
+    filePath: file,
+    presetName: name,
+    baseDirectory: baseDirectory,
+  );
+}
+
+PresetTransformation _lookupLocalPreset(
+  String name,
+  List<PresetTransformation> presets,
+) {
+  return presets.singleWhere(
+    (preset) => preset.presetName == name,
+    orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
+      unknownPreset: name,
+      availablePresets: [for (final preset in presets) preset.presetName],
+    ),
+  );
+}
+
 /// A collection of transformations.
 typedef Transformations = Iterable<Transformation>;
 
@@ -501,6 +645,8 @@ extension ExtendedTransformations on Iterable<Transformation> {
       switch (step) {
         case PresetTransformation(:final steps):
           yield* steps.flattenedSteps;
+        case ExternalPresetTransformation():
+          _throwUnresolvedExternalPreset(step);
         case LeafTransformation():
           yield step;
       }
@@ -517,9 +663,11 @@ extension ExtendedTransformations on Iterable<Transformation> {
           yield* steps.getStepsWithPresetChains(
             precedingPresets: [
               ...precedingPresets,
-              step.presetName,
+              step.presetChainLabel,
             ],
           );
+        case ExternalPresetTransformation():
+          _throwUnresolvedExternalPreset(step);
         case LeafTransformation():
           yield (
             transformation: step,

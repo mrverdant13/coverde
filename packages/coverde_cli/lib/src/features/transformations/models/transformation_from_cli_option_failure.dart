@@ -107,6 +107,31 @@ final class TransformationFromCliOptionInvalidCoveragePercentageFailure
   final List<double> invalidReferences;
 }
 
+// Long doc template identifier.
+// ignore: lines_longer_than_80_chars
+/// {@template coverde.transformation_from_cli_option_invalid_preset_descriptor_failure}
+/// A failure that occurs when a `preset` CLI value is not a preset name or a
+/// YAML map with `name` and an optional `file`.
+/// {@endtemplate}
+@immutable
+final class TransformationFromCliOptionInvalidPresetDescriptorFailure
+    extends TransformationFromCliOptionInvalidArgumentsFailure {
+  // Long doc template identifier.
+  // ignore: lines_longer_than_80_chars
+  /// {@macro coverde.transformation_from_cli_option_invalid_preset_descriptor_failure}
+  const TransformationFromCliOptionInvalidPresetDescriptorFailure({
+    required super.transformationIdentifier,
+    required this.value,
+    required this.hint,
+  });
+
+  /// The CLI value that could not be parsed.
+  final String value;
+
+  /// What a valid value looks like.
+  final String hint;
+}
+
 /// {@template coverde.transformation_from_cli_option_unknown_preset_failure}
 /// A failure that occurs when a referenced preset is not found in the list of
 /// available presets.

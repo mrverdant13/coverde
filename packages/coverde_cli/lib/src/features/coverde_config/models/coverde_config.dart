@@ -4,6 +4,7 @@ import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 part 'coverde_config_from_yaml.dart';
@@ -21,9 +22,19 @@ class CoverdeConfig {
 
   /// Creates a [CoverdeConfig] from a YAML string.
   ///
+  /// [baseDirectory] is the directory of the file [yamlString] came from.
+  /// A relative `file` on a `preset` step is stored against it.
+  /// It defaults to the current working directory.
+  ///
   /// Throws [CoverdeConfigFromYamlFailure] when an error occurs.
-  factory CoverdeConfig.fromYaml(String yamlString) {
-    return _parseCoverdeConfigFromYaml(yamlString);
+  factory CoverdeConfig.fromYaml(
+    String yamlString, {
+    String? baseDirectory,
+  }) {
+    return _parseCoverdeConfigFromYaml(
+      yamlString,
+      baseDirectory: baseDirectory ?? Directory.current.path,
+    );
   }
 
   /// The [PresetTransformation]s that are available to use in the CLI.

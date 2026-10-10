@@ -8,6 +8,12 @@ import 'package:universal_io/io.dart';
 
 export 'failures.dart';
 
+typedef _ExternalPresetVisit = ({
+  String canonicalPath,
+  String presetName,
+  String label,
+});
+
 /// {@template transform_cmd}
 /// A command to transform coverage info files.
 /// {@endtemplate}
@@ -34,8 +40,10 @@ Destination coverage info file to dump the transformed coverage data into.''',
         transformationsOption,
         abbr: transformationsOption[0],
         help: '''
-Transformation steps to apply in order.''',
+Transformation steps to apply in order.
+Repeat this option for each step. A value may contain commas.''',
         defaultsTo: [],
+        splitCommas: false,
         allowedHelp: {
           '${KeepByRegexTransformation.identifier}=<regex>': //
               'Keep files that match the `<regex>`.',
@@ -54,7 +62,11 @@ Transformation steps to apply in order.''',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the `<base-path>`.',
           '${PresetTransformation.identifier}=<name>': //
-              'Expand a preset from `$_configFileName`.',
+              'Expand the `<name>` preset from `$_configFileName`.',
+          '${PresetTransformation.identifier}='
+                  '{name: <name>, file: <file>}': //
+              'Expand the `<name>` preset from the `$_configFileName` '
+                  'at `<file>`.',
         },
         valueHelp: _transformationsHelpValue,
       )
@@ -162,7 +174,10 @@ Presets can be defined in $_configFileName under the `transformations` key.
     }
     final CoverdeConfig config;
     try {
-      config = CoverdeConfig.fromYaml(rawCoverdeConfig);
+      config = CoverdeConfig.fromYaml(
+        rawCoverdeConfig,
+        baseDirectory: p.dirname(coverdeConfigPath),
+      );
     } on CoverdeConfigFromYamlFailure catch (failure, stackTrace) {
       Error.throwWithStackTrace(
         CoverdeTransformInvalidConfigFileFailure(
@@ -173,10 +188,12 @@ Presets can be defined in $_configFileName under the `transformations` key.
       );
     }
 
-    final steps = _resolveSteps(
-      rawTransformations: rawTransformations,
-      presets: config.presets,
-      configPath: coverdeConfigPath,
+    final steps = _resolveExternalPresets(
+      _resolveSteps(
+        rawTransformations: rawTransformations,
+        presets: config.presets,
+        configPath: coverdeConfigPath,
+      ),
     );
 
     if (explain) {
@@ -343,5 +360,134 @@ Presets can be defined in $_configFileName under the `transformations` key.
   /// Normalize path for glob matching (use posix separators).
   String _normalizePath(String pth) {
     return p.posix.joinAll(p.split(pth));
+  }
+
+  List<Transformation> _resolveExternalPresets(List<Transformation> steps) {
+    return [
+      for (final step in steps) _resolveExternalPresetStep(step, visiting: []),
+    ];
+  }
+
+  Transformation _resolveExternalPresetStep(
+    Transformation step, {
+    required List<_ExternalPresetVisit> visiting,
+  }) {
+    switch (step) {
+      case ExternalPresetTransformation():
+        return _loadExternalPreset(step, visiting: visiting);
+      case PresetTransformation():
+        return PresetTransformation(
+          presetName: step.presetName,
+          sourceFile: step.sourceFile,
+          steps: [
+            for (final nested in step.steps)
+              _resolveExternalPresetStep(nested, visiting: visiting),
+          ],
+        );
+      case LeafTransformation():
+        return step;
+    }
+  }
+
+  PresetTransformation _loadExternalPreset(
+    ExternalPresetTransformation step, {
+    required List<_ExternalPresetVisit> visiting,
+  }) {
+    final resolvedPath = p.normalize(
+      p.isAbsolute(step.filePath)
+          ? step.filePath
+          : p.join(step.baseDirectory, step.filePath),
+    );
+    final label = '${step.presetName} in ${step.filePath}';
+    if (!FileSystemEntity.isFileSync(resolvedPath)) {
+      throw CoverdeTransformExternalPresetFileNotFoundFailure(
+        filePath: resolvedPath,
+      );
+    }
+
+    final String canonicalPath;
+    try {
+      canonicalPath = p.normalize(
+        File(resolvedPath).resolveSymbolicLinksSync(),
+      );
+    } on FileSystemException catch (exception) {
+      throw CoverdeTransformFileReadFailure.fromFileSystemException(
+        filePath: resolvedPath,
+        exception: exception,
+      );
+    }
+    if (visiting.any(
+      (visit) =>
+          visit.canonicalPath == canonicalPath &&
+          visit.presetName == step.presetName,
+    )) {
+      throw CoverdeTransformExternalPresetCycleFailure(
+        cycle: [
+          for (final visit in visiting) visit.label,
+          label,
+        ],
+      );
+    }
+
+    final String rawConfig;
+    try {
+      rawConfig = File(resolvedPath).readAsStringSync();
+    } on FileSystemException catch (exception) {
+      throw CoverdeTransformFileReadFailure.fromFileSystemException(
+        filePath: resolvedPath,
+        exception: exception,
+      );
+    }
+
+    final CoverdeConfig config;
+    try {
+      config = CoverdeConfig.fromYaml(
+        rawConfig,
+        baseDirectory: p.dirname(resolvedPath),
+      );
+    } on CoverdeConfigFromYamlFailure catch (failure, stackTrace) {
+      Error.throwWithStackTrace(
+        CoverdeTransformInvalidConfigFileFailure(
+          configPath: resolvedPath,
+          failure: failure,
+        ),
+        stackTrace,
+      );
+    }
+
+    PresetTransformation? preset;
+    for (final candidate in config.presets) {
+      if (candidate.presetName == step.presetName) {
+        preset = candidate;
+        break;
+      }
+    }
+    if (preset == null) {
+      throw CoverdeTransformUnknownExternalPresetFailure(
+        presetName: step.presetName,
+        filePath: step.filePath,
+        availablePresets: [
+          for (final candidate in config.presets) candidate.presetName,
+        ]..sort(),
+      );
+    }
+
+    visiting.add(
+      (
+        canonicalPath: canonicalPath,
+        presetName: step.presetName,
+        label: label,
+      ),
+    );
+    final resolvedSteps = [
+      for (final nested in preset.steps)
+        _resolveExternalPresetStep(nested, visiting: visiting),
+    ];
+    visiting.removeLast();
+    return PresetTransformation(
+      presetName: step.presetName,
+      sourceFile: step.filePath,
+      steps: resolvedSteps,
+    );
   }
 }

@@ -149,8 +149,84 @@ final class CoverdeTransformInvalidTransformCliOptionFailure
               'Coverage values must be between 0 and 100.',
               'Invalid values: ${invalidReferences.join(', ')}.',
             ],
+          TransformationFromCliOptionInvalidPresetDescriptorFailure(
+            :final transformationIdentifier,
+            :final value,
+            :final hint,
+          ) =>
+            [
+              'Transformation: `$transformationIdentifier`.',
+              'Hint: $hint.',
+              'Value: `$value`.',
+            ],
         },
       ].join('\n');
+}
+
+/// {@template coverde_cli.transform_external_preset_file_not_found_failure}
+/// A [TransformCommand] failure that indicates that an external preset file
+/// was not found.
+/// {@endtemplate}
+final class CoverdeTransformExternalPresetFileNotFoundFailure
+    extends CoverdeTransformFailure {
+  /// {@macro coverde_cli.transform_external_preset_file_not_found_failure}
+  const CoverdeTransformExternalPresetFileNotFoundFailure({
+    required this.filePath,
+  });
+
+  /// The resolved path of the missing config file.
+  final String filePath;
+
+  @override
+  String get readableMessage => 'No config file found at `$filePath`.';
+}
+
+/// {@template coverde_cli.transform_unknown_external_preset_failure}
+/// A [TransformCommand] failure that indicates that a preset name is missing
+/// from an external config file.
+/// {@endtemplate}
+final class CoverdeTransformUnknownExternalPresetFailure
+    extends CoverdeTransformFailure {
+  /// {@macro coverde_cli.transform_unknown_external_preset_failure}
+  const CoverdeTransformUnknownExternalPresetFailure({
+    required this.presetName,
+    required this.filePath,
+    required this.availablePresets,
+  });
+
+  /// The preset name that was not found.
+  final String presetName;
+
+  /// The authored path of the config file that was searched.
+  final String filePath;
+
+  /// Preset names defined in that file.
+  final List<String> availablePresets;
+
+  @override
+  String get readableMessage => [
+        'Unknown preset: `$presetName` in `$filePath`.',
+        'Available presets:',
+        for (final preset in availablePresets) '- `$preset`',
+      ].join('\n');
+}
+
+/// {@template coverde_cli.transform_external_preset_cycle_failure}
+/// A [TransformCommand] failure that indicates that external presets refer to
+/// each other in a cycle.
+/// {@endtemplate}
+final class CoverdeTransformExternalPresetCycleFailure
+    extends CoverdeTransformFailure {
+  /// {@macro coverde_cli.transform_external_preset_cycle_failure}
+  const CoverdeTransformExternalPresetCycleFailure({
+    required this.cycle,
+  });
+
+  /// The preset cycle, including each authored file path.
+  final List<String> cycle;
+
+  @override
+  String get readableMessage => 'Preset cycle detected: ${cycle.join(' -> ')}.';
 }
 
 /// {@template coverde_cli.transform_trace_file_not_found_failure}

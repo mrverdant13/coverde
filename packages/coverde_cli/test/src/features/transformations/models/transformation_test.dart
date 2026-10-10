@@ -4,6 +4,7 @@ import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+import 'package:universal_io/io.dart';
 
 void main() {
   group('$Transformation', () {
@@ -295,6 +296,79 @@ void main() {
           );
         });
 
+        test('| keeps a YAML-looking name when it does not start with a map',
+            () {
+          const preset = PresetTransformation(
+            presetName: 'yes',
+            steps: [],
+          );
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}=yes',
+            presets: const [preset],
+          );
+          expect(transformation, preset);
+        });
+
+        test('| accepts the long form of an internal preset', () {
+          const preset = PresetTransformation(
+            presetName: 'my-preset',
+            steps: [],
+          );
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}={name: my-preset}',
+            presets: const [preset],
+          );
+          expect(transformation, preset);
+        });
+
+        test('| returns $ExternalPresetTransformation', () {
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}='
+            '{file: ../coverde.yaml, name: ci-workflow}',
+            presetBaseDirectory: '/repo/packages/app',
+          );
+          expect(
+            transformation,
+            const ExternalPresetTransformation(
+              filePath: '../coverde.yaml',
+              presetName: 'ci-workflow',
+              baseDirectory: '/repo/packages/app',
+            ),
+          );
+        });
+
+        test('| keeps quoted path and name characters', () {
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}='
+            r"{file: 'C:\repo\coverde.yaml', name: 'pre#set'}",
+            presetBaseDirectory: r'C:\repo',
+          );
+          expect(
+            transformation,
+            const ExternalPresetTransformation(
+              filePath: r'C:\repo\coverde.yaml',
+              presetName: 'pre#set',
+              baseDirectory: r'C:\repo',
+            ),
+          );
+        });
+
+        test('| uses the current directory when no base directory is given',
+            () {
+          final transformation = Transformation.fromCliOption(
+            '${PresetTransformation.identifier}='
+            '{file: coverde.yaml, name: ci-workflow}',
+          );
+          expect(
+            transformation,
+            ExternalPresetTransformation(
+              filePath: 'coverde.yaml',
+              presetName: 'ci-workflow',
+              baseDirectory: Directory.current.path,
+            ),
+          );
+        });
+
         test(
             '| throws $TransformationFromCliOptionUnknownPresetFailure '
             'when unknown preset', () {
@@ -303,6 +377,76 @@ void main() {
               '${PresetTransformation.identifier}=unknown',
             ),
             throwsA(isA<TransformationFromCliOptionUnknownPresetFailure>()),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
+            'when the preset name is empty', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}=',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidPresetDescriptorFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
+            'when the descriptor is not valid YAML', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}={',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidPresetDescriptorFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
+            'when the descriptor has no name', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}={file: coverde.yaml}',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidPresetDescriptorFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
+            'when the descriptor has an unknown key', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}={name: ci, extra: 1}',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidPresetDescriptorFailure>(),
+            ),
+          );
+        });
+
+        test(
+            '| throws '
+            '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
+            'when the file path is empty', () {
+          expect(
+            () => Transformation.fromCliOption(
+              '${PresetTransformation.identifier}={file: "", name: ci}',
+            ),
+            throwsA(
+              isA<TransformationFromCliOptionInvalidPresetDescriptorFailure>(),
+            ),
           );
         });
       });
@@ -317,6 +461,46 @@ void main() {
             isA<TransformationFromCliOptionUnsupportedTransformationFailure>(),
           ),
         );
+      });
+    });
+
+    group('$ExternalPresetTransformation', () {
+      group('describe', () {
+        test('| returns description', () {
+          const t = ExternalPresetTransformation(
+            filePath: '../coverde.yaml',
+            presetName: 'ci-workflow',
+            baseDirectory: '/repo',
+          );
+          expect(
+            t.describe,
+            'preset file=../coverde.yaml name=ci-workflow',
+          );
+        });
+      });
+
+      group('== & hashCode', () {
+        test('| verifies equality and hash code resolution', () {
+          const subject = ExternalPresetTransformation(
+            filePath: '../coverde.yaml',
+            presetName: 'ci-workflow',
+            baseDirectory: '/repo',
+          );
+          const same = ExternalPresetTransformation(
+            filePath: '../coverde.yaml',
+            presetName: 'ci-workflow',
+            baseDirectory: '/repo',
+          );
+          const other = ExternalPresetTransformation(
+            filePath: '../coverde.yaml',
+            presetName: 'other',
+            baseDirectory: '/repo',
+          );
+          expect(subject, same);
+          expect(subject, isNot(other));
+          expect(subject.hashCode, same.hashCode);
+          expect(subject.hashCode, isNot(other.hashCode));
+        });
       });
     });
 
@@ -597,6 +781,24 @@ void main() {
 
   group('$Transformations', () {
     group('flattenedSteps', () {
+      test('| throws when an external preset has not been resolved', () {
+        const step = ExternalPresetTransformation(
+          filePath: '../coverde.yaml',
+          presetName: 'ci-workflow',
+          baseDirectory: '/repo',
+        );
+        expect(
+          () => [step].flattenedSteps.toList(),
+          throwsA(
+            isA<StateError>().having(
+              (error) => error.message,
+              'message',
+              'Unresolved external preset `ci-workflow` from `../coverde.yaml`.',
+            ),
+          ),
+        );
+      });
+
       test('| returns the flattened steps', () {
         final step_1_1 = KeepByRegexTransformation(RegExp('lib/.*'));
         final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
@@ -614,6 +816,38 @@ void main() {
     });
 
     group('getStepsWithPresetChains', () {
+      test('| throws when an external preset has not been resolved', () {
+        const step = ExternalPresetTransformation(
+          filePath: '../coverde.yaml',
+          presetName: 'ci-workflow',
+          baseDirectory: '/repo',
+        );
+        expect(
+          () => [step].getStepsWithPresetChains().toList(),
+          throwsA(isA<StateError>()),
+        );
+      });
+
+      test('| includes the authored file on an external preset', () {
+        final leaf = KeepByRegexTransformation(RegExp('lib/.*'));
+        final nested = PresetTransformation(
+          presetName: 'also-there',
+          steps: [leaf],
+        );
+        final external = PresetTransformation(
+          presetName: 'ci-workflow',
+          sourceFile: '../coverde.yaml',
+          steps: [nested],
+        );
+        final result = [external].getStepsWithPresetChains().toList();
+        expect(result, hasLength(1));
+        expect(
+          result.single.presets,
+          ['ci-workflow in ../coverde.yaml', 'also-there'],
+        );
+        expect(result.single.transformation, leaf);
+      });
+
       test('| returns the steps with preset chains', () {
         final step_1_1 = KeepByRegexTransformation(RegExp('lib/.*'));
         final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));

@@ -39,3 +39,28 @@ $ coverde transform \
 ```
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
+
+#### Preset from another file
+
+A plain `preset` value is a name in the working directory's `coverde.yaml`. A YAML map with `file` loads that name from another file. Quote a path or name that contains `:` or `#`.
+
+```sh
+$ coverde transform \
+  --transformations 'preset={file: ../coverde.yaml, name: ci-workflow}'
+```
+
+The same preset can be cited from a package `coverde.yaml`. `file` is relative to the yaml file that contains the step:
+
+```yaml
+# packages/my_package/coverde.yaml
+
+transformations:
+  package:
+    - type: preset
+      file: ../coverde.yaml
+      name: ci-workflow
+```
+
+```sh
+$ coverde transform --transformations preset=package
+```

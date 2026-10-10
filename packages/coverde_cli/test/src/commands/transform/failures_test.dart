@@ -361,6 +361,91 @@ void main() {
             ].join('\n'),
           );
         });
+
+        test(
+            '| returns formatted message '
+            'for invalid external preset value failure', () {
+          const failure =
+              TransformationFromCliOptionInvalidPresetDescriptorFailure(
+            transformationIdentifier: 'preset',
+            hint: 'a YAML map with `name` and an optional `file`',
+            value: 'ci-workflow',
+          );
+          final transformFailure =
+              CoverdeTransformInvalidTransformCliOptionFailure(
+            failure: failure,
+          );
+
+          final result = transformFailure.readableMessage;
+
+          expect(
+            result,
+            [
+              'Invalid transformation CLI option.',
+              'Transformation: `preset`.',
+              'Hint: a YAML map with `name` and an optional `file`.',
+              'Value: `ci-workflow`.',
+            ].join('\n'),
+          );
+        });
+      });
+    });
+
+    group('$CoverdeTransformExternalPresetFileNotFoundFailure', () {
+      group('readableMessage', () {
+        test('| returns formatted message with the resolved file path', () {
+          const failure = CoverdeTransformExternalPresetFileNotFoundFailure(
+            filePath: '/repo/coverde.yaml',
+          );
+
+          expect(
+            failure.readableMessage,
+            'No config file found at `/repo/coverde.yaml`.',
+          );
+        });
+      });
+    });
+
+    group('$CoverdeTransformUnknownExternalPresetFailure', () {
+      group('readableMessage', () {
+        test('| returns formatted message with available presets', () {
+          const failure = CoverdeTransformUnknownExternalPresetFailure(
+            presetName: 'missing',
+            filePath: '../coverde.yaml',
+            availablePresets: ['ci-workflow'],
+          );
+
+          expect(
+            failure.readableMessage,
+            [
+              'Unknown preset: `missing` in `../coverde.yaml`.',
+              'Available presets:',
+              '- `ci-workflow`',
+            ].join('\n'),
+          );
+        });
+      });
+    });
+
+    group('$CoverdeTransformExternalPresetCycleFailure', () {
+      group('readableMessage', () {
+        test('| returns formatted message with the cycle', () {
+          const failure = CoverdeTransformExternalPresetCycleFailure(
+            cycle: [
+              'a-preset in ../a/coverde.yaml',
+              'b-preset in ../b/coverde.yaml',
+              'a-preset in ../a/coverde.yaml',
+            ],
+          );
+
+          expect(
+            failure.readableMessage,
+            'Preset cycle detected: '
+            'a-preset in ../a/coverde.yaml -> '
+            'b-preset in ../b/coverde.yaml -> '
+            'a-preset in ../a/coverde.yaml.',
+          );
+        });
       });
     });
 
