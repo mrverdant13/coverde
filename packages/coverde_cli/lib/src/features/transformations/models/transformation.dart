@@ -4,6 +4,7 @@ import 'package:glob/glob.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
+import 'package:yaml/yaml.dart';
 
 part 'transformation_from_cli_option_failure.dart';
 
@@ -45,7 +46,7 @@ sealed class Transformation {
   factory Transformation.fromCliOption(
     String option, {
     List<PresetTransformation> presets = const [],
-    String? externalPresetBaseDirectory,
+    String? presetBaseDirectory,
   }) {
     final [identifier, ...rest] = option.split('=');
     final argument = rest.join('=');
@@ -158,18 +159,10 @@ sealed class Transformation {
         final basePath = argument;
         return RelativeTransformation(basePath);
       case PresetTransformation.identifier:
-        final presetName = argument;
-        return presets.singleWhere(
-          (p) => p.presetName == presetName,
-          orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
-            unknownPreset: presetName,
-            availablePresets: [for (final preset in presets) preset.presetName],
-          ),
-        );
-      case ExternalPresetTransformation.identifier:
-        return ExternalPresetTransformation.fromCliArgument(
+        return _presetFromCliArgument(
           argument,
-          baseDirectory: externalPresetBaseDirectory ?? Directory.current.path,
+          presets: presets,
+          baseDirectory: presetBaseDirectory ?? Directory.current.path,
         );
       default:
         throw TransformationFromCliOptionUnsupportedTransformationFailure(
@@ -181,7 +174,6 @@ sealed class Transformation {
   /// The available transformation identifiers.
   static const List<String> identifiers = [
     PresetTransformation.identifier,
-    ExternalPresetTransformation.identifier,
     KeepByRegexTransformation.identifier,
     SkipByRegexTransformation.identifier,
     KeepByGlobTransformation.identifier,
@@ -264,37 +256,6 @@ final class ExternalPresetTransformation extends Transformation {
     required this.baseDirectory,
   });
 
-  /// Creates an [ExternalPresetTransformation] from the CLI argument that
-  /// follows `external-preset=`.
-  ///
-  /// [argument] is `<file>::<name>`, split on the last `::`.
-  ///
-  /// Throws [TransformationFromCliOptionInvalidExternalPresetValueFailure]
-  /// when [argument] does not contain both a file path and a preset name.
-  factory ExternalPresetTransformation.fromCliArgument(
-    String argument, {
-    required String baseDirectory,
-  }) {
-    const separator = '::';
-    final separatorIndex = argument.lastIndexOf(separator);
-    final hasBothParts = separatorIndex > 0 &&
-        separatorIndex < argument.length - separator.length;
-    if (!hasBothParts) {
-      throw TransformationFromCliOptionInvalidExternalPresetValueFailure(
-        transformationIdentifier: identifier,
-        value: argument,
-      );
-    }
-    return ExternalPresetTransformation(
-      filePath: argument.substring(0, separatorIndex),
-      presetName: argument.substring(separatorIndex + separator.length),
-      baseDirectory: baseDirectory,
-    );
-  }
-
-  /// The identifier for this transformation.
-  static const identifier = 'external-preset';
-
   /// The authored path of the `coverde.yaml` file that defines [presetName].
   final String filePath;
 
@@ -305,7 +266,8 @@ final class ExternalPresetTransformation extends Transformation {
   final String baseDirectory;
 
   @override
-  String get describe => '$identifier file=$filePath name=$presetName';
+  String get describe =>
+      '${PresetTransformation.identifier} file=$filePath name=$presetName';
 
   @override
   bool operator ==(Object other) {
@@ -579,6 +541,87 @@ final class RelativeTransformation extends LeafTransformation {
 Never _throwUnresolvedExternalPreset(ExternalPresetTransformation step) {
   throw StateError(
     'Unresolved external preset `${step.presetName}` from `${step.filePath}`.',
+  );
+}
+
+const _presetDescriptorKeys = {'name', 'file'};
+
+Transformation _presetFromCliArgument(
+  String argument, {
+  required List<PresetTransformation> presets,
+  required String baseDirectory,
+}) {
+  final trimmed = argument.trim();
+  if (!trimmed.startsWith('{')) {
+    if (trimmed.isEmpty) {
+      throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'a non-empty preset name',
+      );
+    }
+    return _lookupLocalPreset(trimmed, presets);
+  }
+
+  final dynamic parsed;
+  try {
+    parsed = loadYaml(trimmed);
+  } on YamlException catch (exception, stackTrace) {
+    Error.throwWithStackTrace(
+      TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'valid YAML (${exception.message})',
+      ),
+      stackTrace,
+    );
+  }
+  final map = parsed as YamlMap;
+  for (final key in map.keys) {
+    if (key is! String || !_presetDescriptorKeys.contains(key)) {
+      throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        transformationIdentifier: PresetTransformation.identifier,
+        value: argument,
+        hint: 'only `name` and `file` keys',
+      );
+    }
+  }
+  final name = map['name'];
+  if (name is! String || name.isEmpty) {
+    throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+      transformationIdentifier: PresetTransformation.identifier,
+      value: argument,
+      hint: 'a non-empty string `name`',
+    );
+  }
+  if (!map.containsKey('file')) {
+    return _lookupLocalPreset(name, presets);
+  }
+  final file = map['file'];
+  if (file is! String || file.isEmpty) {
+    throw TransformationFromCliOptionInvalidPresetDescriptorFailure(
+      transformationIdentifier: PresetTransformation.identifier,
+      value: argument,
+      hint: 'a non-empty string `file`',
+    );
+  }
+  return ExternalPresetTransformation(
+    filePath: file,
+    presetName: name,
+    baseDirectory: baseDirectory,
+  );
+}
+
+PresetTransformation _lookupLocalPreset(
+  String name,
+  List<PresetTransformation> presets,
+) {
+  return presets.singleWhere(
+    (preset) => preset.presetName == name,
+    orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
+      unknownPreset: name,
+      availablePresets: [for (final preset in presets) preset.presetName],
+    ),
   );
 }
 

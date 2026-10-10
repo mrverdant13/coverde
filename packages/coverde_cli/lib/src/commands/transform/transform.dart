@@ -40,8 +40,10 @@ Destination coverage info file to dump the transformed coverage data into.''',
         transformationsOption,
         abbr: transformationsOption[0],
         help: '''
-Transformation steps to apply in order.''',
+Transformation steps to apply in order.
+Repeat this option for each step. A value may contain commas.''',
         defaultsTo: [],
+        splitCommas: false,
         allowedHelp: {
           '${KeepByRegexTransformation.identifier}=<regex>': //
               'Keep files that match the `<regex>`.',
@@ -60,8 +62,9 @@ Transformation steps to apply in order.''',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the `<base-path>`.',
           '${PresetTransformation.identifier}=<name>': //
-              'Expand a preset from `$_configFileName`.',
-          '${ExternalPresetTransformation.identifier}=<file>::<name>': //
+              'Expand the `<name>` preset from `$_configFileName`.',
+          '${PresetTransformation.identifier}='
+                  '{name: <name>, file: <file>}': //
               'Expand the `<name>` preset from the `$_configFileName` '
                   'at `<file>`.',
         },

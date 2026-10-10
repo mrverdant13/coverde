@@ -712,12 +712,12 @@ void main() {
         });
       });
 
-      group('identifier: ${ExternalPresetTransformation.identifier}', () {
+      group('identifier: ${PresetTransformation.identifier} with file', () {
         test('| returns an unresolved $ExternalPresetTransformation', () {
           const yamlString = '''
           transformations:
             preset:
-              - type: external-preset
+              - type: preset
                 file: ../coverde.yaml
                 name: ci-workflow
             wrapper:
@@ -757,18 +757,20 @@ void main() {
 
         test(
             '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
-            'when YAML transformation preset step file is missing', () {
+            'when YAML transformation preset step file is empty', () {
           const yamlString = '''
           transformations:
             preset:
-              - type: external-preset
+              - type: preset
+                file: ""
                 name: ci-workflow
           ''';
           expect(
             () => CoverdeConfig.fromYaml(yamlString),
-            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
               key: 'transformations.preset.[0].file',
-              failingValue: null,
+              value: '',
+              hint: 'a non-empty string',
             ),
           );
         });
@@ -779,7 +781,7 @@ void main() {
           const yamlString = '''
           transformations:
             preset:
-              - type: external-preset
+              - type: preset
                 file: 123
                 name: ci-workflow
           ''';
@@ -798,7 +800,7 @@ void main() {
           const yamlString = '''
           transformations:
             preset:
-              - type: external-preset
+              - type: preset
                 file: ../coverde.yaml
                 name: 123
           ''';
@@ -851,6 +853,45 @@ void main() {
         });
 
         test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when YAML transformation preset name is empty', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: preset
+                name: ""
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].name',
+              value: '',
+              hint: 'a non-empty string',
+            ),
+          );
+        });
+
+        test(
+            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when YAML transformation preset step has an unknown key', () {
+          const yamlString = '''
+          transformations:
+            preset:
+              - type: preset
+                name: nested-preset
+                flie: ../coverde.yaml
+          ''';
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0]',
+              value: 'flie',
+              hint: 'only `type`, `name`, and `file`',
+            ),
+          );
+        });
+
+        test(
             '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset name is not a string', () {
           const yamlString = '''
@@ -885,7 +926,7 @@ void main() {
             key: 'transformations.preset.[0].type',
             value: 'invalid-step-type',
             hint: 'one of: '
-                '`preset`, `external-preset`, '
+                '`preset`, '
                 '`keep-by-regex`, `skip-by-regex`, '
                 '`keep-by-glob`, `skip-by-glob`, '
                 '`keep-by-coverage`, `skip-by-coverage`, '

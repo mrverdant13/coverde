@@ -149,13 +149,14 @@ final class CoverdeTransformInvalidTransformCliOptionFailure
               'Coverage values must be between 0 and 100.',
               'Invalid values: ${invalidReferences.join(', ')}.',
             ],
-          TransformationFromCliOptionInvalidExternalPresetValueFailure(
+          TransformationFromCliOptionInvalidPresetDescriptorFailure(
             :final transformationIdentifier,
             :final value,
+            :final hint,
           ) =>
             [
               'Transformation: `$transformationIdentifier`.',
-              'Expected `<file>::<name>`.',
+              'Hint: $hint.',
               'Value: `$value`.',
             ],
         },

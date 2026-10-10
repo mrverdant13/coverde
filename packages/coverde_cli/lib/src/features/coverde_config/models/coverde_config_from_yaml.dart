@@ -348,41 +348,21 @@ List<_PresetEntry> _parsePresetSteps(
           );
         }
         result.add(_PresetEntryStep(RelativeTransformation(basePath)));
-      case ExternalPresetTransformation.identifier:
-        final rawFile = rawStep[_CoverdeConfigYamlKeys.stepFile];
-        final fileKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepFile,
-        ].join('.');
-        if (rawFile is! String) {
-          throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-            key: fileKey,
-            expectedType: String,
-            value: rawFile,
-          );
-        }
-        final rawName = rawStep[_CoverdeConfigYamlKeys.stepName];
-        final nameKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepName,
-        ].join('.');
-        if (rawName is! String) {
-          throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-            key: nameKey,
-            expectedType: String,
-            value: rawName,
-          );
-        }
-        result.add(
-          _PresetEntryStep(
-            ExternalPresetTransformation(
-              filePath: rawFile,
-              presetName: rawName,
-              baseDirectory: baseDirectory,
-            ),
-          ),
-        );
       case PresetTransformation.identifier:
+        const allowedKeys = {
+          _CoverdeConfigYamlKeys.stepType,
+          _CoverdeConfigYamlKeys.stepName,
+          _CoverdeConfigYamlKeys.stepFile,
+        };
+        for (final key in rawStep.keys) {
+          if (key is! String || !allowedKeys.contains(key)) {
+            throw CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: stepKey,
+              value: key,
+              hint: 'only `type`, `name`, and `file`',
+            );
+          }
+        }
         final presetName = rawStep[_CoverdeConfigYamlKeys.stepName];
         final presetNameKey = [
           stepKey,
@@ -395,7 +375,45 @@ List<_PresetEntry> _parsePresetSteps(
             value: presetName,
           );
         }
-        result.add(_PresetEntryRef(presetName));
+        if (presetName.isEmpty) {
+          throw CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+            key: presetNameKey,
+            value: presetName,
+            hint: 'a non-empty string',
+          );
+        }
+        if (!rawStep.containsKey(_CoverdeConfigYamlKeys.stepFile)) {
+          result.add(_PresetEntryRef(presetName));
+          break;
+        }
+        final rawFile = rawStep[_CoverdeConfigYamlKeys.stepFile];
+        final fileKey = [
+          stepKey,
+          _CoverdeConfigYamlKeys.stepFile,
+        ].join('.');
+        if (rawFile is! String) {
+          throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+            key: fileKey,
+            expectedType: String,
+            value: rawFile,
+          );
+        }
+        if (rawFile.isEmpty) {
+          throw CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+            key: fileKey,
+            value: rawFile,
+            hint: 'a non-empty string',
+          );
+        }
+        result.add(
+          _PresetEntryStep(
+            ExternalPresetTransformation(
+              filePath: rawFile,
+              presetName: presetName,
+              baseDirectory: baseDirectory,
+            ),
+          ),
+        );
       default:
         final availableIdentifiers =
             Transformation.identifiers.map((e) => '`$e`').join(', ');

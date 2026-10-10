@@ -366,8 +366,9 @@ void main() {
             '| returns formatted message '
             'for invalid external preset value failure', () {
           const failure =
-              TransformationFromCliOptionInvalidExternalPresetValueFailure(
-            transformationIdentifier: 'external-preset',
+              TransformationFromCliOptionInvalidPresetDescriptorFailure(
+            transformationIdentifier: 'preset',
+            hint: 'a YAML map with `name` and an optional `file`',
             value: 'ci-workflow',
           );
           final transformFailure =
@@ -381,8 +382,8 @@ void main() {
             result,
             [
               'Invalid transformation CLI option.',
-              'Transformation: `external-preset`.',
-              'Expected `<file>::<name>`.',
+              'Transformation: `preset`.',
+              'Hint: a YAML map with `name` and an optional `file`.',
               'Value: `ci-workflow`.',
             ].join('\n'),
           );

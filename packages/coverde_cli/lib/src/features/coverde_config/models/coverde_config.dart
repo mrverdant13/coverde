@@ -23,7 +23,7 @@ class CoverdeConfig {
   /// Creates a [CoverdeConfig] from a YAML string.
   ///
   /// [baseDirectory] is the directory of the file [yamlString] came from.
-  /// Relative `external-preset` file paths are stored against it.
+  /// A relative `file` on a `preset` step is stored against it.
   /// It defaults to the current working directory.
   ///
   /// Throws [CoverdeConfigFromYamlFailure] when an error occurs.

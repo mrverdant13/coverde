@@ -759,7 +759,7 @@ end_of_record
 
       test(
           '--${TransformCommand.explainFlag} '
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| prints the authored file and nested preset', () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-transform-test-');
@@ -777,6 +777,7 @@ transformations:
       glob: "**/*.g.dart"
 ''');
         final inputPath = p.join(directory.path, 'in.info');
+        final sharedRelative = '${p.basename(sharedDir.path)}/coverde.yaml';
         File(inputPath).writeAsStringSync(
           'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
         );
@@ -789,7 +790,7 @@ transformations:
               inputPath,
               '--${TransformCommand.explainFlag}',
               '--${TransformCommand.transformationsOption}',
-              'external-preset=${p.basename(sharedDir.path)}/coverde.yaml::outer',
+              'preset={file: $sharedRelative, name: outer}',
             ]);
           },
           getCurrentDirectory: () => directory,
@@ -805,7 +806,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| applies steps from the external preset', () async {
         final directory =
             Directory.systemTemp.createTempSync('coverde-transform-test-');
@@ -849,7 +850,7 @@ end_of_record
               '--${TransformCommand.outputOption}',
               outputPath,
               '--${TransformCommand.transformationsOption}',
-              'external-preset=$configPath::ci-workflow',
+              'preset={file: "$configPath", name: ci-workflow}',
             ]);
           },
           getCurrentDirectory: () => directory,
@@ -876,7 +877,7 @@ end_of_record
         File(p.join(appDir.path, 'coverde.yaml')).writeAsStringSync('''
 transformations:
   local:
-    - type: external-preset
+    - type: preset
       file: ../shared/coverde.yaml
       name: mid
 ''');
@@ -884,7 +885,7 @@ transformations:
             .writeAsStringSync('''
 transformations:
   mid:
-    - type: external-preset
+    - type: preset
       file: nested/coverde.yaml
       name: leaf
 ''');
@@ -923,7 +924,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| throws $CoverdeTransformExternalPresetFileNotFoundFailure '
           'when the file is missing', () async {
         final directory =
@@ -937,7 +938,7 @@ transformations:
                   'transform',
                   '--${TransformCommand.explainFlag}',
                   '--${TransformCommand.transformationsOption}',
-                  'external-preset=missing.yaml::ci-workflow',
+                  'preset={file: missing.yaml, name: ci-workflow}',
                 ]);
 
             expect(
@@ -956,7 +957,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| throws $CoverdeTransformFileReadFailure '
           'when the external file cannot be read', () async {
         final directory =
@@ -976,7 +977,7 @@ transformations:
                   'transform',
                   '--${TransformCommand.explainFlag}',
                   '--${TransformCommand.transformationsOption}',
-                  'external-preset=shared.yaml::ci-workflow',
+                  'preset={file: shared.yaml, name: ci-workflow}',
                 ]);
 
             expect(
@@ -1009,7 +1010,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| throws $CoverdeTransformInvalidConfigFileFailure '
           'when the external file is invalid', () async {
         final directory =
@@ -1024,7 +1025,7 @@ transformations:
                   'transform',
                   '--${TransformCommand.explainFlag}',
                   '--${TransformCommand.transformationsOption}',
-                  'external-preset=shared.yaml::ci-workflow',
+                  'preset={file: shared.yaml, name: ci-workflow}',
                 ]);
 
             expect(
@@ -1043,7 +1044,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| throws $CoverdeTransformUnknownExternalPresetFailure '
           'when the preset name is missing', () async {
         final directory =
@@ -1062,7 +1063,7 @@ transformations:
                   'transform',
                   '--${TransformCommand.explainFlag}',
                   '--${TransformCommand.transformationsOption}',
-                  'external-preset=shared.yaml::missing',
+                  'preset={file: shared.yaml, name: missing}',
                 ]);
 
             expect(
@@ -1092,7 +1093,7 @@ transformations:
       });
 
       test(
-          '--${TransformCommand.transformationsOption}=external-preset '
+          '--${TransformCommand.transformationsOption}=preset '
           '| throws $CoverdeTransformExternalPresetCycleFailure '
           'when external presets form a cycle', () async {
         final directory =
@@ -1103,14 +1104,14 @@ transformations:
         File(p.join(aDir.path, 'coverde.yaml')).writeAsStringSync('''
 transformations:
   a-preset:
-    - type: external-preset
+    - type: preset
       file: ../b/coverde.yaml
       name: b-preset
 ''');
         File(p.join(bDir.path, 'coverde.yaml')).writeAsStringSync('''
 transformations:
   b-preset:
-    - type: external-preset
+    - type: preset
       file: ../a/coverde.yaml
       name: a-preset
 ''');
@@ -1121,7 +1122,7 @@ transformations:
                   'transform',
                   '--${TransformCommand.explainFlag}',
                   '--${TransformCommand.transformationsOption}',
-                  'external-preset=../b/coverde.yaml::b-preset',
+                  'preset={file: ../b/coverde.yaml, name: b-preset}',
                 ]);
 
             expect(

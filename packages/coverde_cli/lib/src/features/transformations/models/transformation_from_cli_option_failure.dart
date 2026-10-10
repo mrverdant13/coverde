@@ -109,23 +109,27 @@ final class TransformationFromCliOptionInvalidCoveragePercentageFailure
 
 // Long doc template identifier.
 // ignore: lines_longer_than_80_chars
-/// {@template coverde.transformation_from_cli_option_invalid_external_preset_value_failure}
-/// A failure that occurs when an external preset CLI value is not
-/// `<file>::<name>`.
+/// {@template coverde.transformation_from_cli_option_invalid_preset_descriptor_failure}
+/// A failure that occurs when a `preset` CLI value is not a preset name or a
+/// YAML map with `name` and an optional `file`.
 /// {@endtemplate}
 @immutable
-final class TransformationFromCliOptionInvalidExternalPresetValueFailure
+final class TransformationFromCliOptionInvalidPresetDescriptorFailure
     extends TransformationFromCliOptionInvalidArgumentsFailure {
   // Long doc template identifier.
   // ignore: lines_longer_than_80_chars
-  /// {@macro coverde.transformation_from_cli_option_invalid_external_preset_value_failure}
-  const TransformationFromCliOptionInvalidExternalPresetValueFailure({
+  /// {@macro coverde.transformation_from_cli_option_invalid_preset_descriptor_failure}
+  const TransformationFromCliOptionInvalidPresetDescriptorFailure({
     required super.transformationIdentifier,
     required this.value,
+    required this.hint,
   });
 
   /// The CLI value that could not be parsed.
   final String value;
+
+  /// What a valid value looks like.
+  final String hint;
 }
 
 /// {@template coverde.transformation_from_cli_option_unknown_preset_failure}
