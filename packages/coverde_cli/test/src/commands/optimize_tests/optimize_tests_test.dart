@@ -325,9 +325,9 @@ void main() {}
           trailingCommas: TrailingCommas.preserve,
         );
         final expectedOutput = formatter.format('''
-// ignore_for_file: deprecated_member_use, type=lint
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: no_leading_underscores_for_library_prefixes, type=lint
 
-// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' show unawaited;
 
 import 'package:test_api/test_api.dart';
@@ -434,9 +434,9 @@ void main() {
           trailingCommas: TrailingCommas.preserve,
         );
         final expectedOutput = formatter.format('''
-// ignore_for_file: deprecated_member_use, type=lint
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: no_leading_underscores_for_library_prefixes, type=lint
 
-// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_01_test.dart' as _i1;
@@ -617,9 +617,9 @@ void main() {
           trailingCommas: TrailingCommas.preserve,
         );
         final expectedOutput = formatter.format('''
-// ignore_for_file: deprecated_member_use, type=lint
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: no_leading_underscores_for_library_prefixes, type=lint
 
-// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:test_api/test_api.dart';
 
 import 'on_platform_02_test.dart' as _i1;
@@ -758,9 +758,9 @@ void main() {
           trailingCommas: TrailingCommas.preserve,
         );
         final expectedOutput = formatter.format('''
-// ignore_for_file: deprecated_member_use, type=lint
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: no_leading_underscores_for_library_prefixes, type=lint
 
-// ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:io';
 import 'dart:typed_data';
 
