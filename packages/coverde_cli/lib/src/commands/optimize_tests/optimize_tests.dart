@@ -37,12 +37,14 @@ class OptimizeTestsCommand extends CoverdeCommand {
       )
       ..addOption(
         totalShardsOptionName,
-        help: 'The total number of shards to split tests across. '
+        help:
+            'The total number of shards to split tests across. '
             'Requires `--$shardIndexOptionName` to also be specified.',
       )
       ..addOption(
         shardIndexOptionName,
-        help: 'The index of the current shard (0-based). '
+        help:
+            'The index of the current shard (0-based). '
             'Requires `--$totalShardsOptionName` to also be specified.',
       )
       ..addFlag(
@@ -127,41 +129,43 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final shardIndexStr = argResults.option(shardIndexOptionName);
     final (totalShards, shardIndex) = switch ((totalShardsStr, shardIndexStr)) {
       (null, null) => (null, null),
-      (null, final _?) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+      (null, final _?) =>
+        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
           usageMessage: usageWithoutDescription,
           totalShardsProvided: false,
           shardIndexProvided: true,
         ),
-      (final _?, null) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+      (final _?, null) =>
+        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
           usageMessage: usageWithoutDescription,
           totalShardsProvided: true,
           shardIndexProvided: false,
         ),
       (final ts?, final si?) => () {
-          final totalShardsInt = int.tryParse(ts);
-          final shardIndexInt = int.tryParse(si);
-          if (totalShardsInt == null || shardIndexInt == null) {
-            throw CoverdeOptimizeTestsInvalidShardOptionsFailure(
-              usageMessage: usageWithoutDescription,
-              totalShardsStr: ts,
-              shardIndexStr: si,
-            );
-          }
-          if (totalShardsInt <= 0) {
-            throw CoverdeOptimizeTestsInvalidTotalShardsFailure(
-              usageMessage: usageWithoutDescription,
-              totalShards: totalShardsInt,
-            );
-          }
-          if (shardIndexInt < 0 || shardIndexInt >= totalShardsInt) {
-            throw CoverdeOptimizeTestsShardIndexOutOfRangeFailure(
-              usageMessage: usageWithoutDescription,
-              totalShards: totalShardsInt,
-              shardIndex: shardIndexInt,
-            );
-          }
-          return (totalShardsInt, shardIndexInt);
-        }(),
+        final totalShardsInt = int.tryParse(ts);
+        final shardIndexInt = int.tryParse(si);
+        if (totalShardsInt == null || shardIndexInt == null) {
+          throw CoverdeOptimizeTestsInvalidShardOptionsFailure(
+            usageMessage: usageWithoutDescription,
+            totalShardsStr: ts,
+            shardIndexStr: si,
+          );
+        }
+        if (totalShardsInt <= 0) {
+          throw CoverdeOptimizeTestsInvalidTotalShardsFailure(
+            usageMessage: usageWithoutDescription,
+            totalShards: totalShardsInt,
+          );
+        }
+        if (shardIndexInt < 0 || shardIndexInt >= totalShardsInt) {
+          throw CoverdeOptimizeTestsShardIndexOutOfRangeFailure(
+            usageMessage: usageWithoutDescription,
+            totalShards: totalShardsInt,
+            shardIndex: shardIndexInt,
+          );
+        }
+        return (totalShardsInt, shardIndexInt);
+      }(),
     };
     final pubspecFilePath = p.join(projectDir.path, 'pubspec.yaml');
     if (!File(pubspecFilePath).existsSync()) {
@@ -216,7 +220,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       return Glob(pattern, context: p.posix);
     }();
 
-    final isFlutterPackage = switch (pubspec.dependencies['flutter']) {
+    final isFlutterPackage =
+        switch (pubspec.dependencies['flutter']) {
           final SdkDependency dep => dep.sdk == 'flutter',
           _ => false,
         } ||
@@ -239,10 +244,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
           stackTrace,
         );
       }
-    }()
-        .whereType<File>()
-        .sortedBy((it) => it.path)
-        .map((it) {
+    }().whereType<File>().sortedBy((it) => it.path).map((it) {
       final relativePath = p.relative(it.path, from: projectDir.path);
       final segments = p.split(relativePath);
       final posixRelativePath = p.posix.joinAll(segments);
@@ -259,8 +261,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final validFileRelativePaths = switch (excludeGlob) {
       null => includedFileRelativePaths,
       _ => includedFileRelativePaths.whereNot(
-          (it) => excludeGlob.matches(it.posixRelativePath),
-        ),
+        (it) => excludeGlob.matches(it.posixRelativePath),
+      ),
     };
 
     final shardedFileRelativePaths = switch ((totalShards, shardIndex)) {
@@ -305,8 +307,9 @@ class OptimizeTestsCommand extends CoverdeCommand {
         );
         continue;
       }
-      final mainFunctionHasParams =
-          switch (mainFunctionDeclaration.functionExpression.parameters) {
+      final mainFunctionHasParams = switch (mainFunctionDeclaration
+          .functionExpression
+          .parameters) {
         FormalParameterList(:final parameters) => parameters.isNotEmpty,
         null => false,
       };
@@ -317,13 +320,15 @@ class OptimizeTestsCommand extends CoverdeCommand {
         );
         continue;
       }
-      final onPlatform =
-          onPlatformRegex.firstMatch(fileContent)?.namedGroup('onPlatform');
+      final onPlatform = onPlatformRegex
+          .firstMatch(fileContent)
+          ?.namedGroup('onPlatform');
       final skip = skipRegex.firstMatch(fileContent)?.namedGroup('skip');
       final tags = tagsRegex.firstMatch(fileContent)?.namedGroup('tags');
       final testOn = testOnRegex.firstMatch(fileContent)?.namedGroup('testOn');
-      final timeout =
-          timeoutRegex.firstMatch(fileContent)?.namedGroup('timeout');
+      final timeout = timeoutRegex
+          .firstMatch(fileContent)
+          ?.namedGroup('timeout');
       final testRelativePath = p.posix.joinAll(
         p.split(
           p.relative(
@@ -343,8 +348,7 @@ class OptimizeTestsCommand extends CoverdeCommand {
         hasAsyncEntryPoints |= mainFunctionIsAsync;
         final setUpInvocation = () {
           if (!useFlutterGoldenTests) return null;
-          return coder.Code(
-            '''
+          return coder.Code('''
 late GoldenFileComparator initialGoldenFileComparator;
 
 setUp(() {
@@ -358,8 +362,7 @@ setUp(() {
 tearDown(() {
   goldenFileComparator = initialGoldenFileComparator;
 });
-''',
-          );
+''');
         }();
         final mainInvocation = () {
           final mainFunction = coder.Reference('main', testRelativePath);
@@ -369,96 +372,76 @@ tearDown(() {
             'has an async `main` function.',
           );
           return const coder.Reference('unawaited').call([
-            const coder.Reference('Future.sync').call([
-              mainFunction,
-            ]),
+            const coder.Reference('Future.sync').call([mainFunction]),
           ]);
         }();
         return coder.Method(
-          (b) => b
-            ..body = coder.Block.of([
-              if (setUpInvocation != null) setUpInvocation,
-              mainInvocation.statement,
-            ]),
+          (b) =>
+              b
+                ..body = coder.Block.of([
+                  if (setUpInvocation != null) setUpInvocation,
+                  mainInvocation.statement,
+                ]),
         ).closure;
       }();
-      final testFileGroupStatement = const coder.Reference('group').call(
-        [
-          coder.literalString(testRelativePath),
-          testInvocation,
-        ],
-        {
-          if (onPlatform != null)
-            'onPlatform': coder.CodeExpression(
-              coder.Code(onPlatform),
-            ),
-          if (skip != null)
-            'skip': coder.CodeExpression(
-              skip == '' ? coder.literalBool(true).code : coder.Code(skip),
-            ),
-          if (tags != null)
-            'tags': coder.CodeExpression(
-              coder.Code(tags),
-            ),
-          if (testOn != null)
-            'testOn': coder.CodeExpression(
-              coder.Code(testOn),
-            ),
-          if (timeout != null)
-            'timeout': coder.CodeExpression(
-              coder.Code(timeout),
-            ),
-        },
-      ).statement;
+      final testFileGroupStatement =
+          const coder.Reference('group')
+              .call(
+                [coder.literalString(testRelativePath), testInvocation],
+                {
+                  if (onPlatform != null)
+                    'onPlatform': coder.CodeExpression(coder.Code(onPlatform)),
+                  if (skip != null)
+                    'skip': coder.CodeExpression(
+                      skip == ''
+                          ? coder.literalBool(true).code
+                          : coder.Code(skip),
+                    ),
+                  if (tags != null)
+                    'tags': coder.CodeExpression(coder.Code(tags)),
+                  if (testOn != null)
+                    'testOn': coder.CodeExpression(coder.Code(testOn)),
+                  if (timeout != null)
+                    'timeout': coder.CodeExpression(coder.Code(timeout)),
+                },
+              )
+              .statement;
       testFileGroupsStatements.add(testFileGroupStatement);
     }
     final mainFunction = coder.Method.returnsVoid(
-      (b) => b
-        ..name = 'main'
-        ..body = coder.Block.of([
-          ...testFileGroupsStatements,
-        ]),
+      (b) =>
+          b
+            ..name = 'main'
+            ..body = coder.Block.of([...testFileGroupsStatements]),
     );
-    final library = coder.Library(
-      (b) {
-        if (testFileGroupsStatements.isNotEmpty) {
-          b.directives.addAll([
-            coder.Directive.import('package:test_api/test_api.dart'),
-            if (hasAsyncEntryPoints)
-              coder.Directive.import(
-                'dart:async',
-                show: const ['unawaited'],
-              ),
-            if (useFlutterGoldenTests) ...[
-              coder.Directive.import(
-                'dart:io',
-              ),
-              coder.Directive.import(
-                'dart:typed_data',
-              ),
-              coder.Directive.import(
-                'package:flutter_test/flutter_test.dart',
-                hide: const ['group', 'setUp', 'tearDown'],
-              ),
-              coder.Directive.import(
-                'package:path/path.dart',
-                as: 'p',
-              ),
-            ],
-          ]);
-        }
-        b
-          ..ignoreForFile.addAll([
-            'type=lint',
-            if (testFileGroupsStatements.isNotEmpty) 'deprecated_member_use',
-          ])
-          ..body.addAll([
-            mainFunction,
-            if (testFileGroupsStatements.isNotEmpty && useFlutterGoldenTests)
-              const coder.Code(_goldenFileComparatorClassDefinition),
-          ]);
-      },
-    );
+    final library = coder.Library((b) {
+      if (testFileGroupsStatements.isNotEmpty) {
+        b.directives.addAll([
+          coder.Directive.import('package:test_api/test_api.dart'),
+          if (hasAsyncEntryPoints)
+            coder.Directive.import('dart:async', show: const ['unawaited']),
+          if (useFlutterGoldenTests) ...[
+            coder.Directive.import('dart:io'),
+            coder.Directive.import('dart:typed_data'),
+            coder.Directive.import(
+              'package:flutter_test/flutter_test.dart',
+              hide: const ['group', 'setUp', 'tearDown'],
+            ),
+            coder.Directive.import('package:path/path.dart', as: 'p'),
+          ],
+        ]);
+      }
+      b
+        ..ignoreForFile.addAll([
+          'type=lint',
+          if (testFileGroupsStatements.isNotEmpty) 'deprecated_member_use',
+        ])
+        ..body.addAll([
+          mainFunction,
+          if (testFileGroupsStatements.isNotEmpty && useFlutterGoldenTests)
+            const coder.Code(_goldenFileComparatorClassDefinition),
+        ]);
+    });
     final emitter = coder.DartEmitter.scoped(
       orderDirectives: true,
       useNullSafetySyntax: true,

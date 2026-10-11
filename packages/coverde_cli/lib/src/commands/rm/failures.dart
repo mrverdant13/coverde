@@ -39,12 +39,11 @@ $usageMessage
 /// {@endtemplate}
 final class CoverdeRmMissingPathsFailure extends CoverdeRmInvalidInputFailure {
   /// {@macro coverde_cli.rm_missing_paths_failure}
-  const CoverdeRmMissingPathsFailure({
-    required super.usageMessage,
-  }) : super(
-          invalidInputDescription:
-              'A set of file and/or directory paths should be provided.',
-        );
+  const CoverdeRmMissingPathsFailure({required super.usageMessage})
+    : super(
+        invalidInputDescription:
+            'A set of file and/or directory paths should be provided.',
+      );
 }
 
 /// {@template coverde_cli.rm_element_not_found_failure}
@@ -53,9 +52,7 @@ final class CoverdeRmMissingPathsFailure extends CoverdeRmInvalidInputFailure {
 /// {@endtemplate}
 final class CoverdeRmElementNotFoundFailure extends CoverdeRmFailure {
   /// {@macro coverde_cli.rm_element_not_found_failure}
-  const CoverdeRmElementNotFoundFailure({
-    required this.elementPath,
-  });
+  const CoverdeRmElementNotFoundFailure({required this.elementPath});
 
   /// The path to the element that was not found.
   final String elementPath;
@@ -67,8 +64,7 @@ final class CoverdeRmElementNotFoundFailure extends CoverdeRmFailure {
 /// An operation on a file.
 enum CoverdeRmFileOperation {
   /// The operation to delete a file.
-  delete('delete'),
-  ;
+  delete('delete');
 
   const CoverdeRmFileOperation(this.name);
 
@@ -112,19 +108,18 @@ final class CoverdeRmFileDeleteFailure extends CoverdeRmFileOperationFailure {
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeRmFileOperation.delete,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeRmFileOperation.delete,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// An operation on a directory.
 enum CoverdeRmDirectoryOperation {
   /// The operation to delete a directory.
-  delete('delete'),
-  ;
+  delete('delete');
 
   const CoverdeRmDirectoryOperation(this.name);
 
@@ -170,10 +165,10 @@ final class CoverdeRmDirectoryDeleteFailure
     required super.directoryPath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeRmDirectoryOperation.delete,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeRmDirectoryOperation.delete,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }

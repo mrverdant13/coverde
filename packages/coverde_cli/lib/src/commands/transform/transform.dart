@@ -8,11 +8,8 @@ import 'package:universal_io/io.dart';
 
 export 'failures.dart';
 
-typedef _ExternalPresetVisit = ({
-  String canonicalPath,
-  String presetName,
-  String label,
-});
+typedef _ExternalPresetVisit =
+    ({String canonicalPath, String presetName, String label});
 
 /// {@template transform_cmd}
 /// A command to transform coverage info files.
@@ -55,10 +52,10 @@ Repeat this option for each step. A value may contain commas.''',
               'Skip files that match the `<glob>`.',
           '${KeepByCoverageTransformation.identifier}=<comparison>': //
               'Keep files that match the `<comparison>` '
-                  '(with reference values between 0 and 100).',
+              '(with reference values between 0 and 100).',
           '${SkipByCoverageTransformation.identifier}=<comparison>': //
               'Skip files that match the `<comparison>` '
-                  '(with reference values between 0 and 100).',
+              '(with reference values between 0 and 100).',
           '${RelativeTransformation.identifier}=<base-path>': //
               'Rewrite file paths to be relative to the `<base-path>`.',
           '${PresetTransformation.identifier}=<name>': //
@@ -66,14 +63,15 @@ Repeat this option for each step. A value may contain commas.''',
           '${PresetTransformation.identifier}='
                   '{name: <name>, file: <file>}': //
               'Expand the `<name>` preset from the `$_configFileName` '
-                  'at `<file>`.',
+              'at `<file>`.',
         },
         valueHelp: _transformationsHelpValue,
       )
       ..addFlag(
         explainFlag,
         abbr: explainFlag[0],
-        help: 'Print the resolved transformation list and exit without '
+        help:
+            'Print the resolved transformation list and exit without '
             'modifying files.',
         negatable: false,
       )
@@ -161,8 +159,9 @@ Presets can be defined in $_configFileName under the `transformations` key.
 
     final String rawCoverdeConfig;
     try {
-      rawCoverdeConfig =
-          switch (FileSystemEntity.isFileSync(coverdeConfigPath)) {
+      rawCoverdeConfig = switch (FileSystemEntity.isFileSync(
+        coverdeConfigPath,
+      )) {
         true => File(coverdeConfigPath).readAsStringSync(),
         false => '{}',
       };
@@ -243,9 +242,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
       raf = await destination.open(
         mode: shouldOverride ? FileMode.writeOnly : FileMode.append,
       );
-      await raf.lock(
-        FileLock.blockingExclusive,
-      );
+      await raf.lock(FileLock.blockingExclusive);
       if (shouldOverride) {
         await raf.truncate(0);
       } else {
@@ -273,9 +270,10 @@ Presets can be defined in $_configFileName under the `transformations` key.
     var i = 1;
     final stepsWithPresetChains = steps.getStepsWithPresetChains();
     for (final (:presets, :transformation) in stepsWithPresetChains) {
-      final suffix = presets.isEmpty
-          ? ''
-          : '   (from preset ${presets.join(presetChainSeparator)})';
+      final suffix =
+          presets.isEmpty
+              ? ''
+              : '   (from preset ${presets.join(presetChainSeparator)})';
       logger.info('$i. ${transformation.describe}$suffix');
       i++;
     }
@@ -292,16 +290,11 @@ Presets can be defined in $_configFileName under the `transformations` key.
       final rawTransformation = untrimmedRawTransformation.trim();
       try {
         result.add(
-          Transformation.fromCliOption(
-            rawTransformation,
-            presets: presets,
-          ),
+          Transformation.fromCliOption(rawTransformation, presets: presets),
         );
       } on TransformationFromCliOptionFailure catch (failure, stackTrace) {
         Error.throwWithStackTrace(
-          CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          ),
+          CoverdeTransformInvalidTransformCliOptionFailure(failure: failure),
           stackTrace,
         );
       }
@@ -314,9 +307,10 @@ Presets can be defined in $_configFileName under the `transformations` key.
     TraceFile traceFile,
     List<Transformation> steps,
   ) {
-    var entries = traceFile.sourceFilesCovData
-        .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
-        .toList();
+    var entries =
+        traceFile.sourceFilesCovData
+            .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
+            .toList();
 
     final flatSteps = steps.flattenedSteps;
     for (final step in flatSteps) {
@@ -326,13 +320,15 @@ Presets can be defined in $_configFileName under the `transformations` key.
         case SkipByRegexTransformation(:final regex):
           entries = entries.where((e) => !regex.hasMatch(e.path)).toList();
         case KeepByGlobTransformation(:final glob):
-          entries = entries
-              .where((e) => glob.matches(_normalizePath(e.path)))
-              .toList();
+          entries =
+              entries
+                  .where((e) => glob.matches(_normalizePath(e.path)))
+                  .toList();
         case SkipByGlobTransformation(:final glob):
-          entries = entries
-              .where((e) => !glob.matches(_normalizePath(e.path)))
-              .toList();
+          entries =
+              entries
+                  .where((e) => !glob.matches(_normalizePath(e.path)))
+                  .toList();
         case KeepByCoverageTransformation(:final comparison):
           entries =
               entries.where((e) => comparison.matches(e.coverage)).toList();
@@ -340,17 +336,18 @@ Presets can be defined in $_configFileName under the `transformations` key.
           entries =
               entries.where((e) => !comparison.matches(e.coverage)).toList();
         case RelativeTransformation(basePath: final bp):
-          entries = entries.map((e) {
-            final newPath = p.relative(e.path, from: bp);
-            final newRaw = e.raw.replaceFirst(
-              RegExp(
-                '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
-                multiLine: true,
-              ),
-              '${CovFile.sourceFileTag}$newPath',
-            );
-            return (path: newPath, raw: newRaw, coverage: e.coverage);
-          }).toList();
+          entries =
+              entries.map((e) {
+                final newPath = p.relative(e.path, from: bp);
+                final newRaw = e.raw.replaceFirst(
+                  RegExp(
+                    '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
+                    multiLine: true,
+                  ),
+                  '${CovFile.sourceFileTag}$newPath',
+                );
+                return (path: newPath, raw: newRaw, coverage: e.coverage);
+              }).toList();
       }
     }
 
@@ -422,10 +419,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
           visit.presetName == step.presetName,
     )) {
       throw CoverdeTransformExternalPresetCycleFailure(
-        cycle: [
-          for (final visit in visiting) visit.label,
-          label,
-        ],
+        cycle: [for (final visit in visiting) visit.label, label],
       );
     }
 
@@ -472,13 +466,11 @@ Presets can be defined in $_configFileName under the `transformations` key.
       );
     }
 
-    visiting.add(
-      (
-        canonicalPath: canonicalPath,
-        presetName: step.presetName,
-        label: label,
-      ),
-    );
+    visiting.add((
+      canonicalPath: canonicalPath,
+      presetName: step.presetName,
+      label: label,
+    ));
     final resolvedSteps = [
       for (final nested in preset.steps)
         _resolveExternalPresetStep(nested, visiting: visiting),

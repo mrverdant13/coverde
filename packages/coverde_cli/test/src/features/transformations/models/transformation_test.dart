@@ -15,14 +15,10 @@ void main() {
             '${KeepByRegexTransformation.identifier}='
             '${RegExp('lib/.*').pattern}',
           );
-          expect(
-            transformation,
-            KeepByRegexTransformation(RegExp('lib/.*')),
-          );
+          expect(transformation, KeepByRegexTransformation(RegExp('lib/.*')));
         });
 
-        test(
-            '| throws $TransformationFromCliOptionInvalidRegexPatternFailure '
+        test('| throws $TransformationFromCliOptionInvalidRegexPatternFailure '
             'when invalid regex pattern', () {
           expect(
             () => Transformation.fromCliOption(
@@ -41,14 +37,10 @@ void main() {
             '${SkipByRegexTransformation.identifier}='
             '${RegExp('lib/.*').pattern}',
           );
-          expect(
-            transformation,
-            SkipByRegexTransformation(RegExp('lib/.*')),
-          );
+          expect(transformation, SkipByRegexTransformation(RegExp('lib/.*')));
         });
 
-        test(
-            '| throws $TransformationFromCliOptionInvalidRegexPatternFailure '
+        test('| throws $TransformationFromCliOptionInvalidRegexPatternFailure '
             'when invalid regex pattern', () {
           expect(
             () => Transformation.fromCliOption(
@@ -73,8 +65,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $TransformationFromCliOptionInvalidGlobPatternFailure '
+        test('| throws $TransformationFromCliOptionInvalidGlobPatternFailure '
             'when invalid glob pattern', () {
           expect(
             () => Transformation.fromCliOption(
@@ -99,8 +90,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $TransformationFromCliOptionInvalidGlobPatternFailure '
+        test('| throws $TransformationFromCliOptionInvalidGlobPatternFailure '
             'when invalid glob pattern', () {
           expect(
             () => Transformation.fromCliOption(
@@ -127,8 +117,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidNumericComparisonFailure '
             'when invalid numeric comparison description', () {
           expect(
@@ -141,8 +130,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage is below 0', () {
           expect(
@@ -150,15 +138,14 @@ void main() {
               '${KeepByCoverageTransformation.identifier}=eq|-5',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage is above 100', () {
           expect(
@@ -166,15 +153,14 @@ void main() {
               '${KeepByCoverageTransformation.identifier}=eq|150',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage range has invalid bounds', () {
           expect(
@@ -182,9 +168,9 @@ void main() {
               '${KeepByCoverageTransformation.identifier}=in|[-10,110)',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
@@ -204,8 +190,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidNumericComparisonFailure '
             'when invalid numeric comparison description', () {
           expect(
@@ -218,8 +203,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage is below 0', () {
           expect(
@@ -227,15 +211,14 @@ void main() {
               '${SkipByCoverageTransformation.identifier}=eq|-5',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage is above 100', () {
           expect(
@@ -243,15 +226,14 @@ void main() {
               '${SkipByCoverageTransformation.identifier}=eq|150',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidCoveragePercentageFailure '
             'when coverage percentage range has invalid bounds', () {
           expect(
@@ -259,9 +241,9 @@ void main() {
               '${SkipByCoverageTransformation.identifier}=in|[-10,110)',
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<TransformationFromCliOptionInvalidCoveragePercentageFailure>(),
+              isA<
+                TransformationFromCliOptionInvalidCoveragePercentageFailure
+              >(),
             ),
           );
         });
@@ -290,24 +272,20 @@ void main() {
             '${PresetTransformation.identifier}=my-preset',
             presets: const [preset],
           );
-          expect(
-            transformation,
-            preset,
-          );
-        });
-
-        test('| keeps a YAML-looking name when it does not start with a map',
-            () {
-          const preset = PresetTransformation(
-            presetName: 'yes',
-            steps: [],
-          );
-          final transformation = Transformation.fromCliOption(
-            '${PresetTransformation.identifier}=yes',
-            presets: const [preset],
-          );
           expect(transformation, preset);
         });
+
+        test(
+          '| keeps a YAML-looking name when it does not start with a map',
+          () {
+            const preset = PresetTransformation(presetName: 'yes', steps: []);
+            final transformation = Transformation.fromCliOption(
+              '${PresetTransformation.identifier}=yes',
+              presets: const [preset],
+            );
+            expect(transformation, preset);
+          },
+        );
 
         test('| accepts the long form of an internal preset', () {
           const preset = PresetTransformation(
@@ -353,24 +331,25 @@ void main() {
           );
         });
 
-        test('| uses the current directory when no base directory is given',
-            () {
-          final transformation = Transformation.fromCliOption(
-            '${PresetTransformation.identifier}='
-            '{file: coverde.yaml, name: ci-workflow}',
-          );
-          expect(
-            transformation,
-            ExternalPresetTransformation(
-              filePath: 'coverde.yaml',
-              presetName: 'ci-workflow',
-              baseDirectory: Directory.current.path,
-            ),
-          );
-        });
-
         test(
-            '| throws $TransformationFromCliOptionUnknownPresetFailure '
+          '| uses the current directory when no base directory is given',
+          () {
+            final transformation = Transformation.fromCliOption(
+              '${PresetTransformation.identifier}='
+              '{file: coverde.yaml, name: ci-workflow}',
+            );
+            expect(
+              transformation,
+              ExternalPresetTransformation(
+                filePath: 'coverde.yaml',
+                presetName: 'ci-workflow',
+                baseDirectory: Directory.current.path,
+              ),
+            );
+          },
+        );
+
+        test('| throws $TransformationFromCliOptionUnknownPresetFailure '
             'when unknown preset', () {
           expect(
             () => Transformation.fromCliOption(
@@ -380,8 +359,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
             'when the preset name is empty', () {
           expect(
@@ -394,8 +372,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
             'when the descriptor is not valid YAML', () {
           expect(
@@ -408,8 +385,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
             'when the descriptor has no name', () {
           expect(
@@ -422,8 +398,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
             'when the descriptor has an unknown key', () {
           expect(
@@ -436,8 +411,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$TransformationFromCliOptionInvalidPresetDescriptorFailure '
             'when the file path is empty', () {
           expect(
@@ -451,8 +425,7 @@ void main() {
         });
       });
 
-      test(
-          '| throws '
+      test('| throws '
           '$TransformationFromCliOptionUnsupportedTransformationFailure '
           'when unsupported transformation', () {
         expect(
@@ -472,10 +445,7 @@ void main() {
             presetName: 'ci-workflow',
             baseDirectory: '/repo',
           );
-          expect(
-            t.describe,
-            'preset file=../coverde.yaml name=ci-workflow',
-          );
+          expect(t.describe, 'preset file=../coverde.yaml name=ci-workflow');
         });
       });
 
@@ -507,20 +477,14 @@ void main() {
     group('$PresetTransformation', () {
       group('describe', () {
         test('| returns description', () {
-          const t = PresetTransformation(
-            presetName: 'my-preset',
-            steps: [],
-          );
+          const t = PresetTransformation(presetName: 'my-preset', steps: []);
           expect(t.describe, 'preset name=my-preset');
         });
       });
 
       group('presetName', () {
         test('| returns the preset name', () {
-          const t = PresetTransformation(
-            presetName: 'my-preset',
-            steps: [],
-          );
+          const t = PresetTransformation(presetName: 'my-preset', steps: []);
           expect(t.presetName, 'my-preset');
         });
       });
@@ -804,10 +768,7 @@ void main() {
         final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
         final step_1 = PresetTransformation(
           presetName: 'my-preset',
-          steps: [
-            step_1_1,
-            step_1_2,
-          ],
+          steps: [step_1_1, step_1_2],
         );
         final step_2 = KeepByRegexTransformation(RegExp('test/.*'));
         final steps = [step_1, step_2];
@@ -841,10 +802,10 @@ void main() {
         );
         final result = [external].getStepsWithPresetChains().toList();
         expect(result, hasLength(1));
-        expect(
-          result.single.presets,
-          ['ci-workflow in ../coverde.yaml', 'also-there'],
-        );
+        expect(result.single.presets, [
+          'ci-workflow in ../coverde.yaml',
+          'also-there',
+        ]);
         expect(result.single.transformation, leaf);
       });
 
@@ -853,10 +814,7 @@ void main() {
         final step_1_2 = SkipByGlobTransformation(Glob('**/*.g.dart'));
         final step_1 = PresetTransformation(
           presetName: 'some-preset',
-          steps: [
-            step_1_1,
-            step_1_2,
-          ],
+          steps: [step_1_1, step_1_2],
         );
         final step_2 = KeepByRegexTransformation(RegExp('test/.*'));
         final step_3_1 = KeepByRegexTransformation(RegExp('test/.*'));
@@ -864,60 +822,36 @@ void main() {
         final step_3_2_2 = SkipByGlobTransformation(Glob('**/*.freezed.dart'));
         final step_3_2 = PresetTransformation(
           presetName: 'some-nested-preset',
-          steps: [
-            step_3_2_1,
-            step_3_2_2,
-          ],
+          steps: [step_3_2_1, step_3_2_2],
         );
         final step_3_3 = SkipByGlobTransformation(Glob('**/*.freezed.dart'));
         final step_3 = PresetTransformation(
           presetName: 'some-other-preset',
-          steps: [
-            step_3_1,
-            step_3_2,
-            step_3_3,
-          ],
+          steps: [step_3_1, step_3_2, step_3_3],
         );
-        final steps = [
-          step_1,
-          step_2,
-          step_3,
-        ];
+        final steps = [step_1, step_2, step_3];
         final result = steps.getStepsWithPresetChains().toList();
         const presetsEquality = ListEquality<String>();
         expect(
           result,
-          pairwiseCompare<LeafTransformationWithPresetChains,
-              LeafTransformationWithPresetChains>(
+          pairwiseCompare<
+            LeafTransformationWithPresetChains,
+            LeafTransformationWithPresetChains
+          >(
             [
-              (
-                transformation: step_1_1,
-                presets: ['some-preset'],
-              ),
-              (
-                transformation: step_1_2,
-                presets: ['some-preset'],
-              ),
-              (
-                transformation: step_2,
-                presets: <String>[],
-              ),
-              (
-                transformation: step_3_1,
-                presets: ['some-other-preset'],
-              ),
+              (transformation: step_1_1, presets: ['some-preset']),
+              (transformation: step_1_2, presets: ['some-preset']),
+              (transformation: step_2, presets: <String>[]),
+              (transformation: step_3_1, presets: ['some-other-preset']),
               (
                 transformation: step_3_2_1,
-                presets: ['some-other-preset', 'some-nested-preset']
+                presets: ['some-other-preset', 'some-nested-preset'],
               ),
               (
                 transformation: step_3_2_2,
-                presets: ['some-other-preset', 'some-nested-preset']
+                presets: ['some-other-preset', 'some-nested-preset'],
               ),
-              (
-                transformation: step_3_3,
-                presets: ['some-other-preset'],
-              ),
+              (transformation: step_3_3, presets: ['some-other-preset']),
             ],
             (a, b) =>
                 a.transformation == b.transformation &&

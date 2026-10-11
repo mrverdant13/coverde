@@ -69,10 +69,7 @@ abstract class CovElement extends CovComputable {
 
   /// Obtain the HTML class suffix for coverage element.
   @protected
-  String getClassSuffix({
-    required double medium,
-    required double high,
-  }) {
+  String getClassSuffix({required double medium, required double high}) {
     if (coverage < medium) {
       return 'Lo';
     } else if (coverage < high) {
@@ -91,9 +88,10 @@ abstract class CovElement extends CovComputable {
     final sanitizedRelativePath = path.url.joinAll(path.split(relativePath));
     final row = _folderReportRowTemplate.clone(true);
     final suffix = getClassSuffix(medium: medium, high: high);
-    final link = source is Directory
-        ? path.url.join(sanitizedRelativePath, 'index.html')
-        : '$sanitizedRelativePath.html';
+    final link =
+        source is Directory
+            ? path.url.join(sanitizedRelativePath, 'index.html')
+            : '$sanitizedRelativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link
       ..text = sanitizedRelativePath;

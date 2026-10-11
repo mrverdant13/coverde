@@ -141,9 +141,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     }
 
     if (!FileSystemEntity.isFileSync(originPath)) {
-      throw CoverdeFilterTraceFileNotFoundFailure(
-        traceFilePath: originPath,
-      );
+      throw CoverdeFilterTraceFileNotFoundFailure(traceFilePath: originPath);
     }
     final origin = File(originPath);
     final destination = File(destinationPath);
@@ -173,12 +171,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         final raw = switch (baseDirectory) {
           null => fileCovData.raw,
           final String baseDirectory => fileCovData.raw.replaceFirst(
-              RegExp(r'^SF:(.*)$', multiLine: true),
-              'SF:${path.relative(
-                fileCovData.source.path,
-                from: baseDirectory,
-              )}',
-            ),
+            RegExp(r'^SF:(.*)$', multiLine: true),
+            'SF:${path.relative(fileCovData.source.path, from: baseDirectory)}',
+          ),
         };
         acceptedSrcFilesRawData.add(raw);
       }
@@ -202,9 +197,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       raf = await destination.open(
         mode: shouldOverride ? FileMode.writeOnly : FileMode.append,
       );
-      await raf.lock(
-        FileLock.blockingExclusive,
-      );
+      await raf.lock(FileLock.blockingExclusive);
       if (shouldOverride) {
         await raf.truncate(0);
       } else {

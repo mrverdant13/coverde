@@ -1,10 +1,7 @@
 /// The mode for the update check.
 enum UpdateCheckMode {
   /// Disable the update check.
-  disabled(
-    'disabled',
-    'Disable the update check.',
-  ),
+  disabled('disabled', 'Disable the update check.'),
 
   /// Enable the update check with silent output, only prompting the user if an
   /// update is available, and ignoring any warnings and errors.
@@ -18,8 +15,7 @@ enum UpdateCheckMode {
   enabledVerbose(
     'enabled-verbose',
     'Enable the update check with verbose output.',
-  ),
-  ;
+  );
 
   const UpdateCheckMode(this.identifier, this.help);
 

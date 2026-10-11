@@ -15,9 +15,7 @@ sealed class CoverdeFilterFailure extends CoverdeFailure {
 /// {@endtemplate}
 sealed class CoverdeFilterInvalidInputFailure extends CoverdeFilterFailure {
   /// {@macro coverde_cli.filter_invalid_input_failure}
-  const CoverdeFilterInvalidInputFailure({
-    required this.usageMessage,
-  });
+  const CoverdeFilterInvalidInputFailure({required this.usageMessage});
 
   /// The description of the invalid input.
   String get invalidInputDescription;
@@ -63,9 +61,7 @@ final class CoverdeFilterInvalidRegexPatternFailure
 /// {@endtemplate}
 final class CoverdeFilterTraceFileNotFoundFailure extends CoverdeFilterFailure {
   /// {@macro coverde_cli.filter_trace_file_not_found_failure}
-  const CoverdeFilterTraceFileNotFoundFailure({
-    required this.traceFilePath,
-  });
+  const CoverdeFilterTraceFileNotFoundFailure({required this.traceFilePath});
 
   /// The path to the trace file.
   final String traceFilePath;
@@ -84,9 +80,9 @@ final class CoverdeFilterTraceFileReadFailure extends CoverdeFilterFailure {
     required this.traceFilePath,
     required FileSystemException exception,
   }) : errorMessage = [
-          exception.message,
-          if (exception.osError case final osError?) osError.message,
-        ].join('\n');
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
 
   /// The path to the trace file.
   final String traceFilePath;
@@ -102,8 +98,7 @@ final class CoverdeFilterTraceFileReadFailure extends CoverdeFilterFailure {
 /// An operation on a file.
 enum CoverdeFilterFileOperation {
   /// The operation to write to a file.
-  write('write'),
-  ;
+  write('write');
 
   const CoverdeFilterFileOperation(this.name);
 
@@ -148,19 +143,18 @@ final class CoverdeFilterFileWriteFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeFilterFileOperation.write,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeFilterFileOperation.write,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// An operation on a directory.
 enum CoverdeFilterDirectoryOperation {
   /// The operation to create a directory.
-  create('create'),
-  ;
+  create('create');
 
   const CoverdeFilterDirectoryOperation(this.name);
 
@@ -208,10 +202,10 @@ final class CoverdeFilterDirectoryCreateFailure
     required super.directoryPath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeFilterDirectoryOperation.create,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeFilterDirectoryOperation.create,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }

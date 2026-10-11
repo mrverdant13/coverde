@@ -31,10 +31,7 @@ void main() {
         );
       }
 
-      expect(
-        action,
-        throwsA(isA<UsageException>()),
-      );
+      expect(action, throwsA(isA<UsageException>()));
     });
   });
 }

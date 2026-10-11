@@ -9,8 +9,7 @@ enum FileLineCoverageStatus {
   uncovered('U'),
 
   /// The line is not a testable line.
-  neutral(' '),
-  ;
+  neutral(' ');
 
   const FileLineCoverageStatus(this.marker);
 
@@ -51,10 +50,6 @@ class FileLineCoverageDetails {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        FileLineCoverageDetails,
-        lineNumber,
-        content,
-        status,
-      ]);
+  int get hashCode =>
+      Object.hashAll([FileLineCoverageDetails, lineNumber, content, status]);
 }

@@ -134,9 +134,7 @@ final class CoverdeConfigFromYamlUnknownPresetFailure
 final class CoverdeConfigFromYamlPresetCycleFailure
     extends CoverdeConfigFromYamlFailure {
   /// {@macro coverde.coverde_config_from_yaml_preset_cycle_failure}
-  const CoverdeConfigFromYamlPresetCycleFailure({
-    required this.cycle,
-  });
+  const CoverdeConfigFromYamlPresetCycleFailure({required this.cycle});
 
   /// The preset cycle.
   final List<String> cycle;

@@ -50,9 +50,9 @@ Remove a set of files and folders.''';
 
   @override
   CoverdeCommandParams get params => CoverdeCommandParams(
-        identifier: 'paths',
-        description: 'Set of file and/or directory paths to be removed.',
-      );
+    identifier: 'paths',
+    description: 'Set of file and/or directory paths to be removed.',
+  );
 
   @override
   Future<void> run() async {
@@ -62,9 +62,7 @@ Remove a set of files and folders.''';
 
     final paths = argResults.rest;
     if (paths.isEmpty) {
-      throw CoverdeRmMissingPathsFailure(
-        usageMessage: usageWithoutDescription,
-      );
+      throw CoverdeRmMissingPathsFailure(usageMessage: usageWithoutDescription);
     }
     for (final elementPath in paths) {
       final elementType = FileSystemEntity.typeSync(elementPath);

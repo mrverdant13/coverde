@@ -31,27 +31,28 @@ class CovFile extends CovElement {
   factory CovFile.parse(String data) {
     final dataLines = data.split('\n');
 
-    String sourcePath() => dataLines
-        .firstWhere(
-          (l) => l.startsWith(sourceFileTag),
-          orElse: () => throw const CovFileFormatFailure(
-            readableMessage:
-                'Source file tag not found in the trace file block.',
-          ),
-        )
-        .replaceAll(sourceFileTag, '')
-        .trim();
+    String sourcePath() =>
+        dataLines
+            .firstWhere(
+              (l) => l.startsWith(sourceFileTag),
+              orElse:
+                  () =>
+                      throw const CovFileFormatFailure(
+                        readableMessage:
+                            'Source file tag not found '
+                            'in the trace file block.',
+                      ),
+            )
+            .replaceAll(sourceFileTag, '')
+            .trim();
 
     final sourceFilePath = path.joinAll(path.split(sourcePath()));
 
-    final covLines =
-        dataLines.where((l) => l.startsWith(lineDataTag)).map(CovLine.parse);
+    final covLines = dataLines
+        .where((l) => l.startsWith(lineDataTag))
+        .map(CovLine.parse);
 
-    return CovFile(
-      source: File(sourceFilePath),
-      raw: data,
-      covLines: covLines,
-    );
+    return CovFile(source: File(sourceFilePath), raw: data, covLines: covLines);
   }
 
   /// The raw trace data for the [source].
@@ -123,11 +124,14 @@ class CovFile extends CovElement {
   }) {
     final fileReport = fileReportTemplate.clone(true);
 
-    final topLevelDirRelPath = (reportRelDepth > 1)
-        ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
-        : '.';
-    final topLevelReportRelPath =
-        path.url.join(topLevelDirRelPath, 'index.html');
+    final topLevelDirRelPath =
+        (reportRelDepth > 1)
+            ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
+            : '.';
+    final topLevelReportRelPath = path.url.join(
+      topLevelDirRelPath,
+      'index.html',
+    );
     final topLevelCssRelPath = path.url.join(
       topLevelDirRelPath,
       reportStyleCssFilename,

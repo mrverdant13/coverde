@@ -16,9 +16,7 @@ part 'coverde_config_from_yaml_failure.dart';
 @immutable
 class CoverdeConfig {
   /// {@macro coverde.coverde_config}
-  const CoverdeConfig({
-    required this.presets,
-  });
+  const CoverdeConfig({required this.presets});
 
   /// Creates a [CoverdeConfig] from a YAML string.
   ///
@@ -27,10 +25,7 @@ class CoverdeConfig {
   /// It defaults to the current working directory.
   ///
   /// Throws [CoverdeConfigFromYamlFailure] when an error occurs.
-  factory CoverdeConfig.fromYaml(
-    String yamlString, {
-    String? baseDirectory,
-  }) {
+  factory CoverdeConfig.fromYaml(String yamlString, {String? baseDirectory}) {
     return _parseCoverdeConfigFromYaml(
       yamlString,
       baseDirectory: baseDirectory ?? Directory.current.path,
@@ -50,8 +45,6 @@ class CoverdeConfig {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        _presetsEquality.hash(presets),
-      ]);
+  int get hashCode =>
+      Object.hashAll([runtimeType, _presetsEquality.hash(presets)]);
 }

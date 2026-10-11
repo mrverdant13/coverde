@@ -4,8 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('$NumericComparison', () {
     group('fromDescription', () {
-      test(
-          '| throws '
+      test('| throws '
           '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
           'when no separator between identifier and argument is provided', () {
         expect(
@@ -16,8 +15,7 @@ void main() {
         );
       });
 
-      test(
-          '| throws '
+      test('| throws '
           '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
           'when only the separator between identifier and argument '
           'is provided', () {
@@ -29,8 +27,7 @@ void main() {
         );
       });
 
-      test(
-          '| throws '
+      test('| throws '
           '$NumericComparisonFromDescriptionInvalidIdentifierFailure '
           'when no description is provided', () {
         expect(
@@ -47,14 +44,10 @@ void main() {
             '${EqualsNumericComparison.identifier}|10',
             int.parse,
           );
-          expect(
-            comparison,
-            const EqualsNumericComparison(reference: 10),
-          );
+          expect(comparison, const EqualsNumericComparison(reference: 10));
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when invalid raw reference', () {
           expect(
@@ -75,14 +68,10 @@ void main() {
             '${NotEqualToNumericComparison.identifier}|10',
             int.parse,
           );
-          expect(
-            comparison,
-            const NotEqualToNumericComparison(reference: 10),
-          );
+          expect(comparison, const NotEqualToNumericComparison(reference: 10));
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when invalid raw reference', () {
           expect(
@@ -103,14 +92,10 @@ void main() {
             '${GreaterThanNumericComparison.identifier}|10',
             int.parse,
           );
-          expect(
-            comparison,
-            const GreaterThanNumericComparison(reference: 10),
-          );
+          expect(comparison, const GreaterThanNumericComparison(reference: 10));
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when invalid raw reference', () {
           expect(
@@ -125,34 +110,37 @@ void main() {
         });
       });
 
-      group('identifier: ${GreaterThanOrEqualToNumericComparison.identifier}',
-          () {
-        test('| returns $GreaterThanOrEqualToNumericComparison', () {
-          final comparison = NumericComparison.fromDescription(
-            '${GreaterThanOrEqualToNumericComparison.identifier}|10',
-            int.parse,
-          );
-          expect(
-            comparison,
-            const GreaterThanOrEqualToNumericComparison(reference: 10),
-          );
-        });
-
-        test(
-            '| throws '
-            '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
-            'when invalid raw reference', () {
-          expect(
-            () => NumericComparison.fromDescription(
-              '${GreaterThanOrEqualToNumericComparison.identifier}|invalid',
+      group(
+        'identifier: ${GreaterThanOrEqualToNumericComparison.identifier}',
+        () {
+          test('| returns $GreaterThanOrEqualToNumericComparison', () {
+            final comparison = NumericComparison.fromDescription(
+              '${GreaterThanOrEqualToNumericComparison.identifier}|10',
               int.parse,
-            ),
-            throwsA(
-              isA<NumericComparisonFromDescriptionInvalidRawReferenceFailure>(),
-            ),
-          );
-        });
-      });
+            );
+            expect(
+              comparison,
+              const GreaterThanOrEqualToNumericComparison(reference: 10),
+            );
+          });
+
+          test('| throws '
+              '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
+              'when invalid raw reference', () {
+            expect(
+              () => NumericComparison.fromDescription(
+                '${GreaterThanOrEqualToNumericComparison.identifier}|invalid',
+                int.parse,
+              ),
+              throwsA(
+                isA<
+                  NumericComparisonFromDescriptionInvalidRawReferenceFailure
+                >(),
+              ),
+            );
+          });
+        },
+      );
 
       group('identifier: ${LessThanNumericComparison.identifier}', () {
         test('| returns $LessThanNumericComparison', () {
@@ -160,14 +148,10 @@ void main() {
             '${LessThanNumericComparison.identifier}|10',
             int.parse,
           );
-          expect(
-            comparison,
-            const LessThanNumericComparison(reference: 10),
-          );
+          expect(comparison, const LessThanNumericComparison(reference: 10));
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when invalid raw reference', () {
           expect(
@@ -194,8 +178,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when invalid raw reference', () {
           expect(
@@ -283,8 +266,7 @@ void main() {
           });
         });
 
-        test(
-            '| throws '
+        test('| throws '
             // Long class name
             // ignore: lines_longer_than_80_chars
             '$NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure '
@@ -295,15 +277,16 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure>(),
+              isA<
+                // Long class name
+                // ignore: lines_longer_than_80_chars
+                NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             // Long class name
             // ignore: lines_longer_than_80_chars
             '$NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure '
@@ -314,15 +297,16 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure>(),
+              isA<
+                // Long class name
+                // ignore: lines_longer_than_80_chars
+                NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             // Long class name
             // ignore: lines_longer_than_80_chars
             '$NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure '
@@ -333,15 +317,16 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure>(),
+              isA<
+                // Long class name
+                // ignore: lines_longer_than_80_chars
+                NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             // Long class name
             // ignore: lines_longer_than_80_chars
             '$NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure '
@@ -352,15 +337,16 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure>(),
+              isA<
+                // Long class name
+                // ignore: lines_longer_than_80_chars
+                NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when no lower bound is provided', () {
           expect(
@@ -374,8 +360,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when no upper bound is provided', () {
           expect(
@@ -389,8 +374,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when no lower nor upper bound is provided', () {
           expect(
@@ -404,8 +388,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when only bound indicators are provided', () {
           expect(
@@ -419,8 +402,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when only bounds separator is provided', () {
           expect(
@@ -434,8 +416,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when no argument is provided', () {
           expect(
@@ -449,8 +430,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when only the identifier is provided', () {
           expect(
@@ -464,8 +444,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRawReferenceFailure '
             'when multiple reference values are provided', () {
           expect(
@@ -479,8 +458,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure '
             'when the lower bound is greater than to the upper bound', () {
           expect(
@@ -489,15 +467,14 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure>(),
+              isA<
+                NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure
+              >(),
             ),
           );
         });
 
-        test(
-            '| throws '
+        test('| throws '
             '$NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure '
             'when the lower bound is equal to the upper bound', () {
           expect(
@@ -506,16 +483,15 @@ void main() {
               int.parse,
             ),
             throwsA(
-              // Long class name
-              // ignore: lines_longer_than_80_chars
-              isA<NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure>(),
+              isA<
+                NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure
+              >(),
             ),
           );
         });
       });
 
-      test(
-          '| throws $NumericComparisonFromDescriptionInvalidIdentifierFailure '
+      test('| throws $NumericComparisonFromDescriptionInvalidIdentifierFailure '
           'when an invalid identifier is provided', () {
         expect(
           () => NumericComparison.fromDescription('invalid|10', int.parse),
@@ -617,16 +593,18 @@ void main() {
     group('$GreaterThanOrEqualToNumericComparison', () {
       group('describe', () {
         test('| returns description', () {
-          const comparison =
-              GreaterThanOrEqualToNumericComparison(reference: 10);
+          const comparison = GreaterThanOrEqualToNumericComparison(
+            reference: 10,
+          );
           expect(comparison.describe, 'gte|10');
         });
       });
 
       group('matches', () {
         test('| verifies value matching the reference', () {
-          const comparison =
-              GreaterThanOrEqualToNumericComparison(reference: 10);
+          const comparison = GreaterThanOrEqualToNumericComparison(
+            reference: 10,
+          );
           expect(comparison.matches(11), isTrue);
           expect(comparison.matches(10), isTrue);
           expect(comparison.matches(9), isFalse);

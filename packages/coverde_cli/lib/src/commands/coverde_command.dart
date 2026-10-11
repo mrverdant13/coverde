@@ -17,13 +17,10 @@ abstract class CoverdeCommand extends Command<void> {
   String get invocation {
     return switch (params) {
       CoverdeCommandParams(:final identifier) => super.invocation.replaceAll(
-            '[arguments]',
-            '[$identifier]',
-          ),
-      null => super.invocation.replaceAll(
-            r'\s*\[arguments\]',
-            '',
-          ),
+        '[arguments]',
+        '[$identifier]',
+      ),
+      null => super.invocation.replaceAll(r'\s*\[arguments\]', ''),
     };
   }
 
@@ -47,10 +44,7 @@ abstract class CoverdeCommand extends Command<void> {
 /// {@endtemplate}
 class CoverdeCommandParams {
   /// {@macro coverde_cli.coverde_command_params}
-  CoverdeCommandParams({
-    required this.identifier,
-    required this.description,
-  });
+  CoverdeCommandParams({required this.identifier, required this.description});
 
   /// The identifier for the command parameters.
   final String identifier;

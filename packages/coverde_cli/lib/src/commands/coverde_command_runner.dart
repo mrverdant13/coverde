@@ -15,13 +15,13 @@ class CoverdeCommandRunner extends CommandRunner<void> {
     this.packageVersionManager,
     Logger? logger,
     ProcessManager? processManager,
-  })  : logger = logger ?? Logger(), // coverage:ignore-line
-        processManager = processManager ?? const LocalProcessManager(),
-        super(
-          packageName,
-          'A CLI for optimizing test execution and manipulating coverage '
-          'trace files.',
-        ) {
+  }) : logger = logger ?? Logger(), // coverage:ignore-line
+       processManager = processManager ?? const LocalProcessManager(),
+       super(
+         packageName,
+         'A CLI for optimizing test execution and manipulating coverage '
+         'trace files.',
+       ) {
     addCommand(OptimizeTestsCommand());
     addCommand(CheckCommand());
     addCommand(FilterCommand());
@@ -54,9 +54,9 @@ class CoverdeCommandRunner extends CommandRunner<void> {
 
   /// The commands that encapsulate actual functionality.
   Iterable<CoverdeCommand> get featureCommands => {
-        for (final MapEntry(:value) in super.commands.entries)
-          if (value is CoverdeCommand) value,
-      };
+    for (final MapEntry(:value) in super.commands.entries)
+      if (value is CoverdeCommand) value,
+  };
 
   @override
   void printUsage() {

@@ -16,9 +16,7 @@ import 'package:yaml/yaml.dart' as yaml;
 /// {@endtemplate}
 class PackageVersionManager {
   /// {@macro coverde_cli.package_version_manager}
-  const PackageVersionManager({
-    required this.dependencies,
-  });
+  const PackageVersionManager({required this.dependencies});
 
   /// The internal dependencies.
   final PackageVersionManagerDependencies dependencies;
@@ -303,10 +301,7 @@ class PackageVersionManager {
     ) {
       if (rawVersionInfo is! Map<String, dynamic>) {
         throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
-          key: [
-            'versions',
-            '[$index]',
-          ].join('.'),
+          key: ['versions', '[$index]'].join('.'),
           expectedType: Map<String, dynamic>,
           value: rawVersionInfo,
         );
@@ -314,11 +309,7 @@ class PackageVersionManager {
       final rawVersion = rawVersionInfo['version'];
       if (rawVersion is! String) {
         throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
-          key: [
-            'versions',
-            '[$index]',
-            'version',
-          ].join('.'),
+          key: ['versions', '[$index]', 'version'].join('.'),
           expectedType: String,
           value: rawVersion,
         );
@@ -329,11 +320,7 @@ class PackageVersionManager {
       } on Object catch (_, stackTrace) {
         Error.throwWithStackTrace(
           InvalidRemotePackageVersioningInfoMemberValueFailure(
-            key: [
-              'versions',
-              '[$index]',
-              'version',
-            ].join('.'),
+            key: ['versions', '[$index]', 'version'].join('.'),
             value: rawVersion,
             hint: 'a valid SemVer string',
           ),
@@ -343,11 +330,7 @@ class PackageVersionManager {
       final rawPubspec = rawVersionInfo['pubspec'];
       if (rawPubspec is! Map<String, dynamic>) {
         throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
-          key: [
-            'versions',
-            '[$index]',
-            'pubspec',
-          ].join('.'),
+          key: ['versions', '[$index]', 'pubspec'].join('.'),
           expectedType: Map<String, dynamic>,
           value: rawPubspec,
         );
@@ -355,12 +338,7 @@ class PackageVersionManager {
       final rawEnvironment = rawPubspec['environment'];
       if (rawEnvironment is! Map<String, dynamic>) {
         throw InvalidRemotePackageVersioningInfoMemberTypeFailure(
-          key: [
-            'versions',
-            '[$index]',
-            'pubspec',
-            'environment',
-          ].join('.'),
+          key: ['versions', '[$index]', 'pubspec', 'environment'].join('.'),
           expectedType: Map<String, dynamic>,
           value: rawEnvironment,
         );
@@ -381,8 +359,9 @@ class PackageVersionManager {
       }
       late final VersionConstraint dartVersionConstraint;
       try {
-        dartVersionConstraint =
-            VersionConstraint.parse(rawDartVersionConstraint);
+        dartVersionConstraint = VersionConstraint.parse(
+          rawDartVersionConstraint,
+        );
       } on Object catch (_, stackTrace) {
         Error.throwWithStackTrace(
           InvalidRemotePackageVersioningInfoMemberValueFailure(
@@ -439,28 +418,23 @@ class PackageVersionManager {
           await getRemotePackageVersioningInfos(packageName);
       remotePackageVersioningInfosRetrievalProgress.cancel();
 
-      final dartVersion = Version.parse(
-        rawDartVersion.split(' ').first,
-      );
-      final latestCompatiblePackageVersioningInfo =
-          remotePackageVersioningInfos.takeWhile(
-        (remotePackageVersioningInfo) {
-          final remotePackageVersion =
-              remotePackageVersioningInfo.packageVersion;
-          if (!remotePackageVersion.isPreRelease &&
-              currentPackageVersion.isPreRelease) {
-            return false;
-          }
-          return remotePackageVersion > currentPackageVersion;
-        },
-      ).firstWhereOrNull(
-        (remotePackageVersioningInfo) {
-          final isDartVersionConstraintAllowed = remotePackageVersioningInfo
-              .dartVersionConstraint
-              .allows(dartVersion);
-          return isDartVersionConstraintAllowed;
-        },
-      );
+      final dartVersion = Version.parse(rawDartVersion.split(' ').first);
+      final latestCompatiblePackageVersioningInfo = remotePackageVersioningInfos
+          .takeWhile((remotePackageVersioningInfo) {
+            final remotePackageVersion =
+                remotePackageVersioningInfo.packageVersion;
+            if (!remotePackageVersion.isPreRelease &&
+                currentPackageVersion.isPreRelease) {
+              return false;
+            }
+            return remotePackageVersion > currentPackageVersion;
+          })
+          .firstWhereOrNull((remotePackageVersioningInfo) {
+            final isDartVersionConstraintAllowed = remotePackageVersioningInfo
+                .dartVersionConstraint
+                .allows(dartVersion);
+            return isDartVersionConstraintAllowed;
+          });
       if (latestCompatiblePackageVersioningInfo == null) {
         logger.warn(
           'No newer compatible version of `$packageName` is available.',
@@ -487,20 +461,14 @@ $currentPackageVersion \u2192 $latestVersion''';
 
       final unstyledCommand =
           'dart pub global activate $packageName $latestVersion';
-      final styledCommand = wrapWith(
-        unstyledCommand,
-        [lightCyan, styleBold],
-      )!;
+      final styledCommand = wrapWith(unstyledCommand, [lightCyan, styleBold])!;
       String buildCommandMessage(String command) => 'Run $command to update.';
       final styledCommandMessage = buildCommandMessage(styledCommand);
       final unstyledCommandMessage = buildCommandMessage(unstyledCommand);
 
       // Calculate padding for version display to center it in the box
-      final boxLength = [
-            unstyledUpdateMessage.length,
-            unstyledCommandMessage.length,
-          ].max +
-          4;
+      final boxLength =
+          [unstyledUpdateMessage.length, unstyledCommandMessage.length].max + 4;
 
       String addPadding(String unstyled, String styled) {
         final totalPadding = boxLength - unstyled.length;
@@ -509,28 +477,21 @@ $currentPackageVersion \u2192 $latestVersion''';
         return ' ' * leftPadding + styled + ' ' * rightPadding;
       }
 
-      final messageBuffer = StringBuffer()
-        ..writeln(
-          '┏${'━' * boxLength}┓',
-        )
-        ..writeln(
-          '┃${' ' * boxLength}┃',
-        )
-        ..writeln(
-          '┃${addPadding(unstyledUpdateMessage, styledUpdateMessage)}┃',
-        )
-        ..writeln(
-          '┃${addPadding(unstyledVersionsMessage, styledVersionsMessage)}┃',
-        )
-        ..writeln(
-          '┃${addPadding(unstyledCommandMessage, styledCommandMessage)}┃',
-        )
-        ..writeln(
-          '┃${' ' * boxLength}┃',
-        )
-        ..writeln(
-          '┗${'━' * boxLength}┛',
-        );
+      final messageBuffer =
+          StringBuffer()
+            ..writeln('┏${'━' * boxLength}┓')
+            ..writeln('┃${' ' * boxLength}┃')
+            ..writeln(
+              '┃${addPadding(unstyledUpdateMessage, styledUpdateMessage)}┃',
+            )
+            ..writeln(
+              '┃${addPadding(unstyledVersionsMessage, styledVersionsMessage)}┃',
+            )
+            ..writeln(
+              '┃${addPadding(unstyledCommandMessage, styledCommandMessage)}┃',
+            )
+            ..writeln('┃${' ' * boxLength}┃')
+            ..writeln('┗${'━' * boxLength}┛');
       logger.write(messageBuffer.toString());
     } on Object catch (e) {
       var errorLogged = false;
@@ -566,9 +527,9 @@ extension PackageVersionManagerLogger on Logger {
           'was not used to install the package.',
         );
       case UnreadableGlobalLockFileForGlobalInstallationFailure(
-          :final lockFile,
-          :final fileSystemException,
-        ):
+        :final lockFile,
+        :final fileSystemException,
+      ):
         warn(
           [
             'Unreadable global lock file (`${lockFile.path}`).',
@@ -578,7 +539,7 @@ extension PackageVersionManagerLogger on Logger {
           ].join('\n'),
         );
       case final InvalidGlobalLockFileContentForGlobalInstallationFailure
-        failure:
+      failure:
         final details = switch (failure) {
           InvalidGlobalLockFileYamlForGlobalInstallationFailure(
             :final yamlException,
@@ -614,9 +575,7 @@ extension PackageVersionManagerLogger on Logger {
   ) {
     switch (failure) {
       case UnexpectedRemotePackageVersioningInfosRetrievalFailure():
-        err(
-          'Unexpected remote package versioning infos retrieval failure.',
-        );
+        err('Unexpected remote package versioning infos retrieval failure.');
       case final InvalidRemotePackageVersioningInfoFailure failure:
         final details = switch (failure) {
           InvalidRemotePackageVersioningInfoMemberTypeFailure(

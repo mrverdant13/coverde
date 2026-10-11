@@ -3,9 +3,7 @@
 /// {@endtemplate}
 class CustomException implements Exception {
   /// {@macro custom_exception}
-  const CustomException({
-    required this.message,
-  });
+  const CustomException({required this.message});
 
   /// A fake exception message.
   final String message;

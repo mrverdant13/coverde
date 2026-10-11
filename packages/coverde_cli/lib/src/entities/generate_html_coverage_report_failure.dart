@@ -19,8 +19,7 @@ enum GenerateHtmlCoverageReportFileOperation {
   read('read'),
 
   /// The operation to write to a file.
-  write('write'),
-  ;
+  write('write');
 
   const GenerateHtmlCoverageReportFileOperation(this.name);
 
@@ -68,12 +67,12 @@ final class GenerateHtmlCoverageReportFileCreateFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: GenerateHtmlCoverageReportFileOperation.create,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: GenerateHtmlCoverageReportFileOperation.create,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.generate_html_coverage_report_file_read_failure}
@@ -88,12 +87,12 @@ final class GenerateHtmlCoverageReportFileReadFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: GenerateHtmlCoverageReportFileOperation.read,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: GenerateHtmlCoverageReportFileOperation.read,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.generate_html_coverage_report_file_write_failure}
@@ -108,10 +107,10 @@ final class GenerateHtmlCoverageReportFileWriteFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: GenerateHtmlCoverageReportFileOperation.write,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: GenerateHtmlCoverageReportFileOperation.write,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }

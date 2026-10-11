@@ -38,24 +38,23 @@ final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
 
 enum _Project {
   fakeProject1('fake_project_1'),
-  fakeProject2('fake_project_2'),
-  ;
+  fakeProject2('fake_project_2');
 
   const _Project(this.path);
 
   final String path;
 
   String get traceFilePath => p.joinAll([
-        'test',
-        'src',
-        'commands',
-        'report',
-        'fixtures',
-        path,
-        'coverage',
-        if (Platform.isWindows) 'windows' else 'posix',
-        'lcov.info',
-      ]);
+    'test',
+    'src',
+    'commands',
+    'report',
+    'fixtures',
+    path,
+    'coverage',
+    if (Platform.isWindows) 'windows' else 'posix',
+    'lcov.info',
+  ]);
 }
 
 extension _ExtendedProj on _Project {
@@ -89,18 +88,15 @@ extension _ExtendedProj on _Project {
 }
 
 extension on String {
-  String fixturePath({
-    required _Project proj,
-  }) =>
-      p.joinAll([
-        'test',
-        'src',
-        'commands',
-        'report',
-        'fixtures',
-        proj.path,
-        this,
-      ]);
+  String fixturePath({required _Project proj}) => p.joinAll([
+    'test',
+    'src',
+    'commands',
+    'report',
+    'fixtures',
+    proj.path,
+    this,
+  ]);
 }
 
 void main() {
@@ -125,8 +121,7 @@ void main() {
       verifyNoMoreInteractions(logger);
     });
 
-    test(
-        '''--${ReportCommand.inputOption}=<empty_trace_file> '''
+    test('''--${ReportCommand.inputOption}=<empty_trace_file> '''
         '''| fails when trace file is empty''', () async {
       final emptyTraceFilePath = p.joinAll([
         'test',
@@ -140,10 +135,10 @@ void main() {
       expect(emptyTraceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            emptyTraceFilePath,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        emptyTraceFilePath,
+      ]);
 
       expect(
         action,
@@ -178,135 +173,119 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
     {
       for (final proj in _Project.values) {
         test(
-            '--${ReportCommand.inputOption}=<trace_file> '
-            '--${ReportCommand.outputOption}=<report_dir> '
-            '--${ReportCommand.launchFlag} '
-            '| generates HTML report and launches browser for ${proj.name}',
-            () async {
-          final traceFilePath = p.joinAll([
-            'coverage',
-            if (Platform.isWindows) 'windows' else 'posix',
-            'lcov.info',
-          ]).fixturePath(proj: proj);
-          final traceFileFile = File(traceFilePath);
-          const resultDirName = 'result';
-          const expectedDirName = 'expected';
-          final reportDirPath = resultDirName.fixturePath(proj: proj);
-          final reportDir = Directory(reportDirPath);
-          const listEquality = ListEquality<int>();
-          when(
-            () => processManager.run(
-              any(),
-              runInShell: any(named: 'runInShell'),
-            ),
-          ).thenAnswer(
-            (_) => Future.value(
-              ProcessResult(0, 0, '', ''),
-            ),
-          );
+          '--${ReportCommand.inputOption}=<trace_file> '
+          '--${ReportCommand.outputOption}=<report_dir> '
+          '--${ReportCommand.launchFlag} '
+          '| generates HTML report and launches browser for ${proj.name}',
+          () async {
+            final traceFilePath = p
+                .joinAll([
+                  'coverage',
+                  if (Platform.isWindows) 'windows' else 'posix',
+                  'lcov.info',
+                ])
+                .fixturePath(proj: proj);
+            final traceFileFile = File(traceFilePath);
+            const resultDirName = 'result';
+            const expectedDirName = 'expected';
+            final reportDirPath = resultDirName.fixturePath(proj: proj);
+            final reportDir = Directory(reportDirPath);
+            const listEquality = ListEquality<int>();
+            when(
+              () => processManager.run(
+                any(),
+                runInShell: any(named: 'runInShell'),
+              ),
+            ).thenAnswer((_) => Future.value(ProcessResult(0, 0, '', '')));
 
-          expect(traceFileFile.existsSync(), isTrue);
+            expect(traceFileFile.existsSync(), isTrue);
 
-          await cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.outputOption}',
-            reportDirPath,
-            '--${ReportCommand.launchFlag}',
-          ]);
+            await cmdRunner.run([
+              'report',
+              '--${ReportCommand.inputOption}',
+              traceFilePath,
+              '--${ReportCommand.outputOption}',
+              reportDirPath,
+              '--${ReportCommand.launchFlag}',
+            ]);
 
-          expect(reportDir.existsSync(), isTrue);
-          for (final relFilePath in proj.relFilePaths) {
-            final resultFile = File(
-              p
-                  .join(
-                    resultDirName,
-                    relFilePath,
-                  )
-                  .fixturePath(proj: proj),
-            );
-            final expectedFile = File(
-              p
-                  .join(
-                    expectedDirName,
-                    relFilePath,
-                  )
-                  .fixturePath(proj: proj),
-            );
-            if (relFilePath.endsWith('png')) {
-              final result = resultFile.readAsBytesSync();
-              final expected = expectedFile.readAsBytesSync();
-              final haveSameContent = listEquality.equals(result, expected);
-              expect(
-                haveSameContent,
-                isTrue,
-                reason: 'Non-matching (bytes) file <$relFilePath>',
+            expect(reportDir.existsSync(), isTrue);
+            for (final relFilePath in proj.relFilePaths) {
+              final resultFile = File(
+                p.join(resultDirName, relFilePath).fixturePath(proj: proj),
               );
-            } else {
-              final result = resultFile.readAsStringSync();
-              final expected = expectedFile.readAsStringSync();
-              const splitter = LineSplitter();
-              if (relFilePath.endsWith('html')) {
-                const lastTraceFileModificationDateSelector =
-                    '.lastTraceFileModificationDate';
-                final resultHtml = Document.html(result);
-                final expectedHtml = Document.html(expected);
-                resultHtml
-                    .querySelector(lastTraceFileModificationDateSelector)
-                    ?.remove();
-                expectedHtml
-                    .querySelector(lastTraceFileModificationDateSelector)
-                    ?.remove();
+              final expectedFile = File(
+                p.join(expectedDirName, relFilePath).fixturePath(proj: proj),
+              );
+              if (relFilePath.endsWith('png')) {
+                final result = resultFile.readAsBytesSync();
+                final expected = expectedFile.readAsBytesSync();
+                final haveSameContent = listEquality.equals(result, expected);
                 expect(
-                  splitter
-                      .convert(resultHtml.outerHtml)
-                      .map((line) => line.trim()),
-                  splitter
-                      .convert(expectedHtml.outerHtml)
-                      .map((line) => line.trim()),
-                  reason: 'Error: Non-matching (html) file <$relFilePath>',
-                );
-              } else if (relFilePath.endsWith('css')) {
-                final resultCss = css.parse(result);
-                final expectedCss = css.parse(expected);
-                expect(
-                  splitter.convert(resultCss.toDebugString()),
-                  splitter.convert(expectedCss.toDebugString()),
-                  reason: 'Error: Non-matching (css) file <$relFilePath>',
+                  haveSameContent,
+                  isTrue,
+                  reason: 'Non-matching (bytes) file <$relFilePath>',
                 );
               } else {
-                expect(
-                  splitter.convert(result),
-                  splitter.convert(expected),
-                  reason: '''
+                final result = resultFile.readAsStringSync();
+                final expected = expectedFile.readAsStringSync();
+                const splitter = LineSplitter();
+                if (relFilePath.endsWith('html')) {
+                  const lastTraceFileModificationDateSelector =
+                      '.lastTraceFileModificationDate';
+                  final resultHtml = Document.html(result);
+                  final expectedHtml = Document.html(expected);
+                  resultHtml
+                      .querySelector(lastTraceFileModificationDateSelector)
+                      ?.remove();
+                  expectedHtml
+                      .querySelector(lastTraceFileModificationDateSelector)
+                      ?.remove();
+                  expect(
+                    splitter
+                        .convert(resultHtml.outerHtml)
+                        .map((line) => line.trim()),
+                    splitter
+                        .convert(expectedHtml.outerHtml)
+                        .map((line) => line.trim()),
+                    reason: 'Error: Non-matching (html) file <$relFilePath>',
+                  );
+                } else if (relFilePath.endsWith('css')) {
+                  final resultCss = css.parse(result);
+                  final expectedCss = css.parse(expected);
+                  expect(
+                    splitter.convert(resultCss.toDebugString()),
+                    splitter.convert(expectedCss.toDebugString()),
+                    reason: 'Error: Non-matching (css) file <$relFilePath>',
+                  );
+                } else {
+                  expect(
+                    splitter.convert(result),
+                    splitter.convert(expected),
+                    reason: '''
 Error: Non-matching (plain text) file <$relFilePath>''',
-                );
+                  );
+                }
               }
             }
-          }
-          verify(
-            () => processManager.run(
-              any(
-                that: containsAllInOrder(
-                  <Matcher>[
+            verify(
+              () => processManager.run(
+                any(
+                  that: containsAllInOrder(<Matcher>[
                     equals(launchCommands[operatingSystemIdentifier]),
                     contains(p.join(reportDirPath, 'index.html')),
-                  ],
+                  ]),
                 ),
+                runInShell: true,
               ),
-              runInShell: true,
-            ),
-          ).called(1);
-          verify(
-            () => logger.info(any()),
-          ).called(2);
-        });
+            ).called(1);
+            verify(() => logger.info(any())).called(2);
+          },
+        );
       }
     }
 
-    test(
-        '--${ReportCommand.inputOption}=<trace_file> '
+    test('--${ReportCommand.inputOption}=<trace_file> '
         '--${ReportCommand.outputOption}=<report_dir> '
         '--${ReportCommand.launchFlag} '
         '| generates HTML report and warns '
@@ -318,8 +297,9 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       final traceFilePath = _Project.fakeProject1.traceFilePath;
       final traceFileFile = File(traceFilePath);
       const resultDirName = 'result';
-      final reportDirPath =
-          resultDirName.fixturePath(proj: _Project.fakeProject1);
+      final reportDirPath = resultDirName.fixturePath(
+        proj: _Project.fakeProject1,
+      );
       final reportDir = Directory(reportDirPath);
 
       expect(traceFileFile.existsSync(), isTrue);
@@ -335,46 +315,33 @@ Error: Non-matching (plain text) file <$relFilePath>''',
 
       // Report should still be generated
       expect(reportDir.existsSync(), isTrue);
-      final reportIndexFile = File(
-        p.join(reportDirPath, 'index.html'),
-      );
+      final reportIndexFile = File(p.join(reportDirPath, 'index.html'));
       expect(reportIndexFile.existsSync(), isTrue);
 
       // Should log warning about unsupported platform
       verify(
-        () => logger.warn(
-          'Browser launch is not supported on android platform.',
-        ),
+        () =>
+            logger.warn('Browser launch is not supported on android platform.'),
       ).called(1);
-      verify(
-        () => logger.info(
-          any(),
-        ),
-      ).called(2);
+      verify(() => logger.info(any())).called(2);
       verifyNever(
-        () => processManager.run(
-          any(),
-          runInShell: any(named: 'runInShell'),
-        ),
+        () => processManager.run(any(), runInShell: any(named: 'runInShell')),
       );
     });
 
-    test(
-        '--${ReportCommand.inputOption}=<trace_file> '
+    test('--${ReportCommand.inputOption}=<trace_file> '
         '--${ReportCommand.outputOption}=<report_dir> '
         '--${ReportCommand.launchFlag} '
         '| logs error when browser launch fails', () async {
       final traceFilePath = _Project.fakeProject1.traceFilePath;
       final traceFileFile = File(traceFilePath);
       const resultDirName = 'result';
-      final reportDirPath =
-          resultDirName.fixturePath(proj: _Project.fakeProject1);
+      final reportDirPath = resultDirName.fixturePath(
+        proj: _Project.fakeProject1,
+      );
       final reportDir = Directory(reportDirPath);
       when(
-        () => processManager.run(
-          any(),
-          runInShell: any(named: 'runInShell'),
-        ),
+        () => processManager.run(any(), runInShell: any(named: 'runInShell')),
       ).thenThrow(Exception('Browser not found'));
       expect(traceFileFile.existsSync(), isTrue);
 
@@ -388,20 +355,15 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       ]);
 
       expect(reportDir.existsSync(), isTrue);
-      final reportIndexFile = File(
-        p.join(reportDirPath, 'index.html'),
-      );
+      final reportIndexFile = File(p.join(reportDirPath, 'index.html'));
       expect(reportIndexFile.existsSync(), isTrue);
-      verify(
-        () => logger.info(any()),
-      ).called(2);
+      verify(() => logger.info(any())).called(2);
       verify(
         () => logger.err(any(that: contains('Failed to launch browser'))),
       ).called(1);
     });
 
-    test(
-        '--${ReportCommand.inputOption}=<absent_file> '
+    test('--${ReportCommand.inputOption}=<absent_file> '
         '| fails when trace file does not exist', () async {
       final absentFilePath = p.joinAll([
         'test',
@@ -415,10 +377,10 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(absentFile.existsSync(), isFalse);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            absentFilePath,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        absentFilePath,
+      ]);
 
       expect(
         action,
@@ -432,8 +394,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.mediumOption}=<invalid> '
+    test('--${ReportCommand.mediumOption}=<invalid> '
         '| fails when medium threshold is invalid', () async {
       const invalidMediumThreshold = 'invalid';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -441,12 +402,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.mediumOption}',
-            invalidMediumThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.mediumOption}',
+        invalidMediumThreshold,
+      ]);
 
       expect(
         action,
@@ -462,8 +423,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.mediumOption}=<negative> '
+    test('--${ReportCommand.mediumOption}=<negative> '
         '| fails when medium threshold is negative', () async {
       const negativeMediumThreshold = '-1';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -471,12 +431,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.mediumOption}',
-            negativeMediumThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.mediumOption}',
+        negativeMediumThreshold,
+      ]);
 
       expect(
         action,
@@ -492,8 +452,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.mediumOption}=<over_100> '
+    test('--${ReportCommand.mediumOption}=<over_100> '
         '| fails when medium threshold exceeds 100', () async {
       const over100MediumThreshold = '101';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -501,12 +460,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.mediumOption}',
-            over100MediumThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.mediumOption}',
+        over100MediumThreshold,
+      ]);
 
       expect(
         action,
@@ -522,8 +481,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.highOption}=<invalid> '
+    test('--${ReportCommand.highOption}=<invalid> '
         '| fails when high threshold is invalid', () async {
       const invalidHighThreshold = 'invalid';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -531,12 +489,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.highOption}',
-            invalidHighThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.highOption}',
+        invalidHighThreshold,
+      ]);
 
       expect(
         action,
@@ -552,8 +510,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.highOption}=<negative> '
+    test('--${ReportCommand.highOption}=<negative> '
         '| fails when high threshold is negative', () async {
       const negativeHighThreshold = '-1';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -561,12 +518,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.highOption}',
-            negativeHighThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.highOption}',
+        negativeHighThreshold,
+      ]);
 
       expect(
         action,
@@ -582,8 +539,7 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '--${ReportCommand.highOption}=<over_100> '
+    test('--${ReportCommand.highOption}=<over_100> '
         '| fails when high threshold exceeds 100', () async {
       const over100HighThreshold = '101';
       final traceFilePath = _Project.fakeProject1.traceFilePath;
@@ -591,12 +547,12 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.highOption}',
-            over100HighThreshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.highOption}',
+        over100HighThreshold,
+      ]);
 
       expect(
         action,
@@ -613,41 +569,41 @@ Error: Non-matching (plain text) file <$relFilePath>''',
     });
 
     test(
-        '--${ReportCommand.mediumOption}=<value> '
-        '--${ReportCommand.highOption}=<lower_value> '
-        '| fails when medium threshold is greater than high threshold',
-        () async {
-      const mediumThreshold = '75';
-      const highThreshold = '50'; // Lower than medium
-      final traceFilePath = _Project.fakeProject1.traceFilePath;
-      final traceFile = File(traceFilePath);
-      expect(traceFile.existsSync(), isTrue);
+      '--${ReportCommand.mediumOption}=<value> '
+      '--${ReportCommand.highOption}=<lower_value> '
+      '| fails when medium threshold is greater than high threshold',
+      () async {
+        const mediumThreshold = '75';
+        const highThreshold = '50'; // Lower than medium
+        final traceFilePath = _Project.fakeProject1.traceFilePath;
+        final traceFile = File(traceFilePath);
+        expect(traceFile.existsSync(), isTrue);
 
-      Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.mediumOption}',
-            mediumThreshold,
-            '--${ReportCommand.highOption}',
-            highThreshold,
-          ]);
+        Future<void> action() => cmdRunner.run([
+          'report',
+          '--${ReportCommand.inputOption}',
+          traceFilePath,
+          '--${ReportCommand.mediumOption}',
+          mediumThreshold,
+          '--${ReportCommand.highOption}',
+          highThreshold,
+        ]);
 
-      expect(
-        action,
-        throwsA(
-          isA<CoverdeReportInvalidThresholdRelationshipFailure>().having(
-            (e) => e.invalidInputDescription,
-            'invalidInputDescription',
-            'Medium threshold (75.0) must be less than '
-                'high threshold (50.0).',
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeReportInvalidThresholdRelationshipFailure>().having(
+              (e) => e.invalidInputDescription,
+              'invalidInputDescription',
+              'Medium threshold (75.0) must be less than '
+                  'high threshold (50.0).',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
-    test(
-        '--${ReportCommand.mediumOption}=<value> '
+    test('--${ReportCommand.mediumOption}=<value> '
         '--${ReportCommand.highOption}=<same_value> '
         '| fails when medium threshold equals high threshold', () async {
       const threshold = '75';
@@ -656,14 +612,14 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       expect(traceFile.existsSync(), isTrue);
 
       Future<void> action() => cmdRunner.run([
-            'report',
-            '--${ReportCommand.inputOption}',
-            traceFilePath,
-            '--${ReportCommand.mediumOption}',
-            threshold,
-            '--${ReportCommand.highOption}',
-            threshold,
-          ]);
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.mediumOption}',
+        threshold,
+        '--${ReportCommand.highOption}',
+        threshold,
+      ]);
 
       expect(
         action,
@@ -678,21 +634,21 @@ Error: Non-matching (plain text) file <$relFilePath>''',
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileReadFailure '
+    test('| throws $CoverdeReportFileReadFailure '
         'when trace file read fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -710,25 +666,22 @@ Error: Non-matching (plain text) file <$relFilePath>''',
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              openRead: ([start, end]) => Stream.value(
-                utf8.encode('''
+              openRead:
+                  ([start, end]) => Stream.value(
+                    utf8.encode('''
 SF:test.dart
 DA:1,0
 LF:1
 LH:0
 end_of_record
 '''),
-              ),
-              lastModifiedSync: () => throw FileSystemException(
-                'Fake file read error',
-                path,
-              ),
+                  ),
+              lastModifiedSync:
+                  () => throw FileSystemException('Fake file read error', path),
             );
           }
           if (p.basename(path) == 'test.dart') {
-            return _ReportTestFile(
-              path: path,
-            );
+            return _ReportTestFile(path: path);
           }
           throw UnsupportedError(
             'This file $path should not be read in this test',
@@ -737,16 +690,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileCreateFailure '
+    test('| throws $CoverdeReportFileCreateFailure '
         'when report CSS file create fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -758,9 +712,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -784,10 +739,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -818,10 +773,7 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {
-                throw FileSystemException(
-                  'Fake file create error',
-                  path,
-                );
+                throw FileSystemException('Fake file create error', path);
               },
             );
           }
@@ -832,16 +784,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileWriteFailure '
+    test('| throws $CoverdeReportFileWriteFailure '
         'when report CSS file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -853,9 +806,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -879,10 +833,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -918,10 +872,7 @@ end_of_record
                 mode = FileMode.write,
                 flush = false,
               }) {
-                throw FileSystemException(
-                  'Fake file write error',
-                  path,
-                );
+                throw FileSystemException('Fake file write error', path);
               },
             );
           }
@@ -932,16 +883,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileCreateFailure '
+    test('| throws $CoverdeReportFileCreateFailure '
         'when report alphabetical sort icon file create fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -953,9 +905,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -984,10 +937,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1021,10 +974,7 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {
-                throw FileSystemException(
-                  'Fake file create error',
-                  path,
-                );
+                throw FileSystemException('Fake file create error', path);
               },
             );
           }
@@ -1035,16 +985,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileWriteFailure '
+    test('| throws $CoverdeReportFileWriteFailure '
         'when report alphabetical sort icon file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1056,9 +1007,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1087,10 +1039,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1129,10 +1081,7 @@ end_of_record
                 mode = FileMode.write,
                 flush = false,
               }) {
-                throw FileSystemException(
-                  'Fake file write error',
-                  path,
-                );
+                throw FileSystemException('Fake file write error', path);
               },
             );
           }
@@ -1143,16 +1092,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileCreateFailure '
+    test('| throws $CoverdeReportFileCreateFailure '
         'when report numeric sort icon file create fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1164,9 +1114,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1200,10 +1151,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1240,10 +1191,7 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {
-                throw FileSystemException(
-                  'Fake file create error',
-                  path,
-                );
+                throw FileSystemException('Fake file create error', path);
               },
             );
           }
@@ -1254,16 +1202,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileWriteFailure '
+    test('| throws $CoverdeReportFileWriteFailure '
         'when report numeric sort icon file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1275,9 +1224,10 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1311,10 +1261,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1356,10 +1306,7 @@ end_of_record
                 mode = FileMode.write,
                 flush = false,
               }) {
-                throw FileSystemException(
-                  'Fake file write error',
-                  path,
-                );
+                throw FileSystemException('Fake file write error', path);
               },
             );
           }
@@ -1370,16 +1317,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileReadFailure '
+    test('| throws $CoverdeReportFileReadFailure '
         'when source file read fails during report generation', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1389,10 +1337,10 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1414,10 +1362,9 @@ end_of_record
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              readAsLinesSync: (encoding) => throw FileSystemException(
-                'Fake file read error',
-                path,
-              ),
+              readAsLinesSync:
+                  (encoding) =>
+                      throw FileSystemException('Fake file read error', path),
             );
           }
           throw UnsupportedError(
@@ -1427,21 +1374,21 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportTraceFileReadFailure '
+    test('| throws $CoverdeReportTraceFileReadFailure '
         'when trace file read fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1460,9 +1407,10 @@ end_of_record
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              openRead: ([start, end]) => Stream<List<int>>.error(
-                FileSystemException('Fake file read error', path),
-              ),
+              openRead:
+                  ([start, end]) => Stream<List<int>>.error(
+                    FileSystemException('Fake file read error', path),
+                  ),
             );
           }
           throw UnsupportedError(
@@ -1472,16 +1420,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileCreateFailure '
+    test('| throws $CoverdeReportFileCreateFailure '
         'when directory index.html file create fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1493,28 +1442,22 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
-      final outputDirPath = p.joinAll([
-        directory.path,
-        'coverage',
-        'html',
-      ]);
-      final rootIndexHtmlFilePath = p.joinAll([
-        outputDirPath,
-        'index.html',
-      ]);
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
+      final outputDirPath = p.joinAll([directory.path, 'coverage', 'html']);
+      final rootIndexHtmlFilePath = p.joinAll([outputDirPath, 'index.html']);
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-                '--${ReportCommand.outputOption}',
-                outputDirPath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+            '--${ReportCommand.outputOption}',
+            outputDirPath,
+          ]);
 
           expect(
             action,
@@ -1550,12 +1493,13 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsStringSync: (
-                contents, {
-                mode = FileMode.write,
-                encoding = utf8,
-                flush = false,
-              }) {},
+              writeAsStringSync:
+                  (
+                    contents, {
+                    mode = FileMode.write,
+                    encoding = utf8,
+                    flush = false,
+                  }) {},
             );
           }
           throw UnsupportedError(
@@ -1565,16 +1509,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileWriteFailure '
+    test('| throws $CoverdeReportFileWriteFailure '
         'when directory index.html file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1586,28 +1531,22 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
-      final outputDirPath = p.joinAll([
-        directory.path,
-        'coverage',
-        'html',
-      ]);
-      final rootIndexHtmlFilePath = p.joinAll([
-        outputDirPath,
-        'index.html',
-      ]);
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
+      final outputDirPath = p.joinAll([directory.path, 'coverage', 'html']);
+      final rootIndexHtmlFilePath = p.joinAll([outputDirPath, 'index.html']);
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-                '--${ReportCommand.outputOption}',
-                outputDirPath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+            '--${ReportCommand.outputOption}',
+            outputDirPath,
+          ]);
 
           expect(
             action,
@@ -1649,12 +1588,13 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsStringSync: (
-                contents, {
-                mode = FileMode.write,
-                encoding = utf8,
-                flush = false,
-              }) {},
+              writeAsStringSync:
+                  (
+                    contents, {
+                    mode = FileMode.write,
+                    encoding = utf8,
+                    flush = false,
+                  }) {},
             );
           }
           throw UnsupportedError(
@@ -1664,16 +1604,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileCreateFailure '
+    test('| throws $CoverdeReportFileCreateFailure '
         'when source file HTML report file create fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1685,17 +1626,18 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1744,16 +1686,17 @@ end_of_record
       );
     });
 
-    test(
-        '| throws $CoverdeReportFileWriteFailure '
+    test('| throws $CoverdeReportFileWriteFailure '
         'when source file HTML report file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-report-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile = File(traceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      final traceFile =
+          File(traceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1765,17 +1708,18 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile = File(sourceFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final sourceFile =
+          File(sourceFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'report',
-                '--${ReportCommand.inputOption}',
-                traceFilePath,
-              ]);
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFilePath,
+          ]);
 
           expect(
             action,
@@ -1816,10 +1760,7 @@ end_of_record
                 encoding = utf8,
                 flush = false,
               }) {
-                throw FileSystemException(
-                  'Fake source HTML write error',
-                  path,
-                );
+                throw FileSystemException('Fake source HTML write error', path);
               },
             );
           }
@@ -1856,24 +1797,22 @@ final class _ReportTestFile extends Fake implements File {
     Stream<List<int>> Function([int? start, int? end])? openRead,
     DateTime Function()? lastModifiedSync,
     List<String> Function(Encoding encoding)? readAsLinesSync,
-    void Function(
-      List<int> bytes, {
-      FileMode mode,
-      bool flush,
-    })? writeAsBytesSync,
+    void Function(List<int> bytes, {FileMode mode, bool flush})?
+    writeAsBytesSync,
     void Function(
       String contents, {
       FileMode mode,
       Encoding encoding,
       bool flush,
-    })? writeAsStringSync,
-  })  : _existsSync = existsSync,
-        _createSync = createSync,
-        _openRead = openRead,
-        _lastModifiedSync = lastModifiedSync,
-        _readAsLinesSync = readAsLinesSync,
-        _writeAsBytesSync = writeAsBytesSync,
-        _writeAsStringSync = writeAsStringSync;
+    })?
+    writeAsStringSync,
+  }) : _existsSync = existsSync,
+       _createSync = createSync,
+       _openRead = openRead,
+       _lastModifiedSync = lastModifiedSync,
+       _readAsLinesSync = readAsLinesSync,
+       _writeAsBytesSync = writeAsBytesSync,
+       _writeAsStringSync = writeAsStringSync;
 
   @override
   final String path;
@@ -1888,18 +1827,16 @@ final class _ReportTestFile extends Fake implements File {
 
   final List<String> Function(Encoding encoding)? _readAsLinesSync;
 
-  final void Function(
-    List<int> bytes, {
-    FileMode mode,
-    bool flush,
-  })? _writeAsBytesSync;
+  final void Function(List<int> bytes, {FileMode mode, bool flush})?
+  _writeAsBytesSync;
 
   final void Function(
     String contents, {
     FileMode mode,
     Encoding encoding,
     bool flush,
-  })? _writeAsStringSync;
+  })?
+  _writeAsStringSync;
 
   @override
   Directory get parent => Directory(p.dirname(path));
@@ -1911,15 +1848,9 @@ final class _ReportTestFile extends Fake implements File {
   }
 
   @override
-  void createSync({
-    bool recursive = false,
-    bool exclusive = false,
-  }) {
+  void createSync({bool recursive = false, bool exclusive = false}) {
     if (_createSync case final cb?) {
-      return cb(
-        recursive: recursive,
-        exclusive: exclusive,
-      );
+      return cb(recursive: recursive, exclusive: exclusive);
     }
     throw UnimplementedError();
   }
@@ -1949,11 +1880,7 @@ final class _ReportTestFile extends Fake implements File {
     bool flush = false,
   }) {
     if (_writeAsBytesSync case final cb?) {
-      return cb(
-        bytes,
-        mode: mode,
-        flush: flush,
-      );
+      return cb(bytes, mode: mode, flush: flush);
     }
     throw UnimplementedError();
   }
@@ -1966,12 +1893,7 @@ final class _ReportTestFile extends Fake implements File {
     bool flush = false,
   }) {
     if (_writeAsStringSync case final cb?) {
-      return cb(
-        contents,
-        mode: mode,
-        encoding: encoding,
-        flush: flush,
-      );
+      return cb(contents, mode: mode, encoding: encoding, flush: flush);
     }
     throw UnimplementedError();
   }

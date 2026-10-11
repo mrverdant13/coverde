@@ -40,109 +40,117 @@ void main() {
           );
         });
 
-        test('| returns formatted message for invalid YAML member type failure',
-            () {
-          const failure = CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-            key: 'presets',
-            expectedType: String,
-            value: 123,
-          );
-          final transformFailure = CoverdeTransformInvalidConfigFileFailure(
-            configPath: 'coverde.yaml',
-            failure: failure,
-          );
+        test(
+          '| returns formatted message for invalid YAML member type failure',
+          () {
+            const failure = CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+              key: 'presets',
+              expectedType: String,
+              value: 123,
+            );
+            final transformFailure = CoverdeTransformInvalidConfigFileFailure(
+              configPath: 'coverde.yaml',
+              failure: failure,
+            );
 
-          final result = transformFailure.readableMessage;
+            final result = transformFailure.readableMessage;
 
-          expect(
-            result,
-            [
-              'Invalid config file at `coverde.yaml`.',
-              'Invalid YAML member type.',
-              'Key: `presets`.',
-              'Expected type: `String`.',
-              'Value: `123`.',
-            ].join('\n'),
-          );
-        });
-
-        test('| returns formatted message for invalid YAML root type failure ',
-            () {
-          const failure = CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-            key: null,
-            expectedType: Map,
-            value: 'not a map',
-          );
-          final transformFailure = CoverdeTransformInvalidConfigFileFailure(
-            configPath: 'coverde.yaml',
-            failure: failure,
-          );
-
-          final result = transformFailure.readableMessage;
-
-          expect(
-            result,
-            [
-              'Invalid config file at `coverde.yaml`.',
-              'Invalid YAML member type.',
-              'Key: `<root>`.',
-              'Expected type: `Map<dynamic, dynamic>`.',
-              'Value: `not a map`.',
-            ].join('\n'),
-          );
-        });
+            expect(
+              result,
+              [
+                'Invalid config file at `coverde.yaml`.',
+                'Invalid YAML member type.',
+                'Key: `presets`.',
+                'Expected type: `String`.',
+                'Value: `123`.',
+              ].join('\n'),
+            );
+          },
+        );
 
         test(
-            '| returns formatted message for invalid YAML member value failure '
-            'with hint', () {
-          const failure = CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
-            key: 'transformations',
-            value: 'invalid',
-            hint: 'Expected a number string',
-          );
-          final transformFailure = CoverdeTransformInvalidConfigFileFailure(
-            configPath: 'coverde.yaml',
-            failure: failure,
-          );
+          '| returns formatted message for invalid YAML root type failure ',
+          () {
+            const failure = CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+              key: null,
+              expectedType: Map,
+              value: 'not a map',
+            );
+            final transformFailure = CoverdeTransformInvalidConfigFileFailure(
+              configPath: 'coverde.yaml',
+              failure: failure,
+            );
 
-          final result = transformFailure.readableMessage;
+            final result = transformFailure.readableMessage;
 
-          expect(
-            result,
-            [
-              'Invalid config file at `coverde.yaml`.',
-              'Invalid YAML member value.',
-              'Key: `transformations`.',
-              'Hint: Expected a number string.',
-              'Value: `invalid`.',
-            ].join('\n'),
-          );
-        });
+            expect(
+              result,
+              [
+                'Invalid config file at `coverde.yaml`.',
+                'Invalid YAML member type.',
+                'Key: `<root>`.',
+                'Expected type: `Map<dynamic, dynamic>`.',
+                'Value: `not a map`.',
+              ].join('\n'),
+            );
+          },
+        );
 
         test(
-            '| returns formatted message for invalid YAML member value failure '
-            'without hint', () {
-          const failure = CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
-            key: 'preset',
-            value: null,
-          );
-          final transformFailure = CoverdeTransformInvalidConfigFileFailure(
-            configPath: 'coverde.yaml',
-            failure: failure,
-          );
+          '| returns formatted message for invalid YAML member value failure '
+          'with hint',
+          () {
+            const failure = CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations',
+              value: 'invalid',
+              hint: 'Expected a number string',
+            );
+            final transformFailure = CoverdeTransformInvalidConfigFileFailure(
+              configPath: 'coverde.yaml',
+              failure: failure,
+            );
 
-          final result = transformFailure.readableMessage;
+            final result = transformFailure.readableMessage;
 
-          expect(
-            result,
-            [
-              'Invalid config file at `coverde.yaml`.',
-              'Invalid YAML member value.',
-              'Key: `preset`.',
-              'Value: `null`.',
-            ].join('\n'),
-          );
-        });
+            expect(
+              result,
+              [
+                'Invalid config file at `coverde.yaml`.',
+                'Invalid YAML member value.',
+                'Key: `transformations`.',
+                'Hint: Expected a number string.',
+                'Value: `invalid`.',
+              ].join('\n'),
+            );
+          },
+        );
+
+        test(
+          '| returns formatted message for invalid YAML member value failure '
+          'without hint',
+          () {
+            const failure = CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'preset',
+              value: null,
+            );
+            final transformFailure = CoverdeTransformInvalidConfigFileFailure(
+              configPath: 'coverde.yaml',
+              failure: failure,
+            );
+
+            final result = transformFailure.readableMessage;
+
+            expect(
+              result,
+              [
+                'Invalid config file at `coverde.yaml`.',
+                'Invalid YAML member value.',
+                'Key: `preset`.',
+                'Value: `null`.',
+              ].join('\n'),
+            );
+          },
+        );
 
         test('| returns formatted message for unknown preset failure', () {
           const failure = CoverdeConfigFromYamlUnknownPresetFailure(
@@ -188,8 +196,7 @@ void main() {
           );
         });
 
-        test(
-            '| returns formatted message '
+        test('| returns formatted message '
             'for invalid coverage percentage failure', () {
           const failure = CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
             key: 'presets',
@@ -225,8 +232,8 @@ void main() {
           );
           final transformFailure =
               CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+                failure: failure,
+              );
 
           final result = transformFailure.readableMessage;
 
@@ -242,17 +249,16 @@ void main() {
           );
         });
 
-        test(
-            '| returns formatted message '
+        test('| returns formatted message '
             'for unsupported transformation failure', () {
           const failure =
               TransformationFromCliOptionUnsupportedTransformationFailure(
-            unsupportedTransformation: 'unknown_transform',
-          );
+                unsupportedTransformation: 'unknown_transform',
+              );
           final transformFailure =
               CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+                failure: failure,
+              );
 
           final result = transformFailure.readableMessage;
 
@@ -265,64 +271,69 @@ void main() {
           );
         });
 
-        test('| returns formatted message for invalid regex pattern failure',
-            () {
-          const failure = TransformationFromCliOptionInvalidRegexPatternFailure(
-            transformationIdentifier: 'keep',
-            regex: '[invalid',
-          );
-          final transformFailure =
-              CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+        test(
+          '| returns formatted message for invalid regex pattern failure',
+          () {
+            const failure =
+                TransformationFromCliOptionInvalidRegexPatternFailure(
+                  transformationIdentifier: 'keep',
+                  regex: '[invalid',
+                );
+            final transformFailure =
+                CoverdeTransformInvalidTransformCliOptionFailure(
+                  failure: failure,
+                );
 
-          final result = transformFailure.readableMessage;
+            final result = transformFailure.readableMessage;
 
-          expect(
-            result,
-            [
-              'Invalid transformation CLI option.',
-              'Transformation: `keep`.',
-              'Invalid regex pattern: `[invalid`.',
-            ].join('\n'),
-          );
-        });
-
-        test('| returns formatted message for invalid glob pattern failure',
-            () {
-          const failure = TransformationFromCliOptionInvalidGlobPatternFailure(
-            transformationIdentifier: 'rewrite',
-            glob: '**/invalid{',
-          );
-          final transformFailure =
-              CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
-
-          final result = transformFailure.readableMessage;
-
-          expect(
-            result,
-            [
-              'Invalid transformation CLI option.',
-              'Transformation: `rewrite`.',
-              'Invalid glob pattern: `**/invalid{`.',
-            ].join('\n'),
-          );
-        });
+            expect(
+              result,
+              [
+                'Invalid transformation CLI option.',
+                'Transformation: `keep`.',
+                'Invalid regex pattern: `[invalid`.',
+              ].join('\n'),
+            );
+          },
+        );
 
         test(
-            '| returns formatted message '
+          '| returns formatted message for invalid glob pattern failure',
+          () {
+            const failure =
+                TransformationFromCliOptionInvalidGlobPatternFailure(
+                  transformationIdentifier: 'rewrite',
+                  glob: '**/invalid{',
+                );
+            final transformFailure =
+                CoverdeTransformInvalidTransformCliOptionFailure(
+                  failure: failure,
+                );
+
+            final result = transformFailure.readableMessage;
+
+            expect(
+              result,
+              [
+                'Invalid transformation CLI option.',
+                'Transformation: `rewrite`.',
+                'Invalid glob pattern: `**/invalid{`.',
+              ].join('\n'),
+            );
+          },
+        );
+
+        test('| returns formatted message '
             'for invalid numeric comparison failure', () {
           const failure =
               TransformationFromCliOptionInvalidNumericComparisonFailure(
-            transformationIdentifier: 'keep-by-coverage',
-            comparison: 'invalid',
-          );
+                transformationIdentifier: 'keep-by-coverage',
+                comparison: 'invalid',
+              );
           final transformFailure =
               CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+                failure: failure,
+              );
 
           final result = transformFailure.readableMessage;
 
@@ -336,18 +347,17 @@ void main() {
           );
         });
 
-        test(
-            '| returns formatted message '
+        test('| returns formatted message '
             'for invalid coverage percentage failure', () {
           const failure =
               TransformationFromCliOptionInvalidCoveragePercentageFailure(
-            transformationIdentifier: 'keep-by-coverage',
-            invalidReferences: [150],
-          );
+                transformationIdentifier: 'keep-by-coverage',
+                invalidReferences: [150],
+              );
           final transformFailure =
               CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+                failure: failure,
+              );
 
           final result = transformFailure.readableMessage;
 
@@ -362,19 +372,18 @@ void main() {
           );
         });
 
-        test(
-            '| returns formatted message '
+        test('| returns formatted message '
             'for invalid external preset value failure', () {
           const failure =
               TransformationFromCliOptionInvalidPresetDescriptorFailure(
-            transformationIdentifier: 'preset',
-            hint: 'a YAML map with `name` and an optional `file`',
-            value: 'ci-workflow',
-          );
+                transformationIdentifier: 'preset',
+                hint: 'a YAML map with `name` and an optional `file`',
+                value: 'ci-workflow',
+              );
           final transformFailure =
               CoverdeTransformInvalidTransformCliOptionFailure(
-            failure: failure,
-          );
+                failure: failure,
+              );
 
           final result = transformFailure.readableMessage;
 
@@ -458,10 +467,7 @@ void main() {
 
           final result = failure.readableMessage;
 
-          expect(
-            result,
-            'No trace file found at `/path/to/trace.lcov.info`.',
-          );
+          expect(result, 'No trace file found at `/path/to/trace.lcov.info`.');
         });
       });
     });
@@ -469,8 +475,7 @@ void main() {
     group('$CoverdeTransformFileOperationFailure', () {
       group('$CoverdeTransformFileReadFailure', () {
         group('readableMessage', () {
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'without OS error', () {
             final exception = FileSystemException(
               'Permission denied',
@@ -478,9 +483,9 @@ void main() {
             );
             final failure =
                 CoverdeTransformFileReadFailure.fromFileSystemException(
-              filePath: '/path/to/trace.lcov.info',
-              exception: exception,
-            );
+                  filePath: '/path/to/trace.lcov.info',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 
@@ -493,8 +498,7 @@ void main() {
             );
           });
 
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'with OS error', () {
             final osError = OSError('Access denied', 13);
             final exception = FileSystemException(
@@ -504,9 +508,9 @@ void main() {
             );
             final failure =
                 CoverdeTransformFileReadFailure.fromFileSystemException(
-              filePath: '/path/to/trace.lcov.info',
-              exception: exception,
-            );
+                  filePath: '/path/to/trace.lcov.info',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 
@@ -524,16 +528,17 @@ void main() {
 
       group('$CoverdeTransformFileWriteFailure', () {
         group('readableMessage', () {
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'without OS error', () {
-            final exception =
-                FileSystemException('Permission denied', '/path/to/file');
+            final exception = FileSystemException(
+              'Permission denied',
+              '/path/to/file',
+            );
             final failure =
                 CoverdeTransformFileWriteFailure.fromFileSystemException(
-              filePath: '/path/to/file',
-              exception: exception,
-            );
+                  filePath: '/path/to/file',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 
@@ -546,8 +551,7 @@ void main() {
             );
           });
 
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'with OS error', () {
             final osError = OSError('Access denied', 13);
             final exception = FileSystemException(
@@ -557,9 +561,9 @@ void main() {
             );
             final failure =
                 CoverdeTransformFileWriteFailure.fromFileSystemException(
-              filePath: '/path/to/file',
-              exception: exception,
-            );
+                  filePath: '/path/to/file',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 
@@ -579,16 +583,17 @@ void main() {
     group('$CoverdeTransformDirectoryOperationFailure', () {
       group('$CoverdeTransformDirectoryCreateFailure', () {
         group('readableMessage', () {
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'without OS error', () {
-            final exception =
-                FileSystemException('Permission denied', '/path/to/dir');
+            final exception = FileSystemException(
+              'Permission denied',
+              '/path/to/dir',
+            );
             final failure =
                 CoverdeTransformDirectoryCreateFailure.fromFileSystemException(
-              directoryPath: '/path/to/dir',
-              exception: exception,
-            );
+                  directoryPath: '/path/to/dir',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 
@@ -601,8 +606,7 @@ void main() {
             );
           });
 
-          test(
-              '| returns formatted message from FileSystemException '
+          test('| returns formatted message from FileSystemException '
               'with OS error', () {
             final osError = OSError('Access denied', 13);
             final exception = FileSystemException(
@@ -612,9 +616,9 @@ void main() {
             );
             final failure =
                 CoverdeTransformDirectoryCreateFailure.fromFileSystemException(
-              directoryPath: '/path/to/dir',
-              exception: exception,
-            );
+                  directoryPath: '/path/to/dir',
+                  exception: exception,
+                );
 
             final result = failure.readableMessage;
 

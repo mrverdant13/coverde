@@ -28,44 +28,35 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
       covLines: covLines,
     );
 
-    test(
-      '| supports value comparison',
-      () {
-        final sameCovFile = CovFile(
-          source: File(sourcePath),
-          raw: rawCovFileData,
-          covLines: covLines,
-        );
+    test('| supports value comparison', () {
+      final sameCovFile = CovFile(
+        source: File(sourcePath),
+        raw: rawCovFileData,
+        covLines: covLines,
+      );
 
-        final valueComparisonResult = covFile == sameCovFile;
-        final hashComparisonResult = covFile.hashCode == sameCovFile.hashCode;
+      final valueComparisonResult = covFile == sameCovFile;
+      final hashComparisonResult = covFile.hashCode == sameCovFile.hashCode;
 
-        expect(valueComparisonResult, isTrue);
-        expect(hashComparisonResult, isTrue);
-      },
-    );
+      expect(valueComparisonResult, isTrue);
+      expect(hashComparisonResult, isTrue);
+    });
 
-    test(
-      '| parses valid string representation',
-      () async {
-        final result = CovFile.parse(rawCovFileData);
+    test('| parses valid string representation', () async {
+      final result = CovFile.parse(rawCovFileData);
 
-        expect(result, covFile);
-      },
-    );
+      expect(result, covFile);
+    });
 
-    test(
-      '| throws $CovFileFormatFailure '
-      'when parsing invalid string representation',
-      () async {
-        const rawCovFileString = '''
+    test('| throws $CovFileFormatFailure '
+        'when parsing invalid string representation', () async {
+      const rawCovFileString = '''
 DA:1,3
 DA:3,5''';
 
-        void action() => CovFile.parse(rawCovFileString);
+      void action() => CovFile.parse(rawCovFileString);
 
-        expect(action, throwsA(isA<CovFileFormatFailure>()));
-      },
-    );
+      expect(action, throwsA(isA<CovFileFormatFailure>()));
+    });
   });
 }

@@ -58,19 +58,19 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
 
   @override
   CoverdeCommandParams get params => CoverdeCommandParams(
-        identifier: 'min-coverage',
-        description: 'The minimum coverage value to be accepted. '
-            'It should be an integer between 0 and 100.',
-      );
+    identifier: 'min-coverage',
+    description:
+        'The minimum coverage value to be accepted. '
+        'It should be an integer between 0 and 100.',
+  );
 
   @override
   Future<void> run() async {
     final argResults = this.argResults!;
     final filePath = p.absolute(argResults.option(inputOptionName)!);
     final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel = argResults.option(
-        fileCoverageLogLevelOptionName,
-      )!;
+      final rawFileCoverageLogLevel =
+          argResults.option(fileCoverageLogLevelOptionName)!;
       return FileCoverageLogLevel.values.firstWhere(
         // It is safe to look up the log level by identifier because the allowed
         // values are validated by the args parser.
@@ -100,9 +100,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     final coverageThreshold = maybeCoverageThreshold;
 
     if (!FileSystemEntity.isFileSync(filePath)) {
-      throw CoverdeCheckTraceFileNotFoundFailure(
-        traceFilePath: filePath,
-      );
+      throw CoverdeCheckTraceFileNotFoundFailure(traceFilePath: filePath);
     }
     final file = File(filePath);
 
@@ -117,9 +115,7 @@ This parameter indicates the minimum value for the coverage to be accepted.''';
     }
 
     if (traceFile.isEmpty) {
-      throw CoverdeCheckEmptyTraceFileFailure(
-        traceFilePath: filePath,
-      );
+      throw CoverdeCheckEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
     ValueCommand.logCoverage(

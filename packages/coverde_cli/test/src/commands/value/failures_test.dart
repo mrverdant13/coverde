@@ -8,148 +8,126 @@ import 'package:universal_io/io.dart';
 void main() {
   group('$CoverdeValueFailure', () {
     group('$CoverdeValueTraceFileNotFoundFailure', () {
-      test(
-        'readableMessage '
-        '| returns formatted message with trace file path',
-        () {
-          final failure = CoverdeValueTraceFileNotFoundFailure(
-            traceFilePath: '/path/to/trace.lcov.info',
-          );
+      test('readableMessage '
+          '| returns formatted message with trace file path', () {
+        final failure = CoverdeValueTraceFileNotFoundFailure(
+          traceFilePath: '/path/to/trace.lcov.info',
+        );
 
-          final result = failure.readableMessage;
+        final result = failure.readableMessage;
 
-          expect(result, 'No trace file found at `/path/to/trace.lcov.info`.');
-        },
-      );
+        expect(result, 'No trace file found at `/path/to/trace.lcov.info`.');
+      });
 
-      test(
-        'traceFilePath '
-        '| returns the trace file path',
-        () {
-          final failure = CoverdeValueTraceFileNotFoundFailure(
-            traceFilePath: '/path/to/file',
-          );
+      test('traceFilePath '
+          '| returns the trace file path', () {
+        final failure = CoverdeValueTraceFileNotFoundFailure(
+          traceFilePath: '/path/to/file',
+        );
 
-          final result = failure.traceFilePath;
+        final result = failure.traceFilePath;
 
-          expect(result, '/path/to/file');
-        },
-      );
+        expect(result, '/path/to/file');
+      });
     });
 
     group('$CoverdeValueEmptyTraceFileFailure', () {
-      test(
-        'readableMessage '
-        '| returns formatted message with trace file path',
-        () {
-          final failure = CoverdeValueEmptyTraceFileFailure(
-            traceFilePath: '/path/to/trace.lcov.info',
-          );
+      test('readableMessage '
+          '| returns formatted message with trace file path', () {
+        final failure = CoverdeValueEmptyTraceFileFailure(
+          traceFilePath: '/path/to/trace.lcov.info',
+        );
 
-          final result = failure.readableMessage;
+        final result = failure.readableMessage;
 
-          expect(
-            result,
-            'No coverage data found in the trace file at '
-            '`/path/to/trace.lcov.info`.',
-          );
-        },
-      );
+        expect(
+          result,
+          'No coverage data found in the trace file at '
+          '`/path/to/trace.lcov.info`.',
+        );
+      });
 
-      test(
-        'traceFilePath '
-        '| returns the trace file path',
-        () {
-          final failure = CoverdeValueEmptyTraceFileFailure(
-            traceFilePath: '/path/to/file',
-          );
+      test('traceFilePath '
+          '| returns the trace file path', () {
+        final failure = CoverdeValueEmptyTraceFileFailure(
+          traceFilePath: '/path/to/file',
+        );
 
-          final result = failure.traceFilePath;
+        final result = failure.traceFilePath;
 
-          expect(result, '/path/to/file');
-        },
-      );
+        expect(result, '/path/to/file');
+      });
     });
 
     group('$CoverdeValueFileReadFailure', () {
-      test(
-        'readableMessage '
-        '| returns formatted message with file path and error message',
-        () {
-          final exception =
-              FileSystemException('File not found', '/path/to/source.dart');
-          final failure = CoverdeValueFileReadFailure.fromFileSystemException(
-            filePath: '/path/to/source.dart',
-            exception: exception,
-          );
+      test('readableMessage '
+          '| returns formatted message with file path and error message', () {
+        final exception = FileSystemException(
+          'File not found',
+          '/path/to/source.dart',
+        );
+        final failure = CoverdeValueFileReadFailure.fromFileSystemException(
+          filePath: '/path/to/source.dart',
+          exception: exception,
+        );
 
-          final result = failure.readableMessage;
+        final result = failure.readableMessage;
 
-          expect(
-            result,
-            'Failed to read file at `/path/to/source.dart`.\n'
-            'File not found',
-          );
-        },
-      );
+        expect(
+          result,
+          'Failed to read file at `/path/to/source.dart`.\n'
+          'File not found',
+        );
+      });
 
-      test(
-        'readableMessage '
-        '| includes OS error message when present',
-        () {
-          final osError = OSError('No such file or directory', 2);
-          final exception = FileSystemException(
-            'File not found',
-            '/path/to/source.dart',
-            osError,
-          );
-          final failure = CoverdeValueFileReadFailure.fromFileSystemException(
-            filePath: '/path/to/source.dart',
-            exception: exception,
-          );
+      test('readableMessage '
+          '| includes OS error message when present', () {
+        final osError = OSError('No such file or directory', 2);
+        final exception = FileSystemException(
+          'File not found',
+          '/path/to/source.dart',
+          osError,
+        );
+        final failure = CoverdeValueFileReadFailure.fromFileSystemException(
+          filePath: '/path/to/source.dart',
+          exception: exception,
+        );
 
-          final result = failure.readableMessage;
+        final result = failure.readableMessage;
 
-          expect(
-            result,
-            'Failed to read file at `/path/to/source.dart`.\n'
-            'File not found\n'
-            'No such file or directory',
-          );
-        },
-      );
+        expect(
+          result,
+          'Failed to read file at `/path/to/source.dart`.\n'
+          'File not found\n'
+          'No such file or directory',
+        );
+      });
 
-      test(
-        'filePath '
-        '| returns the file path',
-        () {
-          final exception = FileSystemException('Error');
-          final failure = CoverdeValueFileReadFailure.fromFileSystemException(
-            filePath: '/path/to/file.dart',
-            exception: exception,
-          );
+      test('filePath '
+          '| returns the file path', () {
+        final exception = FileSystemException('Error');
+        final failure = CoverdeValueFileReadFailure.fromFileSystemException(
+          filePath: '/path/to/file.dart',
+          exception: exception,
+        );
 
-          final result = failure.filePath;
+        final result = failure.filePath;
 
-          expect(result, '/path/to/file.dart');
-        },
-      );
+        expect(result, '/path/to/file.dart');
+      });
 
-      test(
-        'errorMessage '
-        '| returns the error message',
-        () {
-          final exception = FileSystemException('Permission denied');
-          final failure = CoverdeValueFileReadFailure.fromFileSystemException(
-            filePath: '/path/to/file',
-            exception: exception,
-          );
+      test('errorMessage '
+          '| returns the error message', () {
+        final exception = FileSystemException('Permission denied');
+        final failure = CoverdeValueFileReadFailure.fromFileSystemException(
+          filePath: '/path/to/file',
+          exception: exception,
+        );
 
-          final result = failure.errorMessage;
+        final result = failure.errorMessage;
 
-          expect(result, 'Permission denied');
-        },
-      );
+        expect(result, 'Permission denied');
+      });
     });
 
     group('$CoverdeValueTraceFileReadFailure', () {
@@ -163,9 +141,9 @@ void main() {
           );
           final failure =
               CoverdeValueTraceFileReadFailure.fromFileSystemException(
-            traceFilePath: '/path/to/trace.lcov.info',
-            exception: exception,
-          );
+                traceFilePath: '/path/to/trace.lcov.info',
+                exception: exception,
+              );
 
           final result = failure.readableMessage;
 

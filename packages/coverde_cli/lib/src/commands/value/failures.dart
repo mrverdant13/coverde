@@ -15,9 +15,7 @@ sealed class CoverdeValueFailure extends CoverdeFailure {
 /// {@endtemplate}
 sealed class CoverdeValueInvalidTraceFileFailure extends CoverdeValueFailure {
   /// {@macro coverde_cli.value_invalid_trace_file_failure}
-  const CoverdeValueInvalidTraceFileFailure({
-    required this.traceFilePath,
-  });
+  const CoverdeValueInvalidTraceFileFailure({required this.traceFilePath});
 
   /// The path to the invalid trace file.
   final String traceFilePath;
@@ -29,9 +27,7 @@ sealed class CoverdeValueInvalidTraceFileFailure extends CoverdeValueFailure {
 final class CoverdeValueTraceFileNotFoundFailure
     extends CoverdeValueInvalidTraceFileFailure {
   /// {@macro coverde_cli.value_trace_file_not_found_failure}
-  const CoverdeValueTraceFileNotFoundFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeValueTraceFileNotFoundFailure({required super.traceFilePath});
 
   @override
   String get readableMessage => 'No trace file found at `$traceFilePath`.';
@@ -43,9 +39,7 @@ final class CoverdeValueTraceFileNotFoundFailure
 final class CoverdeValueEmptyTraceFileFailure
     extends CoverdeValueInvalidTraceFileFailure {
   /// {@macro coverde_cli.value_empty_trace_file_failure}
-  const CoverdeValueEmptyTraceFileFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeValueEmptyTraceFileFailure({required super.traceFilePath});
 
   @override
   String get readableMessage =>
@@ -63,9 +57,9 @@ final class CoverdeValueTraceFileReadFailure
     required super.traceFilePath,
     required FileSystemException exception,
   }) : errorMessage = [
-          exception.message,
-          if (exception.osError case final osError?) osError.message,
-        ].join('\n');
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
 
   /// The underlying error message.
   final String errorMessage;
@@ -84,9 +78,9 @@ final class CoverdeValueFileReadFailure extends CoverdeValueFailure {
     required this.filePath,
     required FileSystemException exception,
   }) : errorMessage = [
-          exception.message,
-          if (exception.osError case final osError?) osError.message,
-        ].join('\n');
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
 
   /// The file path where the read operation failed.
   final String filePath;
@@ -95,6 +89,7 @@ final class CoverdeValueFileReadFailure extends CoverdeValueFailure {
   final String errorMessage;
 
   @override
-  String get readableMessage => 'Failed to read file at `$filePath`.\n'
+  String get readableMessage =>
+      'Failed to read file at `$filePath`.\n'
       '$errorMessage';
 }
