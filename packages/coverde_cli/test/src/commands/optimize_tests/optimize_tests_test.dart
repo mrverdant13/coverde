@@ -12,7 +12,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 import '../../../helpers/test_files.dart';
 

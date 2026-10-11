@@ -1,4 +1,4 @@
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart';
 
 /// {@template coverde_cli.coverde_get_global_package_installation_info_failure}

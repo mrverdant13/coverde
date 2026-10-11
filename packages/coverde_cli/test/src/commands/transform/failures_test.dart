@@ -5,7 +5,7 @@ import 'package:coverde/src/commands/transform/failures.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 void main() {

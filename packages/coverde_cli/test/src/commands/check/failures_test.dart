@@ -2,7 +2,7 @@ import 'package:coverde/src/commands/check/failures.dart';
 import 'package:coverde/src/entities/cov_file.dart';
 import 'package:coverde/src/entities/trace_file.dart';
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 void main() {
   group('$CoverdeCheckFailure', () {

@@ -3,7 +3,7 @@
 
 import 'package:coverde/src/entities/generate_html_coverage_report_failure.dart';
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 void main() {
   group('$GenerateHtmlCoverageReportFailure', () {

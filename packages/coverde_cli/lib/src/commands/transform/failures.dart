@@ -1,7 +1,7 @@
 import 'package:coverde/coverde.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.transform_failure}
 /// The interface for [TransformCommand] failures.

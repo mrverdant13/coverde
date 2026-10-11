@@ -8,7 +8,7 @@ import 'package:coverde/src/entities/trace_file.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 class MockFile extends Mock implements File {}
 

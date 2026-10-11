@@ -8,7 +8,7 @@ import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 /// {@template coverde_cli.package_version_manager}

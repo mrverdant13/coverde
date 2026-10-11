@@ -9,7 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 class _MockHttpClient extends Mock implements http.Client {}

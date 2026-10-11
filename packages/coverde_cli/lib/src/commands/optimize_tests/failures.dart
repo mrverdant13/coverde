@@ -1,5 +1,5 @@
 import 'package:coverde/coverde.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.optimize_tests_failure}
 /// The interface for [OptimizeTestsCommand] failures.
