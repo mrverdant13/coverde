@@ -1,4 +1,4 @@
-# No very_good_analysis — this package must resolve on Dart 3.10.
+# No very_good_analysis — this package must resolve on Dart 3.7.
 analyzer:
   language:
     strict-casts: true
