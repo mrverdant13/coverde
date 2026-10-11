@@ -6,9 +6,7 @@ import 'package:coverde/src/entities/entities.dart';
 /// {@endtemplate}
 class CovFileFormatFailure extends CoverdeFailure {
   /// {@macro cov_file_format_failure}
-  const CovFileFormatFailure({
-    required this.readableMessage,
-  });
+  const CovFileFormatFailure({required this.readableMessage});
 
   @override
   final String readableMessage;

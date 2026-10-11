@@ -1,5 +1,5 @@
 import 'package:coverde/coverde.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.optimize_tests_failure}
 /// The interface for [OptimizeTestsCommand] failures.
@@ -46,9 +46,9 @@ final class CoverdeOptimizeTestsPubspecNotFoundFailure
     required super.usageMessage,
     required this.projectDirPath,
   }) : super(
-          invalidInputDescription:
-              'No pubspec.yaml file found in $projectDirPath.',
-        );
+         invalidInputDescription:
+             'No pubspec.yaml file found in $projectDirPath.',
+       );
 
   /// The project directory path.
   final String projectDirPath;
@@ -63,8 +63,7 @@ enum CoverdeOptimizeTestsFileOperation {
   write('write'),
 
   /// The operation to delete a file.
-  delete('delete'),
-  ;
+  delete('delete');
 
   const CoverdeOptimizeTestsFileOperation(this.name);
 
@@ -112,12 +111,12 @@ final class CoverdeOptimizeTestsFileReadFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeOptimizeTestsFileOperation.read,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeOptimizeTestsFileOperation.read,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.optimize_tests_file_write_failure}
@@ -132,12 +131,12 @@ final class CoverdeOptimizeTestsFileWriteFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeOptimizeTestsFileOperation.write,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeOptimizeTestsFileOperation.write,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.optimize_tests_file_delete_failure}
@@ -152,12 +151,12 @@ final class CoverdeOptimizeTestsFileDeleteFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeOptimizeTestsFileOperation.delete,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeOptimizeTestsFileOperation.delete,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// An operation on a directory.
@@ -166,8 +165,7 @@ enum CoverdeOptimizeTestsDirectoryOperation {
   list('list'),
 
   /// The operation to create a directory.
-  create('create'),
-  ;
+  create('create');
 
   const CoverdeOptimizeTestsDirectoryOperation(this.name);
 
@@ -215,12 +213,12 @@ final class CoverdeOptimizeTestsDirectoryListFailure
     required super.directoryPath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeOptimizeTestsDirectoryOperation.list,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeOptimizeTestsDirectoryOperation.list,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.optimize_tests_directory_create_failure}
@@ -235,12 +233,12 @@ final class CoverdeOptimizeTestsDirectoryCreateFailure
     required super.directoryPath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeOptimizeTestsDirectoryOperation.create,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeOptimizeTestsDirectoryOperation.create,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.optimize_tests_invalid_shard_options_failure}
@@ -255,11 +253,12 @@ final class CoverdeOptimizeTestsInvalidShardOptionsFailure
     required this.totalShardsStr,
     required this.shardIndexStr,
   }) : super(
-          invalidInputDescription: 'Invalid shard options: '
-              '${OptimizeTestsCommand.totalShardsOptionName}=$totalShardsStr '
-              '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndexStr. '
-              'Both values must be integers.',
-        );
+         invalidInputDescription:
+             'Invalid shard options: '
+             '${OptimizeTestsCommand.totalShardsOptionName}=$totalShardsStr '
+             '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndexStr. '
+             'Both values must be integers.',
+       );
 
   /// The unparsed total shards value.
   final String totalShardsStr;
@@ -279,10 +278,10 @@ final class CoverdeOptimizeTestsInvalidTotalShardsFailure
     required super.usageMessage,
     required this.totalShards,
   }) : super(
-          invalidInputDescription:
-              '${OptimizeTestsCommand.totalShardsOptionName}=$totalShards '
-              'is invalid. Total shards must be greater than 0.',
-        );
+         invalidInputDescription:
+             '${OptimizeTestsCommand.totalShardsOptionName}=$totalShards '
+             'is invalid. Total shards must be greater than 0.',
+       );
 
   /// The total number of shards that was invalid.
   final int totalShards;
@@ -300,11 +299,12 @@ final class CoverdeOptimizeTestsShardIndexOutOfRangeFailure
     required this.totalShards,
     required this.shardIndex,
   }) : super(
-          invalidInputDescription: 'Shard index out of range: '
-              '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndex '
-              'must be between 0 and ${totalShards - 1} '
-              '(${OptimizeTestsCommand.totalShardsOptionName}=$totalShards).',
-        );
+         invalidInputDescription:
+             'Shard index out of range: '
+             '${OptimizeTestsCommand.shardIndexOptionName}=$shardIndex '
+             'must be between 0 and ${totalShards - 1} '
+             '(${OptimizeTestsCommand.totalShardsOptionName}=$totalShards).',
+       );
 
   /// The total number of shards.
   final int totalShards;
@@ -325,16 +325,16 @@ final class CoverdeOptimizeTestsShardOptionsMismatchFailure
     required this.totalShardsProvided,
     required this.shardIndexProvided,
   }) : super(
-          invalidInputDescription:
-              'Both ${OptimizeTestsCommand.totalShardsOptionName} '
-              'and ${OptimizeTestsCommand.shardIndexOptionName} '
-              'must be provided together. '
-              'Got: '
-              '${OptimizeTestsCommand.totalShardsOptionName}='
-              '${totalShardsProvided ? "provided" : "not provided"}, '
-              '${OptimizeTestsCommand.shardIndexOptionName}='
-              '${shardIndexProvided ? "provided" : "not provided"}.',
-        );
+         invalidInputDescription:
+             'Both ${OptimizeTestsCommand.totalShardsOptionName} '
+             'and ${OptimizeTestsCommand.shardIndexOptionName} '
+             'must be provided together. '
+             'Got: '
+             '${OptimizeTestsCommand.totalShardsOptionName}='
+             '${totalShardsProvided ? "provided" : "not provided"}, '
+             '${OptimizeTestsCommand.shardIndexOptionName}='
+             '${shardIndexProvided ? "provided" : "not provided"}.',
+       );
 
   /// Whether --total-shards was provided.
   final bool totalShardsProvided;

@@ -36,27 +36,21 @@ void main() {
     late PackageVersionManager packageVersionManager;
     late CoverdeCommandRunner cmdRunner;
 
-    setUp(
-      () {
-        logger = _MockLogger();
-        packageVersionManager = _MockPackageVersionManager();
-        cmdRunner = _FakeCoverdeCommandRunner(
-          logger: logger,
-          packageVersionManager: packageVersionManager,
-        );
-      },
-    );
+    setUp(() {
+      logger = _MockLogger();
+      packageVersionManager = _MockPackageVersionManager();
+      cmdRunner = _FakeCoverdeCommandRunner(
+        logger: logger,
+        packageVersionManager: packageVersionManager,
+      );
+    });
 
-    tearDown(
-      () {
-        verifyNoMoreInteractions(logger);
-      },
-    );
+    tearDown(() {
+      verifyNoMoreInteractions(logger);
+    });
 
-    test(
-      '| description',
-      () {
-        const expected = '''
+    test('| description', () {
+      const expected = '''
 [DEPRECATED] Filter a coverage trace file. Use `coverde transform` instead.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.
@@ -65,755 +59,691 @@ The coverage data is taken from the INPUT_LCOV_FILE file and the result is appen
 All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
 ''';
 
-        final result = FilterCommand().description;
+      final result = FilterCommand().description;
 
-        expect(result.trim(), expected.trim());
-      },
-    );
+      expect(result.trim(), expected.trim());
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
-      '| filters trace file',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = p.joinAll([
-          directory.path,
-          'original.info',
-        ]);
-        final filteredFilePath = p.joinAll([
-          directory.path,
-          'actual.info',
-        ]);
-        final acceptedSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'accepted_source_file.dart',
-        ]);
-        final ignoredSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'ignored_source_file.dart',
-        ]);
-        final acceptedSourceFileData = '''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      const patterns = <String>['ignored_source'];
+      final patternsRegex = patterns.map(RegExp.new);
+      final originalFilePath = p.joinAll([directory.path, 'original.info']);
+      final filteredFilePath = p.joinAll([directory.path, 'actual.info']);
+      final acceptedSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'accepted_source_file.dart',
+      ]);
+      final ignoredSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'ignored_source_file.dart',
+      ]);
+      final acceptedSourceFileData =
+          '''
 SF:$acceptedSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final ignoredSourceFileData = '''
+'''.trim();
+      final ignoredSourceFileData =
+          '''
 SF:$ignoredSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final originalFileContent =
-            '$acceptedSourceFileData\n$ignoredSourceFileData';
-        final originalFile = File(originalFilePath)
-          ..createSync()
-          ..writeAsStringSync(originalFileContent);
-        final filteredFile = File(filteredFilePath);
-        if (filteredFile.existsSync()) {
-          filteredFile.deleteSync(recursive: true);
-        }
-        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
-        final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
-        );
+'''.trim();
+      final originalFileContent =
+          '$acceptedSourceFileData\n$ignoredSourceFileData';
+      final originalFile =
+          File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
+      final filteredFile = File(filteredFilePath);
+      if (filteredFile.existsSync()) {
+        filteredFile.deleteSync(recursive: true);
+      }
+      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      );
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isFalse);
+      expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-        await cmdRunner.run([
-          'filter',
-          '--${FilterCommand.inputOption}',
-          originalFilePath,
-          '--${FilterCommand.outputOption}',
-          filteredFilePath,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
-        ]);
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+        '--${FilterCommand.filtersOption}',
+        patterns.join(','),
+      ]);
 
-        const splitter = LineSplitter();
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isTrue);
-        final filteredFileContent = filteredFile.readAsStringSync();
-        final expectedFilteredFileContent = acceptedSourceFileData;
-        final filteredFileIncludeFileThatMatchPatterns =
-            (await TraceFile.parseStreaming(filteredFile))
-                .includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-        expect(
-          splitter.convert(filteredFileContent),
-          splitter.convert(expectedFilteredFileContent),
-          reason: 'Error: Non-matching filtered file content.',
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
+      const splitter = LineSplitter();
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isTrue);
+      final filteredFileContent = filteredFile.readAsStringSync();
+      final expectedFilteredFileContent = acceptedSourceFileData;
+      final filteredFileIncludeFileThatMatchPatterns =
+          (await TraceFile.parseStreaming(
+            filteredFile,
+          )).includeFileThatMatchPatterns(patterns);
+      expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+      expect(
+        splitter.convert(filteredFileContent),
+        splitter.convert(expectedFilteredFileContent),
+        reason: 'Error: Non-matching filtered file content.',
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        ).called(1);
-        for (final fileData in filesDataToBeRemoved) {
-          final path = fileData.source.path;
-          verify(
-            () => logger.detail('<$path> coverage data ignored.'),
-          ).called(1);
-        }
-        directory.deleteSync(recursive: true);
-      },
-    );
+        ),
+      ).called(1);
+      for (final fileData in filesDataToBeRemoved) {
+        final path = fileData.source.path;
+        verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
+      }
+      directory.deleteSync(recursive: true);
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
-      '| filters trace file with absolute paths',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = p.join(
-          directory.path,
-          'original.info',
-        );
-        final filteredFilePath = p.join(
-          directory.path,
-          'actual.info',
-        );
-        final acceptedSourceFilePath = p.joinAll([
-          if (Platform.isWindows) 'C:' else '/',
-          'path',
-          'to',
-          'accepted_source_file.dart',
-        ]);
-        final ignoredSourceFilePath = p.joinAll([
-          if (Platform.isWindows) 'C:' else '/',
-          'path',
-          'to',
-          'ignored_source_file.dart',
-        ]);
-        final acceptedSourceFileData = '''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file with absolute paths', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      const patterns = <String>['ignored_source'];
+      final patternsRegex = patterns.map(RegExp.new);
+      final originalFilePath = p.join(directory.path, 'original.info');
+      final filteredFilePath = p.join(directory.path, 'actual.info');
+      final acceptedSourceFilePath = p.joinAll([
+        if (Platform.isWindows) 'C:' else '/',
+        'path',
+        'to',
+        'accepted_source_file.dart',
+      ]);
+      final ignoredSourceFilePath = p.joinAll([
+        if (Platform.isWindows) 'C:' else '/',
+        'path',
+        'to',
+        'ignored_source_file.dart',
+      ]);
+      final acceptedSourceFileData =
+          '''
 SF:$acceptedSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final ignoredSourceFileData = '''
+'''.trim();
+      final ignoredSourceFileData =
+          '''
 SF:$ignoredSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final originalFileContent =
-            '$acceptedSourceFileData\n$ignoredSourceFileData';
-        final originalFile = File(originalFilePath)
-          ..createSync()
-          ..writeAsStringSync(originalFileContent);
-        final filteredFile = File(filteredFilePath);
-        if (filteredFile.existsSync()) {
-          filteredFile.deleteSync(recursive: true);
-        }
-        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
-        final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
-        );
+'''.trim();
+      final originalFileContent =
+          '$acceptedSourceFileData\n$ignoredSourceFileData';
+      final originalFile =
+          File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
+      final filteredFile = File(filteredFilePath);
+      if (filteredFile.existsSync()) {
+        filteredFile.deleteSync(recursive: true);
+      }
+      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      );
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isFalse);
+      expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-        await cmdRunner.run([
-          'filter',
-          '--${FilterCommand.inputOption}',
-          originalFilePath,
-          '--${FilterCommand.outputOption}',
-          filteredFilePath,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
-        ]);
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+        '--${FilterCommand.filtersOption}',
+        patterns.join(','),
+      ]);
 
-        const splitter = LineSplitter();
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isTrue);
-        final filteredFileContent = filteredFile.readAsStringSync();
-        final expectedFilteredFileContent = acceptedSourceFileData;
-        final filteredFileIncludeFileThatMatchPatterns =
-            (await TraceFile.parseStreaming(filteredFile))
-                .includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-        expect(
-          splitter.convert(filteredFileContent),
-          splitter.convert(expectedFilteredFileContent),
-          reason: 'Error: Non-matching filtered file content.',
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
+      const splitter = LineSplitter();
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isTrue);
+      final filteredFileContent = filteredFile.readAsStringSync();
+      final expectedFilteredFileContent = acceptedSourceFileData;
+      final filteredFileIncludeFileThatMatchPatterns =
+          (await TraceFile.parseStreaming(
+            filteredFile,
+          )).includeFileThatMatchPatterns(patterns);
+      expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+      expect(
+        splitter.convert(filteredFileContent),
+        splitter.convert(expectedFilteredFileContent),
+        reason: 'Error: Non-matching filtered file content.',
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        ).called(1);
-        for (final fileData in filesDataToBeRemoved) {
-          final path = fileData.source.path;
-          verify(
-            () => logger.detail('<$path> coverage data ignored.'),
-          ).called(1);
-        }
-        directory.deleteSync(recursive: true);
-      },
-    );
+        ),
+      ).called(1);
+      for (final fileData in filesDataToBeRemoved) {
+        final path = fileData.source.path;
+        verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
+      }
+      directory.deleteSync(recursive: true);
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
-      '--${FilterCommand.filtersOption}=<patterns> '
-      '| filters trace file and resolves relative paths',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final baseDirectory = p.join('root', 'parent');
-        final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = p.join(
-          directory.path,
-          'original.info',
-        );
-        final filteredFilePath = p.join(
-          directory.path,
-          'actual.info',
-        );
-        final acceptedSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'accepted_source_file.dart',
-        ]);
-        final ignoredSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'ignored_source_file.dart',
-        ]);
-        final acceptedSourceFileData = '''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file and resolves relative paths', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      const patterns = <String>['ignored_source'];
+      final baseDirectory = p.join('root', 'parent');
+      final patternsRegex = patterns.map(RegExp.new);
+      final originalFilePath = p.join(directory.path, 'original.info');
+      final filteredFilePath = p.join(directory.path, 'actual.info');
+      final acceptedSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'accepted_source_file.dart',
+      ]);
+      final ignoredSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'ignored_source_file.dart',
+      ]);
+      final acceptedSourceFileData =
+          '''
 SF:$acceptedSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final ignoredSourceFileData = '''
+'''.trim();
+      final ignoredSourceFileData =
+          '''
 SF:$ignoredSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final originalFileContent = '''
+'''.trim();
+      final originalFileContent = '''
 $acceptedSourceFileData
 $ignoredSourceFileData
 ''';
-        final originalFile = File(originalFilePath)
-          ..createSync()
-          ..writeAsStringSync(originalFileContent);
-        final filteredFile = File(filteredFilePath);
-        if (filteredFile.existsSync()) {
-          filteredFile.deleteSync(recursive: true);
-        }
-        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
-        final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
-        );
+      final originalFile =
+          File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
+      final filteredFile = File(filteredFilePath);
+      if (filteredFile.existsSync()) {
+        filteredFile.deleteSync(recursive: true);
+      }
+      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      );
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isFalse);
+      expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-        await cmdRunner.run([
-          'filter',
-          '--${FilterCommand.inputOption}',
-          originalFilePath,
-          '--${FilterCommand.outputOption}',
-          filteredFilePath,
-          '--${FilterCommand.baseDirectoryOptionName}',
-          baseDirectory,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
-        ]);
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+        '--${FilterCommand.baseDirectoryOptionName}',
+        baseDirectory,
+        '--${FilterCommand.filtersOption}',
+        patterns.join(','),
+      ]);
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isTrue);
-        final expectedFilteredFileContent = '''
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isTrue);
+      final expectedFilteredFileContent =
+          '''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-        final expectedTraceFile = TraceFile(
-          sourceFilesCovData: [CovFile.parse(expectedFilteredFileContent)],
-        );
-        final filteredFileIncludeFileThatMatchPatterns =
-            filteredTraceFile.includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-        expect(
-          filteredTraceFile,
-          expectedTraceFile,
-          reason: 'Error: Non-matching trace files.',
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
+'''.trim();
+      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
+      final expectedTraceFile = TraceFile(
+        sourceFilesCovData: [CovFile.parse(expectedFilteredFileContent)],
+      );
+      final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+      expect(
+        filteredTraceFile,
+        expectedTraceFile,
+        reason: 'Error: Non-matching trace files.',
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        ).called(1);
-        for (final fileData in filesDataToBeRemoved) {
-          final path = fileData.source.path;
-          verify(
-            () => logger.detail('<$path> coverage data ignored.'),
-          ).called(1);
-        }
-      },
-    );
+        ),
+      ).called(1);
+      for (final fileData in filesDataToBeRemoved) {
+        final path = fileData.source.path;
+        verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
+      }
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
-      '--${FilterCommand.filtersOption}=<patterns> '
-      '| filters trace file and resolves relative paths '
-      '(including absolute paths)',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final baseDirectory = p.join('root', 'parent');
-        final patternsRegex = patterns.map(RegExp.new);
-        final originalFilePath = p.join(
-          directory.path,
-          'original.info',
-        );
-        final filteredFilePath = p.join(
-          directory.path,
-          'actual.info',
-        );
-        final acceptedSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'accepted_source_file.dart',
-        ]);
-        final ignoredSourceFilePath = p.joinAll([
-          'path',
-          'to',
-          'ignored_source_file.dart',
-        ]);
-        final absoluteSourceFilePath = p.joinAll([
-          if (Platform.isWindows) 'C:' else '/',
-          'path',
-          'to',
-          'absolute_source_file.dart',
-        ]);
-        final acceptedSourceFileData = '''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| filters trace file and resolves relative paths '
+        '(including absolute paths)', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      const patterns = <String>['ignored_source'];
+      final baseDirectory = p.join('root', 'parent');
+      final patternsRegex = patterns.map(RegExp.new);
+      final originalFilePath = p.join(directory.path, 'original.info');
+      final filteredFilePath = p.join(directory.path, 'actual.info');
+      final acceptedSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'accepted_source_file.dart',
+      ]);
+      final ignoredSourceFilePath = p.joinAll([
+        'path',
+        'to',
+        'ignored_source_file.dart',
+      ]);
+      final absoluteSourceFilePath = p.joinAll([
+        if (Platform.isWindows) 'C:' else '/',
+        'path',
+        'to',
+        'absolute_source_file.dart',
+      ]);
+      final acceptedSourceFileData =
+          '''
 SF:$acceptedSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final ignoredSourceFileData = '''
+'''.trim();
+      final ignoredSourceFileData =
+          '''
 SF:$ignoredSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final absoluteSourceFileData = '''
+'''.trim();
+      final absoluteSourceFileData =
+          '''
 SF:$absoluteSourceFilePath
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final originalFileContent = '''
+'''.trim();
+      final originalFileContent = '''
 $acceptedSourceFileData
 $ignoredSourceFileData
 $absoluteSourceFileData
 ''';
-        final originalFile = File(originalFilePath)
-          ..createSync()
-          ..writeAsStringSync(originalFileContent);
-        final filteredFile = File(filteredFilePath);
-        if (filteredFile.existsSync()) {
-          filteredFile.deleteSync(recursive: true);
-        }
-        final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-        final originalFileIncludeFileThatMatchPatterns =
-            originalTraceFile.includeFileThatMatchPatterns(patterns);
-        final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-          (d) => patternsRegex.any(
-            (r) => r.hasMatch(d.source.path),
-          ),
-        );
+      final originalFile =
+          File(originalFilePath)
+            ..createSync()
+            ..writeAsStringSync(originalFileContent);
+      final filteredFile = File(filteredFilePath);
+      if (filteredFile.existsSync()) {
+        filteredFile.deleteSync(recursive: true);
+      }
+      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      );
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isFalse);
-        expect(originalFileIncludeFileThatMatchPatterns, isTrue);
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isFalse);
+      expect(originalFileIncludeFileThatMatchPatterns, isTrue);
 
-        await cmdRunner.run([
-          'filter',
-          '--${FilterCommand.inputOption}',
-          originalFilePath,
-          '--${FilterCommand.outputOption}',
-          filteredFilePath,
-          '--${FilterCommand.baseDirectoryOptionName}',
-          baseDirectory,
-          '--${FilterCommand.filtersOption}',
-          patterns.join(','),
-        ]);
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+        '--${FilterCommand.baseDirectoryOptionName}',
+        baseDirectory,
+        '--${FilterCommand.filtersOption}',
+        patterns.join(','),
+      ]);
 
-        expect(originalFile.existsSync(), isTrue);
-        expect(filteredFile.existsSync(), isTrue);
-        final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-        final expectedTraceFile = TraceFile(
-          sourceFilesCovData: [
-            CovFile.parse(
-              '''
+      expect(originalFile.existsSync(), isTrue);
+      expect(filteredFile.existsSync(), isTrue);
+      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
+      final expectedTraceFile = TraceFile(
+        sourceFilesCovData: [
+          CovFile.parse(
+            '''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-                  .trim(),
-            ),
-            CovFile.parse(
-              '''
+'''.trim(),
+          ),
+          CovFile.parse(
+            '''
 SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-                  .trim(),
-            ),
-          ],
-        );
-        final filteredFileIncludeFileThatMatchPatterns =
-            filteredTraceFile.includeFileThatMatchPatterns(patterns);
-        expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
-        expect(
-          filteredTraceFile,
-          expectedTraceFile,
-          reason: 'Error: Non-matching trace files.',
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
+'''.trim(),
+          ),
+        ],
+      );
+      final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
+          .includeFileThatMatchPatterns(patterns);
+      expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
+      expect(
+        filteredTraceFile,
+        expectedTraceFile,
+        reason: 'Error: Non-matching trace files.',
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        ).called(1);
-        for (final fileData in filesDataToBeRemoved) {
-          final path = fileData.source.path;
-          verify(
-            () => logger.detail('<$path> coverage data ignored.'),
-          ).called(1);
-        }
-      },
-    );
+        ),
+      ).called(1);
+      for (final fileData in filesDataToBeRemoved) {
+        final path = fileData.source.path;
+        verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
+      }
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<absent_file> '
-      '--${FilterCommand.filtersOption}=<patterns> '
-      '| fails when trace file does not exist',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        const patterns = <String>['ignored_source'];
-        final absentFilePath = p.join(
-          directory.path,
-          'absent.info',
-        );
-        final absentFile = File(absentFilePath);
-        expect(absentFile.existsSync(), isFalse);
+    test('--${FilterCommand.inputOption}=<absent_file> '
+        '--${FilterCommand.filtersOption}=<patterns> '
+        '| fails when trace file does not exist', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      const patterns = <String>['ignored_source'];
+      final absentFilePath = p.join(directory.path, 'absent.info');
+      final absentFile = File(absentFilePath);
+      expect(absentFile.existsSync(), isFalse);
 
-        Future<void> action() => cmdRunner.run([
-              'filter',
-              '--${FilterCommand.inputOption}',
-              absentFilePath,
-              '--${FilterCommand.filtersOption}',
-              patterns.join(','),
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        absentFilePath,
+        '--${FilterCommand.filtersOption}',
+        patterns.join(','),
+      ]);
 
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeFilterTraceFileNotFoundFailure>().having(
-              (e) => e.traceFilePath,
-              'traceFilePath',
-              p.absolute(absentFilePath),
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeFilterTraceFileNotFoundFailure>().having(
+            (e) => e.traceFilePath,
+            'traceFilePath',
+            p.absolute(absentFilePath),
+          ),
+        ),
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
-            ),
-          ),
-        ).called(1);
-      },
-    );
+        ),
+      ).called(1);
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.filtersOption}=<invalid_regex> '
-      '| fails when regex pattern is invalid',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = p.join(directory.path, 'test.info');
-        File(traceFilePath)
-          ..createSync()
-          ..writeAsStringSync('''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.filtersOption}=<invalid_regex> '
+        '| fails when regex pattern is invalid', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final traceFilePath = p.join(directory.path, 'test.info');
+      File(traceFilePath)
+        ..createSync()
+        ..writeAsStringSync('''
 SF:test.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''');
-        const invalidPattern = '[invalid'; // Missing closing bracket
+      const invalidPattern = '[invalid'; // Missing closing bracket
 
-        Future<void> action() => cmdRunner.run([
-              'filter',
-              '--${FilterCommand.inputOption}',
-              traceFilePath,
-              '--${FilterCommand.filtersOption}',
-              invalidPattern,
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        traceFilePath,
+        '--${FilterCommand.filtersOption}',
+        invalidPattern,
+      ]);
 
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
-              (e) => e.invalidRegexPattern,
-              'invalidRegexPattern',
-              invalidPattern,
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+            (e) => e.invalidRegexPattern,
+            'invalidRegexPattern',
+            invalidPattern,
+          ),
+        ),
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
-            ),
-          ),
-        ).called(1);
-      },
-    );
+        ),
+      ).called(1);
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.filtersOption}=<multiple_invalid_patterns> '
-      '| fails when any regex pattern is invalid',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = p.join(directory.path, 'test.info');
-        File(traceFilePath)
-          ..createSync()
-          ..writeAsStringSync('''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.filtersOption}=<multiple_invalid_patterns> '
+        '| fails when any regex pattern is invalid', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final traceFilePath = p.join(directory.path, 'test.info');
+      File(traceFilePath)
+        ..createSync()
+        ..writeAsStringSync('''
 SF:test.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
 ''');
-        const validPattern = 'test';
-        const invalidPattern = '(unclosed'; // Invalid regex
+      const validPattern = 'test';
+      const invalidPattern = '(unclosed'; // Invalid regex
 
-        Future<void> action() => cmdRunner.run([
-              'filter',
-              '--${FilterCommand.inputOption}',
-              traceFilePath,
-              '--${FilterCommand.filtersOption}',
-              '$validPattern,$invalidPattern',
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        traceFilePath,
+        '--${FilterCommand.filtersOption}',
+        '$validPattern,$invalidPattern',
+      ]);
 
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeFilterInvalidRegexPatternFailure>().having(
-              (e) => e.invalidRegexPattern,
-              'invalidRegexPattern',
-              invalidPattern,
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeFilterInvalidRegexPatternFailure>().having(
+            (e) => e.invalidRegexPattern,
+            'invalidRegexPattern',
+            invalidPattern,
+          ),
+        ),
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        );
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
-            ),
-          ),
-        ).called(1);
-      },
-    );
+        ),
+      ).called(1);
+    });
 
-    test(
-      '--${FilterCommand.inputOption}=<trace_file> '
-      '--${FilterCommand.outputOption}=<output_file> '
-      '--${FilterCommand.modeOption}=<mode> '
-      '| filters trace file and handles different modes',
-      () async {
-        final existingContent = '''
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '--${FilterCommand.modeOption}=<mode> '
+        '| filters trace file and handles different modes', () async {
+      final existingContent =
+          '''
 SF:existing.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final newContent = '''
+'''.trim();
+      final newContent =
+          '''
 SF:new.dart
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''
-            .trim();
-        final testCases = [
-          (
-            mode: 'a',
-            outputFileName: 'a.lcov.info',
-            expectedContent: '$existingContent\n$newContent',
-          ),
-          (
-            mode: 'w',
-            outputFileName: 'w.lcov.info',
-            expectedContent: newContent,
-          ),
-        ];
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-filter-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final inputFilePath = p.join(
-          directory.path,
-          'input.info',
-        );
-        File(inputFilePath)
+'''.trim();
+      final testCases = [
+        (
+          mode: 'a',
+          outputFileName: 'a.lcov.info',
+          expectedContent: '$existingContent\n$newContent',
+        ),
+        (mode: 'w', outputFileName: 'w.lcov.info', expectedContent: newContent),
+      ];
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final inputFilePath = p.join(directory.path, 'input.info');
+      File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync(newContent);
+
+      for (final testCase in testCases) {
+        final outputFilePath = p.join(directory.path, testCase.outputFileName);
+        File(outputFilePath)
           ..createSync()
-          ..writeAsStringSync(newContent);
+          ..writeAsStringSync(existingContent);
 
-        for (final testCase in testCases) {
-          final outputFilePath = p.join(
-            directory.path,
-            testCase.outputFileName,
-          );
-          File(outputFilePath)
-            ..createSync()
-            ..writeAsStringSync(existingContent);
+        await cmdRunner.run([
+          'filter',
+          '--${FilterCommand.inputOption}',
+          inputFilePath,
+          '--${FilterCommand.outputOption}',
+          outputFilePath,
+          '--${FilterCommand.modeOption}',
+          testCase.mode,
+        ]);
 
-          await cmdRunner.run([
-            'filter',
-            '--${FilterCommand.inputOption}',
-            inputFilePath,
-            '--${FilterCommand.outputOption}',
-            outputFilePath,
-            '--${FilterCommand.modeOption}',
-            testCase.mode,
-          ]);
-
-          expect(
-            File(outputFilePath).existsSync(),
-            isTrue,
-            reason: 'Output file does not exist '
-                '(mode: ${testCase.mode}).',
-          );
-          expect(
-            File(outputFilePath).readAsStringSync(),
-            testCase.expectedContent,
-            reason: 'Filtered file content does not match '
-                '(mode: ${testCase.mode}).',
-          );
-        }
-        verify(
-          () => logger.warn(
-            any(
-              that: startsWith(
-                'The `filter` command is deprecated '
-                'and will be removed in the next major update.',
-              ),
+        expect(
+          File(outputFilePath).existsSync(),
+          isTrue,
+          reason:
+              'Output file does not exist '
+              '(mode: ${testCase.mode}).',
+        );
+        expect(
+          File(outputFilePath).readAsStringSync(),
+          testCase.expectedContent,
+          reason:
+              'Filtered file content does not match '
+              '(mode: ${testCase.mode}).',
+        );
+      }
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
             ),
           ),
-        ).called(2);
-      },
-    );
+        ),
+      ).called(2);
+    });
 
-    test(
-        '--${FilterCommand.inputOption}=<trace_file> '
+    test('--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
         '| throws $CoverdeFilterDirectoryCreateFailure '
         'when output directory creation fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final inputFilePath = p.join(directory.path, 'input.info');
       File(inputFilePath)
@@ -822,72 +752,67 @@ end_of_record
 
       final outputFilePath = p.join(directory.path, 'output.info');
 
-      await IOOverrides.runZoned(
-        () async {
-          Future<void> action() => cmdRunner.run([
-                'filter',
-                '--${FilterCommand.inputOption}',
-                inputFilePath,
-                '--${FilterCommand.outputOption}',
-                outputFilePath,
-              ]);
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run([
+          'filter',
+          '--${FilterCommand.inputOption}',
+          inputFilePath,
+          '--${FilterCommand.outputOption}',
+          outputFilePath,
+        ]);
 
-          expect(
-            action,
-            throwsA(
-              isA<CoverdeFilterDirectoryCreateFailure>().having(
-                (e) => e.directoryPath,
-                'directoryPath',
-                p.dirname(outputFilePath),
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeFilterDirectoryCreateFailure>().having(
+              (e) => e.directoryPath,
+              'directoryPath',
+              p.dirname(outputFilePath),
+            ),
+          ),
+        );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
               ),
             ),
-          );
-          verify(
-            () => logger.warn(
-              any(
-                that: startsWith(
-                  'The `filter` command is deprecated '
-                  'and will be removed in the next major update.',
-                ),
-              ),
-            ),
-          ).called(1);
-        },
-        createDirectory: (path) => _FilterTestDirectory(path: path),
-      );
+          ),
+        ).called(1);
+      }, createDirectory: (path) => _FilterTestDirectory(path: path));
     });
 
-    test(
-        '--${FilterCommand.inputOption}=<trace_file> '
+    test('--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
         '| throws $CoverdeFilterFileWriteFailure '
         'when output file write fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final inputFilePath = p.join(directory.path, 'input.info');
-      final inputFile = File(inputFilePath)
-        ..createSync()
-        ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
+      final inputFile =
+          File(inputFilePath)
+            ..createSync()
+            ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
       final outputFilePath = p.join(directory.path, 'output.info');
-      final testFilePath = p.joinAll([
-        directory.path,
-        'lib',
-        'some_test.dart',
-      ]);
-      final testFile = File(testFilePath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('void main() {}');
+      final testFilePath = p.joinAll([directory.path, 'lib', 'some_test.dart']);
+      final testFile =
+          File(testFilePath)
+            ..createSync(recursive: true)
+            ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'filter',
-                '--${FilterCommand.inputOption}',
-                inputFilePath,
-                '--${FilterCommand.outputOption}',
-                outputFilePath,
-              ]);
+            'filter',
+            '--${FilterCommand.inputOption}',
+            inputFilePath,
+            '--${FilterCommand.outputOption}',
+            outputFilePath,
+          ]);
 
           expect(
             action,
@@ -920,9 +845,10 @@ end_of_record
           if (p.basename(path) == 'output.info') {
             return _FilterTestFile(
               path: path,
-              open: () => Future<RandomAccessFile>.error(
-                FileSystemException('Fake file write error', path),
-              ),
+              open:
+                  () => Future<RandomAccessFile>.error(
+                    FileSystemException('Fake file write error', path),
+                  ),
             );
           }
           throw UnsupportedError(
@@ -932,13 +858,13 @@ end_of_record
       );
     });
 
-    test(
-        '--${FilterCommand.inputOption}=<trace_file> '
+    test('--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
         '| throws $CoverdeFilterTraceFileReadFailure '
         'when trace file read fails', () async {
-      final directory =
-          Directory.systemTemp.createTempSync('coverde-filter-test-');
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
       addTearDown(() => directory.delete(recursive: true));
       final inputFilePath = p.join(directory.path, 'input.info');
       File(inputFilePath).createSync();
@@ -948,12 +874,12 @@ end_of_record
       await IOOverrides.runZoned(
         () async {
           Future<void> action() => cmdRunner.run([
-                'filter',
-                '--${FilterCommand.inputOption}',
-                inputFilePath,
-                '--${FilterCommand.outputOption}',
-                outputFilePath,
-              ]);
+            'filter',
+            '--${FilterCommand.inputOption}',
+            inputFilePath,
+            '--${FilterCommand.outputOption}',
+            outputFilePath,
+          ]);
 
           expect(
             action,
@@ -980,9 +906,10 @@ end_of_record
           if (p.basename(path) == 'input.info') {
             return _FilterTestFile(
               path: path,
-              openRead: ([start, end]) => Stream<List<int>>.error(
-                FileSystemException('Fake file read error', path),
-              ),
+              openRead:
+                  ([start, end]) => Stream<List<int>>.error(
+                    FileSystemException('Fake file read error', path),
+                  ),
             );
           }
           if (p.basename(path) == 'output.info') {
@@ -998,9 +925,7 @@ end_of_record
 }
 
 final class _FilterTestDirectory extends Fake implements Directory {
-  _FilterTestDirectory({
-    required this.path,
-  });
+  _FilterTestDirectory({required this.path});
 
   @override
   final String path;
@@ -1016,8 +941,8 @@ final class _FilterTestFile extends Fake implements File {
     required this.path,
     Future<RandomAccessFile> Function()? open,
     Stream<List<int>> Function([int? start, int? end])? openRead,
-  })  : _open = open,
-        _openRead = openRead;
+  }) : _open = open,
+       _openRead = openRead;
 
   final Future<RandomAccessFile> Function()? _open;
   final Stream<List<int>> Function([int? start, int? end])? _openRead;

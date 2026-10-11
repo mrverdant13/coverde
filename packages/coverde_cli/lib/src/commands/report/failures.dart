@@ -1,5 +1,5 @@
 import 'package:coverde/coverde.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.report_failure}
 /// The interface for [ReportCommand] failures.
@@ -45,10 +45,11 @@ final class CoverdeReportInvalidMediumThresholdFailure
     required super.usageMessage,
     required this.rawValue,
   }) : super(
-          invalidInputDescription: 'Invalid medium threshold: `$rawValue`.\n'
-              'It should be a positive number not greater than 100 '
-              '[0.0, 100.0].',
-        );
+         invalidInputDescription:
+             'Invalid medium threshold: `$rawValue`.\n'
+             'It should be a positive number not greater than 100 '
+             '[0.0, 100.0].',
+       );
 
   /// The invalid medium value, if any.
   final String? rawValue;
@@ -65,10 +66,11 @@ final class CoverdeReportInvalidHighThresholdFailure
     required super.usageMessage,
     required this.rawValue,
   }) : super(
-          invalidInputDescription: 'Invalid high threshold: `$rawValue`.\n'
-              'It should be a positive number not greater than 100 '
-              '[0.0, 100.0].',
-        );
+         invalidInputDescription:
+             'Invalid high threshold: `$rawValue`.\n'
+             'It should be a positive number not greater than 100 '
+             '[0.0, 100.0].',
+       );
 
   /// The invalid high value, if any.
   final String? rawValue;
@@ -86,10 +88,10 @@ final class CoverdeReportInvalidThresholdRelationshipFailure
     required this.mediumValue,
     required this.highValue,
   }) : super(
-          invalidInputDescription:
-              'Medium threshold ($mediumValue) must be less than '
-              'high threshold ($highValue).',
-        );
+         invalidInputDescription:
+             'Medium threshold ($mediumValue) must be less than '
+             'high threshold ($highValue).',
+       );
 
   /// The medium threshold value.
   final double mediumValue;
@@ -104,9 +106,7 @@ final class CoverdeReportInvalidThresholdRelationshipFailure
 /// {@endtemplate}
 sealed class CoverdeReportInvalidTraceFileFailure extends CoverdeReportFailure {
   /// {@macro coverde_cli.report_invalid_trace_file_failure}
-  const CoverdeReportInvalidTraceFileFailure({
-    required this.traceFilePath,
-  });
+  const CoverdeReportInvalidTraceFileFailure({required this.traceFilePath});
 
   /// The path to the invalid trace file.
   final String traceFilePath;
@@ -118,9 +118,7 @@ sealed class CoverdeReportInvalidTraceFileFailure extends CoverdeReportFailure {
 final class CoverdeReportTraceFileNotFoundFailure
     extends CoverdeReportInvalidTraceFileFailure {
   /// {@macro coverde_cli.report_trace_file_not_found_failure}
-  const CoverdeReportTraceFileNotFoundFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeReportTraceFileNotFoundFailure({required super.traceFilePath});
 
   @override
   String get readableMessage => 'No trace file found at `$traceFilePath`.';
@@ -132,9 +130,7 @@ final class CoverdeReportTraceFileNotFoundFailure
 final class CoverdeReportEmptyTraceFileFailure
     extends CoverdeReportInvalidTraceFileFailure {
   /// {@macro coverde_cli.report_empty_trace_file_failure}
-  const CoverdeReportEmptyTraceFileFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeReportEmptyTraceFileFailure({required super.traceFilePath});
 
   @override
   String get readableMessage =>
@@ -152,9 +148,9 @@ final class CoverdeReportTraceFileReadFailure
     required super.traceFilePath,
     required FileSystemException exception,
   }) : errorMessage = [
-          exception.message,
-          if (exception.osError case final osError?) osError.message,
-        ].join('\n');
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
 
   /// The underlying error message.
   final String errorMessage;
@@ -173,8 +169,7 @@ enum CoverdeReportFileOperation {
   read('read'),
 
   /// The operation to write to a file.
-  write('write'),
-  ;
+  write('write');
 
   const CoverdeReportFileOperation(this.name);
 
@@ -218,21 +213,19 @@ final class CoverdeReportFileWriteFailure
   const CoverdeReportFileWriteFailure({
     required super.filePath,
     required super.errorMessage,
-  }) : super(
-          operation: CoverdeReportFileOperation.write,
-        );
+  }) : super(operation: CoverdeReportFileOperation.write);
 
   /// Create a [CoverdeReportFileWriteFailure] from a [FileSystemException].
   CoverdeReportFileWriteFailure.fromFileSystemException({
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeReportFileOperation.write,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeReportFileOperation.write,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.report_file_create_failure}
@@ -245,21 +238,19 @@ final class CoverdeReportFileCreateFailure
   const CoverdeReportFileCreateFailure({
     required super.filePath,
     required super.errorMessage,
-  }) : super(
-          operation: CoverdeReportFileOperation.create,
-        );
+  }) : super(operation: CoverdeReportFileOperation.create);
 
   /// Create a [CoverdeReportFileCreateFailure] from a [FileSystemException].
   CoverdeReportFileCreateFailure.fromFileSystemException({
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeReportFileOperation.create,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeReportFileOperation.create,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.report_file_read_failure}
@@ -271,19 +262,17 @@ final class CoverdeReportFileReadFailure
   const CoverdeReportFileReadFailure({
     required super.filePath,
     required super.errorMessage,
-  }) : super(
-          operation: CoverdeReportFileOperation.read,
-        );
+  }) : super(operation: CoverdeReportFileOperation.read);
 
   /// Create a [CoverdeReportFileReadFailure] from a [FileSystemException].
   CoverdeReportFileReadFailure.fromFileSystemException({
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeReportFileOperation.read,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeReportFileOperation.read,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }

@@ -1,7 +1,7 @@
 import 'package:coverde/coverde.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.transform_failure}
 /// The interface for [TransformCommand] failures.
@@ -30,57 +30,57 @@ final class CoverdeTransformInvalidConfigFileFailure
 
   @override
   String get readableMessage => [
-        'Invalid config file at `$configPath`.',
-        ...switch (failure) {
-          CoverdeConfigFromYamlInvalidYamlFailure(:final yamlException) => [
-              'Invalid YAML: ${yamlException.message}.',
-            ],
-          CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
-            :final key,
-            :final expectedType,
-            :final value
-          ) =>
-            [
-              'Invalid YAML member type.',
-              'Key: `${key ?? '<root>'}`.',
-              'Expected type: `$expectedType`.',
-              'Value: `$value`.',
-            ],
-          CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
-            :final key,
-            :final value,
-            :final hint
-          ) =>
-            [
-              'Invalid YAML member value.',
-              'Key: `${key ?? '<root>'}`.',
-              if (hint != null) 'Hint: $hint.',
-              'Value: `$value`.',
-            ],
-          CoverdeConfigFromYamlUnknownPresetFailure(
-            :final unknownPreset,
-            :final availablePresets
-          ) =>
-            [
-              'Unknown preset: `$unknownPreset`.',
-              'Available presets:',
-              for (final preset in availablePresets) '- `$preset`',
-            ],
-          CoverdeConfigFromYamlPresetCycleFailure(:final cycle) => [
-              'Preset cycle detected: ${cycle.join(' -> ')}.',
-            ],
-          CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
-            :final key,
-            :final invalidReferences
-          ) =>
-            [
-              'Invalid coverage percentage.',
-              'Key: `$key`.',
-              'Coverage values must be between 0 and 100.',
-              'Invalid values: ${invalidReferences.join(', ')}.',
-            ],
-        },
-      ].join('\n');
+    'Invalid config file at `$configPath`.',
+    ...switch (failure) {
+      CoverdeConfigFromYamlInvalidYamlFailure(:final yamlException) => [
+        'Invalid YAML: ${yamlException.message}.',
+      ],
+      CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+        :final key,
+        :final expectedType,
+        :final value,
+      ) =>
+        [
+          'Invalid YAML member type.',
+          'Key: `${key ?? '<root>'}`.',
+          'Expected type: `$expectedType`.',
+          'Value: `$value`.',
+        ],
+      CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+        :final key,
+        :final value,
+        :final hint,
+      ) =>
+        [
+          'Invalid YAML member value.',
+          'Key: `${key ?? '<root>'}`.',
+          if (hint != null) 'Hint: $hint.',
+          'Value: `$value`.',
+        ],
+      CoverdeConfigFromYamlUnknownPresetFailure(
+        :final unknownPreset,
+        :final availablePresets,
+      ) =>
+        [
+          'Unknown preset: `$unknownPreset`.',
+          'Available presets:',
+          for (final preset in availablePresets) '- `$preset`',
+        ],
+      CoverdeConfigFromYamlPresetCycleFailure(:final cycle) => [
+        'Preset cycle detected: ${cycle.join(' -> ')}.',
+      ],
+      CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+        :final key,
+        :final invalidReferences,
+      ) =>
+        [
+          'Invalid coverage percentage.',
+          'Key: `$key`.',
+          'Coverage values must be between 0 and 100.',
+          'Invalid values: ${invalidReferences.join(', ')}.',
+        ],
+    },
+  ].join('\n');
 }
 
 /// {@template coverde_cli.transform_invalid_transform_cli_option_failure}
@@ -99,68 +99,66 @@ final class CoverdeTransformInvalidTransformCliOptionFailure
 
   @override
   String get readableMessage => [
-        'Invalid transformation CLI option.',
-        ...switch (failure) {
-          TransformationFromCliOptionUnknownPresetFailure(
-            :final unknownPreset,
-            :final availablePresets,
-          ) =>
-            [
-              'Unknown preset: `$unknownPreset`.',
-              'Available presets:',
-              for (final preset in availablePresets) '- `$preset`',
-            ],
-          TransformationFromCliOptionUnsupportedTransformationFailure(
-            :final unsupportedTransformation,
-          ) =>
-            [
-              'Unsupported transformation: `$unsupportedTransformation`.',
-            ],
-          TransformationFromCliOptionInvalidRegexPatternFailure(
-            :final transformationIdentifier,
-            :final regex,
-          ) =>
-            [
-              'Transformation: `$transformationIdentifier`.',
-              'Invalid regex pattern: `$regex`.',
-            ],
-          TransformationFromCliOptionInvalidGlobPatternFailure(
-            :final transformationIdentifier,
-            :final glob,
-          ) =>
-            [
-              'Transformation: `$transformationIdentifier`.',
-              'Invalid glob pattern: `$glob`.',
-            ],
-          TransformationFromCliOptionInvalidNumericComparisonFailure(
-            :final transformationIdentifier,
-            :final comparison,
-          ) =>
-            [
-              'Transformation: `$transformationIdentifier`.',
-              'Invalid numeric comparison: `$comparison`.',
-            ],
-          TransformationFromCliOptionInvalidCoveragePercentageFailure(
-            :final transformationIdentifier,
-            :final invalidReferences,
-          ) =>
-            [
-              'Transformation: `$transformationIdentifier`.',
-              'Coverage values must be between 0 and 100.',
-              'Invalid values: ${invalidReferences.join(', ')}.',
-            ],
-          TransformationFromCliOptionInvalidPresetDescriptorFailure(
-            :final transformationIdentifier,
-            :final value,
-            :final hint,
-          ) =>
-            [
-              'Transformation: `$transformationIdentifier`.',
-              'Hint: $hint.',
-              'Value: `$value`.',
-            ],
-        },
-      ].join('\n');
+    'Invalid transformation CLI option.',
+    ...switch (failure) {
+      TransformationFromCliOptionUnknownPresetFailure(
+        :final unknownPreset,
+        :final availablePresets,
+      ) =>
+        [
+          'Unknown preset: `$unknownPreset`.',
+          'Available presets:',
+          for (final preset in availablePresets) '- `$preset`',
+        ],
+      TransformationFromCliOptionUnsupportedTransformationFailure(
+        :final unsupportedTransformation,
+      ) =>
+        ['Unsupported transformation: `$unsupportedTransformation`.'],
+      TransformationFromCliOptionInvalidRegexPatternFailure(
+        :final transformationIdentifier,
+        :final regex,
+      ) =>
+        [
+          'Transformation: `$transformationIdentifier`.',
+          'Invalid regex pattern: `$regex`.',
+        ],
+      TransformationFromCliOptionInvalidGlobPatternFailure(
+        :final transformationIdentifier,
+        :final glob,
+      ) =>
+        [
+          'Transformation: `$transformationIdentifier`.',
+          'Invalid glob pattern: `$glob`.',
+        ],
+      TransformationFromCliOptionInvalidNumericComparisonFailure(
+        :final transformationIdentifier,
+        :final comparison,
+      ) =>
+        [
+          'Transformation: `$transformationIdentifier`.',
+          'Invalid numeric comparison: `$comparison`.',
+        ],
+      TransformationFromCliOptionInvalidCoveragePercentageFailure(
+        :final transformationIdentifier,
+        :final invalidReferences,
+      ) =>
+        [
+          'Transformation: `$transformationIdentifier`.',
+          'Coverage values must be between 0 and 100.',
+          'Invalid values: ${invalidReferences.join(', ')}.',
+        ],
+      TransformationFromCliOptionInvalidPresetDescriptorFailure(
+        :final transformationIdentifier,
+        :final value,
+        :final hint,
+      ) =>
+        [
+          'Transformation: `$transformationIdentifier`.',
+          'Hint: $hint.',
+          'Value: `$value`.',
+        ],
+    },
+  ].join('\n');
 }
 
 /// {@template coverde_cli.transform_external_preset_file_not_found_failure}
@@ -205,10 +203,10 @@ final class CoverdeTransformUnknownExternalPresetFailure
 
   @override
   String get readableMessage => [
-        'Unknown preset: `$presetName` in `$filePath`.',
-        'Available presets:',
-        for (final preset in availablePresets) '- `$preset`',
-      ].join('\n');
+    'Unknown preset: `$presetName` in `$filePath`.',
+    'Available presets:',
+    for (final preset in availablePresets) '- `$preset`',
+  ].join('\n');
 }
 
 /// {@template coverde_cli.transform_external_preset_cycle_failure}
@@ -218,9 +216,7 @@ final class CoverdeTransformUnknownExternalPresetFailure
 final class CoverdeTransformExternalPresetCycleFailure
     extends CoverdeTransformFailure {
   /// {@macro coverde_cli.transform_external_preset_cycle_failure}
-  const CoverdeTransformExternalPresetCycleFailure({
-    required this.cycle,
-  });
+  const CoverdeTransformExternalPresetCycleFailure({required this.cycle});
 
   /// The preset cycle, including each authored file path.
   final List<String> cycle;
@@ -236,9 +232,7 @@ final class CoverdeTransformExternalPresetCycleFailure
 final class CoverdeTransformTraceFileNotFoundFailure
     extends CoverdeTransformFailure {
   /// {@macro coverde_cli.transform_trace_file_not_found_failure}
-  const CoverdeTransformTraceFileNotFoundFailure({
-    required this.traceFilePath,
-  });
+  const CoverdeTransformTraceFileNotFoundFailure({required this.traceFilePath});
 
   /// The path to the trace file.
   final String traceFilePath;
@@ -253,8 +247,7 @@ enum CoverdeTransformFileOperation {
   read('read'),
 
   /// The operation to write to a file.
-  write('write'),
-  ;
+  write('write');
 
   const CoverdeTransformFileOperation(this.name);
 
@@ -301,12 +294,12 @@ final class CoverdeTransformFileReadFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeTransformFileOperation.read,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeTransformFileOperation.read,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// {@template coverde_cli.transform_file_write_failure}
@@ -320,19 +313,18 @@ final class CoverdeTransformFileWriteFailure
     required super.filePath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeTransformFileOperation.write,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeTransformFileOperation.write,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }
 
 /// An operation on a directory.
 enum CoverdeTransformDirectoryOperation {
   /// The operation to create a directory.
-  create('create'),
-  ;
+  create('create');
 
   const CoverdeTransformDirectoryOperation(this.name);
 
@@ -380,10 +372,10 @@ final class CoverdeTransformDirectoryCreateFailure
     required super.directoryPath,
     required FileSystemException exception,
   }) : super(
-          operation: CoverdeTransformDirectoryOperation.create,
-          errorMessage: [
-            exception.message,
-            if (exception.osError case final osError?) osError.message,
-          ].join('\n'),
-        );
+         operation: CoverdeTransformDirectoryOperation.create,
+         errorMessage: [
+           exception.message,
+           if (exception.osError case final osError?) osError.message,
+         ].join('\n'),
+       );
 }

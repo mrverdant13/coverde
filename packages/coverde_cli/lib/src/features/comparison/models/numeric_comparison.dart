@@ -76,13 +76,8 @@ sealed class NumericComparison<T extends num> {
             rawReference: argument,
           );
         }
-        final lowerBoundIndicator = lowerBoundData.substring(
-          0,
-          1,
-        );
-        final rawLowerBoundReference = lowerBoundData.substring(
-          1,
-        );
+        final lowerBoundIndicator = lowerBoundData.substring(0, 1);
+        final rawLowerBoundReference = lowerBoundData.substring(1);
         final upperBoundIndicator = upperBoundData.substring(
           upperBoundData.length - 1,
         );
@@ -160,9 +155,7 @@ sealed class NumericComparison<T extends num> {
 final class EqualsNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.equals_numeric_comparison}
-  const EqualsNumericComparison({
-    required this.reference,
-  });
+  const EqualsNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'eq';
@@ -183,10 +176,7 @@ final class EqualsNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.not_equal_to_numeric_comparison}
@@ -196,9 +186,7 @@ final class EqualsNumericComparison<T extends num>
 final class NotEqualToNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.not_equal_to_numeric_comparison}
-  const NotEqualToNumericComparison({
-    required this.reference,
-  });
+  const NotEqualToNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'neq';
@@ -219,10 +207,7 @@ final class NotEqualToNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.greater_than_numeric_comparison}
@@ -232,9 +217,7 @@ final class NotEqualToNumericComparison<T extends num>
 final class GreaterThanNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.greater_than_numeric_comparison}
-  const GreaterThanNumericComparison({
-    required this.reference,
-  });
+  const GreaterThanNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'gt';
@@ -255,10 +238,7 @@ final class GreaterThanNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.greater_than_or_equal_to_numeric_comparison}
@@ -268,9 +248,7 @@ final class GreaterThanNumericComparison<T extends num>
 final class GreaterThanOrEqualToNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.greater_than_or_equal_to_numeric_comparison}
-  const GreaterThanOrEqualToNumericComparison({
-    required this.reference,
-  });
+  const GreaterThanOrEqualToNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'gte';
@@ -291,10 +269,7 @@ final class GreaterThanOrEqualToNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.less_than_numeric_comparison}
@@ -304,9 +279,7 @@ final class GreaterThanOrEqualToNumericComparison<T extends num>
 final class LessThanNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.less_than_numeric_comparison}
-  const LessThanNumericComparison({
-    required this.reference,
-  });
+  const LessThanNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'lt';
@@ -327,10 +300,7 @@ final class LessThanNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.less_than_or_equal_to_numeric_comparison}
@@ -340,9 +310,7 @@ final class LessThanNumericComparison<T extends num>
 final class LessThanOrEqualToNumericComparison<T extends num>
     extends NumericComparison<T> {
   /// {@macro coverde.less_than_or_equal_to_numeric_comparison}
-  const LessThanOrEqualToNumericComparison({
-    required this.reference,
-  });
+  const LessThanOrEqualToNumericComparison({required this.reference});
 
   /// The string identifier for this comparison type.
   static const identifier = 'lte';
@@ -363,10 +331,7 @@ final class LessThanOrEqualToNumericComparison<T extends num>
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        reference,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, reference]);
 }
 
 /// {@template coverde.range_numeric_comparison}
@@ -414,7 +379,8 @@ final class RangeNumericComparison<T extends num> extends NumericComparison<T> {
       (upperInclusive && value == upperReference);
 
   @override
-  String get describe => '$identifier|'
+  String get describe =>
+      '$identifier|'
       '$lowerBoundIndicator'
       '$lowerReference,$upperReference'
       '$upperBoundIndicator';
@@ -430,10 +396,10 @@ final class RangeNumericComparison<T extends num> extends NumericComparison<T> {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        lowerReference,
-        upperReference,
-        lowerInclusive,
-        upperInclusive,
-      ]);
+    runtimeType,
+    lowerReference,
+    upperReference,
+    lowerInclusive,
+    upperInclusive,
+  ]);
 }

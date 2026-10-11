@@ -31,23 +31,18 @@ void main() {
             presets: [
               PresetTransformation(
                 presetName: 'preset-1',
-                steps: [
-                  KeepByRegexTransformation(RegExp('lib/.*')),
-                ],
+                steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
               ),
               PresetTransformation(
                 presetName: 'preset-2',
-                steps: [
-                  KeepByRegexTransformation(RegExp('test/.*')),
-                ],
+                steps: [KeepByRegexTransformation(RegExp('test/.*'))],
               ),
             ],
           ),
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlFailure '
           'when YAML string is invalid', () {
         const yamlString = 'invalid: [yaml';
         expect(
@@ -68,17 +63,14 @@ void main() {
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML root is not a map', () {
         const yamlString = '[]';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
           _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
-              yaml.YamlMap>(
-            key: null,
-            failingValue: <dynamic>[],
-          ),
+            yaml.YamlMap
+          >(key: null, failingValue: <dynamic>[]),
         );
       });
 
@@ -88,22 +80,18 @@ void main() {
         expect(config, const CoverdeConfig(presets: []));
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML transformation presets member is not a map', () {
         const yamlString = 'transformations: 123';
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
           _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
-              yaml.YamlMap>(
-            key: 'transformations',
-            failingValue: 123,
-          ),
+            yaml.YamlMap
+          >(key: 'transformations', failingValue: 123),
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML transformation preset name is not a string', () {
         const yamlString = '''
         transformations:
@@ -120,8 +108,7 @@ void main() {
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML transformation preset steps are not a list', () {
         const yamlString = '''
         transformations:
@@ -130,15 +117,12 @@ void main() {
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
           _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
-              yaml.YamlList>(
-            key: 'transformations.preset',
-            failingValue: 123,
-          ),
+            yaml.YamlList
+          >(key: 'transformations.preset', failingValue: 123),
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML transformation preset step is not a map', () {
         const yamlString = '''
         transformations:
@@ -148,15 +132,12 @@ void main() {
         expect(
           () => CoverdeConfig.fromYaml(yamlString),
           _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
-              yaml.YamlMap>(
-            key: 'transformations.preset.[0]',
-            failingValue: 123,
-          ),
+            yaml.YamlMap
+          >(key: 'transformations.preset.[0]', failingValue: 123),
         );
       });
 
-      test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+      test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
           'when YAML transformation preset step type is not a string', () {
         const yamlString = '''
         transformations:
@@ -187,17 +168,14 @@ void main() {
               presets: [
                 PresetTransformation(
                   presetName: 'preset',
-                  steps: [
-                    KeepByRegexTransformation(RegExp('lib/.*')),
-                  ],
+                  steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
                 ),
               ],
             ),
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step regex is not a string', () {
           const yamlString = '''
           transformations:
@@ -214,8 +192,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step regex '
             'is not a valid regex pattern', () {
           const yamlString = '''
@@ -250,17 +227,14 @@ void main() {
               presets: [
                 PresetTransformation(
                   presetName: 'preset',
-                  steps: [
-                    SkipByRegexTransformation(RegExp('lib/.*')),
-                  ],
+                  steps: [SkipByRegexTransformation(RegExp('lib/.*'))],
                 ),
               ],
             ),
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step regex is not a string', () {
           const yamlString = '''
           transformations:
@@ -277,8 +251,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step regex '
             'is not a valid regex pattern', () {
           const yamlString = '''
@@ -324,8 +297,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step glob is not a string', () {
           const yamlString = '''
           transformations:
@@ -342,8 +314,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step glob '
             'is not a valid glob pattern', () {
           const yamlString = '''
@@ -389,8 +360,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step glob is not a string', () {
           const yamlString = '''
           transformations:
@@ -407,8 +377,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step glob '
             'is not a valid glob pattern', () {
           const yamlString = '''
@@ -455,26 +424,26 @@ void main() {
         });
 
         test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
-            'when YAML transformation preset step comparison is not a string',
-            () {
-          const yamlString = '''
+          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+          'when YAML transformation preset step comparison is not a string',
+          () {
+            const yamlString = '''
           transformations:
             preset:
               - type: keep-by-coverage
                 comparison: 123
           ''';
-          expect(
-            () => CoverdeConfig.fromYaml(yamlString),
-            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
-              key: 'transformations.preset.[0].comparison',
-              failingValue: 123,
-            ),
-          );
-        });
+            expect(
+              () => CoverdeConfig.fromYaml(yamlString),
+              _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+                key: 'transformations.preset.[0].comparison',
+                failingValue: 123,
+              ),
+            );
+          },
+        );
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step comparison '
             'is not a valid numeric comparison', () {
           const yamlString = '''
@@ -493,8 +462,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage is below 0', () {
           const yamlString = '''
           transformations:
@@ -511,8 +479,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage is above 100', () {
           const yamlString = '''
           transformations:
@@ -529,8 +496,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage range has invalid bounds', () {
           const yamlString = '''
           transformations:
@@ -575,26 +541,26 @@ void main() {
         });
 
         test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
-            'when YAML transformation preset step comparison is not a string',
-            () {
-          const yamlString = '''
+          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+          'when YAML transformation preset step comparison is not a string',
+          () {
+            const yamlString = '''
           transformations:
             preset:
               - type: skip-by-coverage
                 comparison: 123
           ''';
-          expect(
-            () => CoverdeConfig.fromYaml(yamlString),
-            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
-              key: 'transformations.preset.[0].comparison',
-              failingValue: 123,
-            ),
-          );
-        });
+            expect(
+              () => CoverdeConfig.fromYaml(yamlString),
+              _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+                key: 'transformations.preset.[0].comparison',
+                failingValue: 123,
+              ),
+            );
+          },
+        );
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step comparison '
             'is not a valid numeric comparison', () {
           const yamlString = '''
@@ -613,8 +579,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage is below 0', () {
           const yamlString = '''
           transformations:
@@ -631,8 +596,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage is above 100', () {
           const yamlString = '''
           transformations:
@@ -649,8 +613,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
             'when coverage percentage range has invalid bounds', () {
           const yamlString = '''
           transformations:
@@ -683,9 +646,7 @@ void main() {
               presets: [
                 PresetTransformation(
                   presetName: 'preset',
-                  steps: [
-                    RelativeTransformation('packages/app'),
-                  ],
+                  steps: [RelativeTransformation('packages/app')],
                 ),
               ],
             ),
@@ -693,23 +654,24 @@ void main() {
         });
 
         test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
-            'when YAML transformation preset step base-path is not a string',
-            () {
-          const yamlString = '''
+          '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+          'when YAML transformation preset step base-path is not a string',
+          () {
+            const yamlString = '''
           transformations:
             preset:
               - type: relative
                 base-path: 123
           ''';
-          expect(
-            () => CoverdeConfig.fromYaml(yamlString),
-            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
-              key: 'transformations.preset.[0].base-path',
-              failingValue: 123,
-            ),
-          );
-        });
+            expect(
+              () => CoverdeConfig.fromYaml(yamlString),
+              _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+                key: 'transformations.preset.[0].base-path',
+                failingValue: 123,
+              ),
+            );
+          },
+        );
       });
 
       group('identifier: ${PresetTransformation.identifier} with file', () {
@@ -737,10 +699,7 @@ void main() {
             config,
             const CoverdeConfig(
               presets: [
-                PresetTransformation(
-                  presetName: 'preset',
-                  steps: [external],
-                ),
+                PresetTransformation(presetName: 'preset', steps: [external]),
                 PresetTransformation(
                   presetName: 'wrapper',
                   steps: [
@@ -755,8 +714,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step file is empty', () {
           const yamlString = '''
           transformations:
@@ -775,8 +733,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step file is not a string', () {
           const yamlString = '''
           transformations:
@@ -794,8 +751,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset step name is not a string', () {
           const yamlString = '''
           transformations:
@@ -835,25 +791,20 @@ void main() {
                   steps: [
                     PresetTransformation(
                       presetName: 'nested-preset',
-                      steps: [
-                        KeepByRegexTransformation(RegExp('lib/.*')),
-                      ],
+                      steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
                     ),
                   ],
                 ),
                 PresetTransformation(
                   presetName: 'nested-preset',
-                  steps: [
-                    KeepByRegexTransformation(RegExp('lib/.*')),
-                  ],
+                  steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
                 ),
               ],
             ),
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset name is empty', () {
           const yamlString = '''
           transformations:
@@ -871,8 +822,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
             'when YAML transformation preset step has an unknown key', () {
           const yamlString = '''
           transformations:
@@ -891,8 +841,7 @@ void main() {
           );
         });
 
-        test(
-            '| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
             'when YAML transformation preset name is not a string', () {
           const yamlString = '''
           transformations:
@@ -911,60 +860,62 @@ void main() {
       });
 
       test(
-          '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
-          'when YAML transformation preset step type is not a valid preset',
-          () {
-        const yamlString = '''
+        '| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+        'when YAML transformation preset step type is not a valid preset',
+        () {
+          const yamlString = '''
           transformations:
             preset:
               - type: invalid-step-type
                 arg: something
           ''';
-        expect(
-          () => CoverdeConfig.fromYaml(yamlString),
-          _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
-            key: 'transformations.preset.[0].type',
-            value: 'invalid-step-type',
-            hint: 'one of: '
-                '`preset`, '
-                '`keep-by-regex`, `skip-by-regex`, '
-                '`keep-by-glob`, `skip-by-glob`, '
-                '`keep-by-coverage`, `skip-by-coverage`, '
-                '`relative`',
-          ),
-        );
-      });
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'transformations.preset.[0].type',
+              value: 'invalid-step-type',
+              hint:
+                  'one of: '
+                  '`preset`, '
+                  '`keep-by-regex`, `skip-by-regex`, '
+                  '`keep-by-glob`, `skip-by-glob`, '
+                  '`keep-by-coverage`, `skip-by-coverage`, '
+                  '`relative`',
+            ),
+          );
+        },
+      );
 
       test(
-          '| throws $CoverdeConfigFromYamlUnknownPresetFailure '
-          'when YAML transformation preset step references an unknown preset',
-          () {
-        const yamlString = '''
+        '| throws $CoverdeConfigFromYamlUnknownPresetFailure '
+        'when YAML transformation preset step references an unknown preset',
+        () {
+          const yamlString = '''
           transformations:
             preset:
               - type: preset
                 name: invalid-preset
           ''';
-        expect(
-          () => CoverdeConfig.fromYaml(yamlString),
-          throwsA(
-            isA<CoverdeConfigFromYamlUnknownPresetFailure>()
-                .having(
-              (failure) => failure.unknownPreset,
-              'unknownPreset',
-              'invalid-preset',
-            )
-                .having(
-              (failure) => failure.availablePresets,
-              'availablePresets',
-              ['preset'],
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            throwsA(
+              isA<CoverdeConfigFromYamlUnknownPresetFailure>()
+                  .having(
+                    (failure) => failure.unknownPreset,
+                    'unknownPreset',
+                    'invalid-preset',
+                  )
+                  .having(
+                    (failure) => failure.availablePresets,
+                    'availablePresets',
+                    ['preset'],
+                  ),
             ),
-          ),
-        );
-      });
+          );
+        },
+      );
 
-      test(
-          '| throws $CoverdeConfigFromYamlPresetCycleFailure '
+      test('| throws $CoverdeConfigFromYamlPresetCycleFailure '
           'when YAML transformation preset step references a preset that '
           'references the original preset', () {
         const yamlString = '''
@@ -994,9 +945,7 @@ void main() {
         const config = CoverdeConfig(presets: []);
         const same = CoverdeConfig(presets: []);
         const other = CoverdeConfig(
-          presets: [
-            PresetTransformation(presetName: 'preset-1', steps: []),
-          ],
+          presets: [PresetTransformation(presetName: 'preset-1', steps: [])],
         );
         expect(config, same);
         expect(config, isNot(other));
@@ -1013,21 +962,9 @@ Matcher _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<ExpectedType>({
 }) {
   return throwsA(
     isA<CoverdeConfigFromYamlInvalidYamlMemberTypeFailure>()
-        .having(
-          (failure) => failure.key,
-          'key',
-          key,
-        )
-        .having(
-          (failure) => failure.expectedType,
-          'expectedType',
-          ExpectedType,
-        )
-        .having(
-          (failure) => failure.value,
-          'value',
-          failingValue,
-        )
+        .having((failure) => failure.key, 'key', key)
+        .having((failure) => failure.expectedType, 'expectedType', ExpectedType)
+        .having((failure) => failure.value, 'value', failingValue)
         .having(
           (failure) => failure.value,
           'value',
@@ -1043,21 +980,9 @@ Matcher _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure({
 }) {
   return throwsA(
     isA<CoverdeConfigFromYamlInvalidYamlMemberValueFailure>()
-        .having(
-          (failure) => failure.key,
-          'key',
-          key,
-        )
-        .having(
-          (failure) => failure.value,
-          'value',
-          value,
-        )
-        .having(
-          (failure) => failure.hint,
-          'hint',
-          hint,
-        ),
+        .having((failure) => failure.key, 'key', key)
+        .having((failure) => failure.value, 'value', value)
+        .having((failure) => failure.hint, 'hint', hint),
   );
 }
 
@@ -1067,11 +992,7 @@ Matcher _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure({
 }) {
   return throwsA(
     isA<CoverdeConfigFromYamlInvalidCoveragePercentageFailure>()
-        .having(
-          (failure) => failure.key,
-          'key',
-          key,
-        )
+        .having((failure) => failure.key, 'key', key)
         .having(
           (failure) => failure.invalidReferences,
           'invalidReferences',

@@ -1,6 +1,6 @@
 import 'package:coverde/src/utils/utils.dart';
 import 'package:meta/meta.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 String? _debugOperatingSystemIdentifier;
 

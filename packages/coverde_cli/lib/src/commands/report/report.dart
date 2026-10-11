@@ -40,16 +40,14 @@ Launch the generated report in the default browser.
 This option is only supported on desktop platforms.
 (defaults to off)''',
       )
-      ..addSeparator(
-        '''
+      ..addSeparator('''
 Threshold values (%):
 These options provide reference coverage values for the HTML report styling.
 
 High: $_highHelpValue <= coverage <= 100
 Medium: $_mediumHelpValue <= coverage < $_highHelpValue
 Low: 0 <= coverage < $_mediumHelpValue
-''',
-      )
+''')
       ..addOption(
         mediumOption,
         help: '''
@@ -116,9 +114,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final argResults = this.argResults!;
     final traceFilePath = argResults.option(inputOption)!;
     final reportDirPath = path.joinAll(
-      path.split(
-        argResults.option(outputOption)!,
-      ),
+      path.split(argResults.option(outputOption)!),
     );
     final mediumString = argResults.option(mediumOption)!;
     final medium = double.tryParse(mediumString);
@@ -146,12 +142,14 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final shouldLaunch = argResults.flag(launchFlag);
 
     // Report dir path should be absolute.
-    final reportDirAbsPath = path.isAbsolute(reportDirPath)
-        ? reportDirPath
-        : path.join(Directory.current.path, reportDirPath);
-    final traceFileAbsPath = path.isAbsolute(traceFilePath)
-        ? traceFilePath
-        : path.join(Directory.current.path, traceFilePath);
+    final reportDirAbsPath =
+        path.isAbsolute(reportDirPath)
+            ? reportDirPath
+            : path.join(Directory.current.path, reportDirPath);
+    final traceFileAbsPath =
+        path.isAbsolute(traceFilePath)
+            ? traceFilePath
+            : path.join(Directory.current.path, traceFilePath);
 
     final traceFile = File(traceFileAbsPath);
 
@@ -172,9 +170,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     }
 
     if (traceFileData.isEmpty) {
-      throw CoverdeReportEmptyTraceFileFailure(
-        traceFilePath: traceFileAbsPath,
-      );
+      throw CoverdeReportEmptyTraceFileFailure(traceFilePath: traceFileAbsPath);
     }
 
     // Build cov report base tree.
@@ -203,36 +199,30 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
         high: high,
       );
     } on GenerateHtmlCoverageReportFailure catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        switch (exception) {
-          final GenerateHtmlCoverageReportFileOperationFailure failure =>
-            switch (failure) {
-              GenerateHtmlCoverageReportFileCreateFailure() =>
-                CoverdeReportFileCreateFailure(
-                  filePath: failure.filePath,
-                  errorMessage: failure.errorMessage,
-                ),
-              GenerateHtmlCoverageReportFileReadFailure() =>
-                CoverdeReportFileReadFailure(
-                  filePath: failure.filePath,
-                  errorMessage: failure.errorMessage,
-                ),
-              GenerateHtmlCoverageReportFileWriteFailure() =>
-                CoverdeReportFileWriteFailure(
-                  filePath: failure.filePath,
-                  errorMessage: failure.errorMessage,
-                ),
-            },
-        },
-        stackTrace,
-      );
+      Error.throwWithStackTrace(switch (exception) {
+        final GenerateHtmlCoverageReportFileOperationFailure failure =>
+          switch (failure) {
+            GenerateHtmlCoverageReportFileCreateFailure() =>
+              CoverdeReportFileCreateFailure(
+                filePath: failure.filePath,
+                errorMessage: failure.errorMessage,
+              ),
+            GenerateHtmlCoverageReportFileReadFailure() =>
+              CoverdeReportFileReadFailure(
+                filePath: failure.filePath,
+                errorMessage: failure.errorMessage,
+              ),
+            GenerateHtmlCoverageReportFileWriteFailure() =>
+              CoverdeReportFileWriteFailure(
+                filePath: failure.filePath,
+                errorMessage: failure.errorMessage,
+              ),
+          },
+      }, stackTrace);
     }
 
     // Copy static files.
-    final cssRootPath = path.join(
-      reportDirAbsPath,
-      'report_style.css',
-    );
+    final cssRootPath = path.join(reportDirAbsPath, 'report_style.css');
     final cssFile = File(cssRootPath);
     try {
       cssFile.createSync(recursive: true);
@@ -257,10 +247,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       );
     }
 
-    final sortAlphaIconRootPath = path.join(
-      reportDirAbsPath,
-      'sort_alpha.png',
-    );
+    final sortAlphaIconRootPath = path.join(reportDirAbsPath, 'sort_alpha.png');
     final sortAlphaFile = File(sortAlphaIconRootPath);
     try {
       sortAlphaFile.createSync(recursive: true);
@@ -317,19 +304,12 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     logger.info('$covTree');
 
-    final reportLocationMessage = StringBuffer()
-      ..write(
-        wrapWith(
-          'Report location: ',
-          [blue, styleBold],
-        ),
-      )
-      ..write(
-        wrapWith(
-          reportIndexAbsPath,
-          [blue, styleBold, styleUnderlined],
-        ),
-      );
+    final reportLocationMessage =
+        StringBuffer()
+          ..write(wrapWith('Report location: ', [blue, styleBold]))
+          ..write(
+            wrapWith(reportIndexAbsPath, [blue, styleBold, styleUnderlined]),
+          );
     logger.info('$reportLocationMessage\n');
 
     if (shouldLaunch) {
@@ -341,10 +321,10 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
         return;
       }
       try {
-        await processManager.run(
-          [launchCommand, reportIndexAbsPath],
-          runInShell: true,
-        );
+        await processManager.run([
+          launchCommand,
+          reportIndexAbsPath,
+        ], runInShell: true);
       } on Object catch (error) {
         logger.err('Failed to launch browser: $error');
       }

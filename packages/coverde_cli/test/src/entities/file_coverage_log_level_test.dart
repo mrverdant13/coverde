@@ -5,18 +5,11 @@ void main() {
   group('$FileCoverageLogLevel', () {
     test('values', () {
       final names = () {
-        return [
-          'none',
-          'overview',
-          'lineNumbers',
-          'lineContent',
-        ];
+        return ['none', 'overview', 'lineNumbers', 'lineContent'];
       }();
       expect(
         FileCoverageLogLevel.values,
-        names.map(
-          (name) => FileCoverageLogLevel.values.byName(name),
-        ),
+        names.map((name) => FileCoverageLogLevel.values.byName(name)),
       );
     });
 

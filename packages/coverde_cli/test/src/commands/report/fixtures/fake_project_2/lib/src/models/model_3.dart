@@ -6,9 +6,7 @@ import 'package:meta/meta.dart';
 @immutable
 class Model3 {
   /// {@macro model_3}
-  const Model3({
-    required this.doubleValue,
-  });
+  const Model3({required this.doubleValue});
 
   /// A fake double value.
   final double doubleValue;

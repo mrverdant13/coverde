@@ -42,7 +42,9 @@ final class NumericComparisonFromDescriptionInvalidRangeBoundIndicatorFailure
 /// {@endtemplate}
 @immutable
 final class NumericComparisonFromDescriptionInvalidRangeBoundsOrderFailure<
-    T extends num> extends NumericComparisonFromDescriptionFailure {
+  T extends num
+>
+    extends NumericComparisonFromDescriptionFailure {
   // Long doc template identifier.
   // ignore: lines_longer_than_80_chars
   /// {@macro coverde.numeric_comparison_from_description_invalid_range_bounds_order_failure}

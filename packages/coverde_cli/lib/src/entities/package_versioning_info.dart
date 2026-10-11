@@ -33,11 +33,11 @@ class PackageVersioningInfo {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        packageName,
-        packageVersion,
-        dartVersionConstraint,
-      ]);
+    runtimeType,
+    packageName,
+    packageVersion,
+    dartVersionConstraint,
+  ]);
 
   @override
   String toString() {

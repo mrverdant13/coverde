@@ -9,7 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 class _MockHttpClient extends Mock implements http.Client {}
@@ -26,8 +26,8 @@ final class _PackageVersionManagerTestFile extends Fake implements File {
     required this.path,
     bool Function()? existsSync,
     Future<String> Function()? readAsString,
-  })  : _existsSync = existsSync,
-        _readAsString = readAsString;
+  }) : _existsSync = existsSync,
+       _readAsString = readAsString;
 
   @override
   final String path;
@@ -60,9 +60,7 @@ void main() {
 
     setUp(() {
       dependencies = _MockPackageVersionManagerDependencies();
-      packageVersionManager = PackageVersionManager(
-        dependencies: dependencies,
-      );
+      packageVersionManager = PackageVersionManager(dependencies: dependencies);
     });
 
     test('can be instantiated', () {
@@ -74,13 +72,13 @@ void main() {
         when(() => dependencies.baseUrl).thenReturn('https://pub.dev');
       });
 
-      test(
-          'throws an $AbsentGlobalLockFileForGlobalInstallationFailure '
+      test('throws an $AbsentGlobalLockFileForGlobalInstallationFailure '
           'if the lock file path resolves to a non-existent entity', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
-        when(() => dependencies.globalLockFilePath)
-            .thenReturn(p.join(tempDir.path, 'pubspec.lock'));
+        when(
+          () => dependencies.globalLockFilePath,
+        ).thenReturn(p.join(tempDir.path, 'pubspec.lock'));
         Future<void> action() =>
             packageVersionManager.getGlobalPackageInstallationInfo();
         expect(
@@ -89,8 +87,7 @@ void main() {
         );
       });
 
-      test(
-          'throws an $AbsentGlobalLockFileForGlobalInstallationFailure '
+      test('throws an $AbsentGlobalLockFileForGlobalInstallationFailure '
           'if the lock file path resolves to a non-file entity', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -103,8 +100,7 @@ void main() {
         );
       });
 
-      test(
-          'throws an $UnreadableGlobalLockFileForGlobalInstallationFailure '
+      test('throws an $UnreadableGlobalLockFileForGlobalInstallationFailure '
           'if the lock file cannot be read', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -120,10 +116,10 @@ void main() {
               throwsA(
                 isA<UnreadableGlobalLockFileForGlobalInstallationFailure>()
                     .having(
-                  (failure) => failure.lockFile.path,
-                  'lockFile.path',
-                  lockFilePath,
-                ),
+                      (failure) => failure.lockFile.path,
+                      'lockFile.path',
+                      lockFilePath,
+                    ),
               ),
             );
           },
@@ -132,10 +128,8 @@ void main() {
               return _PackageVersionManagerTestFile(
                 path: path,
                 existsSync: () => true,
-                readAsString: () => throw FileSystemException(
-                  'Permission denied',
-                  path,
-                ),
+                readAsString:
+                    () => throw FileSystemException('Permission denied', path),
               );
             }
             throw UnsupportedError(
@@ -145,8 +139,7 @@ void main() {
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockFileYamlForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockFileYamlForGlobalInstallationFailure '
           'if the lock file contains invalid YAML', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -173,8 +166,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file content root is not a ${yaml.YamlMap}', () async {
         final tempDir = Directory.systemTemp.createTempSync();
         addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -191,11 +183,7 @@ packages:
           action,
           throwsA(
             isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  isNull,
-                )
+                .having((failure) => failure.key, 'key', isNull)
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -206,41 +194,37 @@ packages:
       });
 
       test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
-          'if the lock file content "packages" member is not a ${yaml.YamlMap}',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync();
-        addTearDown(() => tempDir.deleteSync(recursive: true));
-        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        File(lockFilePath).writeAsStringSync('''
+        'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+        'if the lock file content "packages" member is not a ${yaml.YamlMap}',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+          File(lockFilePath).writeAsStringSync('''
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
   12345
 ''');
-        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() =>
-            packageVersionManager.getGlobalPackageInstallationInfo();
-        expect(
-          action,
-          throwsA(
-            isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'packages',
-                )
-                .having(
-                  (failure) => failure.expectedType,
-                  'expectedType',
-                  yaml.YamlMap,
-                ),
-          ),
-        );
-      });
+          when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+          Future<void> action() =>
+              packageVersionManager.getGlobalPackageInstallationInfo();
+          expect(
+            action,
+            throwsA(
+              isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
+                  .having((failure) => failure.key, 'key', 'packages')
+                  .having(
+                    (failure) => failure.expectedType,
+                    'expectedType',
+                    yaml.YamlMap,
+                  ),
+            ),
+          );
+        },
+      );
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file content "packages" member values '
           'are not ${yaml.YamlMap}s', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -260,11 +244,7 @@ packages:
           action,
           throwsA(
             isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'packages(values)',
-                )
+                .having((failure) => failure.key, 'key', 'packages(values)')
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -275,13 +255,13 @@ packages:
       });
 
       test(
-          'throws an $NoDirectMainHostedPackageForGlobalInstallationFailure '
-          'if the lock file does not contain the main package lock entry',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync();
-        addTearDown(() => tempDir.deleteSync(recursive: true));
-        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        File(lockFilePath).writeAsStringSync('''
+        'throws an $NoDirectMainHostedPackageForGlobalInstallationFailure '
+        'if the lock file does not contain the main package lock entry',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+          File(lockFilePath).writeAsStringSync('''
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
@@ -302,19 +282,19 @@ packages:
 sdks:
   dart: ">=3.6.0 <4.0.0"
 ''');
-        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() =>
-            packageVersionManager.getGlobalPackageInstallationInfo();
-        expect(
-          action,
-          throwsA(
-            isA<NoDirectMainHostedPackageForGlobalInstallationFailure>(),
-          ),
-        );
-      });
+          when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+          Future<void> action() =>
+              packageVersionManager.getGlobalPackageInstallationInfo();
+          expect(
+            action,
+            throwsA(
+              isA<NoDirectMainHostedPackageForGlobalInstallationFailure>(),
+            ),
+          );
+        },
+      );
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'description is not a ${yaml.YamlMap}', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -369,8 +349,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'description name is not a $String', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -428,8 +407,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'description url is not a $String', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -487,8 +465,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'description url is not a valid URL', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -546,8 +523,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'version is not a $String', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -604,8 +580,7 @@ packages:
         );
       });
 
-      test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+      test('throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
           'if the lock file direct main hosted package '
           'version is not a valid SemVer string', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -663,13 +638,13 @@ packages:
       });
 
       test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
-          'if the lock file does not contain the SDKs version constraints',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync();
-        addTearDown(() => tempDir.deleteSync(recursive: true));
-        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        File(lockFilePath).writeAsStringSync('''
+        'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+        'if the lock file does not contain the SDKs version constraints',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+          File(lockFilePath).writeAsStringSync('''
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
@@ -695,35 +670,32 @@ packages:
     source: hosted
     version: "2.0.0"
 ''');
-        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() =>
-            packageVersionManager.getGlobalPackageInstallationInfo();
-        expect(
-          action,
-          throwsA(
-            isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'sdks',
-                )
-                .having(
-                  (failure) => failure.expectedType,
-                  'expectedType',
-                  yaml.YamlMap,
-                ),
-          ),
-        );
-      });
+          when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+          Future<void> action() =>
+              packageVersionManager.getGlobalPackageInstallationInfo();
+          expect(
+            action,
+            throwsA(
+              isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
+                  .having((failure) => failure.key, 'key', 'sdks')
+                  .having(
+                    (failure) => failure.expectedType,
+                    'expectedType',
+                    yaml.YamlMap,
+                  ),
+            ),
+          );
+        },
+      );
 
       test(
-          'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
-          'if the lock file does not contain the Dart SDK version constraints',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync();
-        addTearDown(() => tempDir.deleteSync(recursive: true));
-        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        File(lockFilePath).writeAsStringSync('''
+        'throws an $InvalidGlobalLockMemberTypeForGlobalInstallationFailure '
+        'if the lock file does not contain the Dart SDK version constraints',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+          File(lockFilePath).writeAsStringSync('''
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
@@ -751,35 +723,32 @@ packages:
 sdks:
   other: ">=3.6.0 <4.0.0"
 ''');
-        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() =>
-            packageVersionManager.getGlobalPackageInstallationInfo();
-        expect(
-          action,
-          throwsA(
-            isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'sdks.dart',
-                )
-                .having(
-                  (failure) => failure.expectedType,
-                  'expectedType',
-                  String,
-                ),
-          ),
-        );
-      });
+          when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+          Future<void> action() =>
+              packageVersionManager.getGlobalPackageInstallationInfo();
+          expect(
+            action,
+            throwsA(
+              isA<InvalidGlobalLockMemberTypeForGlobalInstallationFailure>()
+                  .having((failure) => failure.key, 'key', 'sdks.dart')
+                  .having(
+                    (failure) => failure.expectedType,
+                    'expectedType',
+                    String,
+                  ),
+            ),
+          );
+        },
+      );
 
       test(
-          'throws an $InvalidGlobalLockMemberValueForGlobalInstallationFailure '
-          'if the lock file contains invalid Dart SDK version constraints',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync();
-        addTearDown(() => tempDir.deleteSync(recursive: true));
-        final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
-        File(lockFilePath).writeAsStringSync('''
+        'throws an $InvalidGlobalLockMemberValueForGlobalInstallationFailure '
+        'if the lock file contains invalid Dart SDK version constraints',
+        () async {
+          final tempDir = Directory.systemTemp.createTempSync();
+          addTearDown(() => tempDir.deleteSync(recursive: true));
+          final lockFilePath = p.join(tempDir.path, 'pubspec.lock');
+          File(lockFilePath).writeAsStringSync('''
 # Generated by pub
 # See https://dart.dev/tools/pub/glossary#lockfile
 packages:
@@ -807,26 +776,23 @@ packages:
 sdks:
   dart: ">=3.6.0 asdf <4.0.0"
 ''');
-        when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        Future<void> action() =>
-            packageVersionManager.getGlobalPackageInstallationInfo();
-        expect(
-          action,
-          throwsA(
-            isA<InvalidGlobalLockMemberValueForGlobalInstallationFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'sdks.dart',
-                )
-                .having(
-                  (failure) => failure.hint,
-                  'hint',
-                  'a valid SemVer constraint string',
-                ),
-          ),
-        );
-      });
+          when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
+          Future<void> action() =>
+              packageVersionManager.getGlobalPackageInstallationInfo();
+          expect(
+            action,
+            throwsA(
+              isA<InvalidGlobalLockMemberValueForGlobalInstallationFailure>()
+                  .having((failure) => failure.key, 'key', 'sdks.dart')
+                  .having(
+                    (failure) => failure.hint,
+                    'hint',
+                    'a valid SemVer constraint string',
+                  ),
+            ),
+          );
+        },
+      );
 
       test('returns the global package installation info ', () async {
         final tempDir = Directory.systemTemp.createTempSync();
@@ -883,11 +849,11 @@ sdks:
         when(() => dependencies.baseUrl).thenReturn('https://example.com');
       });
 
-      test(
-          'throws an $UnexpectedRemotePackageVersioningInfosRetrievalFailure '
+      test('throws an $UnexpectedRemotePackageVersioningInfosRetrievalFailure '
           'if the remote package info request fails', () async {
-        when(() => httpClient.get(any()))
-            .thenThrow(Exception('Failed to get remote package info'));
+        when(
+          () => httpClient.get(any()),
+        ).thenThrow(Exception('Failed to get remote package info'));
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
@@ -898,69 +864,59 @@ sdks:
       });
 
       test(
-          'throws an $UnexpectedRemotePackageVersioningInfosRetrievalFailure '
-          'if the remote package info response is not ${HttpStatus.ok}',
-          () async {
-        when(() => httpClient.get(any()))
-            .thenAnswer((_) async => http.Response('Not Found', 404));
-        expect(
-          () =>
-              packageVersionManager.getRemotePackageVersioningInfos('coverde'),
-          throwsA(
-            isA<UnexpectedRemotePackageVersioningInfosRetrievalFailure>(),
-          ),
-        );
-      });
+        'throws an $UnexpectedRemotePackageVersioningInfosRetrievalFailure '
+        'if the remote package info response is not ${HttpStatus.ok}',
+        () async {
+          when(
+            () => httpClient.get(any()),
+          ).thenAnswer((_) async => http.Response('Not Found', 404));
+          expect(
+            () => packageVersionManager.getRemotePackageVersioningInfos(
+              'coverde',
+            ),
+            throwsA(
+              isA<UnexpectedRemotePackageVersioningInfosRetrievalFailure>(),
+            ),
+          );
+        },
+      );
 
       test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
-          'if the remote package info response is not a valid JSON string',
-          () async {
-        when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '{',
-            HttpStatus.ok,
-          ),
-        );
-        expect(
-          () =>
-              packageVersionManager.getRemotePackageVersioningInfos('coverde'),
-          throwsA(
-            isA<InvalidRemotePackageVersioningInfoMemberValueFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  null,
-                )
-                .having(
-                  (failure) => failure.hint,
-                  'hint',
-                  'a valid JSON string',
-                ),
-          ),
-        );
-      });
+        'throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
+        'if the remote package info response is not a valid JSON string',
+        () async {
+          when(
+            () => httpClient.get(any()),
+          ).thenAnswer((_) async => http.Response('{', HttpStatus.ok));
+          expect(
+            () => packageVersionManager.getRemotePackageVersioningInfos(
+              'coverde',
+            ),
+            throwsA(
+              isA<InvalidRemotePackageVersioningInfoMemberValueFailure>()
+                  .having((failure) => failure.key, 'key', null)
+                  .having(
+                    (failure) => failure.hint,
+                    'hint',
+                    'a valid JSON string',
+                  ),
+            ),
+          );
+        },
+      );
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response is not a '
           '${Map<String, dynamic>}', () async {
-        when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '"Not a map"',
-            HttpStatus.ok,
-          ),
-        );
+        when(
+          () => httpClient.get(any()),
+        ).thenAnswer((_) async => http.Response('"Not a map"', HttpStatus.ok));
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberTypeFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  null,
-                )
+                .having((failure) => failure.key, 'key', null)
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -970,26 +926,19 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response "versions" member is not a '
           '$List', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '{"versions": "Not a Map"}',
-            HttpStatus.ok,
-          ),
+          (_) async =>
+              http.Response('{"versions": "Not a Map"}', HttpStatus.ok),
         );
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberTypeFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'versions',
-                )
+                .having((failure) => failure.key, 'key', 'versions')
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -999,26 +948,18 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response "versions" member contains an '
           'item that is not a ${Map<String, dynamic>}', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '{"versions": [1, 2, 3]}',
-            HttpStatus.ok,
-          ),
+          (_) async => http.Response('{"versions": [1, 2, 3]}', HttpStatus.ok),
         );
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberTypeFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'versions.[0]',
-                )
+                .having((failure) => failure.key, 'key', 'versions.[0]')
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -1028,26 +969,19 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response "versions.<index>.version" '
           'member that is not a $String', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '{"versions": [{"version": 123}]}',
-            HttpStatus.ok,
-          ),
+          (_) async =>
+              http.Response('{"versions": [{"version": 123}]}', HttpStatus.ok),
         );
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberTypeFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'versions.[0].version',
-                )
+                .having((failure) => failure.key, 'key', 'versions.[0].version')
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -1057,8 +991,7 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
           'if the remote package info response "versions.<index>.version" '
           'member is not a valid SemVer string', () async {
         when(() => httpClient.get(any())).thenAnswer(
@@ -1072,11 +1005,7 @@ sdks:
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberValueFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'versions.[0].version',
-                )
+                .having((failure) => failure.key, 'key', 'versions.[0].version')
                 .having(
                   (failure) => failure.hint,
                   'hint',
@@ -1086,13 +1015,11 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response "versions.<index>.pubspec" '
           'member is not a ${Map<String, dynamic>}', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '''
+          (_) async => http.Response('''
 {
   "versions": [
     {
@@ -1101,20 +1028,14 @@ sdks:
     }
   ]
 }
-''',
-            HttpStatus.ok,
-          ),
+''', HttpStatus.ok),
         );
         expect(
           () =>
               packageVersionManager.getRemotePackageVersioningInfos('coverde'),
           throwsA(
             isA<InvalidRemotePackageVersioningInfoMemberTypeFailure>()
-                .having(
-                  (failure) => failure.key,
-                  'key',
-                  'versions.[0].pubspec',
-                )
+                .having((failure) => failure.key, 'key', 'versions.[0].pubspec')
                 .having(
                   (failure) => failure.expectedType,
                   'expectedType',
@@ -1124,14 +1045,12 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response '
           '"versions.<index>.pubspec.environment" member is not a '
           '${Map<String, dynamic>}', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '''
+          (_) async => http.Response('''
 {
   "versions": [
     {
@@ -1142,9 +1061,7 @@ sdks:
     }
   ]
 }
-''',
-            HttpStatus.ok,
-          ),
+''', HttpStatus.ok),
         );
         expect(
           () =>
@@ -1165,14 +1082,12 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberTypeFailure '
           'if the remote package info response '
           '"versions.<index>.pubspec.environment.sdk" member is not a '
           '$String', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '''
+          (_) async => http.Response('''
 {
   "versions": [
     {
@@ -1185,9 +1100,7 @@ sdks:
     }
   ]
 }
-''',
-            HttpStatus.ok,
-          ),
+''', HttpStatus.ok),
         );
         expect(
           () =>
@@ -1208,14 +1121,12 @@ sdks:
         );
       });
 
-      test(
-          'throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
+      test('throws an $InvalidRemotePackageVersioningInfoMemberValueFailure '
           'if the remote package info response '
           '"versions.<index>.pubspec.environment.sdk" member is not a '
           'valid SemVer constraint string', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '''
+          (_) async => http.Response('''
 {
   "versions": [
     {
@@ -1228,9 +1139,7 @@ sdks:
     }
   ]
 }
-''',
-            HttpStatus.ok,
-          ),
+''', HttpStatus.ok),
         );
         expect(
           () =>
@@ -1253,8 +1162,7 @@ sdks:
 
       test('returns the remote package installation infos', () async {
         when(() => httpClient.get(any())).thenAnswer(
-          (_) async => http.Response(
-            '''
+          (_) async => http.Response('''
 {
   "name": "coverde",
   "versions": [
@@ -1302,42 +1210,37 @@ sdks:
     }
   ]
 }
-            ''',
-            HttpStatus.ok,
-          ),
+            ''', HttpStatus.ok),
         );
         final remotePackageInstallationInfos = await packageVersionManager
             .getRemotePackageVersioningInfos('coverde');
-        expect(
-          remotePackageInstallationInfos,
-          [
-            PackageVersioningInfo(
-              packageName: 'coverde',
-              packageVersion: Version.parse('0.2.0+2'),
-              dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
-            ),
-            PackageVersioningInfo(
-              packageName: 'coverde',
-              packageVersion: Version.parse('0.2.0+1'),
-              dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
-            ),
-            PackageVersioningInfo(
-              packageName: 'coverde',
-              packageVersion: Version.parse('0.2.0'),
-              dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
-            ),
-            PackageVersioningInfo(
-              packageName: 'coverde',
-              packageVersion: Version.parse('0.1.0+1'),
-              dartVersionConstraint: VersionConstraint.parse('>=2.14.4 <3.0.0'),
-            ),
-            PackageVersioningInfo(
-              packageName: 'coverde',
-              packageVersion: Version.parse('0.1.0'),
-              dartVersionConstraint: VersionConstraint.parse('>=2.14.4 <3.0.0'),
-            ),
-          ],
-        );
+        expect(remotePackageInstallationInfos, [
+          PackageVersioningInfo(
+            packageName: 'coverde',
+            packageVersion: Version.parse('0.2.0+2'),
+            dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
+          ),
+          PackageVersioningInfo(
+            packageName: 'coverde',
+            packageVersion: Version.parse('0.2.0+1'),
+            dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
+          ),
+          PackageVersioningInfo(
+            packageName: 'coverde',
+            packageVersion: Version.parse('0.2.0'),
+            dartVersionConstraint: VersionConstraint.parse('>=3.0.0 <4.0.0'),
+          ),
+          PackageVersioningInfo(
+            packageName: 'coverde',
+            packageVersion: Version.parse('0.1.0+1'),
+            dartVersionConstraint: VersionConstraint.parse('>=2.14.4 <3.0.0'),
+          ),
+          PackageVersioningInfo(
+            packageName: 'coverde',
+            packageVersion: Version.parse('0.1.0'),
+            dartVersionConstraint: VersionConstraint.parse('>=2.14.4 <3.0.0'),
+          ),
+        ]);
       });
     });
 
@@ -1359,8 +1262,7 @@ sdks:
         when(() => dependencies.rawDartVersion).thenReturn('3.6.0');
       });
 
-      test(
-          'prompts the user to update the package '
+      test('prompts the user to update the package '
           'if there is a compatible newer version', () async {
         File(lockFilePath).writeAsStringSync('''
 # Generated by pub
@@ -1393,8 +1295,7 @@ sdks:
         when(() => httpClient.get(any())).thenAnswer(
           (_) => Future.delayed(
             const Duration(milliseconds: 150),
-            () async => http.Response(
-              '''
+            () async => http.Response('''
 {
   "name": "coverde",
   "versions": [
@@ -1442,34 +1343,26 @@ sdks:
     }
   ]
 }
-            ''',
-              HttpStatus.ok,
-            ),
+            ''', HttpStatus.ok),
           ),
         );
         final progress = _MockProgress();
         when(() => logger.progress(any())).thenReturn(progress);
         await packageVersionManager.promptUpdate();
         verify(
-          () => logger.write(
-            '''
+          () => logger.write('''
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃                                                           ┃
 ┃         ${lightYellow.wrap('A new version of `coverde` is available!')}          ┃
 ┃                     ${lightGray.wrap('0.2.0+1')} \u2192 ${lightGreen.wrap('0.2.0+2')}                     ┃
-┃  Run ${wrapWith('dart pub global activate coverde 0.2.0+2', [
-                  lightCyan,
-                  styleBold,
-                ])} to update.  ┃
+┃  Run ${wrapWith('dart pub global activate coverde 0.2.0+2', [lightCyan, styleBold])} to update.  ┃
 ┃                                                           ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-''',
-          ),
+'''),
         ).called(1);
       });
 
-      test(
-          'alerts the user '
+      test('alerts the user '
           'if there is an error while retrieving the global package '
           'installation info', () async {
         if (File(lockFilePath) case final file when file.existsSync()) {
@@ -1490,8 +1383,7 @@ sdks:
         verify(() => logger.alert('Failed to prompt update')).called(1);
       });
 
-      test(
-          'alerts the user '
+      test('alerts the user '
           'if there is an error while retrieving the remote package '
           'versioning infos', () async {
         File(lockFilePath).writeAsStringSync('''
@@ -1520,8 +1412,7 @@ sdks:
         verify(() => logger.alert('Failed to prompt update')).called(1);
       });
 
-      test(
-          'alerts the user '
+      test('alerts the user '
           'if there is an unexpected error while prompting update', () async {
         File(lockFilePath).writeAsStringSync('''
 packages:
@@ -1546,8 +1437,7 @@ sdks:
         verify(() => logger.alert('Failed to prompt update')).called(1);
       });
 
-      test(
-          'warns the user '
+      test('warns the user '
           'if no compatible newer version is available', () async {
         File(lockFilePath).writeAsStringSync('''
 # Generated by pub
@@ -1566,8 +1456,7 @@ sdks:
         when(() => httpClient.get(any())).thenAnswer(
           (_) => Future.delayed(
             const Duration(milliseconds: 150),
-            () async => http.Response(
-              '''
+            () async => http.Response('''
 {
   "name": "coverde",
   "versions": [
@@ -1598,9 +1487,7 @@ sdks:
     }
   ]
 }
-            ''',
-              HttpStatus.ok,
-            ),
+            ''', HttpStatus.ok),
           ),
         );
         final progress = _MockProgress();
@@ -1638,165 +1525,181 @@ sdks:
         ).called(1);
       });
 
-      group('logs a $InvalidGlobalLockFileContentForGlobalInstallationFailure',
-          () {
-        test('logs a $InvalidGlobalLockMemberTypeForGlobalInstallationFailure',
+      group(
+        'logs a $InvalidGlobalLockFileContentForGlobalInstallationFailure',
+        () {
+          test(
+            'logs a $InvalidGlobalLockMemberTypeForGlobalInstallationFailure',
             () {
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              key: 'packages',
-              expectedType: yaml.YamlMap,
-              value: '12345',
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid global lock file content. '
-              'The `packages` member is expected to be a `${yaml.YamlMap}`. '
-              'Actual value: `12345`.',
-            ),
-          ).called(1);
-        });
-
-        test('logs a $InvalidGlobalLockMemberValueForGlobalInstallationFailure',
-            () {
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            InvalidGlobalLockMemberValueForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              key: 'packages',
-              value: '12345',
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid global lock file content. '
-              'The `packages` member value is '
-              'invalid. '
-              'Actual value: `12345`.',
-            ),
-          ).called(1);
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            InvalidGlobalLockMemberValueForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              key: 'packages',
-              value: '12345',
-              hint: 'a valid YamlMap',
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid global lock file content. '
-              'The `packages` member value is '
-              'expected to be a valid YamlMap. '
-              'Actual value: `12345`.',
-            ),
-          ).called(1);
-        });
-
-        test('logs a $NoDirectMainHostedPackageForGlobalInstallationFailure',
-            () {
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            NoDirectMainHostedPackageForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid global lock file content. '
-              'No direct main hosted package found.',
-            ),
-          ).called(1);
-        });
-
-        test('logs a $UnreadableGlobalLockFileForGlobalInstallationFailure',
-            () {
-          const fileSystemException = FileSystemException(
-            'Permission denied',
-            'some/path/to/pubspec.lock',
-          );
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            UnreadableGlobalLockFileForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              fileSystemException: fileSystemException,
-            ),
-          );
-          verify(
-            () => logger.warn(
-              'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
-              'Permission denied',
-            ),
-          ).called(1);
-        });
-
-        test(
-            'logs a $UnreadableGlobalLockFileForGlobalInstallationFailure '
-            'with OS error message', () {
-          const osError = OSError('No such file or directory', 2);
-          const fileSystemException = FileSystemException(
-            'Permission denied',
-            'some/path/to/pubspec.lock',
-            osError,
-          );
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            UnreadableGlobalLockFileForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              fileSystemException: fileSystemException,
-            ),
-          );
-          verify(
-            () => logger.warn(
-              'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
-              'Permission denied\n'
-              'No such file or directory',
-            ),
-          ).called(1);
-        });
-
-        test('logs a $InvalidGlobalLockFileYamlForGlobalInstallationFailure',
-            () {
-          // Create a YamlException by actually parsing invalid YAML
-          late yaml.YamlException yamlException;
-          try {
-            yaml.loadYaml('invalid: [unclosed');
-            fail('Expected YamlException');
-          } on yaml.YamlException catch (e) {
-            yamlException = e;
-          }
-          logger.logGlobalPackageInstallationInfoRetrievalFailure(
-            InvalidGlobalLockFileYamlForGlobalInstallationFailure(
-              lockFile: File('some/path/to/pubspec.lock'),
-              yamlException: yamlException,
-            ),
-          );
-          verify(
-            () => logger.err(
-              any(
-                that: isA<String>().having(
-                  (s) => s,
-                  'message',
-                  contains('Invalid global lock file content. '
-                      'Invalid global lock file YAML.'),
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                InvalidGlobalLockMemberTypeForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                  key: 'packages',
+                  expectedType: yaml.YamlMap,
+                  value: '12345',
                 ),
+              );
+              verify(
+                () => logger.err(
+                  'Invalid global lock file content. '
+                  'The `packages` member is expected to be a '
+                  '`${yaml.YamlMap}`. '
+                  'Actual value: `12345`.',
+                ),
+              ).called(1);
+            },
+          );
+
+          test(
+            'logs a $InvalidGlobalLockMemberValueForGlobalInstallationFailure',
+            () {
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                  key: 'packages',
+                  value: '12345',
+                ),
+              );
+              verify(
+                () => logger.err(
+                  'Invalid global lock file content. '
+                  'The `packages` member value is '
+                  'invalid. '
+                  'Actual value: `12345`.',
+                ),
+              ).called(1);
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                InvalidGlobalLockMemberValueForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                  key: 'packages',
+                  value: '12345',
+                  hint: 'a valid YamlMap',
+                ),
+              );
+              verify(
+                () => logger.err(
+                  'Invalid global lock file content. '
+                  'The `packages` member value is '
+                  'expected to be a valid YamlMap. '
+                  'Actual value: `12345`.',
+                ),
+              ).called(1);
+            },
+          );
+
+          test(
+            'logs a $NoDirectMainHostedPackageForGlobalInstallationFailure',
+            () {
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                NoDirectMainHostedPackageForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                ),
+              );
+              verify(
+                () => logger.err(
+                  'Invalid global lock file content. '
+                  'No direct main hosted package found.',
+                ),
+              ).called(1);
+            },
+          );
+
+          test(
+            'logs a $UnreadableGlobalLockFileForGlobalInstallationFailure',
+            () {
+              const fileSystemException = FileSystemException(
+                'Permission denied',
+                'some/path/to/pubspec.lock',
+              );
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                UnreadableGlobalLockFileForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                  fileSystemException: fileSystemException,
+                ),
+              );
+              verify(
+                () => logger.warn(
+                  'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
+                  'Permission denied',
+                ),
+              ).called(1);
+            },
+          );
+
+          test('logs a $UnreadableGlobalLockFileForGlobalInstallationFailure '
+              'with OS error message', () {
+            const osError = OSError('No such file or directory', 2);
+            const fileSystemException = FileSystemException(
+              'Permission denied',
+              'some/path/to/pubspec.lock',
+              osError,
+            );
+            logger.logGlobalPackageInstallationInfoRetrievalFailure(
+              UnreadableGlobalLockFileForGlobalInstallationFailure(
+                lockFile: File('some/path/to/pubspec.lock'),
+                fileSystemException: fileSystemException,
               ),
-            ),
-          ).called(1);
-        });
-      });
+            );
+            verify(
+              () => logger.warn(
+                'Unreadable global lock file (`some/path/to/pubspec.lock`).\n'
+                'Permission denied\n'
+                'No such file or directory',
+              ),
+            ).called(1);
+          });
+
+          test(
+            'logs a $InvalidGlobalLockFileYamlForGlobalInstallationFailure',
+            () {
+              // Create a YamlException by actually parsing invalid YAML
+              late yaml.YamlException yamlException;
+              try {
+                yaml.loadYaml('invalid: [unclosed');
+                fail('Expected YamlException');
+              } on yaml.YamlException catch (e) {
+                yamlException = e;
+              }
+              logger.logGlobalPackageInstallationInfoRetrievalFailure(
+                InvalidGlobalLockFileYamlForGlobalInstallationFailure(
+                  lockFile: File('some/path/to/pubspec.lock'),
+                  yamlException: yamlException,
+                ),
+              );
+              verify(
+                () => logger.err(
+                  any(
+                    that: isA<String>().having(
+                      (s) => s,
+                      'message',
+                      contains(
+                        'Invalid global lock file content. '
+                        'Invalid global lock file YAML.',
+                      ),
+                    ),
+                  ),
+                ),
+              ).called(1);
+            },
+          );
+        },
+      );
     });
 
     group('logRemotePackageVersioningInfosRetrievalFailure', () {
-      test('logs a $UnexpectedRemotePackageVersioningInfosRetrievalFailure',
-          () {
-        logger.logRemotePackageVersioningInfosRetrievalFailure(
-          const UnexpectedRemotePackageVersioningInfosRetrievalFailure(),
-        );
-        verify(
-          () => logger.err(
-            'Unexpected remote package versioning infos retrieval failure.',
-          ),
-        ).called(1);
-      });
+      test(
+        'logs a $UnexpectedRemotePackageVersioningInfosRetrievalFailure',
+        () {
+          logger.logRemotePackageVersioningInfosRetrievalFailure(
+            const UnexpectedRemotePackageVersioningInfosRetrievalFailure(),
+          );
+          verify(
+            () => logger.err(
+              'Unexpected remote package versioning infos retrieval failure.',
+            ),
+          ).called(1);
+        },
+      );
 
       group('logs a $InvalidRemotePackageVersioningInfoFailure', () {
         test('logs a $InvalidRemotePackageVersioningInfoMemberTypeFailure', () {
@@ -1816,38 +1719,40 @@ sdks:
           ).called(1);
         });
 
-        test('logs a $InvalidRemotePackageVersioningInfoMemberValueFailure',
-            () {
-          logger.logRemotePackageVersioningInfosRetrievalFailure(
-            const InvalidRemotePackageVersioningInfoMemberValueFailure(
-              key: 'versions',
-              value: '12345',
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid remote package versioning info. '
-              'The `versions` member value is '
-              'invalid. '
-              'Actual value: `12345`.',
-            ),
-          ).called(1);
-          logger.logRemotePackageVersioningInfosRetrievalFailure(
-            const InvalidRemotePackageVersioningInfoMemberValueFailure(
-              key: 'versions',
-              value: '12345',
-              hint: 'a valid List',
-            ),
-          );
-          verify(
-            () => logger.err(
-              'Invalid remote package versioning info. '
-              'The `versions` member value is '
-              'expected to be a valid List. '
-              'Actual value: `12345`.',
-            ),
-          ).called(1);
-        });
+        test(
+          'logs a $InvalidRemotePackageVersioningInfoMemberValueFailure',
+          () {
+            logger.logRemotePackageVersioningInfosRetrievalFailure(
+              const InvalidRemotePackageVersioningInfoMemberValueFailure(
+                key: 'versions',
+                value: '12345',
+              ),
+            );
+            verify(
+              () => logger.err(
+                'Invalid remote package versioning info. '
+                'The `versions` member value is '
+                'invalid. '
+                'Actual value: `12345`.',
+              ),
+            ).called(1);
+            logger.logRemotePackageVersioningInfosRetrievalFailure(
+              const InvalidRemotePackageVersioningInfoMemberValueFailure(
+                key: 'versions',
+                value: '12345',
+                hint: 'a valid List',
+              ),
+            );
+            verify(
+              () => logger.err(
+                'Invalid remote package versioning info. '
+                'The `versions` member value is '
+                'expected to be a valid List. '
+                'Actual value: `12345`.',
+              ),
+            ).called(1);
+          },
+        );
       });
     });
   });

@@ -8,17 +8,11 @@ void main() {
   group('$FileLineCoverageStatus', () {
     test('values', () {
       final names = () {
-        return [
-          'covered',
-          'uncovered',
-          'neutral',
-        ];
+        return ['covered', 'uncovered', 'neutral'];
       }();
       expect(
         FileLineCoverageStatus.values,
-        names.map(
-          (name) => FileLineCoverageStatus.values.byName(name),
-        ),
+        names.map((name) => FileLineCoverageStatus.values.byName(name)),
       );
     });
   });

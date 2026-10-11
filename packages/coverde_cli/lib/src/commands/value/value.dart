@@ -81,9 +81,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     }();
 
     if (!File(filePath).existsSync()) {
-      throw CoverdeValueTraceFileNotFoundFailure(
-        traceFilePath: filePath,
-      );
+      throw CoverdeValueTraceFileNotFoundFailure(traceFilePath: filePath);
     }
 
     final file = File(filePath);
@@ -99,9 +97,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     }
 
     if (traceFile.isEmpty) {
-      throw CoverdeValueEmptyTraceFileFailure(
-        traceFilePath: filePath,
-      );
+      throw CoverdeValueEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
     logCoverage(
@@ -162,28 +158,19 @@ Compute the coverage value of the $_inputHelpValue info file.''';
               logger.info('├   ${'•' * lineNumberColumnWidth} | •••');
             }
             for (final lineWithStatus in uncoveredLineRange) {
-              final FileLineCoverageDetails(
-                :lineNumber,
-                :content,
-                :status,
-              ) = lineWithStatus;
+              final FileLineCoverageDetails(:lineNumber, :content, :status) =
+                  lineWithStatus;
               final styles = switch (status) {
                 FileLineCoverageStatus.covered => [green, styleBold],
                 FileLineCoverageStatus.uncovered => [red, styleBold],
                 FileLineCoverageStatus.neutral => <AnsiCode>[],
               };
-              final markerSegment = wrapWith(
-                status.marker,
-                styles,
-              );
+              final markerSegment = wrapWith(status.marker, styles);
               final lineNumberSegment = wrapWith(
                 '$lineNumber'.padLeft(lineNumberColumnWidth),
                 styles,
               );
-              final contentSegment = wrapWith(
-                content,
-                styles,
-              );
+              final contentSegment = wrapWith(content, styles);
               logger.info(
                 '├ $markerSegment $lineNumberSegment | $contentSegment',
               );
@@ -215,47 +202,41 @@ extension on CovFile {
     const surroundingLines = 2;
     final sourceLinesCount = sourceLines.length;
     final ranges = covLines
-        .where(
-          (line) => !line.hasBeenHit,
-        )
-        .map(
-          (line) => line.lineNumber,
-        )
-        .splitBetween(
-          (a, b) => b - a > maxGap,
-        )
+        .where((line) => !line.hasBeenHit)
+        .map((line) => line.lineNumber)
+        .splitBetween((a, b) => b - a > maxGap)
         .map(
           (group) => (
             start: (group.first - surroundingLines).clamp(1, sourceLinesCount),
             end: (group.last + surroundingLines).clamp(1, sourceLinesCount),
           ),
         )
-        .map(
-      (range) {
-        final rangeLines = <FileLineCoverageDetails>[];
-        for (var lineNumber = range.start;
+        .map((range) {
+          final rangeLines = <FileLineCoverageDetails>[];
+          for (
+            var lineNumber = range.start;
             lineNumber <= range.end;
-            lineNumber++) {
-          final content = sourceLines.elementAt(lineNumber - 1);
-          final covLine = covLines.singleWhereOrNull(
-            (line) => line.lineNumber == lineNumber,
-          );
-          final status = switch (covLine?.hasBeenHit) {
-            null => FileLineCoverageStatus.neutral,
-            true => FileLineCoverageStatus.covered,
-            false => FileLineCoverageStatus.uncovered,
-          };
-          rangeLines.add(
-            FileLineCoverageDetails(
-              lineNumber: lineNumber,
-              content: content,
-              status: status,
-            ),
-          );
-        }
-        return rangeLines;
-      },
-    );
+            lineNumber++
+          ) {
+            final content = sourceLines.elementAt(lineNumber - 1);
+            final covLine = covLines.singleWhereOrNull(
+              (line) => line.lineNumber == lineNumber,
+            );
+            final status = switch (covLine?.hasBeenHit) {
+              null => FileLineCoverageStatus.neutral,
+              true => FileLineCoverageStatus.covered,
+              false => FileLineCoverageStatus.uncovered,
+            };
+            rangeLines.add(
+              FileLineCoverageDetails(
+                lineNumber: lineNumber,
+                content: content,
+                status: status,
+              ),
+            );
+          }
+          return rangeLines;
+        });
     return ranges;
   }
 }

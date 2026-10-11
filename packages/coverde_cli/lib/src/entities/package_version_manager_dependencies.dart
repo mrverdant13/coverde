@@ -59,11 +59,11 @@ class PackageVersionManagerDependencies {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        logger,
-        httpClient,
-        globalLockFilePath,
-        baseUrl,
-        rawDartVersion,
-      ]);
+    runtimeType,
+    logger,
+    httpClient,
+    globalLockFilePath,
+    baseUrl,
+    rawDartVersion,
+  ]);
 }

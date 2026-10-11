@@ -25,9 +25,9 @@ List<double> validateCoverageReferences(NumericComparison<double> comparison) {
     LessThanNumericComparison(:final reference) => [reference],
     LessThanOrEqualToNumericComparison(:final reference) => [reference],
     RangeNumericComparison(:final lowerReference, :final upperReference) => [
-        lowerReference,
-        upperReference,
-      ],
+      lowerReference,
+      upperReference,
+    ],
   };
   return references.where((ref) => ref < 0 || ref > 100).toList();
 }
@@ -235,11 +235,11 @@ final class PresetTransformation extends Transformation {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        presetName,
-        sourceFile,
-        _stepsEquality.hash(steps),
-      ]);
+    runtimeType,
+    presetName,
+    sourceFile,
+    _stepsEquality.hash(steps),
+  ]);
 }
 
 /// {@template external_preset_transformation}
@@ -278,12 +278,8 @@ final class ExternalPresetTransformation extends Transformation {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        filePath,
-        presetName,
-        baseDirectory,
-      ]);
+  int get hashCode =>
+      Object.hashAll([runtimeType, filePath, presetName, baseDirectory]);
 }
 
 /// {@template leaf_transformation}
@@ -325,13 +321,13 @@ final class KeepByRegexTransformation extends LeafTransformation {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        regex.pattern,
-        regex.isCaseSensitive,
-        regex.isDotAll,
-        regex.isMultiLine,
-        regex.isUnicode,
-      ]);
+    runtimeType,
+    regex.pattern,
+    regex.isCaseSensitive,
+    regex.isDotAll,
+    regex.isMultiLine,
+    regex.isUnicode,
+  ]);
 }
 
 /// {@template skip_by_regex_transformation}
@@ -363,13 +359,13 @@ final class SkipByRegexTransformation extends LeafTransformation {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        regex.pattern,
-        regex.isCaseSensitive,
-        regex.isDotAll,
-        regex.isMultiLine,
-        regex.isUnicode,
-      ]);
+    runtimeType,
+    regex.pattern,
+    regex.isCaseSensitive,
+    regex.isDotAll,
+    regex.isMultiLine,
+    regex.isUnicode,
+  ]);
 }
 
 /// {@template keep_by_glob_transformation}
@@ -400,12 +396,12 @@ final class KeepByGlobTransformation extends LeafTransformation {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        glob.pattern,
-        glob.context,
-        glob.caseSensitive,
-        glob.recursive,
-      ]);
+    runtimeType,
+    glob.pattern,
+    glob.context,
+    glob.caseSensitive,
+    glob.recursive,
+  ]);
 }
 
 /// {@template skip_by_glob_transformation}
@@ -436,12 +432,12 @@ final class SkipByGlobTransformation extends LeafTransformation {
 
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        glob.pattern,
-        glob.context,
-        glob.caseSensitive,
-        glob.recursive,
-      ]);
+    runtimeType,
+    glob.pattern,
+    glob.context,
+    glob.caseSensitive,
+    glob.recursive,
+  ]);
 }
 
 /// {@template keep_by_coverage_transformation}
@@ -450,9 +446,7 @@ final class SkipByGlobTransformation extends LeafTransformation {
 @immutable
 final class KeepByCoverageTransformation extends LeafTransformation {
   /// {@macro keep_by_coverage_transformation}
-  const KeepByCoverageTransformation({
-    required this.comparison,
-  });
+  const KeepByCoverageTransformation({required this.comparison});
 
   /// The identifier for this transformation.
   static const identifier = 'keep-by-coverage';
@@ -470,10 +464,7 @@ final class KeepByCoverageTransformation extends LeafTransformation {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        comparison,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, comparison]);
 }
 
 /// {@template skip_by_coverage_transformation}
@@ -482,9 +473,7 @@ final class KeepByCoverageTransformation extends LeafTransformation {
 @immutable
 final class SkipByCoverageTransformation extends LeafTransformation {
   /// {@macro skip_by_coverage_transformation}
-  const SkipByCoverageTransformation({
-    required this.comparison,
-  });
+  const SkipByCoverageTransformation({required this.comparison});
 
   /// The identifier for this transformation.
   static const identifier = 'skip-by-coverage';
@@ -502,10 +491,7 @@ final class SkipByCoverageTransformation extends LeafTransformation {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        comparison,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, comparison]);
 }
 
 /// {@template relative_transformation}
@@ -532,10 +518,7 @@ final class RelativeTransformation extends LeafTransformation {
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        basePath,
-      ]);
+  int get hashCode => Object.hashAll([runtimeType, basePath]);
 }
 
 Never _throwUnresolvedExternalPreset(ExternalPresetTransformation step) {
@@ -618,10 +601,14 @@ PresetTransformation _lookupLocalPreset(
 ) {
   return presets.singleWhere(
     (preset) => preset.presetName == name,
-    orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
-      unknownPreset: name,
-      availablePresets: [for (final preset in presets) preset.presetName],
-    ),
+    orElse:
+        () =>
+            throw TransformationFromCliOptionUnknownPresetFailure(
+              unknownPreset: name,
+              availablePresets: [
+                for (final preset in presets) preset.presetName,
+              ],
+            ),
   );
 }
 
@@ -629,10 +616,8 @@ PresetTransformation _lookupLocalPreset(
 typedef Transformations = Iterable<Transformation>;
 
 /// A tuple of a transformation and its preset chains.
-typedef LeafTransformationWithPresetChains = ({
-  LeafTransformation transformation,
-  List<String> presets,
-});
+typedef LeafTransformationWithPresetChains =
+    ({LeafTransformation transformation, List<String> presets});
 
 /// Extension methods for [Iterable<Transformation>].
 extension ExtendedTransformations on Iterable<Transformation> {
@@ -661,18 +646,12 @@ extension ExtendedTransformations on Iterable<Transformation> {
       switch (step) {
         case PresetTransformation(:final steps):
           yield* steps.getStepsWithPresetChains(
-            precedingPresets: [
-              ...precedingPresets,
-              step.presetChainLabel,
-            ],
+            precedingPresets: [...precedingPresets, step.presetChainLabel],
           );
         case ExternalPresetTransformation():
           _throwUnresolvedExternalPreset(step);
         case LeafTransformation():
-          yield (
-            transformation: step,
-            presets: precedingPresets,
-          );
+          yield (transformation: step, presets: precedingPresets);
       }
     }
   }

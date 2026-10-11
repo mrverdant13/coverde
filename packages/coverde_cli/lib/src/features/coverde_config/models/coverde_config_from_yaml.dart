@@ -51,10 +51,7 @@ CoverdeConfig _parseCoverdeConfigFromYaml(
       value: rawConfig,
     );
   }
-  final rawPresets = _parseRawPresets(
-    rawConfig,
-    baseDirectory: baseDirectory,
-  );
+  final rawPresets = _parseRawPresets(rawConfig, baseDirectory: baseDirectory);
   final presets = [
     for (final presetName in rawPresets.keys)
       PresetTransformation(
@@ -66,9 +63,7 @@ CoverdeConfig _parseCoverdeConfigFromYaml(
         ),
       ),
   ];
-  return CoverdeConfig(
-    presets: presets,
-  );
+  return CoverdeConfig(presets: presets);
 }
 
 Map<String, List<_PresetEntry>> _parseRawPresets(
@@ -124,10 +119,7 @@ List<_PresetEntry> _parsePresetSteps(
   if (list.isEmpty) return [];
   final result = <_PresetEntry>[];
   for (final (index, rawStep) in list.indexed) {
-    final stepKey = [
-      keyPrefix,
-      '[$index]',
-    ].join('.');
+    final stepKey = [keyPrefix, '[$index]'].join('.');
     if (rawStep is! yaml.YamlMap) {
       throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
         key: stepKey,
@@ -136,10 +128,7 @@ List<_PresetEntry> _parsePresetSteps(
       );
     }
     final rawType = rawStep[_CoverdeConfigYamlKeys.stepType];
-    final stepTypeKey = [
-      stepKey,
-      _CoverdeConfigYamlKeys.stepType,
-    ].join('.');
+    final stepTypeKey = [stepKey, _CoverdeConfigYamlKeys.stepType].join('.');
     if (rawType is! String) {
       throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
         key: stepTypeKey,
@@ -150,10 +139,7 @@ List<_PresetEntry> _parsePresetSteps(
     switch (rawType) {
       case KeepByRegexTransformation.identifier:
         final rawRegex = rawStep[_CoverdeConfigYamlKeys.stepRegex];
-        final regexKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepRegex,
-        ].join('.');
+        final regexKey = [stepKey, _CoverdeConfigYamlKeys.stepRegex].join('.');
         if (rawRegex is! String) {
           throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
             key: regexKey,
@@ -177,10 +163,7 @@ List<_PresetEntry> _parsePresetSteps(
         result.add(_PresetEntryStep(KeepByRegexTransformation(regex)));
       case SkipByRegexTransformation.identifier:
         final rawRegex = rawStep[_CoverdeConfigYamlKeys.stepRegex];
-        final regexKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepRegex,
-        ].join('.');
+        final regexKey = [stepKey, _CoverdeConfigYamlKeys.stepRegex].join('.');
         if (rawRegex is! String) {
           throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
             key: regexKey,
@@ -204,10 +187,7 @@ List<_PresetEntry> _parsePresetSteps(
         result.add(_PresetEntryStep(SkipByRegexTransformation(regex)));
       case KeepByGlobTransformation.identifier:
         final rawGlob = rawStep[_CoverdeConfigYamlKeys.stepGlob];
-        final globKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepGlob,
-        ].join('.');
+        final globKey = [stepKey, _CoverdeConfigYamlKeys.stepGlob].join('.');
         if (rawGlob is! String) {
           throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
             key: globKey,
@@ -231,10 +211,7 @@ List<_PresetEntry> _parsePresetSteps(
         result.add(_PresetEntryStep(KeepByGlobTransformation(glob)));
       case SkipByGlobTransformation.identifier:
         final rawGlob = rawStep[_CoverdeConfigYamlKeys.stepGlob];
-        final globKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepGlob,
-        ].join('.');
+        final globKey = [stepKey, _CoverdeConfigYamlKeys.stepGlob].join('.');
         if (rawGlob is! String) {
           throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
             key: globKey,
@@ -271,8 +248,10 @@ List<_PresetEntry> _parsePresetSteps(
         }
         final NumericComparison<double> comparison;
         try {
-          comparison =
-              NumericComparison.fromDescription(rawComparison, double.parse);
+          comparison = NumericComparison.fromDescription(
+            rawComparison,
+            double.parse,
+          );
         } on Object catch (_, stackTrace) {
           Error.throwWithStackTrace(
             CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
@@ -310,8 +289,10 @@ List<_PresetEntry> _parsePresetSteps(
         }
         final NumericComparison<double> comparison;
         try {
-          comparison =
-              NumericComparison.fromDescription(rawComparison, double.parse);
+          comparison = NumericComparison.fromDescription(
+            rawComparison,
+            double.parse,
+          );
         } on Object catch (_, stackTrace) {
           Error.throwWithStackTrace(
             CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
@@ -387,10 +368,7 @@ List<_PresetEntry> _parsePresetSteps(
           break;
         }
         final rawFile = rawStep[_CoverdeConfigYamlKeys.stepFile];
-        final fileKey = [
-          stepKey,
-          _CoverdeConfigYamlKeys.stepFile,
-        ].join('.');
+        final fileKey = [stepKey, _CoverdeConfigYamlKeys.stepFile].join('.');
         if (rawFile is! String) {
           throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
             key: fileKey,
@@ -415,8 +393,9 @@ List<_PresetEntry> _parsePresetSteps(
           ),
         );
       default:
-        final availableIdentifiers =
-            Transformation.identifiers.map((e) => '`$e`').join(', ');
+        final availableIdentifiers = Transformation.identifiers
+            .map((e) => '`$e`')
+            .join(', ');
         throw CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
           key: stepTypeKey,
           value: rawType,

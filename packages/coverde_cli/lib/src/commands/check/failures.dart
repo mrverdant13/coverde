@@ -1,5 +1,5 @@
 import 'package:coverde/coverde.dart';
-import 'package:universal_io/universal_io.dart';
+import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.check_failure}
 /// The interface for [CheckCommand] failures.
@@ -41,12 +41,11 @@ $usageMessage
 final class CoverdeCheckMoreThanOneArgumentFailure
     extends CoverdeCheckInvalidInputFailure {
   /// {@macro coverde_cli.check_more_than_one_argument_failure}
-  const CoverdeCheckMoreThanOneArgumentFailure({
-    required super.usageMessage,
-  }) : super(
-          invalidInputDescription:
-              'Only one argument (minimum coverage threshold) is expected.',
-        );
+  const CoverdeCheckMoreThanOneArgumentFailure({required super.usageMessage})
+    : super(
+        invalidInputDescription:
+            'Only one argument (minimum coverage threshold) is expected.',
+      );
 }
 
 /// {@template coverde_cli.check_missing_minimum_coverage_threshold_failure}
@@ -58,9 +57,7 @@ final class CoverdeCheckMissingMinimumCoverageThresholdFailure
   /// {@macro coverde_cli.check_missing_minimum_coverage_threshold_failure}
   const CoverdeCheckMissingMinimumCoverageThresholdFailure({
     required super.usageMessage,
-  }) : super(
-          invalidInputDescription: 'Missing minimum coverage threshold.',
-        );
+  }) : super(invalidInputDescription: 'Missing minimum coverage threshold.');
 }
 
 /// {@template coverde_cli.check_invalid_minimum_coverage_threshold_failure}
@@ -73,10 +70,11 @@ final class CoverdeCheckInvalidMinimumCoverageThresholdFailure
   const CoverdeCheckInvalidMinimumCoverageThresholdFailure({
     required super.usageMessage,
   }) : super(
-          invalidInputDescription: 'Invalid minimum coverage threshold.\n'
-              'It should be a positive number not greater than 100 '
-              '[0.0, 100.0].',
-        );
+         invalidInputDescription:
+             'Invalid minimum coverage threshold.\n'
+             'It should be a positive number not greater than 100 '
+             '[0.0, 100.0].',
+       );
 }
 
 /// {@template coverde_cli.check_invalid_trace_file_failure}
@@ -85,9 +83,7 @@ final class CoverdeCheckInvalidMinimumCoverageThresholdFailure
 /// {@endtemplate}
 sealed class CoverdeCheckInvalidTraceFileFailure extends CoverdeCheckFailure {
   /// {@macro coverde_cli.check_invalid_trace_file_failure}
-  const CoverdeCheckInvalidTraceFileFailure({
-    required this.traceFilePath,
-  });
+  const CoverdeCheckInvalidTraceFileFailure({required this.traceFilePath});
 
   /// The path to the invalid trace file.
   final String traceFilePath;
@@ -99,9 +95,7 @@ sealed class CoverdeCheckInvalidTraceFileFailure extends CoverdeCheckFailure {
 final class CoverdeCheckTraceFileNotFoundFailure
     extends CoverdeCheckInvalidTraceFileFailure {
   /// {@macro coverde_cli.check_trace_file_not_found_failure}
-  const CoverdeCheckTraceFileNotFoundFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeCheckTraceFileNotFoundFailure({required super.traceFilePath});
 
   @override
   String get readableMessage => 'No trace file found at `$traceFilePath`.';
@@ -113,9 +107,7 @@ final class CoverdeCheckTraceFileNotFoundFailure
 final class CoverdeCheckEmptyTraceFileFailure
     extends CoverdeCheckInvalidTraceFileFailure {
   /// {@macro coverde_cli.check_empty_trace_file_failure}
-  const CoverdeCheckEmptyTraceFileFailure({
-    required super.traceFilePath,
-  });
+  const CoverdeCheckEmptyTraceFileFailure({required super.traceFilePath});
 
   @override
   String get readableMessage =>
@@ -133,9 +125,9 @@ final class CoverdeCheckTraceFileReadFailure
     required super.traceFilePath,
     required FileSystemException exception,
   }) : errorMessage = [
-          exception.message,
-          if (exception.osError case final osError?) osError.message,
-        ].join('\n');
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
 
   /// The underlying error message.
   final String errorMessage;

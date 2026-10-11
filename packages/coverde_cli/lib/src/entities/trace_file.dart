@@ -19,9 +19,8 @@ class TraceFile extends CovComputable {
   ///
   /// {@macro trace_file}
   @visibleForTesting
-  TraceFile({
-    required Iterable<CovFile> sourceFilesCovData,
-  }) : _sourceFilesCovData = Iterable.castFrom(sourceFilesCovData);
+  TraceFile({required Iterable<CovFile> sourceFilesCovData})
+    : _sourceFilesCovData = Iterable.castFrom(sourceFilesCovData);
 
   /// Create a trace file instance by parsing a file using streaming.
   ///
@@ -31,8 +30,10 @@ class TraceFile extends CovComputable {
   /// {@macro trace_file}
   static Future<TraceFile> parseStreaming(File file) async {
     final sourceFilesCovData = <CovFile>[];
-    final lines =
-        file.openRead().transform(utf8.decoder).transform(const LineSplitter());
+    final lines = file
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
 
     final currentBlockBuffer = StringBuffer();
     final completer = Completer<void>();

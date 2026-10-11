@@ -48,7 +48,7 @@ jobs:
       - name: Install dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: 3.10.8
+          sdk: 3.7.0
       - name: Install ripple
         run: >
           dart pub global activate --source git

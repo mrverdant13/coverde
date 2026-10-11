@@ -20,20 +20,13 @@ class CovDir extends CovElement {
   ///
   /// {@macro cov_dir}
   @visibleForTesting
-  CovDir({
-    required this.source,
-    required Iterable<CovElement> elements,
-  }) : _elements = elements;
+  CovDir({required this.source, required Iterable<CovElement> elements})
+    : _elements = elements;
 
   /// Create a coverage data tree structure that replicates the [source]
   /// organization in the filesystem.
-  factory CovDir.tree({
-    required Iterable<CovFile> covFiles,
-  }) =>
-      CovDir.subtree(
-        baseDirPath: null,
-        coveredFiles: covFiles,
-      );
+  factory CovDir.tree({required Iterable<CovFile> covFiles}) =>
+      CovDir.subtree(baseDirPath: null, coveredFiles: covFiles);
 
   /// Create a coverage data tree structure that replicates filesystem tree
   /// organization with the given [coveredFiles] and [baseDirPath].
@@ -43,21 +36,16 @@ class CovDir extends CovElement {
     required Iterable<CovFile> coveredFiles,
   }) {
     // Filter files directly or indirectly within this directory.
-    final covFiles = baseDirPath == null
-        ? coveredFiles
-        : coveredFiles.where(
-            (covFile) => path.isWithin(
-              baseDirPath,
-              covFile.source.path,
-            ),
-          );
+    final covFiles =
+        baseDirPath == null
+            ? coveredFiles
+            : coveredFiles.where(
+              (covFile) => path.isWithin(baseDirPath, covFile.source.path),
+            );
 
     // If no covered files within this folder, return the covered directory.
     if (covFiles.isEmpty) {
-      return CovDir(
-        source: Directory(baseDirPath ?? ''),
-        elements: const [],
-      );
+      return CovDir(source: Directory(baseDirPath ?? ''), elements: const []);
     }
 
     // Folders directly or indirectly within this directory.
@@ -68,10 +56,11 @@ class CovDir extends CovElement {
     final dirsSegments = dirPaths.map(path.split).toList();
 
     // Pick path with fewest number of segments.
-    final fewestSegments = minBy<Iterable<String>, int>(
-      dirsSegments,
-      (dirSegments) => dirSegments.length,
-    )!;
+    final fewestSegments =
+        minBy<Iterable<String>, int>(
+          dirsSegments,
+          (dirSegments) => dirSegments.length,
+        )!;
 
     final commonSegments =
         baseDirPath == null ? <String>[] : path.split(baseDirPath);
@@ -82,10 +71,11 @@ class CovDir extends CovElement {
 
       bool shortestPathChecked() => segmentIdx >= fewestSegments.length;
 
-      Iterable<String> nextSegmentsGroup() => dirsSegments
-          .where((s) => s.length > segmentIdx)
-          .map((s) => s[segmentIdx])
-          .toSet();
+      Iterable<String> nextSegmentsGroup() =>
+          dirsSegments
+              .where((s) => s.length > segmentIdx)
+              .map((s) => s[segmentIdx])
+              .toSet();
 
       while (!shortestPathChecked() && nextSegmentsGroup().length <= 1) {
         commonSegments.addAll(nextSegmentsGroup());
@@ -113,10 +103,7 @@ class CovDir extends CovElement {
 
     return CovDir(
       source: Directory(actualBasePath),
-      elements: [
-        ...validDirs,
-        ...files,
-      ],
+      elements: [...validDirs, ...files],
     );
   }
 
@@ -127,8 +114,9 @@ class CovDir extends CovElement {
 
   /// The organized coverage data about the filesystem entities within the
   /// [source] folder.
-  late final UnmodifiableListView<CovElement> elements =
-      UnmodifiableListView(_elements);
+  late final UnmodifiableListView<CovElement> elements = UnmodifiableListView(
+    _elements,
+  );
 
   @override
   late final linesFound = _elements.map((e) => e.linesFound).sum;
@@ -153,18 +141,16 @@ class CovDir extends CovElement {
 
   @override
   String toString() {
-    final buf = StringBuffer(
-      'Node: $coverageDataString',
-    );
-    elements.map(
-      (e) {
-        if (e is CovFile) {
-          return '\n├─ SF: ${e.coverageDataString}';
-        } else if (e is CovDir) {
-          return '\n├─ ${e.toString().replaceAll('\n', '\n│  ')}';
-        }
-      },
-    ).forEach(buf.write);
+    final buf = StringBuffer('Node: $coverageDataString');
+    elements
+        .map((e) {
+          if (e is CovFile) {
+            return '\n├─ SF: ${e.coverageDataString}';
+          } else if (e is CovDir) {
+            return '\n├─ ${e.toString().replaceAll('\n', '\n│  ')}';
+          }
+        })
+        .forEach(buf.write);
     buf.writeln();
     return buf.toString();
   }
@@ -184,16 +170,15 @@ class CovDir extends CovElement {
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
-  }) =>
-      generateSubReport(
-        traceFileName: traceFileName,
-        parentReportDirAbsPath: parentReportDirAbsPath,
-        reportDirRelPath: '',
-        reportRelDepth: 0,
-        traceFileModificationDate: traceFileModificationDate,
-        medium: medium,
-        high: high,
-      );
+  }) => generateSubReport(
+    traceFileName: traceFileName,
+    parentReportDirAbsPath: parentReportDirAbsPath,
+    reportDirRelPath: '',
+    reportRelDepth: 0,
+    traceFileModificationDate: traceFileModificationDate,
+    medium: medium,
+    high: high,
+  );
 
   @override
   void generateSubReport({
@@ -207,10 +192,13 @@ class CovDir extends CovElement {
   }) {
     final folderReport = folderReportTemplate.clone(true);
 
-    final topLevelDirRelPath =
-        path.url.joinAll(List.filled(reportRelDepth, '..'));
-    final topLevelReportRelPath =
-        path.url.join(topLevelDirRelPath, 'index.html');
+    final topLevelDirRelPath = path.url.joinAll(
+      List.filled(reportRelDepth, '..'),
+    );
+    final topLevelReportRelPath = path.url.join(
+      topLevelDirRelPath,
+      'index.html',
+    );
     final topLevelCssRelPath = path.url.join(
       topLevelDirRelPath,
       reportStyleCssFilename,

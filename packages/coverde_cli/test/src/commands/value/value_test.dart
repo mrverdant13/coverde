@@ -39,68 +39,58 @@ void main() {
     late PackageVersionManager packageVersionManager;
     late CoverdeCommandRunner cmdRunner;
 
-    setUp(
-      () {
-        logger = _MockLogger();
-        packageVersionManager = _MockPackageVersionManager();
-        cmdRunner = _FakeCoverdeCommandRunner(
-          logger: logger,
-          packageVersionManager: packageVersionManager,
-        );
-      },
-    );
+    setUp(() {
+      logger = _MockLogger();
+      packageVersionManager = _MockPackageVersionManager();
+      cmdRunner = _FakeCoverdeCommandRunner(
+        logger: logger,
+        packageVersionManager: packageVersionManager,
+      );
+    });
 
-    tearDown(
-      () {
-        // verifyNoMoreInteractions(logger);
-      },
-    );
+    tearDown(() {
+      // verifyNoMoreInteractions(logger);
+    });
 
-    test(
-      '| description',
-      () {
-        const expected = '''
+    test('| description', () {
+      const expected = '''
 Compute the coverage value (%) of an info file.
 
 Compute the coverage value of the LCOV_FILE info file.
 ''';
 
-        final result = ValueCommand().description;
+      final result = ValueCommand().description;
 
-        expect(result.trim(), expected.trim());
-      },
-    );
+      expect(result.trim(), expected.trim());
+    });
 
-    test(
-      '''--${ValueCommand.inputOption}=<empty_trace_file>'''
-      ''' | fails when trace file is empty''',
-      () async {
-        final emptyTraceFilePath = p.joinAll([
-          'test',
-          'src',
-          'commands',
-          'value',
-          'fixtures',
-          'empty.lcov.info',
-        ]);
+    test('''--${ValueCommand.inputOption}=<empty_trace_file>'''
+        ''' | fails when trace file is empty''', () async {
+      final emptyTraceFilePath = p.joinAll([
+        'test',
+        'src',
+        'commands',
+        'value',
+        'fixtures',
+        'empty.lcov.info',
+      ]);
 
-        Future<void> action() => cmdRunner.run([
-              'value',
-              '--${ValueCommand.inputOption}',
-              emptyTraceFilePath,
-            ]);
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeValueEmptyTraceFileFailure>().having(
-              (e) => e.traceFilePath,
-              'traceFilePath',
-              p.absolute(emptyTraceFilePath),
-            ),
+      Future<void> action() => cmdRunner.run([
+        'value',
+        '--${ValueCommand.inputOption}',
+        emptyTraceFilePath,
+      ]);
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeValueEmptyTraceFileFailure>().having(
+            (e) => e.traceFilePath,
+            'traceFilePath',
+            p.absolute(emptyTraceFilePath),
           ),
-        );
-      },
-    );
+        ),
+      );
+    });
 
     test(
       '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.none.identifier}''',
@@ -120,16 +110,13 @@ Compute the coverage value of the LCOV_FILE info file.
         generateTestFromTemplate(projectDir);
         addTearDown(() => deleteTestFiles(projectDir));
 
-        await IOOverrides.runZoned(
-          () async {
-            await cmdRunner.run([
-              'value',
-              '--${ValueCommand.fileCoverageLogLevelFlag}',
-              FileCoverageLogLevel.none.identifier,
-            ]);
-          },
-          getCurrentDirectory: () => Directory(projectPath),
-        );
+        await IOOverrides.runZoned(() async {
+          await cmdRunner.run([
+            'value',
+            '--${ValueCommand.fileCoverageLogLevelFlag}',
+            FileCoverageLogLevel.none.identifier,
+          ]);
+        }, getCurrentDirectory: () => Directory(projectPath));
 
         final messages = [
           wrapWith('GLOBAL:', [blue, styleBold]),
@@ -159,16 +146,13 @@ Compute the coverage value of the LCOV_FILE info file.
         generateTestFromTemplate(projectDir);
         addTearDown(() => deleteTestFiles(projectDir));
 
-        await IOOverrides.runZoned(
-          () async {
-            await cmdRunner.run([
-              'value',
-              '--${ValueCommand.fileCoverageLogLevelFlag}',
-              FileCoverageLogLevel.overview.identifier,
-            ]);
-          },
-          getCurrentDirectory: () => Directory(projectPath),
-        );
+        await IOOverrides.runZoned(() async {
+          await cmdRunner.run([
+            'value',
+            '--${ValueCommand.fileCoverageLogLevelFlag}',
+            FileCoverageLogLevel.overview.identifier,
+          ]);
+        }, getCurrentDirectory: () => Directory(projectPath));
 
         final messages = [
           () {
@@ -204,16 +188,13 @@ Compute the coverage value of the LCOV_FILE info file.
         generateTestFromTemplate(projectDir);
         addTearDown(() => deleteTestFiles(projectDir));
 
-        await IOOverrides.runZoned(
-          () async {
-            await cmdRunner.run([
-              'value',
-              '--${ValueCommand.fileCoverageLogLevelFlag}',
-              FileCoverageLogLevel.lineNumbers.identifier,
-            ]);
-          },
-          getCurrentDirectory: () => Directory(projectPath),
-        );
+        await IOOverrides.runZoned(() async {
+          await cmdRunner.run([
+            'value',
+            '--${ValueCommand.fileCoverageLogLevelFlag}',
+            FileCoverageLogLevel.lineNumbers.identifier,
+          ]);
+        }, getCurrentDirectory: () => Directory(projectPath));
 
         final messages = [
           () {
@@ -222,10 +203,10 @@ Compute the coverage value of the LCOV_FILE info file.
             return '$filePath $fileOverview';
           }(),
           () {
-            final message = wrapWith(
-              'UNCOVERED: 7, 8, 17, 22, 23, 24, 26',
-              [red, styleBold],
-            );
+            final message = wrapWith('UNCOVERED: 7, 8, 17, 22, 23, 24, 26', [
+              red,
+              styleBold,
+            ]);
             return '└ $message';
           }(),
           '',
@@ -256,16 +237,13 @@ Compute the coverage value of the LCOV_FILE info file.
         generateTestFromTemplate(projectDir);
         addTearDown(() => deleteTestFiles(projectDir));
 
-        await IOOverrides.runZoned(
-          () async {
-            await cmdRunner.run([
-              'value',
-              '--${ValueCommand.fileCoverageLogLevelFlag}',
-              FileCoverageLogLevel.lineContent.identifier,
-            ]);
-          },
-          getCurrentDirectory: () => Directory(projectPath),
-        );
+        await IOOverrides.runZoned(() async {
+          await cmdRunner.run([
+            'value',
+            '--${ValueCommand.fileCoverageLogLevelFlag}',
+            FileCoverageLogLevel.lineContent.identifier,
+          ]);
+        }, getCurrentDirectory: () => Directory(projectPath));
 
         const lineNumberColumnWidth = 2;
         String expectLine({
@@ -278,10 +256,7 @@ Compute the coverage value of the LCOV_FILE info file.
             '├ ',
             wrapWith(marker, styles),
             ' ',
-            wrapWith(
-              '$lineNumber'.padLeft(lineNumberColumnWidth),
-              styles,
-            ),
+            wrapWith('$lineNumber'.padLeft(lineNumberColumnWidth), styles),
             ' | ',
             wrapWith(content, styles),
           ].join();
@@ -386,12 +361,12 @@ Compute the coverage value of the LCOV_FILE info file.
         addTearDown(() => directory.deleteSync(recursive: true));
 
         Future<void> action() => cmdRunner.run([
-              'value',
-              '--${ValueCommand.inputOption}',
-              traceFilePath,
-              '--${ValueCommand.fileCoverageLogLevelFlag}',
-              invalidLogLevel,
-            ]);
+          'value',
+          '--${ValueCommand.inputOption}',
+          traceFilePath,
+          '--${ValueCommand.fileCoverageLogLevelFlag}',
+          invalidLogLevel,
+        ]);
 
         expect(
           action,
@@ -409,41 +384,35 @@ Compute the coverage value of the LCOV_FILE info file.
       },
     );
 
-    test(
-      '--${ValueCommand.inputOption} <absent_trace_file_path>',
-      () async {
-        final directory = Directory.systemTemp.createTempSync();
-        final absentFilePath = p.join(directory.path, 'absent.lcov.info');
-        final absentFile = File(absentFilePath);
-        expect(absentFile.existsSync(), isFalse);
+    test('--${ValueCommand.inputOption} <absent_trace_file_path>', () async {
+      final directory = Directory.systemTemp.createTempSync();
+      final absentFilePath = p.join(directory.path, 'absent.lcov.info');
+      final absentFile = File(absentFilePath);
+      expect(absentFile.existsSync(), isFalse);
 
-        Future<void> action() => cmdRunner.run([
-              'value',
-              '--${ValueCommand.inputOption}',
-              absentFilePath,
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'value',
+        '--${ValueCommand.inputOption}',
+        absentFilePath,
+      ]);
 
-        expect(
-          action,
-          throwsA(isA<CoverdeValueTraceFileNotFoundFailure>()),
-        );
-        directory.deleteSync(recursive: true);
-      },
-    );
+      expect(action, throwsA(isA<CoverdeValueTraceFileNotFoundFailure>()));
+      directory.deleteSync(recursive: true);
+    });
 
-    test(
-      '--${ValueCommand.inputOption}=<trace_file> '
-      '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.lineContent.identifier} '''
-      '| throws $CoverdeValueFileReadFailure '
-      'when source file read fails',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-value-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = p.join(directory.path, 'lcov.info');
-        final traceFile = File(traceFilePath)
-          ..createSync()
-          ..writeAsStringSync('''
+    test('--${ValueCommand.inputOption}=<trace_file> '
+        '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.lineContent.identifier} '''
+        '| throws $CoverdeValueFileReadFailure '
+        'when source file read fails', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-value-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+      final traceFile =
+          File(traceFilePath)
+            ..createSync()
+            ..writeAsStringSync('''
 SF:lib/some_test.dart
 DA:1,0
 LF:1
@@ -451,92 +420,82 @@ LH:0
 end_of_record
 ''');
 
-        await IOOverrides.runZoned(
-          () async {
-            Future<void> action() => cmdRunner.run([
-                  'value',
-                  '--${ValueCommand.inputOption}',
-                  traceFilePath,
-                  '--${ValueCommand.fileCoverageLogLevelFlag}',
-                  FileCoverageLogLevel.lineContent.identifier,
-                ]);
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+            'value',
+            '--${ValueCommand.inputOption}',
+            traceFilePath,
+            '--${ValueCommand.fileCoverageLogLevelFlag}',
+            FileCoverageLogLevel.lineContent.identifier,
+          ]);
 
-            expect(
-              action,
-              throwsA(
-                isA<CoverdeValueFileReadFailure>(),
+          expect(action, throwsA(isA<CoverdeValueFileReadFailure>()));
+        },
+        createFile: (path) {
+          if (p.basename(path) == 'lcov.info') {
+            return traceFile;
+          }
+          if (p.basename(path) == 'some_test.dart') {
+            return _ValueTestFile(
+              path: path,
+              readAsLinesSync: ({encoding = utf8}) {
+                throw FileSystemException('Fake file read error', path);
+              },
+            );
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
+
+    test('--${ValueCommand.inputOption}=<trace_file> '
+        '| throws $CoverdeValueTraceFileReadFailure '
+        'when trace file read fails', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-value-test-',
+      );
+      addTearDown(() => directory.delete(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+            'value',
+            '--${ValueCommand.inputOption}',
+            traceFilePath,
+          ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeValueTraceFileReadFailure>().having(
+                (e) => e.traceFilePath,
+                'traceFilePath',
+                p.absolute(traceFilePath),
               ),
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.basename(path) == 'lcov.info') {
+            return _ValueTestFile(
+              path: path,
+              existsSync: () => true,
+              openRead:
+                  ([start, end]) => Stream<List<int>>.error(
+                    FileSystemException('Fake file read error', path),
+                  ),
             );
-          },
-          createFile: (path) {
-            if (p.basename(path) == 'lcov.info') {
-              return traceFile;
-            }
-            if (p.basename(path) == 'some_test.dart') {
-              return _ValueTestFile(
-                path: path,
-                readAsLinesSync: ({encoding = utf8}) {
-                  throw FileSystemException(
-                    'Fake file read error',
-                    path,
-                  );
-                },
-              );
-            }
-            throw UnsupportedError(
-              'This file $path should not be read in this test',
-            );
-          },
-        );
-      },
-    );
-
-    test(
-      '--${ValueCommand.inputOption}=<trace_file> '
-      '| throws $CoverdeValueTraceFileReadFailure '
-      'when trace file read fails',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-value-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final traceFilePath = p.join(directory.path, 'lcov.info');
-
-        await IOOverrides.runZoned(
-          () async {
-            Future<void> action() => cmdRunner.run([
-                  'value',
-                  '--${ValueCommand.inputOption}',
-                  traceFilePath,
-                ]);
-
-            expect(
-              action,
-              throwsA(
-                isA<CoverdeValueTraceFileReadFailure>().having(
-                  (e) => e.traceFilePath,
-                  'traceFilePath',
-                  p.absolute(traceFilePath),
-                ),
-              ),
-            );
-          },
-          createFile: (path) {
-            if (p.basename(path) == 'lcov.info') {
-              return _ValueTestFile(
-                path: path,
-                existsSync: () => true,
-                openRead: ([start, end]) => Stream<List<int>>.error(
-                  FileSystemException('Fake file read error', path),
-                ),
-              );
-            }
-            throw UnsupportedError(
-              'This file $path should not be read in this test',
-            );
-          },
-        );
-      },
-    );
+          }
+          throw UnsupportedError(
+            'This file $path should not be read in this test',
+          );
+        },
+      );
+    });
   });
 }
 
@@ -544,25 +503,15 @@ final class _ValueTestFile extends Fake implements File {
   _ValueTestFile({
     required this.path,
     bool Function()? existsSync,
-    Stream<List<int>> Function([
-      int? start,
-      int? end,
-    ])? openRead,
-    List<String> Function({
-      Encoding encoding,
-    })? readAsLinesSync,
-  })  : _existsSync = existsSync,
-        _openRead = openRead,
-        _readAsLinesSync = readAsLinesSync;
+    Stream<List<int>> Function([int? start, int? end])? openRead,
+    List<String> Function({Encoding encoding})? readAsLinesSync,
+  }) : _existsSync = existsSync,
+       _openRead = openRead,
+       _readAsLinesSync = readAsLinesSync;
 
   final bool Function()? _existsSync;
-  final Stream<List<int>> Function([
-    int? start,
-    int? end,
-  ])? _openRead;
-  final List<String> Function({
-    Encoding encoding,
-  })? _readAsLinesSync;
+  final Stream<List<int>> Function([int? start, int? end])? _openRead;
+  final List<String> Function({Encoding encoding})? _readAsLinesSync;
 
   @override
   final String path;
@@ -585,9 +534,7 @@ final class _ValueTestFile extends Fake implements File {
   }
 
   @override
-  List<String> readAsLinesSync({
-    Encoding encoding = utf8,
-  }) {
+  List<String> readAsLinesSync({Encoding encoding = utf8}) {
     if (_readAsLinesSync case final cb?) return cb(encoding: encoding);
     throw UnimplementedError();
   }

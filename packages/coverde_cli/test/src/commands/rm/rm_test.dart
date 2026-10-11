@@ -33,345 +33,275 @@ void main() {
     late PackageVersionManager packageVersionManager;
     late CoverdeCommandRunner cmdRunner;
 
-    setUp(
-      () {
-        logger = _MockLogger();
-        packageVersionManager = _MockPackageVersionManager();
-        cmdRunner = _FakeCoverdeCommandRunner(
-          logger: logger,
-          packageVersionManager: packageVersionManager,
-        );
-      },
-    );
+    setUp(() {
+      logger = _MockLogger();
+      packageVersionManager = _MockPackageVersionManager();
+      cmdRunner = _FakeCoverdeCommandRunner(
+        logger: logger,
+        packageVersionManager: packageVersionManager,
+      );
+    });
 
-    tearDown(
-      () {
-        verifyNoMoreInteractions(logger);
-      },
-    );
+    tearDown(() {
+      verifyNoMoreInteractions(logger);
+    });
 
-    test(
-      '| description',
-      () {
-        const expected = '''
+    test('| description', () {
+      const expected = '''
 Remove a set of files and folders.
 ''';
 
-        final result = RmCommand().description;
+      final result = RmCommand().description;
 
-        expect(result.trim(), expected.trim());
-      },
-    );
+      expect(result.trim(), expected.trim());
+    });
 
-    test(
-      '<existing_file> '
-      '| previews deletion in dry-run mode (default)',
-      () async {
-        final filePath = p.joinAll(['coverage', 'existing.file']);
-        final file = File(filePath);
-        await file.create(recursive: true);
-        expect(file.existsSync(), isTrue);
+    test('<existing_file> '
+        '| previews deletion in dry-run mode (default)', () async {
+      final filePath = p.joinAll(['coverage', 'existing.file']);
+      final file = File(filePath);
+      await file.create(recursive: true);
+      expect(file.existsSync(), isTrue);
 
-        await cmdRunner.run([
-          'remove',
-          filePath,
-        ]);
+      await cmdRunner.run(['remove', filePath]);
 
-        verify(
-          () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
-        ).called(1);
-        expect(file.existsSync(), isTrue);
-      },
-    );
+      verify(
+        () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
+      ).called(1);
+      expect(file.existsSync(), isTrue);
+    });
 
-    test(
-      '--no-${RmCommand.dryRunFlag} '
-      '<existing_file> '
-      '| removes existing file when dry-run is disabled',
-      () async {
-        final filePath = p.joinAll(['coverage', 'existing.file']);
-        final file = File(filePath);
-        await file.create(recursive: true);
-        expect(file.existsSync(), isTrue);
+    test('--no-${RmCommand.dryRunFlag} '
+        '<existing_file> '
+        '| removes existing file when dry-run is disabled', () async {
+      final filePath = p.joinAll(['coverage', 'existing.file']);
+      final file = File(filePath);
+      await file.create(recursive: true);
+      expect(file.existsSync(), isTrue);
 
-        await cmdRunner.run([
-          'remove',
-          '--no-${RmCommand.dryRunFlag}',
-          filePath,
-        ]);
+      await cmdRunner.run(['remove', '--no-${RmCommand.dryRunFlag}', filePath]);
 
-        expect(file.existsSync(), isFalse);
-      },
-    );
+      expect(file.existsSync(), isFalse);
+    });
 
-    test(
-      '--no-${RmCommand.acceptAbsenceFlag} '
-      '<non-existing_file> '
-      '| fails when file does not exist',
-      () async {
-        final filePath = p.joinAll(['coverage', 'non-existing.file']);
-        final file = File(filePath);
-        expect(file.existsSync(), isFalse);
+    test('--no-${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_file> '
+        '| fails when file does not exist', () async {
+      final filePath = p.joinAll(['coverage', 'non-existing.file']);
+      final file = File(filePath);
+      expect(file.existsSync(), isFalse);
 
-        Future<void> action() => cmdRunner.run([
-              'remove',
-              filePath,
-              '--no-${RmCommand.acceptAbsenceFlag}',
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'remove',
+        filePath,
+        '--no-${RmCommand.acceptAbsenceFlag}',
+      ]);
 
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeRmElementNotFoundFailure>().having(
-              (e) => e.elementPath,
-              'elementPath',
-              filePath,
-            ),
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeRmElementNotFoundFailure>().having(
+            (e) => e.elementPath,
+            'elementPath',
+            filePath,
           ),
-        );
-        expect(file.existsSync(), isFalse);
-      },
-    );
+        ),
+      );
+      expect(file.existsSync(), isFalse);
+    });
 
-    test(
-      '--${RmCommand.dryRunFlag} '
-      '<existing_file> '
-      '| explicitly enables dry-run mode',
-      () async {
-        final filePath = p.joinAll(['coverage', 'existing.file']);
-        final file = File(filePath);
-        await file.create(recursive: true);
-        expect(file.existsSync(), isTrue);
+    test('--${RmCommand.dryRunFlag} '
+        '<existing_file> '
+        '| explicitly enables dry-run mode', () async {
+      final filePath = p.joinAll(['coverage', 'existing.file']);
+      final file = File(filePath);
+      await file.create(recursive: true);
+      expect(file.existsSync(), isTrue);
 
-        await cmdRunner.run([
-          'remove',
-          '--${RmCommand.dryRunFlag}',
-          filePath,
-        ]);
+      await cmdRunner.run(['remove', '--${RmCommand.dryRunFlag}', filePath]);
 
-        verify(
-          () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
-        ).called(1);
-        expect(file.existsSync(), isTrue);
-      },
-    );
+      verify(
+        () => logger.info('[DRY RUN] Would remove file: <$filePath>'),
+      ).called(1);
+      expect(file.existsSync(), isTrue);
+    });
 
-    test(
-      '--${RmCommand.acceptAbsenceFlag} '
-      '<non-existing_file> '
-      '| shows message when file does not exist',
-      () async {
-        final filePath = p.joinAll(['coverage', 'non-existing.file']);
-        final file = File(filePath);
-        expect(file.existsSync(), isFalse);
+    test('--${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_file> '
+        '| shows message when file does not exist', () async {
+      final filePath = p.joinAll(['coverage', 'non-existing.file']);
+      final file = File(filePath);
+      expect(file.existsSync(), isFalse);
 
-        await cmdRunner.run([
-          'remove',
-          filePath,
-          '--${RmCommand.acceptAbsenceFlag}',
-        ]);
+      await cmdRunner.run([
+        'remove',
+        filePath,
+        '--${RmCommand.acceptAbsenceFlag}',
+      ]);
 
-        verify(
-          () => logger.info('The <$filePath> element does not exist.'),
-        ).called(1);
-        expect(file.existsSync(), isFalse);
-      },
-    );
+      verify(
+        () => logger.info('The <$filePath> element does not exist.'),
+      ).called(1);
+      expect(file.existsSync(), isFalse);
+    });
 
-    test(
-      '<existing_directory> '
-      '| previews deletion in dry-run mode (default)',
-      () async {
-        final dirPath = p.joinAll(['coverage', 'existing.dir']);
-        final dir = Directory(dirPath);
-        await dir.create(recursive: true);
-        expect(dir.existsSync(), isTrue);
+    test('<existing_directory> '
+        '| previews deletion in dry-run mode (default)', () async {
+      final dirPath = p.joinAll(['coverage', 'existing.dir']);
+      final dir = Directory(dirPath);
+      await dir.create(recursive: true);
+      expect(dir.existsSync(), isTrue);
 
-        await cmdRunner.run([
-          'remove',
-          dirPath,
-        ]);
+      await cmdRunner.run(['remove', dirPath]);
 
-        verify(
-          () => logger.info('[DRY RUN] Would remove dir:  <$dirPath>'),
-        ).called(1);
-        expect(dir.existsSync(), isTrue);
-      },
-    );
+      verify(
+        () => logger.info('[DRY RUN] Would remove dir:  <$dirPath>'),
+      ).called(1);
+      expect(dir.existsSync(), isTrue);
+    });
 
-    test(
-      '--no-${RmCommand.dryRunFlag} '
-      '<existing_directory> '
-      '| removes existing directory when dry-run is disabled',
-      () async {
-        final dirPath = p.joinAll(['coverage', 'existing.dir']);
-        final dir = Directory(dirPath);
-        await dir.create(recursive: true);
-        expect(dir.existsSync(), isTrue);
+    test('--no-${RmCommand.dryRunFlag} '
+        '<existing_directory> '
+        '| removes existing directory when dry-run is disabled', () async {
+      final dirPath = p.joinAll(['coverage', 'existing.dir']);
+      final dir = Directory(dirPath);
+      await dir.create(recursive: true);
+      expect(dir.existsSync(), isTrue);
 
-        await cmdRunner.run([
-          'remove',
-          '--no-${RmCommand.dryRunFlag}',
-          dirPath,
-        ]);
+      await cmdRunner.run(['remove', '--no-${RmCommand.dryRunFlag}', dirPath]);
 
-        expect(dir.existsSync(), isFalse);
-      },
-    );
+      expect(dir.existsSync(), isFalse);
+    });
 
-    test(
-      '--no-${RmCommand.acceptAbsenceFlag} '
-      '<non-existing_directory> '
-      '| fails when directory does not exist',
-      () async {
-        final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
-        final dir = File(dirPath);
-        expect(dir.existsSync(), isFalse);
+    test('--no-${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_directory> '
+        '| fails when directory does not exist', () async {
+      final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
+      final dir = File(dirPath);
+      expect(dir.existsSync(), isFalse);
 
-        Future<void> action() => cmdRunner.run([
-              'remove',
-              dirPath,
-              '--no-${RmCommand.acceptAbsenceFlag}',
-            ]);
+      Future<void> action() => cmdRunner.run([
+        'remove',
+        dirPath,
+        '--no-${RmCommand.acceptAbsenceFlag}',
+      ]);
 
-        expect(
-          action,
-          throwsA(
-            isA<CoverdeRmElementNotFoundFailure>().having(
-              (e) => e.elementPath,
-              'elementPath',
-              dirPath,
-            ),
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeRmElementNotFoundFailure>().having(
+            (e) => e.elementPath,
+            'elementPath',
+            dirPath,
           ),
-        );
-        expect(dir.existsSync(), isFalse);
-      },
-    );
+        ),
+      );
+      expect(dir.existsSync(), isFalse);
+    });
 
-    test(
-      '--${RmCommand.acceptAbsenceFlag} '
-      '<non-existing_directory> '
-      '| shows message when directory does not exist',
-      () async {
-        final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
-        final dir = File(dirPath);
-        expect(dir.existsSync(), isFalse);
+    test('--${RmCommand.acceptAbsenceFlag} '
+        '<non-existing_directory> '
+        '| shows message when directory does not exist', () async {
+      final dirPath = p.joinAll(['coverage', 'non-existing.dir']);
+      final dir = File(dirPath);
+      expect(dir.existsSync(), isFalse);
 
-        await cmdRunner.run([
-          'remove',
-          dirPath,
-          '--${RmCommand.acceptAbsenceFlag}',
-        ]);
+      await cmdRunner.run([
+        'remove',
+        dirPath,
+        '--${RmCommand.acceptAbsenceFlag}',
+      ]);
 
-        verify(
-          () => logger.info('The <$dirPath> element does not exist.'),
-        ).called(1);
-        expect(dir.existsSync(), isFalse);
-      },
-    );
+      verify(
+        () => logger.info('The <$dirPath> element does not exist.'),
+      ).called(1);
+      expect(dir.existsSync(), isFalse);
+    });
 
-    test(
-      '| fails when no elements to remove',
-      () {
-        Future<void> action() => cmdRunner.run([
-              'remove',
-            ]);
+    test('| fails when no elements to remove', () {
+      Future<void> action() => cmdRunner.run(['remove']);
 
-        expect(
-          action,
-          throwsA(isA<CoverdeRmMissingPathsFailure>()),
-        );
-      },
-    );
+      expect(action, throwsA(isA<CoverdeRmMissingPathsFailure>()));
+    });
 
-    test(
-      '--no-${RmCommand.dryRunFlag} '
-      '<existing_file> '
-      '| throws $CoverdeRmFileDeleteFailure '
-      'when file deletion fails',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-rm-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final filePath = p.join(directory.path, 'file.txt');
-        File(filePath).createSync();
+    test('--no-${RmCommand.dryRunFlag} '
+        '<existing_file> '
+        '| throws $CoverdeRmFileDeleteFailure '
+        'when file deletion fails', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-rm-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final filePath = p.join(directory.path, 'file.txt');
+      File(filePath).createSync();
 
-        await IOOverrides.runZoned(
-          () async {
-            Future<void> action() => cmdRunner.run([
-                  'remove',
-                  '--no-${RmCommand.dryRunFlag}',
-                  filePath,
-                ]);
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+            'remove',
+            '--no-${RmCommand.dryRunFlag}',
+            filePath,
+          ]);
 
-            expect(
-              action,
-              throwsA(
-                isA<CoverdeRmFileDeleteFailure>().having(
-                  (e) => e.filePath,
-                  'filePath',
-                  filePath,
-                ),
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeRmFileDeleteFailure>().having(
+                (e) => e.filePath,
+                'filePath',
+                filePath,
               ),
-            );
-          },
-          createFile: (path) {
-            if (p.equals(path, filePath)) {
-              return _RmTestFile(path: path);
-            }
-            return File(path);
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+        createFile: (path) {
+          if (p.equals(path, filePath)) {
+            return _RmTestFile(path: path);
+          }
+          return File(path);
+        },
+      );
+    });
 
-    test(
-      '--no-${RmCommand.dryRunFlag} '
-      '<existing_directory> '
-      '| throws $CoverdeRmDirectoryDeleteFailure '
-      'when directory deletion fails',
-      () async {
-        final directory =
-            Directory.systemTemp.createTempSync('coverde-rm-test-');
-        addTearDown(() => directory.delete(recursive: true));
-        final dirPath = p.join(directory.path, 'subdir');
-        Directory(dirPath).createSync();
+    test('--no-${RmCommand.dryRunFlag} '
+        '<existing_directory> '
+        '| throws $CoverdeRmDirectoryDeleteFailure '
+        'when directory deletion fails', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-rm-test-');
+      addTearDown(() => directory.delete(recursive: true));
+      final dirPath = p.join(directory.path, 'subdir');
+      Directory(dirPath).createSync();
 
-        await IOOverrides.runZoned(
-          () async {
-            Future<void> action() => cmdRunner.run([
-                  'remove',
-                  '--no-${RmCommand.dryRunFlag}',
-                  dirPath,
-                ]);
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run([
+            'remove',
+            '--no-${RmCommand.dryRunFlag}',
+            dirPath,
+          ]);
 
-            expect(
-              action,
-              throwsA(
-                isA<CoverdeRmDirectoryDeleteFailure>().having(
-                  (e) => e.directoryPath,
-                  'directoryPath',
-                  dirPath,
-                ),
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeRmDirectoryDeleteFailure>().having(
+                (e) => e.directoryPath,
+                'directoryPath',
+                dirPath,
               ),
-            );
-          },
-          createDirectory: (path) {
-            if (p.equals(path, dirPath)) {
-              return _RmTestDirectory(path: path);
-            }
-            return Directory(path);
-          },
-        );
-      },
-    );
+            ),
+          );
+        },
+        createDirectory: (path) {
+          if (p.equals(path, dirPath)) {
+            return _RmTestDirectory(path: path);
+          }
+          return Directory(path);
+        },
+      );
+    });
   });
 }
 
 final class _RmTestFile extends Fake implements File {
-  _RmTestFile({
-    required this.path,
-  });
+  _RmTestFile({required this.path});
 
   @override
   final String path;
@@ -383,9 +313,7 @@ final class _RmTestFile extends Fake implements File {
 }
 
 final class _RmTestDirectory extends Fake implements Directory {
-  _RmTestDirectory({
-    required this.path,
-  });
+  _RmTestDirectory({required this.path});
 
   @override
   final String path;
