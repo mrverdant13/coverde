@@ -60,10 +60,10 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
-            ripple run format.ci --preset "${RIPPLE_CHANGED_PRESET}"
-            ripple run analyze.ci --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+            ripple run format.gate --preset "${RIPPLE_CHANGED_PRESET}"
+            ripple run analyze.gate --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
           else
-            ripple run format.ci && ripple run analyze.ci --fail-fast
+            ripple run format.gate && ripple run analyze.gate --fail-fast
           fi
 
   min-sdk-consumer:
@@ -161,9 +161,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
-            ripple run test.ci --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+            ripple run test --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
           else
-            ripple run test.ci --fail-fast
+            ripple run test --fail-fast
           fi
           ripple run coverage.merge
           ripple run coverage.check

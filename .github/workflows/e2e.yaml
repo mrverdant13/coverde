@@ -31,4 +31,4 @@ jobs:
       - name: Bootstrap packages
         run: ripple run get --fail-fast
       - name: Run E2E tests
-        run: ripple run test.e2e.ci --fail-fast
+        run: ripple run test.e2e --fail-fast

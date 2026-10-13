@@ -59,16 +59,16 @@ scripts:
   format:
     description: Format a package
     exec: "{{dart}} format ."
-  format.ci:
-    description: Format all packages (CI)
+  format.gate:
+    description: Fail if formatting would change any file
     exec: "{{dart}} format --set-exit-if-changed ."
 
   analyze:
     description: Analyze a package
     exec: "{{dart}} analyze ."
     dependentsFilters: []
-  analyze.ci:
-    description: Analyze all packages (CI)
+  analyze.gate:
+    description: Analyze and treat infos and warnings as errors
     exec: "{{dart}} analyze --fatal-infos --fatal-warnings ."
     dependentsFilters: []
 
@@ -84,17 +84,6 @@ scripts:
 
   test:
     description: Run tests and generate coverage trace file for a package
-    exec:
-      - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
-      - "{{dart}} test --color --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
-    filters:
-      - dependsOn: [test]
-      - dirExists: [test]
-    dependentsFilters:
-      - dependsOn: [test]
-      - dirExists: [test]
-  test.ci:
-    description: Run tests for all packages (CI)
     exec:
       - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
       - "{{dart}} test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
@@ -119,14 +108,6 @@ scripts:
 
   test.e2e:
     description: Run E2E tests
-    exec:
-      - git clean -dfX .
-      - "{{dart}} test --color --run-skipped --tags e2e e2e"
-    filters:
-      - group: e2e
-      - dirExists: [e2e]
-  test.e2e.ci:
-    description: Run E2E tests for all packages (CI)
     exec:
       - git clean -dfX .
       - "{{dart}} test --run-skipped --tags e2e e2e"
@@ -166,13 +147,13 @@ scripts:
       - group: publishable
 
   # Unscoped full gate. For a single package, run the package-filtered steps with
-  # RIPPLE_PACKAGES=<package> (format.ci / analyze.ci stay repo-wide).
+  # RIPPLE_PACKAGES=<package> (format.gate / analyze.gate stay repo-wide).
   release.check:
     description: Pre-publish gate for all publishable packages
     run:
-      - ripple run format.ci
-      - ripple run analyze.ci --fail-fast
-      - ripple run test.ci --fail-fast
+      - ripple run format.gate
+      - ripple run analyze.gate --fail-fast
+      - ripple run test --fail-fast
       - ripple run pub-score.local --fail-fast
       - "ripple exec --group publishable --fail-fast -- '{{dart}}' pub publish --dry-run"
 

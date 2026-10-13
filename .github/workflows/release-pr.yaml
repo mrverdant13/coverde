@@ -131,13 +131,13 @@ jobs:
         run: sudo apt-get install -y webp
       - name: Format and analyze
         run: |
-          ripple run format.ci
-          ripple run analyze.ci --fail-fast
+          ripple run format.gate
+          ripple run analyze.gate --fail-fast
       - name: Run package-scoped pre-publish checks
         env:
           RIPPLE_PACKAGES: ${{ needs.parse-title.outputs.package }}
         run: |
-          ripple run test.ci --fail-fast
+          ripple run test --fail-fast
           ripple run pub-score.local --fail-fast
           ripple exec --group publishable --fail-fast -- '{{dart}}' pub publish --dry-run
       - name: Set step summary
