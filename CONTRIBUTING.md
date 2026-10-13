@@ -40,7 +40,7 @@ If you can include screenshots, trace data or any additional context, it could b
 - [Dart SDK][dart_link] — the published CLI advertises `>=3.7.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.7.0`.
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
-  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}'
+  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}'
   ```
 - Optional local Dart binary via a gitignored `ripple_overrides.yaml` (do not commit it). CI uses PATH `dart` and needs no overlay. A local `dart:` overlay also flows into `coverde: "{{dart}} run coverde"` in [`ripple.yaml`](ripple.yaml):
 
@@ -58,14 +58,29 @@ Bootstrap after clone:
 ripple run get
 ```
 
-Named scripts live in [`ripple.yaml`](ripple.yaml). Common checks:
+Named scripts live in [`ripple.yaml`](ripple.yaml). `local` and `ci-pr` are changed-package presets. Pass one with `--preset` to limit an `exec` script to packages that own the diff, plus dependents when that script declares `dependentsFilters`. Omit `--preset` to run every package that meets the script's own filters.
+
+`local` is commits since `origin/main` plus uncommitted files. `ci-pr` is the merge-base diff against `origin/main`. Both ignore markdown. Fetch `origin/main` first; a missing ref fails the command. `format` and `format.gate` skip `coverde_monorepo`, because `dart format .` in that package walks every nested package.
+
+Day-to-day checks for the current branch and working tree:
 
 ```bash
-ripple run format.ci
-ripple run analyze.ci --fail-fast
-ripple run test.ci --fail-fast
+ripple run get --preset local
+ripple run format --preset local
+ripple run analyze --preset local
+ripple run test --preset local
+```
+
+Full-tree checks, including CI on `main`:
+
+```bash
+ripple run format.gate
+ripple run analyze.gate --fail-fast
+ripple run test --fail-fast
 ripple run coverage.merge && ripple run coverage.check
 ```
+
+Pull requests run `format.gate`, `analyze.gate`, and `test` with `--preset ci-pr`. A pull request that touches no test package skips the coverage merge and check. `main` still merges traces and requires 100% coverage.
 
 ### Pull Requests
 
@@ -152,7 +167,7 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
        --build-types docs,refactor,perf,test,build,chore
      ```
 3. **Review the release PR.** Confirm version, changelog, and generated `packageVersion`.
-4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs repo-wide `format.ci` / `analyze.ci`, then `RIPPLE_PACKAGES=coverde` on `test.ci`, `pub-score.local`, and `dart pub publish --dry-run`.
+4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs repo-wide `format.gate` / `analyze.gate` (no `--preset`), then `RIPPLE_PACKAGES=coverde` on `test`, `pub-score.local`, and `dart pub publish --dry-run`. `RIPPLE_PACKAGES` narrows seeds only, so `test` still runs dependents of `coverde` that have tests.
 5. **Merge the release PR** into `main`. [Release tag on merge](.github/workflows/release-tag.yaml) pushes `coverde-v<version>`.
 6. **Publish to pub.dev.** Run **Actions → Publish Dart package**, choose **Use workflow from: Tags**, select `coverde-v<version>`, set `dry_run: false`, and approve `pub-dev-publish`. The workflow publishes via OIDC and polls pub.dev ([`tools/wait_for_pub_dev_version/wait_for_pub_dev_version.dart`](tools/wait_for_pub_dev_version/wait_for_pub_dev_version.dart)).
    - **Failure recovery:** If publish or the poll fails, the workflow deletes the tag. Recreate it with **Release tag on merge** (`workflow_dispatch` on `main`), then dispatch publish again.
@@ -171,7 +186,7 @@ Highest matching component wins. A breaking type not listed as `type!` falls bac
 
 `release.check` in [`ripple.yaml`](ripple.yaml) is an unscoped `run:` gate and **rejects** `RIPPLE_PACKAGES`. Use it locally for the full repo.
 
-CI runs the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- '{{dart}}' pub publish --dry-run`.
+CI runs the same steps without `--preset ci-pr`: `format.gate` and `analyze.gate` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes the seeds of `test`, `pub-score.local`, and `ripple exec --group publishable -- '{{dart}}' pub publish --dry-run`. `test` still runs dependents of `coverde` that have tests. Publish sets `RIPPLE_PACKAGES` for the whole check job, so `analyze.gate` there also analyzes dependents of `coverde`.
 
 ### Prepare tool flags
 
