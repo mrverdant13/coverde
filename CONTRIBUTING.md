@@ -40,7 +40,7 @@ If you can include screenshots, trace data or any additional context, it could b
 - [Dart SDK][dart_link] — the published CLI advertises `>=3.7.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.7.0`.
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
-  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}'
+  dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}'
   ```
 - Optional local Dart binary via a gitignored `ripple_overrides.yaml` (do not commit it). CI uses PATH `dart` and needs no overlay. A local `dart:` overlay also flows into `coverde: "{{dart}} run coverde"` in [`ripple.yaml`](ripple.yaml):
 

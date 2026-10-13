@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}
       - name: Bootstrap packages
         run: ripple run get --fail-fast
       - name: Format and analyze
@@ -53,7 +53,7 @@ jobs:
         run: >
           dart pub global activate --source git
           https://github.com/mrverdant13/ripple.git
-          --git-ref ccc3d80a9ff466b4219ff969b06361c7b7d7e076
+          --git-ref 27d5a0bc6f78f4ff35651a820b4fbae80cd96670
       - name: Run min-SDK consumer smoke
         run: ripple run test.min-sdk --fail-fast
 
@@ -70,7 +70,7 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}
       - name: Bootstrap packages
         run: ripple run get --fail-fast
       - name: Verify up-to-date generated source files
@@ -94,7 +94,7 @@ jobs:
         uses: ./.github/actions/install-dart-cli
         with:
           package: >-
-            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: ccc3d80a9ff466b4219ff969b06361c7b7d7e076}}
+            ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}
       - name: Bootstrap packages
         run: ripple run get --fail-fast
       - name: Run tests, merge tests if needed, and check 100% coverage
