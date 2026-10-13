@@ -23,6 +23,8 @@ jobs:
         run: echo "publish=${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}" >> "$GITHUB_OUTPUT"
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Check spelling
         uses: streetsidesoftware/cspell-action@v9
         with:
@@ -34,10 +36,35 @@ jobs:
         with:
           package: >-
             ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}
+      - name: Fetch main for changed-package selection
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
       - name: Bootstrap packages
-        run: ripple run get --fail-fast
+        shell: bash
+        env:
+          RIPPLE_CHANGED_PRESET: ${{ github.event_name == 'pull_request' && 'ci-pr' || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
+            ripple run get --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+          else
+            ripple run get --fail-fast
+          fi
       - name: Format and analyze
-        run: ripple run format.ci && ripple run analyze.ci --fail-fast
+        shell: bash
+        env:
+          RIPPLE_CHANGED_PRESET: ${{ github.event_name == 'pull_request' && 'ci-pr' || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
+            ripple run format.ci --preset "${RIPPLE_CHANGED_PRESET}"
+            ripple run analyze.ci --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+          else
+            ripple run format.ci && ripple run analyze.ci --fail-fast
+          fi
 
   min-sdk-consumer:
     name: Min-SDK consumer smoke
@@ -88,6 +115,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Install dart
         uses: dart-lang/setup-dart@v1
       - name: Install ripple
@@ -95,13 +124,52 @@ jobs:
         with:
           package: >-
             ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}
+      - name: Fetch main for changed-package selection
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+      - name: Detect affected test packages
+        id: affected-tests
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$(ripple list --preset ci-pr --depends-on test --dir-exists test)" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Bootstrap packages
-        run: ripple run get --fail-fast
+        if: github.event_name != 'pull_request' || steps.affected-tests.outputs.run == 'true'
+        shell: bash
+        env:
+          RIPPLE_CHANGED_PRESET: ${{ github.event_name == 'pull_request' && 'ci-pr' || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
+            ripple run get --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+          else
+            ripple run get --fail-fast
+          fi
       - name: Run tests, merge tests if needed, and check 100% coverage
-        run: ripple run test.ci --fail-fast && ripple run coverage.merge && ripple run coverage.check
+        if: github.event_name != 'pull_request' || steps.affected-tests.outputs.run == 'true'
+        shell: bash
+        env:
+          RIPPLE_CHANGED_PRESET: ${{ github.event_name == 'pull_request' && 'ci-pr' || '' }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RIPPLE_CHANGED_PRESET}" ]; then
+            ripple run test.ci --fail-fast --preset "${RIPPLE_CHANGED_PRESET}"
+          else
+            ripple run test.ci --fail-fast
+          fi
+          ripple run coverage.merge
+          ripple run coverage.check
       - name: Update coverage trace file as artifact
         uses: actions/upload-artifact@v7
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && (github.event_name != 'pull_request' || steps.affected-tests.outputs.run == 'true')
         with:
           name: filtered.lcov.info
           path: ./coverage/filtered.lcov.info
