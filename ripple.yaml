@@ -26,6 +26,19 @@ packages:
       - tools/readmes_resolver
       - tools/prepare_package_release
       - tools/wait_for_pub_dev_version
+  filtersPresets:
+    local:
+      - changed:
+          checks:
+            - since:origin/main
+            - workdir:HEAD
+          exclude:
+            - '**/*.md'
+    ci-pr:
+      - changed:
+          checks: since:origin/main
+          exclude:
+            - '**/*.md'
 
 replacements:
   dart: dart
@@ -34,8 +47,14 @@ replacements:
 
 scripts:
   get:
-    description: Get all packages
+    description: Get packages whose resolution is missing or stale
     exec: "{{dart}} pub get"
+    filters:
+      - pubGet: missing
+        asOf: live
+    dependentsFilters:
+      - pubGet: missing
+        asOf: live
 
   format:
     description: Format a package
@@ -47,9 +66,11 @@ scripts:
   analyze:
     description: Analyze a package
     exec: "{{dart}} analyze ."
+    dependentsFilters: []
   analyze.ci:
     description: Analyze all packages (CI)
     exec: "{{dart}} analyze --fatal-infos --fatal-warnings ."
+    dependentsFilters: []
 
   gen:
     description: Run code generation for a package
@@ -69,12 +90,18 @@ scripts:
     filters:
       - dependsOn: [test]
       - dirExists: [test]
+    dependentsFilters:
+      - dependsOn: [test]
+      - dirExists: [test]
   test.ci:
     description: Run tests for all packages (CI)
     exec:
       - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
       - "{{dart}} test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
+      - dependsOn: [test]
+      - dirExists: [test]
+    dependentsFilters:
       - dependsOn: [test]
       - dirExists: [test]
 
