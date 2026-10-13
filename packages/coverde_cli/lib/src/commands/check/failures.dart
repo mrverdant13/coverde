@@ -1,4 +1,5 @@
 import 'package:coverde/coverde.dart';
+import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.check_failure}
@@ -75,6 +76,137 @@ final class CoverdeCheckInvalidMinimumCoverageThresholdFailure
              'It should be a positive number not greater than 100 '
              '[0.0, 100.0].',
        );
+}
+
+/// {@template coverde_cli.check_unknown_coverage_threshold_failure}
+/// A [CheckCommand] failure that indicates that a named coverage threshold is
+/// not defined in `coverde.yaml`.
+/// {@endtemplate}
+final class CoverdeCheckUnknownCoverageThresholdFailure
+    extends CoverdeCheckFailure {
+  /// {@macro coverde_cli.check_unknown_coverage_threshold_failure}
+  const CoverdeCheckUnknownCoverageThresholdFailure({
+    required this.thresholdName,
+    required this.configPath,
+    required this.availableThresholds,
+  });
+
+  /// The coverage threshold name that was not defined.
+  final String thresholdName;
+
+  /// The path to the config file that was consulted.
+  final String configPath;
+
+  /// The coverage threshold names defined in [configPath].
+  final List<String> availableThresholds;
+
+  @override
+  String get readableMessage {
+    final available =
+        availableThresholds.isEmpty
+            ? 'none'
+            : availableThresholds.map((name) => '`$name`').join(', ');
+    return '''
+Unknown coverage threshold `$thresholdName` in `$configPath`.
+Available thresholds: $available.
+''';
+  }
+}
+
+/// {@template coverde_cli.check_config_file_read_failure}
+/// A [CheckCommand] failure that indicates that the config file could not be
+/// read.
+/// {@endtemplate}
+final class CoverdeCheckConfigFileReadFailure extends CoverdeCheckFailure {
+  /// Create a [CoverdeCheckConfigFileReadFailure] from a [FileSystemException].
+  CoverdeCheckConfigFileReadFailure.fromFileSystemException({
+    required this.configPath,
+    required FileSystemException exception,
+  }) : errorMessage = [
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
+
+  /// The path to the config file.
+  final String configPath;
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to read config file at `$configPath`.\n$errorMessage';
+}
+
+/// {@template coverde_cli.check_invalid_config_file_failure}
+/// A [CheckCommand] failure that indicates that the config file is invalid.
+/// {@endtemplate}
+final class CoverdeCheckInvalidConfigFileFailure extends CoverdeCheckFailure {
+  /// {@macro coverde_cli.check_invalid_config_file_failure}
+  const CoverdeCheckInvalidConfigFileFailure({
+    required this.configPath,
+    required this.failure,
+  });
+
+  /// The path to the config file.
+  final String configPath;
+
+  /// The underlying failure.
+  final CoverdeConfigFromYamlFailure failure;
+
+  @override
+  String get readableMessage => [
+    'Invalid config file at `$configPath`.',
+    ...switch (failure) {
+      CoverdeConfigFromYamlInvalidYamlFailure(:final yamlException) => [
+        'Invalid YAML: ${yamlException.message}.',
+      ],
+      CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+        :final key,
+        :final expectedType,
+        :final value,
+      ) =>
+        [
+          'Invalid YAML member type.',
+          'Key: `${key ?? '<root>'}`.',
+          'Expected type: `$expectedType`.',
+          'Value: `$value`.',
+        ],
+      CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+        :final key,
+        :final value,
+        :final hint,
+      ) =>
+        [
+          'Invalid YAML member value.',
+          'Key: `${key ?? '<root>'}`.',
+          if (hint != null) 'Hint: $hint.',
+          'Value: `$value`.',
+        ],
+      CoverdeConfigFromYamlUnknownPresetFailure(
+        :final unknownPreset,
+        :final availablePresets,
+      ) =>
+        [
+          'Unknown preset: `$unknownPreset`.',
+          'Available presets:',
+          for (final preset in availablePresets) '- `$preset`',
+        ],
+      CoverdeConfigFromYamlPresetCycleFailure(:final cycle) => [
+        'Preset cycle detected: ${cycle.join(' -> ')}.',
+      ],
+      CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+        :final key,
+        :final invalidReferences,
+      ) =>
+        [
+          'Invalid coverage percentage.',
+          'Key: `$key`.',
+          'Coverage values must be between 0 and 100.',
+          'Invalid values: ${invalidReferences.join(', ')}.',
+        ],
+    },
+  ].join('\n');
 }
 
 /// {@template coverde_cli.check_invalid_trace_file_failure}
