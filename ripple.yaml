@@ -56,12 +56,18 @@ scripts:
       - pubGet: missing
         asOf: live
 
+  # The root package is skipped: `dart format .` there walks every nested
+  # package, including ones whose analysis options are not resolved.
   format:
     description: Format a package
     exec: "{{dart}} format ."
+    filters:
+      - noMatch: [coverde_monorepo]
   format.gate:
     description: Fail if formatting would change any file
     exec: "{{dart}} format --set-exit-if-changed ."
+    filters:
+      - noMatch: [coverde_monorepo]
 
   analyze:
     description: Analyze a package

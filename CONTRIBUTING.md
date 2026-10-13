@@ -60,7 +60,7 @@ ripple run get
 
 Named scripts live in [`ripple.yaml`](ripple.yaml). `local` and `ci-pr` are changed-package presets. Pass one with `--preset` to limit an `exec` script to packages that own the diff, plus dependents when that script declares `dependentsFilters`. Omit `--preset` to run every package that meets the script's own filters.
 
-`local` is commits since `origin/main` plus uncommitted files. `ci-pr` is the merge-base diff against `origin/main`. Both ignore markdown. Fetch `origin/main` first; a missing ref fails the command.
+`local` is commits since `origin/main` plus uncommitted files. `ci-pr` is the merge-base diff against `origin/main`. Both ignore markdown. Fetch `origin/main` first; a missing ref fails the command. `format` and `format.gate` skip `coverde_monorepo`, because `dart format .` in that package walks every nested package.
 
 Day-to-day checks for the current branch and working tree:
 
