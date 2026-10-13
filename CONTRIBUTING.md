@@ -58,7 +58,20 @@ Bootstrap after clone:
 ripple run get
 ```
 
-Named scripts live in [`ripple.yaml`](ripple.yaml). Common checks:
+Named scripts live in [`ripple.yaml`](ripple.yaml). `local` and `ci-pr` are changed-package presets. Pass one with `--preset` to limit an `exec` script to packages that own the diff, plus dependents when that script declares `dependentsFilters`. Omit `--preset` to run every package that meets the script's own filters.
+
+`local` is commits since `origin/main` plus uncommitted files. `ci-pr` is the merge-base diff against `origin/main`. Both ignore markdown. Fetch `origin/main` first; a missing ref fails the command.
+
+Day-to-day checks for the current branch and working tree:
+
+```bash
+ripple run get --preset local
+ripple run format --preset local
+ripple run analyze --preset local
+ripple run test --preset local
+```
+
+Full-tree checks, including CI on `main`:
 
 ```bash
 ripple run format.ci
@@ -66,6 +79,8 @@ ripple run analyze.ci --fail-fast
 ripple run test.ci --fail-fast
 ripple run coverage.merge && ripple run coverage.check
 ```
+
+Pull requests run `format.ci`, `analyze.ci`, and `test.ci` with `--preset ci-pr`. A pull request that touches no test package skips the coverage merge and check. `main` still merges traces and requires 100% coverage.
 
 ### Pull Requests
 
@@ -152,7 +167,7 @@ Regular [Dart CI](.github/workflows/ci.yaml) does not run `release.check` or pub
        --build-types docs,refactor,perf,test,build,chore
      ```
 3. **Review the release PR.** Confirm version, changelog, and generated `packageVersion`.
-4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs repo-wide `format.ci` / `analyze.ci`, then `RIPPLE_PACKAGES=coverde` on `test.ci`, `pub-score.local`, and `dart pub publish --dry-run`.
+4. **Wait for release PR CI.** [Dart release PR check](.github/workflows/release-pr.yaml) runs repo-wide `format.ci` / `analyze.ci` (no `--preset`), then `RIPPLE_PACKAGES=coverde` on `test.ci`, `pub-score.local`, and `dart pub publish --dry-run`. `RIPPLE_PACKAGES` narrows seeds only, so `test.ci` still runs dependents of `coverde` that have tests.
 5. **Merge the release PR** into `main`. [Release tag on merge](.github/workflows/release-tag.yaml) pushes `coverde-v<version>`.
 6. **Publish to pub.dev.** Run **Actions → Publish Dart package**, choose **Use workflow from: Tags**, select `coverde-v<version>`, set `dry_run: false`, and approve `pub-dev-publish`. The workflow publishes via OIDC and polls pub.dev ([`tools/wait_for_pub_dev_version/wait_for_pub_dev_version.dart`](tools/wait_for_pub_dev_version/wait_for_pub_dev_version.dart)).
    - **Failure recovery:** If publish or the poll fails, the workflow deletes the tag. Recreate it with **Release tag on merge** (`workflow_dispatch` on `main`), then dispatch publish again.
@@ -171,7 +186,7 @@ Highest matching component wins. A breaking type not listed as `type!` falls bac
 
 `release.check` in [`ripple.yaml`](ripple.yaml) is an unscoped `run:` gate and **rejects** `RIPPLE_PACKAGES`. Use it locally for the full repo.
 
-CI runs the same steps: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- '{{dart}}' pub publish --dry-run`.
+CI runs the same steps without `--preset ci-pr`: `format.ci` and `analyze.ci` stay repo-wide; `RIPPLE_PACKAGES=coverde` scopes the seeds of `test.ci`, `pub-score.local`, and `ripple exec --group publishable -- '{{dart}}' pub publish --dry-run`. `test.ci` still runs dependents of `coverde` that have tests. Publish sets `RIPPLE_PACKAGES` for the whole check job, so `analyze.ci` there also analyzes dependents of `coverde`.
 
 ### Prepare tool flags
 
