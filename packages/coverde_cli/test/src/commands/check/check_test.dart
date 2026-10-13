@@ -1,3 +1,5 @@
+import 'dart:convert' show Encoding, utf8;
+
 import 'package:args/command_runner.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
@@ -54,8 +56,8 @@ void main() {
       const expected = '''
 Check the coverage value (%) computed from a trace file.
 
-The unique argument should be an integer between 0 and 100.
-This parameter indicates the minimum value for the coverage to be accepted.
+The unique argument is a coverage threshold.
+It is either a number between 0 and 100, or the name of a `coverage` entry in coverde.yaml.
 ''';
 
       final result = CheckCommand().description;
@@ -315,27 +317,274 @@ This parameter indicates the minimum value for the coverage to be accepted.
     });
 
     test(
-      '<non-numeric> | fails when minimum coverage value is non-numeric',
+      '<out-of-range> | fails when the threshold number is out of range',
       () async {
-        const invalidMinCoverage = 'str';
+        Future<void> action() => cmdRunner.run(['check', '101']);
 
-        Future<void> action() => cmdRunner.run(['check', invalidMinCoverage]);
+        expect(
+          action,
+          throwsA(isA<CoverdeCheckInvalidMinimumCoverageThresholdFailure>()),
+        );
+      },
+    );
+
+    test('NaN | fails when the threshold number is not finite', () async {
+      Future<void> action() => cmdRunner.run(['check', 'NaN']);
+
+      expect(
+        action,
+        throwsA(isA<CoverdeCheckInvalidMinimumCoverageThresholdFailure>()),
+      );
+    });
+
+    test('<number> | ignores an invalid coverde.yaml', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+      File(
+        p.join(directory.path, 'coverde.yaml'),
+      ).writeAsStringSync('coverage: [');
+
+      await IOOverrides.runZoned(() async {
+        await cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          '--${CheckCommand.fileCoverageLogLevelOptionName}',
+          FileCoverageLogLevel.none.identifier,
+          '50',
+        ]);
+      }, getCurrentDirectory: () => directory);
+
+      verifyInOrder([
+        () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+        () => logger.info(wrapWith('100.00% - 1/1', [blue, styleBold])),
+      ]);
+    });
+
+    test('<name> | uses the named threshold from coverde.yaml', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).writeAsStringSync('''
+coverage:
+  minimum: 90
+  repo: 75.5
+''');
+
+      await IOOverrides.runZoned(() async {
+        await cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          '--${CheckCommand.fileCoverageLogLevelOptionName}',
+          FileCoverageLogLevel.none.identifier,
+          'repo',
+        ]);
+      }, getCurrentDirectory: () => directory);
+
+      verifyInOrder([
+        () => logger.info(
+          'Using coverage threshold `repo` (75.50%) from `$configPath`.',
+        ),
+        () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+        () => logger.info(wrapWith('100.00% - 1/1', [blue, styleBold])),
+      ]);
+    });
+
+    test('<name> | fails when coverage is below the named threshold', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nDA:2,0\nend_of_record\n');
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).writeAsStringSync('''
+coverage:
+  minimum: 90
+''');
+
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          '--${CheckCommand.fileCoverageLogLevelOptionName}',
+          FileCoverageLogLevel.none.identifier,
+          'minimum',
+        ]);
+
+        await expectLater(
+          action,
+          throwsA(
+            isA<CoverdeCheckCoverageBelowMinimumFailure>().having(
+              (failure) => failure.minimumCoverage,
+              'minimumCoverage',
+              90,
+            ),
+          ),
+        );
+      }, getCurrentDirectory: () => directory);
+
+      verifyInOrder([
+        () => logger.info(
+          'Using coverage threshold `minimum` (90.00%) from `$configPath`.',
+        ),
+        () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+        () => logger.info(wrapWith('50.00% - 1/2', [blue, styleBold])),
+      ]);
+    });
+
+    test('<name> | fails when the threshold name is not defined', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).writeAsStringSync('''
+coverage:
+  minimum: 90
+  repo: 75
+''');
+
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run(['check', 'packages']);
 
         expect(
           action,
           throwsA(
-            isA<CoverdeCheckInvalidMinimumCoverageThresholdFailure>().having(
-              (e) => e.invalidInputDescription,
-              'invalidInputDescription',
-              'Invalid minimum coverage threshold.\n'
-                  'It should be a positive number not greater than 100 '
-                  '[0.0, 100.0].',
+            isA<CoverdeCheckUnknownCoverageThresholdFailure>()
+                .having(
+                  (failure) => failure.thresholdName,
+                  'thresholdName',
+                  'packages',
+                )
+                .having(
+                  (failure) => failure.configPath,
+                  'configPath',
+                  configPath,
+                )
+                .having(
+                  (failure) => failure.availableThresholds,
+                  'availableThresholds',
+                  ['minimum', 'repo'],
+                ),
+          ),
+        );
+      }, getCurrentDirectory: () => directory);
+    });
+
+    test('<name> | fails when coverde.yaml does not exist', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'coverde.yaml');
+
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run(['check', 'minimum']);
+
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckUnknownCoverageThresholdFailure>()
+                .having(
+                  (failure) => failure.configPath,
+                  'configPath',
+                  configPath,
+                )
+                .having(
+                  (failure) => failure.availableThresholds,
+                  'availableThresholds',
+                  isEmpty,
+                ),
+          ),
+        );
+      }, getCurrentDirectory: () => directory);
+    });
+
+    test('<name> | fails when coverde.yaml is invalid', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).writeAsStringSync('''
+coverage:
+  "95": 80
+''');
+
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run(['check', 'minimum']);
+
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckInvalidConfigFileFailure>().having(
+              (failure) => failure.configPath,
+              'configPath',
+              configPath,
             ),
           ),
         );
-      },
-    );
+      }, getCurrentDirectory: () => directory);
+    });
+
+    test('<name> | fails when coverde.yaml cannot be read', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).createSync();
+
+      await IOOverrides.runZoned(
+        () async {
+          Future<void> action() => cmdRunner.run(['check', 'minimum']);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeCheckConfigFileReadFailure>().having(
+                (failure) => failure.configPath,
+                'configPath',
+                configPath,
+              ),
+            ),
+          );
+        },
+        getCurrentDirectory: () => directory,
+        createFile: (filePath) {
+          if (p.basename(filePath) == 'coverde.yaml') {
+            return _CheckConfigReadTestFile(
+              path: filePath,
+              readAsStringSync:
+                  () =>
+                      throw FileSystemException('Cannot read config', filePath),
+            );
+          }
+          throw UnsupportedError(
+            'This file $filePath should not be opened in this test',
+          );
+        },
+      );
+    });
   });
+}
+
+final class _CheckConfigReadTestFile extends Fake implements File {
+  _CheckConfigReadTestFile({
+    required this.path,
+    required String Function() readAsStringSync,
+  }) : _readAsStringSync = readAsStringSync;
+
+  @override
+  final String path;
+
+  final String Function() _readAsStringSync;
+
+  @override
+  String readAsStringSync({Encoding encoding = utf8}) => _readAsStringSync();
 }
 
 final class _CheckTraceFileReadTestFile extends Fake implements File {

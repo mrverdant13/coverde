@@ -16,7 +16,10 @@ part 'coverde_config_from_yaml_failure.dart';
 @immutable
 class CoverdeConfig {
   /// {@macro coverde.coverde_config}
-  const CoverdeConfig({required this.presets});
+  const CoverdeConfig({
+    required this.presets,
+    this.coverageThresholds = const {},
+  });
 
   /// Creates a [CoverdeConfig] from a YAML string.
   ///
@@ -35,16 +38,31 @@ class CoverdeConfig {
   /// The [PresetTransformation]s that are available to use in the CLI.
   final List<PresetTransformation> presets;
 
+  /// Named coverage thresholds from the `coverage` map.
+  ///
+  /// Each value is a percentage in the inclusive range 0-100.
+  final Map<String, double> coverageThresholds;
+
   /// Equality for [presets].
   static const _presetsEquality = ListEquality<PresetTransformation>();
+
+  /// Equality for [coverageThresholds].
+  static const _coverageThresholdsEquality = MapEquality<String, double>();
 
   @override
   bool operator ==(Object other) {
     if (other is! CoverdeConfig) return false;
-    return _presetsEquality.equals(presets, other.presets);
+    return _presetsEquality.equals(presets, other.presets) &&
+        _coverageThresholdsEquality.equals(
+          coverageThresholds,
+          other.coverageThresholds,
+        );
   }
 
   @override
-  int get hashCode =>
-      Object.hashAll([runtimeType, _presetsEquality.hash(presets)]);
+  int get hashCode => Object.hashAll([
+    runtimeType,
+    _presetsEquality.hash(presets),
+    _coverageThresholdsEquality.hash(coverageThresholds),
+  ]);
 }

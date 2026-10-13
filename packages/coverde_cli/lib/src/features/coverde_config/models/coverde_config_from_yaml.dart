@@ -5,6 +5,9 @@ extension _CoverdeConfigYamlKeys on CoverdeConfig {
   /// Root-level key for the transformations/presets map.
   static const transformations = 'transformations';
 
+  /// Root-level key for named coverage thresholds.
+  static const coverage = 'coverage';
+
   /// Preset step map key for the transformation type.
   static const stepType = 'type';
 
@@ -63,7 +66,71 @@ CoverdeConfig _parseCoverdeConfigFromYaml(
         ),
       ),
   ];
-  return CoverdeConfig(presets: presets);
+  final coverageThresholds = _parseCoverageThresholds(rawConfig);
+  return CoverdeConfig(
+    presets: presets,
+    coverageThresholds: coverageThresholds,
+  );
+}
+
+/// Parses the `coverage` map of named thresholds.
+///
+/// A missing `coverage` member yields an empty map.
+///
+/// Throws [CoverdeConfigFromYamlFailure] when the member is present but
+/// invalid.
+Map<String, double> _parseCoverageThresholds(yaml.YamlMap rawConfig) {
+  final rawCoverage = rawConfig[_CoverdeConfigYamlKeys.coverage];
+  if (rawCoverage == null) return const {};
+  if (rawCoverage is! yaml.YamlMap) {
+    throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+      key: _CoverdeConfigYamlKeys.coverage,
+      expectedType: yaml.YamlMap,
+      value: rawCoverage,
+    );
+  }
+  final result = <String, double>{};
+  for (final MapEntry(key: rawKey, value: rawValue) in rawCoverage.entries) {
+    final keyPath = [
+      _CoverdeConfigYamlKeys.coverage,
+      '[key=$rawKey]',
+    ].join('.');
+    if (rawKey is! String) {
+      throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+        key: keyPath,
+        expectedType: String,
+        value: rawKey,
+      );
+    }
+    if (rawKey.isEmpty || double.tryParse(rawKey) != null) {
+      throw CoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+        key: keyPath,
+        value: rawKey,
+        hint: 'a non-empty name that is not a number',
+      );
+    }
+    final valueKey = [_CoverdeConfigYamlKeys.coverage, rawKey].join('.');
+    if (rawValue is! num) {
+      throw CoverdeConfigFromYamlInvalidYamlMemberTypeFailure(
+        key: valueKey,
+        expectedType: num,
+        value: rawValue,
+      );
+    }
+    if (!_isCoveragePercentage(rawValue)) {
+      throw CoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+        key: valueKey,
+        invalidReferences: [rawValue.toDouble()],
+      );
+    }
+    result[rawKey] = rawValue.toDouble();
+  }
+  return Map.unmodifiable(result);
+}
+
+/// Whether [value] is a finite percentage in the inclusive range 0-100.
+bool _isCoveragePercentage(num value) {
+  return value.isFinite && value >= 0 && value <= 100;
 }
 
 Map<String, List<_PresetEntry>> _parseRawPresets(

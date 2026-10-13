@@ -59,6 +59,9 @@ extension on CoverdeCheckFailure {
   ExitCode get exitCode => switch (this) {
     final CoverdeCheckInvalidInputFailure failure => failure.exitCode,
     final CoverdeCheckInvalidTraceFileFailure failure => failure.exitCode,
+    CoverdeCheckUnknownCoverageThresholdFailure() => ExitCode.usage,
+    CoverdeCheckConfigFileReadFailure() => ExitCode.ioError,
+    CoverdeCheckInvalidConfigFileFailure() => ExitCode.data,
     CoverdeCheckCoverageBelowMinimumFailure() => ExitCode.data,
   };
 }
