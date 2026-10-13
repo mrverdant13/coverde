@@ -915,6 +915,152 @@ void main() {
         },
       );
 
+      group('coverage', () {
+        test('| parses named thresholds', () {
+          const yamlString = '''
+          coverage:
+            minimum: 90
+            repo: 75.5
+            floor: 0
+            ceiling: 100
+          transformations:
+            preset:
+              - type: keep-by-regex
+                regex: lib/.*
+          ''';
+
+          final config = CoverdeConfig.fromYaml(yamlString);
+
+          expect(
+            config,
+            CoverdeConfig(
+              presets: [
+                PresetTransformation(
+                  presetName: 'preset',
+                  steps: [KeepByRegexTransformation(RegExp('lib/.*'))],
+                ),
+              ],
+              coverageThresholds: const {
+                'minimum': 90,
+                'repo': 75.5,
+                'floor': 0,
+                'ceiling': 100,
+              },
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when coverage is not a map', () {
+          const yamlString = 'coverage: 90';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<
+              yaml.YamlMap
+            >(key: 'coverage', failingValue: 90),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when a coverage key is not a string', () {
+          const yamlString = '''
+          coverage:
+            95: 80
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<String>(
+              key: 'coverage.[key=95]',
+              failingValue: 95,
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when a coverage key is empty', () {
+          const yamlString = '''
+          coverage:
+            "": 80
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'coverage.[key=]',
+              value: '',
+              hint: 'a non-empty name that is not a number',
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberValueFailure '
+            'when a coverage key is a number', () {
+          const yamlString = '''
+          coverage:
+            "95": 80
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberValueFailure(
+              key: 'coverage.[key=95]',
+              value: '95',
+              hint: 'a non-empty name that is not a number',
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidYamlMemberTypeFailure '
+            'when a coverage value is not a number', () {
+          const yamlString = '''
+          coverage:
+            minimum: "90"
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidYamlMemberTypeFailure<num>(
+              key: 'coverage.minimum',
+              failingValue: '90',
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when a coverage value is out of range', () {
+          const yamlString = '''
+          coverage:
+            minimum: 100.1
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'coverage.minimum',
+              invalidReferences: [100.1],
+            ),
+          );
+        });
+
+        test('| throws $CoverdeConfigFromYamlInvalidCoveragePercentageFailure '
+            'when a coverage value is below zero', () {
+          const yamlString = '''
+          coverage:
+            minimum: -1
+          ''';
+
+          expect(
+            () => CoverdeConfig.fromYaml(yamlString),
+            _throwsCoverdeConfigFromYamlInvalidCoveragePercentageFailure(
+              key: 'coverage.minimum',
+              invalidReferences: [-1],
+            ),
+          );
+        });
+      });
+
       test('| throws $CoverdeConfigFromYamlPresetCycleFailure '
           'when YAML transformation preset step references a preset that '
           'references the original preset', () {
@@ -942,15 +1088,27 @@ void main() {
 
     group('== & hashCode', () {
       test('| verifies equality and hash code resolution', () {
-        const config = CoverdeConfig(presets: []);
-        const same = CoverdeConfig(presets: []);
+        const config = CoverdeConfig(
+          presets: [],
+          coverageThresholds: {'minimum': 90},
+        );
+        const same = CoverdeConfig(
+          presets: [],
+          coverageThresholds: {'minimum': 90},
+        );
         const other = CoverdeConfig(
           presets: [PresetTransformation(presetName: 'preset-1', steps: [])],
         );
+        const differentThreshold = CoverdeConfig(
+          presets: [],
+          coverageThresholds: {'repo': 75},
+        );
         expect(config, same);
         expect(config, isNot(other));
+        expect(config, isNot(differentThreshold));
         expect(config.hashCode, same.hashCode);
         expect(config.hashCode, isNot(other.hashCode));
+        expect(config.hashCode, isNot(differentThreshold.hashCode));
       });
     });
   });
