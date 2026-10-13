@@ -386,8 +386,8 @@ $ coverde optimize-tests --total-shards=3 --shard-index=2 --output=test/optimize
 
 Check the coverage value (%) computed from a trace file.
 
-The unique argument should be an integer between 0 and 100.\
-This parameter indicates the minimum value for the coverage to be accepted.
+The unique argument is a coverage threshold.\
+It is either a number between 0 and 100, or the name of a `coverage` entry in coverde.yaml.
 
 ### Arguments
 
@@ -412,7 +412,7 @@ This parameter indicates the minimum value for the coverage to be accepted.
 
 - `min-coverage`
 
-  The minimum coverage value to be accepted. It should be an integer between 0 and 100.
+  A number between 0 and 100, or the name of a `coverage` entry in coverde.yaml.
 
 ### Examples
 
@@ -1042,7 +1042,14 @@ The resulting merged trace file can be used with `coverde report` to generate a 
 
 ## Coverage Check
 
-Validate minimum coverage threshold across all packages:
+Commit the shared thresholds in `coverde.yaml` at the repository root:
+
+```yaml
+coverage:
+  repo: 100
+```
+
+Validate the merged trace file against the `repo` threshold:
 
 ```yaml
 coverage.check:
@@ -1050,10 +1057,10 @@ coverage.check:
   run: >
     dart run coverde check
     --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    100
+    repo
 ```
 
-This script checks that the merged coverage trace file meets the minimum coverage threshold (100% in this example). The command will fail if coverage is below the threshold, making it suitable for CI/CD pipelines.
+This script checks that the merged coverage trace file meets the `repo` threshold from `coverde.yaml` (100% in this example). The command will fail if coverage is below that threshold, making it suitable for CI/CD pipelines. A number can still be passed instead of `repo` for a one-off check.
 
 ---
 
@@ -1066,7 +1073,9 @@ However, adding coverage checks to CI workflows hosted by other alternatives is 
 To solve this, after enabling Dart or Flutter in your CI workflow, according to your project requirements, you can use `coverde` and its `check` tool by adding the following commands to your workflow steps:
 
 - `dart pub global activate coverde`
-- `coverde check <min_coverage>`
+- `coverde check <threshold>`
+
+`<threshold>` is a number between 0 and 100, or the name of an entry in the `coverage` map of `coverde.yaml` in the working directory. For example, `coverde check 95` checks against 95% without reading the file, and `coverde check minimum` uses the `minimum` value committed in `coverde.yaml`.
 
 # Bugs or Requests
 
