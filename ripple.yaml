@@ -130,11 +130,11 @@ scripts:
   coverage.merge:
     description: Merge sanitized package coverage traces into one root trace
     run:
-      - "{{coverde}} rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
-      - "ripple exec --preset coverage-sanitized -- '{{coverde}}' transform --input coverage/sanitized.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH}"
+      - "{{coverde}} rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/merged.lcov.info"
+      - "ripple exec --preset coverage-sanitized -- '{{coverde}}' transform --input coverage/sanitized.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/merged.lcov.info --transformations relative=${RIPPLE_ROOT_PATH}"
   coverage.report:
     description: Generate HTML coverage report
-    run: "{{coverde}} report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
+    run: "{{coverde}} report --input ${RIPPLE_ROOT_PATH}/coverage/merged.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
 
   test.e2e:
     description: Run E2E tests
