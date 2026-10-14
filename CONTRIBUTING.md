@@ -80,7 +80,7 @@ ripple run test --fail-fast
 ripple run coverage.merge && ripple run coverage.check
 ```
 
-Pull requests run `format.gate`, `analyze.gate`, and `test` with `--preset ci-pr`. A pull request that touches no test package skips the coverage merge and check. `main` still merges traces and requires 100% coverage.
+Pull requests run `format.gate`, `analyze.gate`, and `test` with `--preset ci-pr`. Coverage is merged either way. The coverage check runs when `coverage/filtered.lcov.info` exists, so a pull request that produces no trace skips it. `main` always runs the check and requires 100% coverage.
 
 ### Pull Requests
 
