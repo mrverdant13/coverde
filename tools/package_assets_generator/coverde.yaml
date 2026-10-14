@@ -1,8 +1,0 @@
-coverage:
-  minimum: 100
-
-transformations:
-  no-generated-code:
-    - type: preset
-      file: ../../coverde.yaml
-      name: no-generated-code
