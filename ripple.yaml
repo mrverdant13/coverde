@@ -104,10 +104,10 @@ scripts:
     description: Merge all packages coverage trace files
     run:
       - "{{coverde}} rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
-      - "ripple exec --file-exists coverage/lcov.info -- '{{coverde}}' transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations skip-by-glob='**/*.asset.dart'"
+      - "ripple exec --file-exists coverage/lcov.info -- '{{coverde}}' transform --input coverage/lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH} --transformations preset=no-generated-code"
   coverage.check:
     description: Check test coverage
-    run: "{{coverde}} check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info 100"
+    run: "{{coverde}} check --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info minimum"
   coverage.report:
     description: Generate HTML coverage report
     run: "{{coverde}} report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
