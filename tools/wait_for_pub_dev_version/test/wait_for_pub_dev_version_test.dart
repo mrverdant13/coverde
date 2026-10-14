@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-
-import '../wait_for_pub_dev_version.dart';
+import 'package:wait_for_pub_dev_version/wait_for_pub_dev_version.dart';
 
 void main() {
   group('versionListedInPubDevResponse', () {

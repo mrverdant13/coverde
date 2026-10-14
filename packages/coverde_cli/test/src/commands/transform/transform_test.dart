@@ -1328,6 +1328,7 @@ transformations:
               ),
             );
           },
+          getCurrentDirectory: () => directory,
           createFile: (filePath) {
             if (p.basename(filePath) == 'in.info') return inputFile;
             if (p.basename(filePath) == 'out.info') {
@@ -1383,6 +1384,7 @@ transformations:
               ),
             );
           },
+          getCurrentDirectory: () => directory,
           createFile: (path) {
             if (p.basename(path) == 'in.info') {
               return _TransformTestFile(

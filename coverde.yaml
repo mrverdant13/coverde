@@ -1,0 +1,4 @@
+transformations:
+  drop-generated-code:
+    - type: skip-by-glob
+      glob: "**/*.asset.dart"

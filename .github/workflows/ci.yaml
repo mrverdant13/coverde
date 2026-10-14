@@ -113,17 +113,18 @@ jobs:
         run: ripple run get --fail-fast ${{ env.PRESET_OPTIONS }}
       - name: Run tests
         run: ripple run test --fail-fast ${{ env.PRESET_OPTIONS }}
+      - name: Sanitize coverage
+        run: ripple run coverage.sanitize
+      - name: Check coverage
+        run: ripple run coverage.check --fail-fast
       - name: Merge coverage
         run: ripple run coverage.merge
-      - name: Check coverage
-        if: github.event_name != 'pull_request' || hashFiles('coverage/filtered.lcov.info') != ''
-        run: ripple run coverage.check
       - name: Update coverage trace file as artifact
         uses: actions/upload-artifact@v7
-        if: matrix.os == 'ubuntu-latest' && hashFiles('coverage/filtered.lcov.info') != ''
+        if: matrix.os == 'ubuntu-latest' && hashFiles('coverage/merged.lcov.info') != ''
         with:
-          name: filtered.lcov.info
-          path: ./coverage/filtered.lcov.info
+          name: merged.lcov.info
+          path: ./coverage/merged.lcov.info
           retention-days: 1
 
   codecov:
@@ -141,13 +142,13 @@ jobs:
       - name: Download coverage trace file artifacts
         uses: actions/download-artifact@v8
         with:
-          name: filtered.lcov.info
+          name: merged.lcov.info
           path: coverage
       - name: Upload coverage data to Codecov
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           disable_search: true
-          files: coverage/filtered.lcov.info
+          files: coverage/merged.lcov.info
           fail_ci_if_error: true
           verbose: true

@@ -1,0 +1,8 @@
+coverage:
+  pkg-min: 100
+
+transformations:
+  drop-generated-code:
+    - type: preset
+      file: ../../coverde.yaml
+      name: drop-generated-code
