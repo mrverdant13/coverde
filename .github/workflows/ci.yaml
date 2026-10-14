@@ -113,11 +113,12 @@ jobs:
         run: ripple run get --fail-fast ${{ env.PRESET_OPTIONS }}
       - name: Run tests
         run: ripple run test --fail-fast ${{ env.PRESET_OPTIONS }}
+      - name: Sanitize coverage
+        run: ripple run test.sanitize
+      - name: Check coverage
+        run: ripple run coverage.check --fail-fast
       - name: Merge coverage
         run: ripple run coverage.merge
-      - name: Check coverage
-        if: github.event_name != 'pull_request' || hashFiles('coverage/filtered.lcov.info') != ''
-        run: ripple run coverage.check
       - name: Update coverage trace file as artifact
         uses: actions/upload-artifact@v7
         if: matrix.os == 'ubuntu-latest' && hashFiles('coverage/filtered.lcov.info') != ''
