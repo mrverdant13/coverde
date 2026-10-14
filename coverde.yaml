@@ -1,6 +1,3 @@
-coverage:
-  minimum: 100
-
 transformations:
   drop-generated-code:
     - type: skip-by-glob
