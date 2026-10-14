@@ -77,12 +77,12 @@ Full-tree checks, including CI on `main`:
 ripple run format.gate
 ripple run analyze.gate --fail-fast
 ripple run test --fail-fast
-ripple run test.sanitize
+ripple run coverage.sanitize
 ripple run coverage.check --fail-fast
 ripple run coverage.merge
 ```
 
-Pull requests run `format.gate`, `analyze.gate`, and `test` with `--preset ci-pr`. `test.sanitize` and `coverage.check` then run for packages that produced a trace, including dependents that `test` selected. A pull request that produces no trace matches no package, so those steps succeed without calling `coverde`. `main` checks each tested package against its `pkg-min` threshold after the `drop-generated-code` preset. The merged trace is for Codecov and the HTML report.
+Pull requests run `format.gate`, `analyze.gate`, and `test` with `--preset ci-pr`. `coverage.sanitize` and `coverage.check` then run for packages that produced a trace, including dependents that `test` selected. A pull request that produces no trace matches no package, so those steps succeed without calling `coverde`. `main` checks each tested package against its `pkg-min` threshold after the `drop-generated-code` preset. The merged trace is for Codecov and the HTML report.
 
 ### Pull Requests
 

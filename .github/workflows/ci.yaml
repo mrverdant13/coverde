@@ -114,7 +114,7 @@ jobs:
       - name: Run tests
         run: ripple run test --fail-fast ${{ env.PRESET_OPTIONS }}
       - name: Sanitize coverage
-        run: ripple run test.sanitize
+        run: ripple run coverage.sanitize
       - name: Check coverage
         run: ripple run coverage.check --fail-fast
       - name: Merge coverage

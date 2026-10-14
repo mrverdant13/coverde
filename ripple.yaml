@@ -42,7 +42,7 @@ packages:
     tested:
       - fileExists:
           - coverage/lcov.info
-    tested-sanitized:
+    coverage-sanitized:
       - fileExists:
           - coverage/sanitized.lcov.info
     testable:
@@ -115,7 +115,7 @@ scripts:
     dependentsFilters:
       - preset: testable
 
-  test.sanitize:
+  coverage.sanitize:
     description: Remove generated files from a package coverage trace
     exec: "{{coverde}} transform --input coverage/lcov.info --output coverage/sanitized.lcov.info --mode w --transformations preset=drop-generated-code"
     filters:
@@ -125,13 +125,13 @@ scripts:
     description: Check a package coverage trace against its pkg-min threshold
     exec: "{{coverde}} check --input coverage/sanitized.lcov.info pkg-min"
     filters:
-      - preset: tested-sanitized
+      - preset: coverage-sanitized
 
   coverage.merge:
     description: Merge sanitized package coverage traces into one root trace
     run:
       - "{{coverde}} rm --no-dry-run ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info"
-      - "ripple exec --preset tested-sanitized -- '{{coverde}}' transform --input coverage/sanitized.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH}"
+      - "ripple exec --preset coverage-sanitized -- '{{coverde}}' transform --input coverage/sanitized.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --transformations relative=${RIPPLE_ROOT_PATH}"
   coverage.report:
     description: Generate HTML coverage report
     run: "{{coverde}} report --input ${RIPPLE_ROOT_PATH}/coverage/filtered.lcov.info --output ${RIPPLE_ROOT_PATH}/coverage/html/"
