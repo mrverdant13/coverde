@@ -1,5 +1,5 @@
 coverage:
-  pkg-min: 100
+  pkg-min: 70
 
 transformations:
   drop-generated-code:

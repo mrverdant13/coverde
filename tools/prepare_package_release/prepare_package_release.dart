@@ -1,15 +1,14 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:prepare_package_release/git.dart';
+import 'package:prepare_package_release/pubspec.dart';
+import 'package:prepare_package_release/tag_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import 'lib/git.dart';
-import 'lib/pubspec.dart';
-import 'lib/tag_format.dart';
-
-export 'lib/git.dart';
-export 'lib/pubspec.dart';
-export 'lib/tag_format.dart';
+export 'package:prepare_package_release/git.dart';
+export 'package:prepare_package_release/pubspec.dart';
+export 'package:prepare_package_release/tag_format.dart';
 
 /// Package metadata and paths resolved from `--cwd`.
 class PackageContext {
