@@ -40,14 +40,19 @@ packages:
           exclude:
             - '**/*.md'
     tested:
-      - fileExists: [coverage/lcov.info]
+      - fileExists:
+          - coverage/lcov.info
     tested-sanitized:
-      - fileExists: [coverage/sanitized.lcov.info]
+      - fileExists:
+          - coverage/sanitized.lcov.info
     testable:
       - or:
-          - dependsOn: [test]
-          - dependsOn: [flutter_test]
-      - dirExists: [test]
+          - dependsOn:
+              - test
+          - dependsOn:
+              - flutter_test
+      - dirExists:
+          - test
 
 replacements:
   dart: dart
@@ -71,12 +76,14 @@ scripts:
     description: Format a package
     exec: "{{dart}} format ."
     filters:
-      - noMatch: [coverde_monorepo]
+      - noMatch:
+          - coverde_monorepo
   format.gate:
     description: Fail if formatting would change any file
     exec: "{{dart}} format --set-exit-if-changed ."
     filters:
-      - noMatch: [coverde_monorepo]
+      - noMatch:
+          - coverde_monorepo
 
   analyze:
     description: Analyze a package
@@ -91,7 +98,8 @@ scripts:
     description: Run code generation for a package
     exec: "{{dart}} run build_runner build --delete-conflicting-outputs"
     filters:
-      - dependsOn: [build_runner]
+      - dependsOn:
+          - build_runner
 
   spellcheck:
     description: Run spell checking for the entire project
@@ -135,7 +143,8 @@ scripts:
       - "{{dart}} test --run-skipped --tags e2e e2e"
     filters:
       - group: e2e
-      - dirExists: [e2e]
+      - dirExists:
+          - e2e
 
   test.min-sdk:
     description: Resolve and smoke-run coverde as a consumer on PATH Dart
