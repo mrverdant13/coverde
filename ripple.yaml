@@ -43,6 +43,11 @@ packages:
       - fileExists: [coverage/lcov.info]
     tested-sanitized:
       - fileExists: [coverage/sanitized.lcov.info]
+    testable:
+      - or:
+          - dependsOn: [test]
+          - dependsOn: [flutter_test]
+      - dirExists: [test]
 
 replacements:
   dart: dart
@@ -98,11 +103,9 @@ scripts:
       - "{{coverde}} optimize-tests --exclude '**/fixtures/**' --include test/**_test.dart --output test/optimized_test.dart"
       - "{{dart}} test --coverage-path coverage/lcov.info --coverage-package ${RIPPLE_PACKAGE_NAME} --exclude-tags ci-only --reporter expanded --test-randomize-ordering-seed random test/optimized_test.dart"
     filters:
-      - dependsOn: [test]
-      - dirExists: [test]
+      - preset: testable
     dependentsFilters:
-      - dependsOn: [test]
-      - dirExists: [test]
+      - preset: testable
 
   test.sanitize:
     description: Remove generated files from a package coverage trace
