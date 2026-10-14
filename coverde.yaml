@@ -1,0 +1,7 @@
+coverage:
+  minimum: 100
+
+transformations:
+  no-generated-code:
+    - type: skip-by-glob
+      glob: "**/*.asset.dart"
