@@ -771,16 +771,21 @@ Compute the coverage value of the LCOV_FILE info file.
 
 # `coverde.yaml` configuration file
 
-The `coverde.yaml` file allows you to define reusable transformation presets for the [`coverde transform`](#coverde-transform) command.
+The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check) and reusable transformation presets for [`coverde transform`](#coverde-transform).
 
-The file is optional and is read from the **current working directory** when you run `coverde transform` (typically your project root).
+The file is optional. Both commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
 
 ## File Format
 
-The configuration file uses YAML format with a `transformations` key at the root level. Each preset is defined as a named list of transformation steps.
+The configuration file uses YAML. Two keys are recognized at the root: `coverage` and `transformations`. Either key can be omitted.
+
+`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps.
 
 ```yaml
 # coverde.yaml
+
+coverage:
+  pkg-min: 100
 
 transformations:
   preset-name:
@@ -790,6 +795,14 @@ transformations:
     - type: <transformation-type>
       <parameter-1-name>: <value-1>
 ```
+
+## Coverage thresholds
+
+`coverage` names the thresholds that [`coverde check`](#coverde-check) can select. A missing `coverage` key means there are no named thresholds.
+
+Each name is a non-empty string that does not parse as a number. Each value is a finite number from 0 to 100 inclusive.
+
+`coverde check` reads `coverde.yaml` from the working directory only when its threshold argument is a name. A numeric argument, such as `coverde check 95`, never opens the file, which is why a numeric name cannot be selected. `coverde check pkg-min` uses the `pkg-min` entry and logs the resolved percentage. An unknown name fails and lists the names defined in that file.
 
 ## Transformation Types
 
