@@ -1,3 +1,6 @@
+<details>
+<summary>Inline Transformations</summary>
+
 #### Inline Transformations
 
 ```sh
@@ -13,6 +16,11 @@ This transformation chain performs the following steps:
 2. Keep files that match the `lib/**` glob pattern, i.e. implementation files.
 3. Skip files that match the `**/*.g.dart` glob pattern, i.e. generated files.
 4. Keep files that have a coverage value less than or equal to 80%.
+
+</details>
+
+<details>
+<summary>Preset Usage</summary>
 
 #### Preset Usage
 
@@ -40,6 +48,11 @@ $ coverde transform \
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
 
+</details>
+
+<details>
+<summary>Preset from another file</summary>
+
 #### Preset from another file
 
 A plain `preset` value is a name in the working directory's `coverde.yaml`. A YAML map with `file` loads that name from another file. Quote a path or name that contains `:` or `#`.
@@ -64,3 +77,5 @@ transformations:
 ```sh
 $ coverde transform --transformations preset=package
 ```
+
+</details>

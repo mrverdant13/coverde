@@ -2,6 +2,7 @@
 codecov
 fvm
 Karlo
+LOCALAPPDATA
 powershell
 ripple
 runbook

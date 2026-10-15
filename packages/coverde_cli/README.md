@@ -15,20 +15,46 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 - [Installing](#installing)
 - [Features](#features)
 - [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
-- [Usage with `melos`](#usage-with-melos)
-- [CI integration for coverage checks](#ci-integration-for-coverage-checks)
+- [Monorepo coverage](#monorepo-coverage)
 
 ---
 
 # Installing
 
-You can make `coverde` globally available by executing the following command:
+Make `coverde` globally available with:
+
+```sh
+$ dart install coverde
+```
+
+`dart install` requires Dart 3.10 or later. To run `coverde` directly from the terminal, add its `bin` directory to your `PATH` environment variable:
+
+- **macOS:** `$HOME/Library/Application Support/Dart/install/bin`
+- **Linux:** `$HOME/.local/share/dart/install/bin`, or `$XDG_DATA_HOME/dart/install/bin` when `XDG_DATA_HOME` is set
+- **Windows:** `%LOCALAPPDATA%\Dart\install\bin`
+
+`DART_DATA_HOME` changes this location. The `bin` directory is then `$DART_DATA_HOME/install/bin`.
+
+These directories are the defaults from [Packaging and distributing Dart CLI tools][dart_cli_distribution_link].
+
+<details>
+<summary>Use `dart pub global activate` instead</summary>
+
+> [!NOTE]
+> `dart install` is preferred.
 
 ```sh
 $ dart pub global activate coverde
 ```
 
-**NOTE:** To run `coverde` directly from the terminal, add the system cache `bin` directory to your `PATH` environment variable.
+This installs a `coverde` executable in the pub cache `bin` directory:
+
+- **macOS or Linux:** `$HOME/.pub-cache/bin`
+- **Windows:** `%LOCALAPPDATA%\Pub\Cache\bin`
+
+`PUB_CACHE` changes this location. The `bin` directory is then `$PUB_CACHE/bin`.
+
+</details>
 
 ---
 
@@ -88,6 +114,9 @@ Optimize tests by gathering them.
 
 ### Examples
 
+<details>
+<summary>Basic usage</summary>
+
 #### Basic usage
 
 Given the following test files:
@@ -144,6 +173,11 @@ void main() {
   );
 }
 ```
+
+</details>
+
+<details>
+<summary>Preserving Test Annotations</summary>
 
 #### Preserving Test Annotations
 
@@ -253,6 +287,11 @@ The following annotations are supported and preserved:
 - `@TestOn('...')` → `testOn: '...'`
 - `@OnPlatform({...})` → `onPlatform: {...}`
 
+</details>
+
+<details>
+<summary>Excluding Test Files</summary>
+
 #### Excluding Test Files
 
 To exclude certain test files using a glob pattern:
@@ -263,6 +302,11 @@ $ coverde optimize-tests --exclude "**/*_integration_test.dart"
 
 This will gather all test files matching the default include pattern (`test/**_test.dart`) except those matching the exclude pattern.
 
+</details>
+
+<details>
+<summary>Disabling Flutter Golden Tests</summary>
+
 #### Disabling Flutter Golden Tests
 
 For non-Flutter packages or when golden tests are not needed:
@@ -272,6 +316,11 @@ $ coverde optimize-tests --no-flutter-goldens
 ```
 
 This prevents the command from adding golden test setup code, which is only relevant for Flutter packages.
+
+</details>
+
+<details>
+<summary>Sharding Tests</summary>
 
 #### Sharding Tests
 
@@ -380,6 +429,8 @@ $ coverde optimize-tests --total-shards=3 --shard-index=2 --output=test/optimize
 - Tests are distributed as evenly as possible across shards
 - Both `--total-shards` and `--shard-index` must be provided together; specifying only one will result in an error
 
+</details>
+
 
 ## `coverde check`
 
@@ -415,9 +466,26 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
 
 ### Examples
 
+<details>
+<summary>Show uncovered source</summary>
+
 ![coverde-check-50.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-50.png)
+
+</details>
+
+<details>
+<summary>Show uncovered line numbers only</summary>
+
 ![coverde-check-file-coverage-log-level-line-numbers-100.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
+
+</details>
+
+<details>
+<summary>Show resulting coverage only</summary>
+
 ![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
+
+</details>
 
 
 ## `coverde filter`
@@ -548,6 +616,9 @@ Presets can be defined in coverde.yaml under the `transformations` key.
 
 ### Examples
 
+<details>
+<summary>Inline Transformations</summary>
+
 #### Inline Transformations
 
 ```sh
@@ -563,6 +634,11 @@ This transformation chain performs the following steps:
 2. Keep files that match the `lib/**` glob pattern, i.e. implementation files.
 3. Skip files that match the `**/*.g.dart` glob pattern, i.e. generated files.
 4. Keep files that have a coverage value less than or equal to 80%.
+
+</details>
+
+<details>
+<summary>Preset Usage</summary>
 
 #### Preset Usage
 
@@ -590,6 +666,11 @@ $ coverde transform \
 
 Is equivalent to the [Inline Transformations](#inline-transformations) example.
 
+</details>
+
+<details>
+<summary>Preset from another file</summary>
+
 #### Preset from another file
 
 A plain `preset` value is a name in the working directory's `coverde.yaml`. A YAML map with `file` loads that name from another file. Quote a path or name that contains `:` or `#`.
@@ -614,6 +695,8 @@ transformations:
 ```sh
 $ coverde transform --transformations preset=package
 ```
+
+</details>
 
 
 ## `coverde report`
@@ -722,25 +805,47 @@ Compute the coverage value of the LCOV_FILE info file.
 
 ### Examples
 
-![coverde-value-file-coverage-log-level-line-numbers.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
-![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
+<details>
+<summary>Show uncovered source</summary>
+
 ![coverde-value.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value.png)
+
+</details>
+
+<details>
+<summary>Show uncovered line numbers only</summary>
+
+![coverde-value-file-coverage-log-level-line-numbers.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
+
+</details>
+
+<details>
+<summary>Show resulting coverage only</summary>
+
+![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
+
+</details>
 <!-- CLI FEATURES -->
 
 ---
 
 # `coverde.yaml` configuration file
 
-The `coverde.yaml` file allows you to define reusable transformation presets for the [`coverde transform`](#coverde-transform) command.
+The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check) and reusable transformation presets for [`coverde transform`](#coverde-transform).
 
-The file is optional and is read from the **current working directory** when you run `coverde transform` (typically your project root).
+The file is optional. Both commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
 
 ## File Format
 
-The configuration file uses YAML format with a `transformations` key at the root level. Each preset is defined as a named list of transformation steps.
+The configuration file uses YAML. Two keys are recognized at the root: `coverage` and `transformations`. Either key can be omitted.
+
+`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps.
 
 ```yaml
 # coverde.yaml
+
+coverage:
+  pkg-min: 100
 
 transformations:
   preset-name:
@@ -750,6 +855,14 @@ transformations:
     - type: <transformation-type>
       <parameter-1-name>: <value-1>
 ```
+
+## Coverage thresholds
+
+`coverage` names the thresholds that [`coverde check`](#coverde-check) can select. A missing `coverage` key means there are no named thresholds.
+
+Each name is a non-empty string that does not parse as a number. Each value is a finite number from 0 to 100 inclusive.
+
+`coverde check` reads `coverde.yaml` from the working directory only when its threshold argument is a name. A numeric argument, such as `coverde check 95`, never opens the file, which is why a numeric name cannot be selected. `coverde check pkg-min` uses the `pkg-min` entry and logs the resolved percentage. An unknown name fails and lists the names defined in that file.
 
 ## Transformation Types
 
@@ -975,106 +1088,177 @@ The update check mode to use.\
 
 ---
 
-# Usage with [melos][melos_link]
+# Monorepo coverage
 
-If your project uses `melos` to manage its multi-package structure, `coverde` can help optimize test execution and collect test coverage data in a unified trace file.
+Run the per-package commands in each package directory. Run the merge and the report once at the repository root.
 
-Here are some examples of how to use `coverde` with `melos` to manage your monorepo. Adapt them to match your project structure and needs.
+Named thresholds follow the rules in [Coverage thresholds](#coverage-thresholds).
 
-## Test Optimization
+## Configuration
 
-Optimize test execution by gathering all test files into a single optimized test file before running tests:
+Commit the shared preset at the repository root. The glob is project-specific.
 
 ```yaml
-test:
-  description: Run tests and generate coverage trace file for a package
-  run: >
-    dart run coverde optimize-tests
-    --output=test/optimized_test.dart
-    &&
-    dart test
-    --coverage-path=coverage/lcov.info
-    --test-randomize-ordering-seed random
-    test/optimized_test.dart
-  packageFilters:
-    dependsOn:
-      - test
-    dirExists:
-      - test
+# coverde.yaml
+
+transformations:
+  drop-generated-code:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
 ```
 
-This script:
-1. Optimizes tests by gathering them into a single file
-2. Runs the optimized test file with coverage collection, directly outputting an LCOV trace file
-
-## Coverage Data Merging
-
-Merge coverage trace files from all packages into a unified trace file:
+Each package keeps its own threshold and points `drop-generated-code` at that root preset. `file` is relative to the package `coverde.yaml`. For a package at `packages/<name>/`, that path is `../../coverde.yaml`. `coverde` reads the yaml in the working directory, so a root-only preset is invisible when the command runs inside a package.
 
 ```yaml
-coverage.merge:
-  description: Merge all packages coverage trace files
-  run: >
-    dart run coverde remove
-    --no-dry-run
-    MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    &&
-    melos exec
-    --file-exists coverage/lcov.info
-    --
-    "
-    dart run coverde transform
-    --input coverage/lcov.info
-    --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    --transformations relative=MELOS_ROOT_PATH
-    --transformations skip-by-glob='**/*.g.dart'
-    "
-```
+# packages/my_package/coverde.yaml
 
-This script:
-1. Removes any existing merged coverage file
-2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
-   - Rewrites file paths to be relative to the monorepo root (using Melos’s `MELOS_ROOT_PATH` environment variable)
-   - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
-
-The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
-
-## Coverage Check
-
-Commit the shared thresholds in `coverde.yaml` at the repository root:
-
-```yaml
 coverage:
-  repo: 100
+  pkg-min: 100
+
+transformations:
+  drop-generated-code:
+    - type: preset
+      file: ../../coverde.yaml
+      name: drop-generated-code
 ```
 
-Validate the merged trace file against the `repo` threshold:
+## Test
+
+In each package directory, gather the tests, then run that file with a package trace. `--coverage-package` attributes the trace to that package.
+
+```sh
+$ coverde optimize-tests \
+  --include 'test/**_test.dart' \
+  --output test/optimized_test.dart
+$ dart test \
+  --coverage-path coverage/lcov.info \
+  --coverage-package <package name> \
+  --test-randomize-ordering-seed random \
+  test/optimized_test.dart
+```
+
+This example uses the Dart test runner. A Flutter package should run `flutter test` in its place.
+
+## Sanitize
+
+In each package that has `coverage/lcov.info`, drop generated files into a new trace. `--mode w` replaces that file. The default mode is append, so a second run would duplicate the trace.
+
+```sh
+$ coverde transform \
+  --input coverage/lcov.info \
+  --output coverage/sanitized.lcov.info \
+  --mode w \
+  --transformations preset=drop-generated-code
+```
+
+## Check
+
+In each package that has the sanitized trace, check it against the `pkg-min` entry in that package's `coverde.yaml`.
+
+```sh
+$ coverde check --input coverage/sanitized.lcov.info pkg-min
+```
+
+## Merge
+
+Once at the repository root, delete any previous merged trace. `rm` is an alias of [`remove`](#coverde-remove). `--no-dry-run` is required because `remove` previews deletions unless that flag is set.
+
+```sh
+$ coverde rm --no-dry-run <root>/coverage/merged.lcov.info
+```
+
+Then, in each package that has `coverage/sanitized.lcov.info`, append that trace to the root file. Omit `--mode w` so each package appends. Deleting the root file first drops packages that no longer have a trace. `relative` rewrites paths from the repository root, so `lib/` paths from different packages do not collide.
+
+```sh
+$ coverde transform \
+  --input coverage/sanitized.lcov.info \
+  --output <root>/coverage/merged.lcov.info \
+  --transformations relative=<root>
+```
+
+## Report
+
+Once at the repository root, generate the HTML report from the merged trace.
+
+```sh
+$ coverde report \
+  --input <root>/coverage/merged.lcov.info \
+  --output <root>/coverage/html/
+```
+
+<details>
+<summary>Melos</summary>
+
+The same steps as [Melos][melos_link] scripts. Per-package scripts use `exec`, because Melos applies `packageFilters` to `exec` scripts. `dirExists: test` selects every package that has a `test/` directory.
 
 ```yaml
-coverage.check:
-  description: Check test coverage
-  run: >
-    dart run coverde check
-    --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    repo
+# scripts in melos.yaml (older Melos), or melos.scripts in the root pubspec.yaml
+
+scripts:
+  test:
+    description: Run tests and generate a coverage trace for a package
+    exec: >
+      coverde optimize-tests
+      --include 'test/**_test.dart'
+      --output test/optimized_test.dart
+      &&
+      dart test
+      --coverage-path coverage/lcov.info
+      --coverage-package "$MELOS_PACKAGE_NAME"
+      --test-randomize-ordering-seed random
+      test/optimized_test.dart
+    packageFilters:
+      dirExists:
+        - test
+
+  coverage.sanitize:
+    description: Remove generated files from a package coverage trace
+    exec: >
+      coverde transform
+      --input coverage/lcov.info
+      --output coverage/sanitized.lcov.info
+      --mode w
+      --transformations preset=drop-generated-code
+    packageFilters:
+      fileExists:
+        - coverage/lcov.info
+
+  coverage.check:
+    description: Check a package coverage trace against its pkg-min threshold
+    exec: >
+      coverde check
+      --input coverage/sanitized.lcov.info
+      pkg-min
+    packageFilters:
+      fileExists:
+        - coverage/sanitized.lcov.info
+
+  coverage.merge:
+    description: Merge sanitized package coverage traces into one root trace
+    run: >
+      coverde rm
+      --no-dry-run
+      "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      &&
+      melos exec
+      --file-exists coverage/sanitized.lcov.info
+      --
+      coverde transform
+      --input coverage/sanitized.lcov.info
+      --output "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      --transformations relative="$MELOS_ROOT_PATH"
+
+  coverage.report:
+    description: Generate an HTML coverage report
+    run: >
+      coverde report
+      --input "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      --output "$MELOS_ROOT_PATH/coverage/html/"
 ```
 
-This script checks that the merged coverage trace file meets the `repo` threshold from `coverde.yaml` (100% in this example). The command will fail if coverage is below that threshold, making it suitable for CI/CD pipelines. A number can still be passed instead of `repo` for a one-off check.
+</details>
 
 ---
-
-# CI integration for coverage checks
-
-If your project uses GitHub Actions for CI, you might already know [very_good_coverage][very_good_coverage_link], which offers a simple but effective method for coverage validation.
-
-However, adding coverage checks to CI workflows hosted by other alternatives is not always that straightforward.
-
-To solve this, after enabling Dart or Flutter in your CI workflow, according to your project requirements, you can use `coverde` and its `check` tool by adding the following commands to your workflow steps:
-
-- `dart pub global activate coverde`
-- `coverde check <threshold>`
-
-`<threshold>` is a number between 0 and 100, or the name of an entry in the `coverage` map of `coverde.yaml` in the working directory. For example, `coverde check 95` checks against 95% without reading the file, and `coverde check minimum` uses the `minimum` value committed in `coverde.yaml`.
 
 # Bugs or Requests
 
@@ -1091,6 +1275,7 @@ Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [codecov_link]: https://codecov.io/gh/mrverdant13/coverde
 [dart_ci_badge]: https://github.com/mrverdant13/coverde/actions/workflows/ci.yaml/badge.svg?branch=main
 [dart_ci_link]: https://github.com/mrverdant13/coverde/actions?query=workflow%3A%22Dart+CI%22
+[dart_cli_distribution_link]: https://dart.dev/tools/cli-distribution
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
 [melos_link]: https://melos.invertase.dev/
@@ -1099,4 +1284,3 @@ Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [pub_link]: https://pub.dev/packages/coverde
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://github.com/VeryGoodOpenSource/very_good_analysis
-[very_good_coverage_link]: https://github.com/VeryGoodOpenSource/very_good_coverage

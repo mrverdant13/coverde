@@ -1,3 +1,6 @@
+<details>
+<summary>Basic usage</summary>
+
 #### Basic usage
 
 Given the following test files:
@@ -54,6 +57,11 @@ void main() {
   );
 }
 ```
+
+</details>
+
+<details>
+<summary>Preserving Test Annotations</summary>
 
 #### Preserving Test Annotations
 
@@ -163,6 +171,11 @@ The following annotations are supported and preserved:
 - `@TestOn('...')` → `testOn: '...'`
 - `@OnPlatform({...})` → `onPlatform: {...}`
 
+</details>
+
+<details>
+<summary>Excluding Test Files</summary>
+
 #### Excluding Test Files
 
 To exclude certain test files using a glob pattern:
@@ -173,6 +186,11 @@ $ coverde optimize-tests --exclude "**/*_integration_test.dart"
 
 This will gather all test files matching the default include pattern (`test/**_test.dart`) except those matching the exclude pattern.
 
+</details>
+
+<details>
+<summary>Disabling Flutter Golden Tests</summary>
+
 #### Disabling Flutter Golden Tests
 
 For non-Flutter packages or when golden tests are not needed:
@@ -182,6 +200,11 @@ $ coverde optimize-tests --no-flutter-goldens
 ```
 
 This prevents the command from adding golden test setup code, which is only relevant for Flutter packages.
+
+</details>
+
+<details>
+<summary>Sharding Tests</summary>
 
 #### Sharding Tests
 
@@ -289,3 +312,5 @@ $ coverde optimize-tests --total-shards=3 --shard-index=2 --output=test/optimize
 - The `--shard-index` must be less than `--total-shards`
 - Tests are distributed as evenly as possible across shards
 - Both `--total-shards` and `--shard-index` must be provided together; specifying only one will result in an error
+
+</details>
