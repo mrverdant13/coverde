@@ -1137,6 +1137,8 @@ $ dart test \
   test/optimized_test.dart
 ```
 
+This example uses the Dart test runner. A Flutter package should run `flutter test` in its place.
+
 ## Sanitize
 
 In each package that has `coverage/lcov.info`, drop generated files into a new trace. `--mode w` replaces that file. The default mode is append, so a second run would duplicate the trace.
@@ -1187,7 +1189,7 @@ $ coverde report \
 <details>
 <summary>Melos</summary>
 
-The same steps as [Melos][melos_link] scripts. Per-package scripts use `exec`, because Melos applies `packageFilters` to `exec` scripts. `dirExists: test` matches Dart packages that depend on `test` and Flutter packages that depend on `flutter_test`.
+The same steps as [Melos][melos_link] scripts. Per-package scripts use `exec`, because Melos applies `packageFilters` to `exec` scripts. `dirExists: test` selects every package that has a `test/` directory.
 
 ```yaml
 # scripts in melos.yaml (older Melos), or melos.scripts in the root pubspec.yaml
