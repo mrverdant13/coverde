@@ -1037,7 +1037,7 @@ Named thresholds follow the rules in [Coverage thresholds](#coverage-thresholds)
 
 ## Configuration
 
-Commit the shared preset at the repository root. The glob is project-specific. This repository skips `**/*.asset.dart`.
+Commit the shared preset at the repository root. The glob is project-specific.
 
 ```yaml
 # coverde.yaml
@@ -1077,8 +1077,6 @@ $ dart test \
   --test-randomize-ordering-seed random \
   test/optimized_test.dart
 ```
-
-This repository also passes `--exclude '**/fixtures/**'` to `optimize-tests` and `--exclude-tags ci-only` to `dart test`.
 
 ## Sanitize
 
