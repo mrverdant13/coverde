@@ -1031,7 +1031,7 @@ The update check mode to use.\
 
 # Monorepo coverage
 
-Run the per-package commands in each package directory. Run the merge and the report once at the repository root. A shell loop or a CI matrix can run the per-package commands.
+Run the per-package commands in each package directory. Run the merge and the report once at the repository root.
 
 Named thresholds follow the rules in [Coverage thresholds](#coverage-thresholds).
 
