@@ -5,7 +5,6 @@
 [![Dart CI][dart_ci_badge]][dart_ci_link]
 [![codecov][codecov_badge]][codecov_link]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![melos][melos_badge]][melos_link]
 
 A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, transform trace files, and generate HTML reports.
 
@@ -1094,7 +1093,6 @@ Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [dart_ci_link]: https://github.com/mrverdant13/coverde/actions?query=workflow%3A%22Dart+CI%22
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
-[melos_badge]: https://img.shields.io/badge/maintained%20with-melos-f700ff.svg
 [melos_link]: https://melos.invertase.dev/
 [open_issue_link]: https://github.com/mrverdant13/coverde/issues/new
 [pub_badge]: https://img.shields.io/pub/v/coverde.svg
