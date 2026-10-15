@@ -16,7 +16,6 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 - [Features](#features)
 - [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
 - [Monorepo coverage](#monorepo-coverage)
-- [CI integration for coverage checks](#ci-integration-for-coverage-checks)
 
 ---
 
@@ -1200,19 +1199,6 @@ scripts:
 
 ---
 
-# CI integration for coverage checks
-
-If your project uses GitHub Actions for CI, you might already know [very_good_coverage][very_good_coverage_link], which offers a simple but effective method for coverage validation.
-
-However, adding coverage checks to CI workflows hosted by other alternatives is not always that straightforward.
-
-To solve this, after enabling Dart or Flutter in your CI workflow, according to your project requirements, you can use `coverde` and its `check` tool by adding the following commands to your workflow steps:
-
-- `dart pub global activate coverde`
-- `coverde check <threshold>`
-
-`<threshold>` is a number between 0 and 100, or the name of an entry in the `coverage` map of `coverde.yaml` in the working directory. For example, `coverde check 95` checks against 95% without reading the file, and `coverde check minimum` uses the `minimum` value committed in `coverde.yaml`.
-
 # Bugs or Requests
 
 If you encounter any problems or you believe the CLI is missing a feature, feel free to [open an issue on GitHub][open_issue_link].
@@ -1236,4 +1222,3 @@ Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [pub_link]: https://pub.dev/packages/coverde
 [very_good_analysis_badge]: https://img.shields.io/badge/style-very_good_analysis-B22C89.svg
 [very_good_analysis_link]: https://github.com/VeryGoodOpenSource/very_good_analysis
-[very_good_coverage_link]: https://github.com/VeryGoodOpenSource/very_good_coverage
