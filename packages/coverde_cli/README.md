@@ -1131,7 +1131,7 @@ $ coverde report \
 The same steps as [Melos][melos_link] scripts. Per-package scripts use `exec`, because Melos applies `packageFilters` to `exec` scripts. `dirExists: test` matches Dart packages that depend on `test` and Flutter packages that depend on `flutter_test`.
 
 ```yaml
-# melos.yaml
+# scripts in melos.yaml (older Melos), or melos.scripts in the root pubspec.yaml
 
 scripts:
   test:
