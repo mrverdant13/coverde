@@ -21,13 +21,15 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 
 # Installing
 
-You can make `coverde` globally available by executing the following command:
+Make `coverde` globally available with:
 
 ```sh
-$ dart pub global activate coverde
+$ dart install coverde
 ```
 
-**NOTE:** To run `coverde` directly from the terminal, add the system cache `bin` directory to your `PATH` environment variable.
+`dart pub global activate coverde` installs the same global executable.
+
+**NOTE:** To run `coverde` directly from the terminal, add the pub cache `bin` directory to your `PATH` environment variable. Both commands install into that directory.
 
 ---
 
