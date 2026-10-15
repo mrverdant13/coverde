@@ -167,12 +167,20 @@ Future<void> main(List<String> args) async {
                 ['.png', '.md'].contains(extension);
           },
         );
-        if (commandExampleFiles.isNotEmpty && docsAssetBaseUri != null) {
+        final hasMarkdownExample = commandExampleFiles.any(
+          (file) => p.extension(file.path) == '.md',
+        );
+        final renderedExampleFiles = hasMarkdownExample
+            ? commandExampleFiles.where(
+                (file) => p.extension(file.path) == '.md',
+              )
+            : commandExampleFiles;
+        if (renderedExampleFiles.isNotEmpty && docsAssetBaseUri != null) {
           detailsBuffer
             ..writeln()
             ..writeln('### Examples')
             ..writeln();
-          for (final commandExampleFile in commandExampleFiles) {
+          for (final commandExampleFile in renderedExampleFiles) {
             final exampleExtension = p.extension(commandExampleFile.path);
             if (exampleExtension == '.png') {
               final referenceableExamplePath = p.relative(
