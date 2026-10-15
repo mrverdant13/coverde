@@ -27,9 +27,32 @@ Make `coverde` globally available with:
 $ dart install coverde
 ```
 
-`dart pub global activate coverde` installs the same global executable.
+`dart install` requires Dart 3.10 or later. To run `coverde` directly from the terminal, add its `bin` directory to your `PATH` environment variable:
 
-**NOTE:** To run `coverde` directly from the terminal, add the pub cache `bin` directory to your `PATH` environment variable. Both commands install into that directory.
+- **macOS:** `$HOME/Library/Application Support/Dart/install/bin`
+- **Linux:** `$HOME/.local/share/dart/install/bin`, or `$XDG_DATA_HOME/dart/install/bin` when `XDG_DATA_HOME` is set
+- **Windows:** `%LOCALAPPDATA%\Dart\install\bin`
+
+`DART_DATA_HOME` changes this location. The `bin` directory is then `$DART_DATA_HOME/install/bin`.
+
+<details>
+<summary>Use `dart pub global activate` instead</summary>
+
+> [!NOTE]
+> `dart install` is preferred.
+
+```sh
+$ dart pub global activate coverde
+```
+
+This installs a `coverde` executable in the pub cache `bin` directory:
+
+- **macOS or Linux:** `$HOME/.pub-cache/bin`
+- **Windows:** `%LOCALAPPDATA%\Pub\Cache\bin`
+
+`PUB_CACHE` changes this location. The `bin` directory is then `$PUB_CACHE/bin`.
+
+</details>
 
 ---
 
