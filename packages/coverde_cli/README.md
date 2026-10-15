@@ -15,7 +15,7 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 - [Installing](#installing)
 - [Features](#features)
 - [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
-- [Usage with `melos`](#usage-with-melos)
+- [Monorepo coverage](#monorepo-coverage)
 - [CI integration for coverage checks](#ci-integration-for-coverage-checks)
 
 ---
@@ -1028,91 +1028,175 @@ The update check mode to use.\
 
 ---
 
-# Usage with [melos][melos_link]
+# Monorepo coverage
 
-If your project uses `melos` to manage its multi-package structure, `coverde` can help optimize test execution and collect test coverage data in a unified trace file.
+Run the per-package commands in each package directory. Run the merge and the report once at the repository root. [Melos][melos_link] `exec`, a shell loop, or a CI matrix can run the per-package commands.
 
-Here are some examples of how to use `coverde` with `melos` to manage your monorepo. Adapt them to match your project structure and needs.
+Named thresholds follow the rules in [Coverage thresholds](#coverage-thresholds).
 
-## Test Optimization
+## Configuration
 
-Optimize test execution by gathering all test files into a single optimized test file before running tests:
+Commit the shared preset at the repository root. The glob is project-specific. This repository skips `**/*.asset.dart`.
 
 ```yaml
-test:
-  description: Run tests and generate coverage trace file for a package
-  run: >
-    dart run coverde optimize-tests
-    --output=test/optimized_test.dart
-    &&
-    dart test
-    --coverage-path=coverage/lcov.info
-    --test-randomize-ordering-seed random
-    test/optimized_test.dart
-  packageFilters:
-    dependsOn:
-      - test
-    dirExists:
-      - test
+# coverde.yaml
+
+transformations:
+  drop-generated-code:
+    - type: skip-by-glob
+      glob: "**/*.g.dart"
 ```
 
-This script:
-1. Optimizes tests by gathering them into a single file
-2. Runs the optimized test file with coverage collection, directly outputting an LCOV trace file
-
-## Coverage Data Merging
-
-Merge coverage trace files from all packages into a unified trace file:
+Each package keeps its own threshold and points `drop-generated-code` at that root preset. `file` is relative to the package `coverde.yaml`. For a package at `packages/<name>/`, that path is `../../coverde.yaml`. `coverde` reads the yaml in the working directory, so a root-only preset is invisible when the command runs inside a package.
 
 ```yaml
-coverage.merge:
-  description: Merge all packages coverage trace files
-  run: >
-    dart run coverde remove
-    --no-dry-run
-    MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    &&
-    melos exec
-    --file-exists coverage/lcov.info
-    --
-    "
-    dart run coverde transform
-    --input coverage/lcov.info
-    --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    --transformations relative=MELOS_ROOT_PATH
-    --transformations skip-by-glob='**/*.g.dart'
-    "
-```
+# packages/my_package/coverde.yaml
 
-This script:
-1. Removes any existing merged coverage file
-2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
-   - Rewrites file paths to be relative to the monorepo root (using Melos’s `MELOS_ROOT_PATH` environment variable)
-   - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
-
-The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
-
-## Coverage Check
-
-Commit the shared thresholds in `coverde.yaml` at the repository root:
-
-```yaml
 coverage:
-  repo: 100
+  pkg-min: 100
+
+transformations:
+  drop-generated-code:
+    - type: preset
+      file: ../../coverde.yaml
+      name: drop-generated-code
 ```
 
-Validate the merged trace file against the `repo` threshold:
+## Test
+
+In each package directory, gather the tests, then run that file with a package trace. `--coverage-package` attributes the trace to that package.
+
+```sh
+$ coverde optimize-tests \
+  --include 'test/**_test.dart' \
+  --output test/optimized_test.dart
+$ dart test \
+  --coverage-path coverage/lcov.info \
+  --coverage-package <package name> \
+  --test-randomize-ordering-seed random \
+  test/optimized_test.dart
+```
+
+This repository also passes `--exclude '**/fixtures/**'` to `optimize-tests` and `--exclude-tags ci-only` to `dart test`.
+
+## Sanitize
+
+In each package that has `coverage/lcov.info`, drop generated files into a new trace. `--mode w` replaces that file. The default mode is append, so a second run would duplicate the trace.
+
+```sh
+$ coverde transform \
+  --input coverage/lcov.info \
+  --output coverage/sanitized.lcov.info \
+  --mode w \
+  --transformations preset=drop-generated-code
+```
+
+## Check
+
+In each package that has the sanitized trace, check it against the `pkg-min` entry in that package's `coverde.yaml`.
+
+```sh
+$ coverde check --input coverage/sanitized.lcov.info pkg-min
+```
+
+## Merge
+
+Once at the repository root, delete any previous merged trace. `rm` is an alias of [`remove`](#coverde-remove). `--no-dry-run` is required because `remove` previews deletions unless that flag is set.
+
+```sh
+$ coverde rm --no-dry-run <root>/coverage/merged.lcov.info
+```
+
+Then, in each package that has `coverage/sanitized.lcov.info`, append that trace to the root file. Omit `--mode w` so each package appends. Deleting the root file first drops packages that no longer have a trace. `relative` rewrites paths from the repository root, so `lib/` paths from different packages do not collide.
+
+```sh
+$ coverde transform \
+  --input coverage/sanitized.lcov.info \
+  --output <root>/coverage/merged.lcov.info \
+  --transformations relative=<root>
+```
+
+## Report
+
+Once at the repository root, generate the HTML report from the merged trace.
+
+```sh
+$ coverde report \
+  --input <root>/coverage/merged.lcov.info \
+  --output <root>/coverage/html/
+```
+
+<details>
+<summary>Melos</summary>
+
+The same steps as [Melos][melos_link] scripts. Per-package scripts use `exec`, because Melos applies `packageFilters` to `exec` scripts. `dirExists: test` matches Dart packages that depend on `test` and Flutter packages that depend on `flutter_test`.
 
 ```yaml
-coverage.check:
-  description: Check test coverage
-  run: >
-    dart run coverde check
-    --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    repo
+# melos.yaml
+
+scripts:
+  test:
+    description: Run tests and generate a coverage trace for a package
+    exec: >
+      coverde optimize-tests
+      --include 'test/**_test.dart'
+      --output test/optimized_test.dart
+      &&
+      dart test
+      --coverage-path coverage/lcov.info
+      --coverage-package "$MELOS_PACKAGE_NAME"
+      --test-randomize-ordering-seed random
+      test/optimized_test.dart
+    packageFilters:
+      dirExists:
+        - test
+
+  coverage.sanitize:
+    description: Remove generated files from a package coverage trace
+    exec: >
+      coverde transform
+      --input coverage/lcov.info
+      --output coverage/sanitized.lcov.info
+      --mode w
+      --transformations preset=drop-generated-code
+    packageFilters:
+      fileExists:
+        - coverage/lcov.info
+
+  coverage.check:
+    description: Check a package coverage trace against its pkg-min threshold
+    exec: >
+      coverde check
+      --input coverage/sanitized.lcov.info
+      pkg-min
+    packageFilters:
+      fileExists:
+        - coverage/sanitized.lcov.info
+
+  coverage.merge:
+    description: Merge sanitized package coverage traces into one root trace
+    run: >
+      coverde rm
+      --no-dry-run
+      "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      &&
+      melos exec
+      --file-exists coverage/sanitized.lcov.info
+      --
+      coverde transform
+      --input coverage/sanitized.lcov.info
+      --output "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      --transformations relative="$MELOS_ROOT_PATH"
+
+  coverage.report:
+    description: Generate an HTML coverage report
+    run: >
+      coverde report
+      --input "$MELOS_ROOT_PATH/coverage/merged.lcov.info"
+      --output "$MELOS_ROOT_PATH/coverage/html/"
 ```
 
-This script checks that the merged coverage trace file meets the `repo` threshold from `coverde.yaml` (100% in this example). The command will fail if coverage is below that threshold, making it suitable for CI/CD pipelines. A number can still be passed instead of `repo` for a one-off check.
+</details>
 
 ---
 
