@@ -11,9 +11,9 @@
 # Ripple
 /ripple_overrides.yaml
 
-# Melos
-/**/.idea/
-/**/melos_overrides.yaml
+# Local dependency overrides
 /**/pubspec_overrides.yaml
-/**/melos_*.iml
+
+# IDE and OS
+/**/.idea/
 .DS_Store

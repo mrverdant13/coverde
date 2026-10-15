@@ -5,7 +5,6 @@
 [![Dart CI][dart_ci_badge]][dart_ci_link]
 [![codecov][codecov_badge]][codecov_link]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
-[![melos][melos_badge]][melos_link]
 
 A CLI for optimizing test execution and manipulating coverage trace files. Optimize tests, validate coverage, transform trace files, and generate HTML reports.
 
@@ -16,7 +15,6 @@ A CLI for optimizing test execution and manipulating coverage trace files. Optim
 - [Installing](#installing)
 - [Features](#features)
 - [`coverde.yaml` configuration file](#coverdeyaml-configuration-file)
-- [Usage with `melos`](#usage-with-melos)
 - [CI integration for coverage checks](#ci-integration-for-coverage-checks)
 
 ---
@@ -976,94 +974,6 @@ The update check mode to use.\
 
 ---
 
-# Usage with [melos][melos_link]
-
-If your project uses `melos` to manage its multi-package structure, `coverde` can help optimize test execution and collect test coverage data in a unified trace file.
-
-Here are some examples of how to use `coverde` with `melos` to manage your monorepo. Adapt them to match your project structure and needs.
-
-## Test Optimization
-
-Optimize test execution by gathering all test files into a single optimized test file before running tests:
-
-```yaml
-test:
-  description: Run tests and generate coverage trace file for a package
-  run: >
-    dart run coverde optimize-tests
-    --output=test/optimized_test.dart
-    &&
-    dart test
-    --coverage-path=coverage/lcov.info
-    --test-randomize-ordering-seed random
-    test/optimized_test.dart
-  packageFilters:
-    dependsOn:
-      - test
-    dirExists:
-      - test
-```
-
-This script:
-1. Optimizes tests by gathering them into a single file
-2. Runs the optimized test file with coverage collection, directly outputting an LCOV trace file
-
-## Coverage Data Merging
-
-Merge coverage trace files from all packages into a unified trace file:
-
-```yaml
-coverage.merge:
-  description: Merge all packages coverage trace files
-  run: >
-    dart run coverde remove
-    --no-dry-run
-    MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    &&
-    melos exec
-    --file-exists coverage/lcov.info
-    --
-    "
-    dart run coverde transform
-    --input coverage/lcov.info
-    --output MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    --transformations relative=MELOS_ROOT_PATH
-    --transformations skip-by-glob='**/*.g.dart'
-    "
-```
-
-This script:
-1. Removes any existing merged coverage file
-2. Executes `coverde transform` for each package that contains a `coverage/lcov.info` file:
-   - Rewrites file paths to be relative to the monorepo root (using Melos’s `MELOS_ROOT_PATH` environment variable)
-   - Skips files that match the `**/*.g.dart` glob pattern, i.e. generated files.
-
-The resulting merged trace file can be used with `coverde report` to generate a unified HTML coverage report for the entire monorepo, or with `coverde check` to validate the coverage threshold for the overall project.
-
-## Coverage Check
-
-Commit the shared thresholds in `coverde.yaml` at the repository root:
-
-```yaml
-coverage:
-  repo: 100
-```
-
-Validate the merged trace file against the `repo` threshold:
-
-```yaml
-coverage.check:
-  description: Check test coverage
-  run: >
-    dart run coverde check
-    --input MELOS_ROOT_PATH/coverage/filtered.lcov.info
-    repo
-```
-
-This script checks that the merged coverage trace file meets the `repo` threshold from `coverde.yaml` (100% in this example). The command will fail if coverage is below that threshold, making it suitable for CI/CD pipelines. A number can still be passed instead of `repo` for a one-off check.
-
----
-
 # CI integration for coverage checks
 
 If your project uses GitHub Actions for CI, you might already know [very_good_coverage][very_good_coverage_link], which offers a simple but effective method for coverage validation.
@@ -1094,8 +1004,6 @@ Pull requests are also welcome. See [CONTRIBUTING.md][_docs_contributing_link].
 [dart_ci_link]: https://github.com/mrverdant13/coverde/actions?query=workflow%3A%22Dart+CI%22
 [license_badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license_link]: https://opensource.org/licenses/MIT
-[melos_badge]: https://img.shields.io/badge/maintained%20with-melos-f700ff.svg
-[melos_link]: https://melos.invertase.dev/
 [open_issue_link]: https://github.com/mrverdant13/coverde/issues/new
 [pub_badge]: https://img.shields.io/pub/v/coverde.svg
 [pub_link]: https://pub.dev/packages/coverde

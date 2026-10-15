@@ -3,7 +3,6 @@ coverde
 github
 goldens
 lcov
-melos
 mrverdant13
 ripple
 RIPPLE_PACKAGE_NAME

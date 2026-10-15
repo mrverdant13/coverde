@@ -11,6 +11,5 @@
 /test/optimized_test.dart
 /test/**/fixtures/**/*_test.dart
 
-# Melos
-/melos_coverde.iml
+# IDE
 /.idea/
