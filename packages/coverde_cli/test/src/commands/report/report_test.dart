@@ -1770,6 +1770,64 @@ end_of_record
         },
       );
     });
+
+    test('writes an empty root and n/a when a file has no lines', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-report-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:bin/b.dart
+DA:1,0
+end_of_record
+SF:fn.dart
+FN:1,only
+end_of_record
+''');
+      File(p.join(directory.path, 'lib', 'a.dart'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void a() {}');
+      File(p.join(directory.path, 'bin', 'b.dart'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void b() {}');
+      File(
+        p.join(directory.path, 'fn.dart'),
+      ).writeAsStringSync('void only() {}');
+      final reportDir = Directory(p.join(directory.path, 'html'));
+      final previousDirectory = Directory.current;
+      Directory.current = directory;
+      addTearDown(() => Directory.current = previousDirectory);
+
+      await cmdRunner.run([
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFile.path,
+        '--${ReportCommand.outputOption}',
+        reportDir.path,
+      ]);
+
+      final index =
+          File(p.join(reportDir.path, 'index.html')).readAsStringSync();
+      expect(index, contains('href="lib/index.html"'));
+      expect(index, contains('href="bin/index.html"'));
+      expect(index, contains('href="fn.dart.html"'));
+      expect(index, contains('n/a'));
+      expect(
+        File(p.join(reportDir.path, 'fn.dart.html')).readAsStringSync(),
+        contains('n/a'),
+      );
+      expect(
+        File(p.join(reportDir.path, 'lib', 'a.dart.html')).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(p.join(reportDir.path, 'bin', 'b.dart.html')).existsSync(),
+        isTrue,
+      );
+      verify(() => logger.info(any())).called(2);
+    });
   });
 
   group('launchCommands', () {

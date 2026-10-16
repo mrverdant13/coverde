@@ -3,14 +3,13 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
+import 'package:coverde/src/features/reporting/models/coverage_file.dart';
 import 'package:html/dom.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
-/// Writes the genhtml-style coverage report for a [CovDir] tree.
-///
-/// The pages, stylesheet, and sort icons match the report previously written
-/// by [CovElement].
+/// Writes the genhtml-style coverage report for a [CoverageDirectory] tree.
 class HtmlCoverageReportGenerator {
   /// Creates a generator.
   const HtmlCoverageReportGenerator();
@@ -35,7 +34,7 @@ class HtmlCoverageReportGenerator {
   ///
   /// Throws a [GenerateHtmlCoverageReportFailure] if a file operation fails.
   void generate({
-    required CovDir root,
+    required CoverageDirectory root,
     required String traceFileName,
     required String parentReportDirAbsPath,
     required DateTime traceFileModificationDate,
@@ -66,43 +65,8 @@ class HtmlCoverageReportGenerator {
     );
   }
 
-  void _generateElement({
-    required CovElement element,
-    required String traceFileName,
-    required String parentReportDirAbsPath,
-    required String reportDirRelPath,
-    required int reportRelDepth,
-    required DateTime traceFileModificationDate,
-    required double medium,
-    required double high,
-  }) {
-    if (element is CovFile) {
-      _generateFile(
-        file: element,
-        traceFileName: traceFileName,
-        parentReportDirAbsPath: parentReportDirAbsPath,
-        reportDirRelPath: reportDirRelPath,
-        reportRelDepth: reportRelDepth,
-        traceFileModificationDate: traceFileModificationDate,
-        medium: medium,
-        high: high,
-      );
-      return;
-    }
-    _generateDirectory(
-      directory: element as CovDir,
-      traceFileName: traceFileName,
-      parentReportDirAbsPath: parentReportDirAbsPath,
-      reportDirRelPath: reportDirRelPath,
-      reportRelDepth: reportRelDepth,
-      traceFileModificationDate: traceFileModificationDate,
-      medium: medium,
-      high: high,
-    );
-  }
-
   void _generateDirectory({
-    required CovDir directory,
+    required CoverageDirectory directory,
     required String traceFileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
@@ -112,7 +76,6 @@ class HtmlCoverageReportGenerator {
     required double high,
   }) {
     final folderReport = _folderReportTemplate.clone(true);
-
     final topLevelDirRelPath = path.url.joinAll(
       List.filled(reportRelDepth, '..'),
     );
@@ -124,66 +87,82 @@ class HtmlCoverageReportGenerator {
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
-
     final reportDirAbsPath = path.join(
       parentReportDirAbsPath,
       reportDirRelPath,
     );
     final reportFileAbsPath = path.join(reportDirAbsPath, 'index.html');
-
     final title = 'Coverage Report - $traceFileName';
-    final sortAlphaIconPath = path.url.join(
-      topLevelDirRelPath,
-      sortAlphaPngFilename,
-    );
-    final sortNumericIconPath = path.url.join(
-      topLevelDirRelPath,
-      sortNumericPngFilename,
-    );
-    final suffix = _classSuffix(directory, medium: medium, high: high);
+    final suffix = _classSuffix(directory.lineRate, medium: medium, high: high);
 
     folderReport.head
       ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
       ..querySelector('.headTitle')?.text = title;
-
     folderReport.querySelector('.topLevelAnchor')?.attributes['href'] =
         topLevelReportRelPath;
-    folderReport.querySelector('.sortAlpha')?.attributes['src'] =
-        sortAlphaIconPath;
-    folderReport.querySelector('.sortNumeric')?.attributes['src'] =
-        sortNumericIconPath;
+    folderReport.querySelector('.sortAlpha')?.attributes['src'] = path.url.join(
+      topLevelDirRelPath,
+      sortAlphaPngFilename,
+    );
+    folderReport.querySelector('.sortNumeric')?.attributes['src'] = path.url
+        .join(topLevelDirRelPath, sortNumericPngFilename);
     folderReport.querySelector('.currentDirPath')?.nodes.last.text =
-        ' - ${path.url.joinAll(path.split(directory.source.path))}';
+        ' - ${directory.path}';
     folderReport.querySelector('.traceFileName')?.text = traceFileName;
     folderReport.querySelector('.linesHit')?.text = '${directory.linesHit}';
     folderReport.querySelector('.linesFound')?.text = '${directory.linesFound}';
-    folderReport.querySelector('.covValue')
-      ?..text = '${directory.coverageString} %'
-      ..classes.add('headerCovTableEntry$suffix');
-
+    final covValue = folderReport.querySelector('.covValue');
+    covValue?.text = _percentageLabel(directory.lineRate);
+    if (suffix != null) {
+      covValue?.classes.add('headerCovTableEntry$suffix');
+    }
     folderReport.querySelector('.lastTraceFileModificationDate')?.text =
         traceFileModificationDate.toString();
 
     final table = folderReport.querySelector('.covTableBody');
-    for (final element in directory.elements) {
-      final relPath = path.relative(
-        element.source.path,
-        from: directory.source.path,
-      );
+    for (final child in directory.directories) {
+      final relPath = _relative(child.path, from: directory.path);
       table?.append(
         _folderReportRow(
-          element,
           relativePath: relPath,
+          isDirectory: true,
+          lineRate: child.lineRate,
+          linesHit: child.linesHit,
+          linesFound: child.linesFound,
           medium: medium,
           high: high,
         ),
       );
-      _generateElement(
-        element: element,
+      _generateDirectory(
+        directory: child,
         traceFileName: traceFileName,
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
-        reportRelDepth: reportRelDepth + path.split(relPath).length,
+        reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
+        traceFileModificationDate: traceFileModificationDate,
+        medium: medium,
+        high: high,
+      );
+    }
+    for (final file in directory.files) {
+      final relPath = _relative(file.path, from: directory.path);
+      table?.append(
+        _folderReportRow(
+          relativePath: relPath,
+          isDirectory: false,
+          lineRate: file.lineRate,
+          linesHit: file.linesHit,
+          linesFound: file.linesFound,
+          medium: medium,
+          high: high,
+        ),
+      );
+      _generateFile(
+        file: file,
+        traceFileName: traceFileName,
+        parentReportDirAbsPath: reportDirAbsPath,
+        reportDirRelPath: relPath,
+        reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
@@ -194,7 +173,7 @@ class HtmlCoverageReportGenerator {
   }
 
   void _generateFile({
-    required CovFile file,
+    required CoverageFile file,
     required String traceFileName,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
@@ -204,7 +183,6 @@ class HtmlCoverageReportGenerator {
     required double high,
   }) {
     final fileReport = _fileReportTemplate.clone(true);
-
     final topLevelDirRelPath =
         (reportRelDepth > 1)
             ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
@@ -217,23 +195,18 @@ class HtmlCoverageReportGenerator {
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
-
     final reportFileAbsPath = path.join(
       parentReportDirAbsPath,
       '$reportDirRelPath.html',
     );
-
     final title = 'Coverage Report - $traceFileName';
-    final currentDirPath = path.url.joinAll(
-      path.split(file.source.parent.path),
-    );
-    final fileName = path.basename(file.source.path);
-    final suffix = _classSuffix(file, medium: medium, high: high);
+    final currentDirPath = path.posix.dirname(file.path);
+    final fileName = path.posix.basename(file.path);
+    final suffix = _classSuffix(file.lineRate, medium: medium, high: high);
 
     fileReport.head
       ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
       ..querySelector('.headTitle')?.text = title;
-
     fileReport.querySelector('.topLevelAnchor')?.attributes['href'] =
         topLevelReportRelPath;
     fileReport.querySelector('.currentDirPath')?.text = currentDirPath;
@@ -242,21 +215,22 @@ class HtmlCoverageReportGenerator {
     fileReport.querySelector('.traceFileName')?.text = traceFileName;
     fileReport.querySelector('.linesHit')?.text = '${file.linesHit}';
     fileReport.querySelector('.linesFound')?.text = '${file.linesFound}';
-    fileReport.querySelector('.covValue')
-      ?..text = '${file.coverageString} %'
-      ..classes.add('headerCovTableEntry$suffix');
-
+    final covValue = fileReport.querySelector('.covValue');
+    covValue?.text = _percentageLabel(file.lineRate);
+    if (suffix != null) {
+      covValue?.classes.add('headerCovTableEntry$suffix');
+    }
     fileReport.querySelector('.lastTraceFileModificationDate')?.text =
         traceFileModificationDate.toString();
 
     final src = fileReport.querySelector('.source');
     final sourceLines = () {
       try {
-        return file.source.readAsLinesSync();
+        return File(file.path).readAsLinesSync();
       } on FileSystemException catch (exception, stackTrace) {
         Error.throwWithStackTrace(
           GenerateHtmlCoverageReportFileReadFailure.fromFileSystemException(
-            filePath: file.source.path,
+            filePath: file.path,
             exception: exception,
           ),
           stackTrace,
@@ -270,14 +244,14 @@ class HtmlCoverageReportGenerator {
       fileReportLine.querySelector('.lineNum')?.text = '$lineNumber '.padLeft(
         9,
       );
-      final covLine = file.covLines.singleWhereOrNull(
-        (line) => line.lineNumber == lineNumber,
+      final covLine = file.lines.singleWhereOrNull(
+        (line) => line.number == lineNumber,
       );
-      final lineHitsText = '${covLine?.hitsNumber ?? ''}'.padLeft(11);
+      final lineHitsText = '${covLine?.hits ?? ''}'.padLeft(11);
       final srcLine = fileReportLine.querySelector('.sourceLine');
       srcLine?.text = '$lineHitsText : $lineContent';
       if (covLine != null) {
-        srcLine?.classes.add(covLine.hasBeenHit ? 'lineCov' : 'lineNoCov');
+        srcLine?.classes.add(covLine.hits > 0 ? 'lineCov' : 'lineNoCov');
       }
       src?.append(fileReportLine);
     }
@@ -285,51 +259,68 @@ class HtmlCoverageReportGenerator {
     _writeText(filePath: reportFileAbsPath, contents: fileReport.outerHtml);
   }
 
-  Element _folderReportRow(
-    CovElement element, {
+  Element _folderReportRow({
     required String relativePath,
+    required bool isDirectory,
+    required double? lineRate,
+    required int linesHit,
+    required int linesFound,
     required double medium,
     required double high,
   }) {
-    final sanitizedRelativePath = path.url.joinAll(path.split(relativePath));
+    final sanitizedRelativePath = path.url.joinAll(
+      path.posix.split(relativePath),
+    );
     final row = _folderReportRowTemplate.clone(true);
-    final suffix = _classSuffix(element, medium: medium, high: high);
+    final suffix = _classSuffix(lineRate, medium: medium, high: high);
     final link =
-        element.source is Directory
+        isDirectory
             ? path.url.join(sanitizedRelativePath, 'index.html')
             : '$sanitizedRelativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link
       ..text = sanitizedRelativePath;
     final covBar = row.querySelector('.barCov');
-    if (element.coverage < 1) {
+    if (lineRate == null || lineRate < 1) {
       covBar?.remove();
     } else {
       covBar
-        ?..attributes['width'] = '${element.coverageString}%'
+        ?..attributes['width'] = '${lineRate.toStringAsFixed(2)}%'
         ..classes.add('barCov$suffix');
     }
-    row.querySelector('.coverPer')
-      ?..classes.add('coverPer$suffix')
-      ..innerHtml = '${element.coverageString}&nbsp;%';
-    row.querySelector('.coverNum')
-      ?..classes.add('coverNum$suffix')
-      ..innerHtml = '${element.linesHit}&nbsp;/&nbsp;${element.linesFound}';
+    final percentage = row.querySelector('.coverPer');
+    percentage?.innerHtml = _percentageHtml(lineRate);
+    if (suffix != null) percentage?.classes.add('coverPer$suffix');
+    final counts = row.querySelector('.coverNum');
+    counts?.innerHtml = '$linesHit&nbsp;/&nbsp;$linesFound';
+    if (suffix != null) counts?.classes.add('coverNum$suffix');
     return row;
   }
 
-  String _classSuffix(
-    CovComputable element, {
+  String? _classSuffix(
+    double? lineRate, {
     required double medium,
     required double high,
   }) {
-    if (element.coverage < medium) {
-      return 'Lo';
-    } else if (element.coverage < high) {
-      return 'Med';
-    } else {
-      return 'Hi';
-    }
+    if (lineRate == null) return null;
+    if (lineRate < medium) return 'Lo';
+    if (lineRate < high) return 'Med';
+    return 'Hi';
+  }
+
+  String _percentageLabel(double? lineRate) {
+    if (lineRate == null) return 'n/a';
+    return '${lineRate.toStringAsFixed(2)} %';
+  }
+
+  String _percentageHtml(double? lineRate) {
+    if (lineRate == null) return 'n/a';
+    return '${lineRate.toStringAsFixed(2)}&nbsp;%';
+  }
+
+  String _relative(String target, {required String from}) {
+    if (from.isEmpty) return target;
+    return path.posix.relative(target, from: from);
   }
 
   void _copyAsset({required String filePath, required List<int> bytes}) {

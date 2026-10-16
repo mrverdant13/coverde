@@ -1,6 +1,8 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/html_report/html_coverage_report_generator.dart';
+import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
+import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -159,9 +161,9 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       );
     }
 
-    final TraceFile traceFileData;
+    final CoverageDocument traceFileData;
     try {
-      traceFileData = await TraceFile.parseStreaming(traceFile);
+      traceFileData = await CoverageDocument.parseStreaming(traceFile);
     } on FileSystemException catch (exception) {
       throw CoverdeReportTraceFileReadFailure.fromFileSystemException(
         traceFilePath: traceFileAbsPath,
@@ -188,7 +190,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       }
     }();
     // Build cov report base tree.
-    final covTree = traceFileData.asTree;
+    final covTree = traceFileData.tree;
     // Generate report doc.
     try {
       const HtmlCoverageReportGenerator().generate(
@@ -224,7 +226,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
 
-    logger.info('$covTree');
+    logger.info(_describeCoverageTree(covTree));
 
     final reportLocationMessage =
         StringBuffer()
@@ -261,3 +263,37 @@ const launchCommands = {
   'macos': 'open',
   'windows': 'start',
 };
+
+String _describeCoverageTree(CoverageDirectory directory) {
+  final summary = _coverageSummary(
+    directory.path,
+    directory.lineRate,
+    directory.linesHit,
+    directory.linesFound,
+  );
+  final buffer = StringBuffer('Node: $summary');
+  for (final child in directory.directories) {
+    final nested = _describeCoverageTree(child).replaceAll('\n', '\n│  ');
+    buffer.write('\n├─ $nested');
+  }
+  for (final file in directory.files) {
+    final fileSummary = _coverageSummary(
+      file.path,
+      file.lineRate,
+      file.linesHit,
+      file.linesFound,
+    );
+    buffer.write('\n├─ SF: $fileSummary');
+  }
+  buffer.writeln();
+  return buffer.toString();
+}
+
+String _coverageSummary(String path, double? lineRate, int hit, int found) {
+  final summary =
+      lineRate == null
+          ? 'n/a'
+          : '${lineRate.toStringAsFixed(2)}% - $hit/$found';
+  final color = lineRate != null && lineRate >= 100 ? lightGreen : lightRed;
+  return '$path ${color.wrap('($summary)')}';
+}
