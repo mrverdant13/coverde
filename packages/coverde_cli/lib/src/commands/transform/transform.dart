@@ -310,11 +310,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
     var entries =
         traceFile.files
             .map(
-              (file) => (
-                path: file.path,
-                raw: file.raw,
-                lineRate: file.lineRate,
-              ),
+              (file) => (path: file.path, file: file, lineRate: file.lineRate),
             )
             .toList();
 
@@ -357,16 +353,12 @@ Presets can be defined in $_configFileName under the `transformations` key.
           entries =
               entries.map((e) {
                 final newPath = p.relative(e.path, from: bp);
-                final newRaw = e.raw.replaceFirst(
-                  RegExp(r'^[ \t]*SF:(.*)$', multiLine: true),
-                  'SF:$newPath',
-                );
-                return (path: newPath, raw: newRaw, lineRate: e.lineRate);
+                return (path: newPath, file: e.file, lineRate: e.lineRate);
               }).toList();
       }
     }
 
-    return entries.map((e) => e.raw).toList();
+    return entries.map((e) => e.file.renderTrace(path: e.path)).toList();
   }
 
   /// Normalize path for glob matching (use posix separators).

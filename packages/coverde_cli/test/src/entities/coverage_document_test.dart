@@ -2,6 +2,7 @@ import 'package:coverde/src/entities/coverage_branch.dart';
 import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
@@ -123,14 +124,14 @@ FNH:1
 end_of_record
 ''';
 
-      final functions =
-          CoverageDocument.parse(trace).files.single.functions!.functions;
+      final file = CoverageDocument.parse(trace).files.single;
 
-      expect(functions, const [
+      expect(file.functions!.functions, const [
         CoverageFunction(name: '20', line: 4, hits: 0),
         CoverageFunction(name: 'foo,bar', line: 8, hits: 0),
         CoverageFunction(name: 'main', line: 10, hits: 1),
       ]);
+      expect(file.renderTrace(), contains('FN:10,12,main'));
     });
 
     test(
@@ -233,8 +234,17 @@ end_of_record
       expect(streamed, document);
 
       final merged = document.files.first;
-      expect(merged.raw, contains('TN:first'));
-      expect(merged.raw, contains('TN:second'));
+      final rendered = merged.renderTrace();
+      expect(rendered, contains('TN:first'));
+      expect(rendered, contains('TN:second'));
+      expect(
+        rendered.indexOf('TN:first'),
+        lessThan(rendered.indexOf('TN:second')),
+      );
+      expect(
+        rendered.split('\n').where((line) => line == 'SF:lib/a.dart').length,
+        2,
+      );
       expect(merged.lines, const [
         CoverageLine(number: 1, hits: 2, checksum: 7),
         CoverageLine(number: 2, hits: 1, checksum: 9),
@@ -636,7 +646,7 @@ end_of_record
       expect(document.files.last.branches!.branches.single.taken, isNull);
     });
 
-    test('keeps the original record text and parses a stream', () async {
+    test('renders a Windows source path with slashes', () async {
       final directory = Directory.systemTemp.createTempSync(
         'coverde-coverage-document-',
       );
@@ -663,9 +673,99 @@ end_of_record
       );
 
       expect(streamed, parsed);
-      expect(streamed.files.single.raw, contains(r'SF:lib\a.dart'));
-      expect(streamed.files.single.raw, endsWith('end_of_record'));
+      expect(
+        streamed.files.single.renderTrace(),
+        'SF:lib/a.dart\nFN:10,main\nFNDA:1,main\nDA:10,1\nend_of_record',
+      );
       expect(streamed.files.single.path, 'lib/a.dart');
+    });
+
+    test('parses indented and CRLF traces into the same record', () async {
+      const indented = '''
+  SF:lib/a.dart
+  DA:2,0
+  DA:1,1
+  TN:suite
+end_of_record
+''';
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-coverage-document-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final file = File('${directory.path}/lcov.info')
+        ..writeAsStringSync(indented.replaceAll('\n', '\r\n'));
+
+      final streamed = await CoverageDocument.parseStreaming(file);
+      final parsed = CoverageDocument.parse(indented);
+
+      expect(streamed, parsed);
+      expect(
+        parsed.files.single.renderTrace(),
+        'SF:lib/a.dart\nDA:2,0\nDA:1,1\nTN:suite\nend_of_record',
+      );
+      expect(parsed.files.single.renderTrace(), isNot(contains('\r')));
+    });
+
+    test('equates records by measurements and unrecognized lines', () {
+      const ordered = '''
+SF:lib/a.dart
+DA:1,1
+DA:2,0
+BRDA:1,0,0,1
+TN:suite
+end_of_record
+''';
+      const reordered = '''
+SF:lib/a.dart
+BRDA:1,0,0,1
+DA:2,0
+DA:1,1
+TN:suite
+end_of_record
+''';
+      const otherName = '''
+SF:lib/a.dart
+DA:1,1
+DA:2,0
+BRDA:1,0,0,1
+TN:other
+end_of_record
+''';
+
+      final first = CoverageDocument.parse(ordered);
+      final second = CoverageDocument.parse(reordered);
+
+      expect(first, second);
+      expect(first.hashCode, second.hashCode);
+      expect(first, isNot(CoverageDocument.parse(otherName)));
+      const source = CoverageSourceEntry();
+      const preserved = CoveragePreservedEntry('DA:1,1');
+      const unrecognized = CoverageUnrecognizedEntry('TN:suite');
+      expect(source, const CoverageSourceEntry());
+      expect(source.hashCode, const CoverageSourceEntry().hashCode);
+      expect(CoverageSourceEntry() == CoverageSourceEntry(), isTrue);
+      expect(CoverageSourceEntry() == preserved, isFalse);
+      expect(preserved, const CoveragePreservedEntry('DA:1,1'));
+      expect(
+        preserved.hashCode,
+        const CoveragePreservedEntry('DA:1,1').hashCode,
+      );
+      expect(preserved, isNot(const CoveragePreservedEntry('DA:2,0')));
+      expect(unrecognized, const CoverageUnrecognizedEntry('TN:suite'));
+      expect(
+        unrecognized.hashCode,
+        const CoverageUnrecognizedEntry('TN:suite').hashCode,
+      );
+      expect(unrecognized, isNot(const CoverageUnrecognizedEntry('TN:other')));
+      expect(source, isNot(preserved));
+      expect(
+        first.files.single.renderTrace(),
+        'SF:lib/a.dart\nDA:1,1\nDA:2,0\nBRDA:1,0,0,1\nTN:suite\nend_of_record',
+      );
+      expect(
+        second.files.single.renderTrace(),
+        'SF:lib/a.dart\nBRDA:1,0,0,1\nDA:2,0\nDA:1,1\nTN:suite\nend_of_record',
+      );
     });
 
     test('places a file with no directory on the empty root', () {

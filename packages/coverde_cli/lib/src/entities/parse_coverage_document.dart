@@ -10,7 +10,7 @@ CoverageDocument _parseCoverageDocument(
 }) {
   final files = <CoverageFile>[];
   for (final record in _records(trace)) {
-    final file = _parseRecord(record.lines, raw: record.raw);
+    final file = _parseRecord(record.lines);
     if (file == null) continue;
     _addParsedFile(files, file);
   }
@@ -23,7 +23,6 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
 }) async {
   final files = <CoverageFile>[];
   final recordLines = <String>[];
-  final rawLines = <String>[];
   final lines = file
       .openRead()
       .transform(utf8.decoder)
@@ -36,20 +35,14 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
       try {
         final trimmed = line.trim();
         if (trimmed.isEmpty) return;
-        rawLines.add(line);
         if (trimmed == 'end_of_record') {
           if (recordLines.isEmpty) {
             throw const CoverageTraceFormatFailure(
               readableMessage: 'Trace file contains an empty record.',
             );
           }
-          _addRecord(
-            files: files,
-            lines: recordLines,
-            raw: rawLines.join('\n'),
-          );
+          _addRecord(files: files, lines: recordLines);
           recordLines.clear();
-          rawLines.clear();
           return;
         }
         recordLines.add(trimmed);
@@ -61,7 +54,7 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
     },
     onDone: () {
       try {
-        if (recordLines.isNotEmpty || rawLines.isNotEmpty) {
+        if (recordLines.isNotEmpty) {
           throw const CoverageTraceFormatFailure(
             readableMessage: 'Trace file ended before `end_of_record`.',
           );
@@ -93,9 +86,8 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
 void _addRecord({
   required List<CoverageFile> files,
   required List<String> lines,
-  required String raw,
 }) {
-  final file = _parseRecord(lines, raw: raw);
+  final file = _parseRecord(lines);
   if (file == null) return;
   _addParsedFile(files, file);
 }
@@ -112,7 +104,7 @@ void _addParsedFile(List<CoverageFile> files, CoverageFile file) {
 CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
   return CoverageFile(
     path: current.path,
-    raw: '${current.raw}\n${incoming.raw}',
+    entries: [...current.entries, ...incoming.entries],
     lines: _mergeLines(
       sourcePath: current.path,
       current: current.lines,
@@ -131,10 +123,9 @@ CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
 }
 
 final class _TraceRecord {
-  const _TraceRecord({required this.lines, required this.raw});
+  const _TraceRecord({required this.lines});
 
   final List<String> lines;
-  final String raw;
 }
 
 List<_TraceRecord> _records(String trace) {
@@ -149,12 +140,7 @@ List<_TraceRecord> _records(String trace) {
           readableMessage: 'Trace file contains an empty record.',
         );
       }
-      records.add(
-        _TraceRecord(
-          lines: List<String>.of(current),
-          raw: [...current, 'end_of_record'].join('\n'),
-        ),
-      );
+      records.add(_TraceRecord(lines: List<String>.of(current)));
       current.clear();
       continue;
     }
@@ -168,8 +154,9 @@ List<_TraceRecord> _records(String trace) {
   return records;
 }
 
-CoverageFile? _parseRecord(List<String> lines, {required String raw}) {
+CoverageFile? _parseRecord(List<String> lines) {
   String? sourcePath;
+  final entries = <CoverageTraceEntry>[];
   final lineRecords = <CoverageLine>[];
   final functionLines = <String, int>{};
   final functionHits = <String, int>{};
@@ -184,6 +171,7 @@ CoverageFile? _parseRecord(List<String> lines, {required String raw}) {
   var sawBranches = false;
 
   for (final line in lines) {
+    entries.add(_traceEntry(line));
     if (line.startsWith('SF:')) {
       if (sourcePath != null) {
         throw const CoverageTraceFormatFailure(
@@ -302,7 +290,7 @@ CoverageFile? _parseRecord(List<String> lines, {required String raw}) {
 
   final file = CoverageFile(
     path: sourcePath,
-    raw: raw,
+    entries: [...entries, const CoveragePreservedEntry('end_of_record')],
     lines: lineRecords,
     functions:
         sawFunctions
@@ -622,4 +610,22 @@ CoverageBranches? _mergeBranches({
     found: branches.length,
     branches: branches,
   );
+}
+
+CoverageTraceEntry _traceEntry(String line) {
+  if (line.startsWith('SF:')) return const CoverageSourceEntry();
+  if (line.startsWith('DA:') ||
+      line.startsWith('FNDA:') ||
+      line.startsWith('FN:') ||
+      line.startsWith('FNF:') ||
+      line.startsWith('FNH:') ||
+      line.startsWith('BRDA:') ||
+      line.startsWith('BRF:') ||
+      line.startsWith('BRH:') ||
+      line.startsWith('LF:') ||
+      line.startsWith('LH:') ||
+      line == 'end_of_record') {
+    return CoveragePreservedEntry(line);
+  }
+  return CoverageUnrecognizedEntry(line);
 }

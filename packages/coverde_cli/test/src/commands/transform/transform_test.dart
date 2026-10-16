@@ -528,6 +528,11 @@ end_of_record
         File(inputPath).writeAsStringSync('''
   SF:$sourcePath
 DA:1,1
+TN:first
+end_of_record
+  SF:$sourcePath
+DA:2,0
+TN:second
 end_of_record
 ''');
 
@@ -541,9 +546,17 @@ end_of_record
           'relative=$baseDirectory',
         ]);
 
+        final relativePath = p.relative(sourcePath, from: baseDirectory);
         expect(
           File(outputPath).readAsStringSync(),
-          startsWith('SF:${p.relative(sourcePath, from: baseDirectory)}\n'),
+          'SF:$relativePath\n'
+          'DA:1,1\n'
+          'TN:first\n'
+          'end_of_record\n'
+          'SF:$relativePath\n'
+          'DA:2,0\n'
+          'TN:second\n'
+          'end_of_record',
         );
       });
 

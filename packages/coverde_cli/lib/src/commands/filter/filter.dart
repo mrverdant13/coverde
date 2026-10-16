@@ -169,10 +169,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         logger.detail('<${fileCovData.path}> coverage data ignored.');
       } else {
         final raw = switch (baseDirectory) {
-          null => fileCovData.raw,
-          final String baseDirectory => fileCovData.raw.replaceFirst(
-            RegExp(r'^[ \t]*SF:(.*)$', multiLine: true),
-            'SF:${path.relative(fileCovData.path, from: baseDirectory)}',
+          null => fileCovData.renderTrace(),
+          final String baseDirectory => fileCovData.renderTrace(
+            path: path.relative(fileCovData.path, from: baseDirectory),
           ),
         };
         acceptedSrcFilesRawData.add(raw);

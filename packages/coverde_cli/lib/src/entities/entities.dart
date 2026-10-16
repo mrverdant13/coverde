@@ -5,6 +5,7 @@ export 'coverage_file.dart';
 export 'coverage_function.dart';
 export 'coverage_line.dart';
 export 'coverage_rate.dart';
+export 'coverage_trace_entry.dart';
 export 'coverage_trace_format_failure.dart';
 export 'coverde_failure.dart';
 export 'coverde_get_global_package_installation_info_failure.dart';

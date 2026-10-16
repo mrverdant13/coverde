@@ -9,6 +9,7 @@ import 'package:coverde/src/entities/coverage_file.dart';
 import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/entities/coverage_rate.dart';
+import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';

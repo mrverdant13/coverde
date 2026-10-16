@@ -3,6 +3,7 @@ import 'package:coverde/src/entities/coverage_branch.dart';
 import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/entities/coverage_rate.dart';
+import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:meta/meta.dart';
 
 /// {@template coverde.coverage_file}
@@ -16,19 +17,22 @@ final class CoverageFile {
   /// {@macro coverde.coverage_file}
   CoverageFile({
     required this.path,
-    required this.raw,
+    required Iterable<CoverageTraceEntry> entries,
     required Iterable<CoverageLine> lines,
     required this.functions,
     required this.branches,
-  }) : lines = List<CoverageLine>.unmodifiable(lines);
+  }) : entries = List<CoverageTraceEntry>.unmodifiable(entries),
+       lines = List<CoverageLine>.unmodifiable(lines);
 
   /// The source path from `SF:`, with `/` separators.
   final String path;
 
-  /// The original LCOV record, including `end_of_record`.
+  /// Record lines in trace order.
   ///
-  /// `SF:` still has the path as it appeared in the trace.
-  final String raw;
+  /// An `SF:` line is a [CoverageSourceEntry]. A line the parser understands
+  /// is a [CoveragePreservedEntry]. Any other non-blank line is a
+  /// [CoverageUnrecognizedEntry].
+  final List<CoverageTraceEntry> entries;
 
   /// The last segment of [path].
   String get name {
@@ -67,20 +71,49 @@ final class CoverageFile {
   double? get branchRate =>
       optionalCoverageRate(hit: branches?.hit, found: branches?.found);
 
+  /// Writes [entries] as LCOV text.
+  ///
+  /// Each [CoverageSourceEntry] uses [path] when it is given, and this file's
+  /// path otherwise.
+  String renderTrace({String? path}) {
+    final sourcePath = path ?? this.path;
+    return [
+      for (final entry in entries)
+        switch (entry) {
+          CoverageSourceEntry() => 'SF:$sourcePath',
+          CoveragePreservedEntry(:final text) => text,
+          CoverageUnrecognizedEntry(:final text) => text,
+        },
+    ].join('\n');
+  }
+
   static const _linesEquality = ListEquality<CoverageLine>();
+  static const _unrecognizedEquality =
+      ListEquality<CoverageUnrecognizedEntry>();
+
+  List<CoverageUnrecognizedEntry> get _unrecognizedEntries =>
+      entries.whereType<CoverageUnrecognizedEntry>().toList();
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is CoverageFile &&
         other.path == path &&
-        other.raw == raw &&
         _linesEquality.equals(other.lines, lines) &&
         other.functions == functions &&
-        other.branches == branches;
+        other.branches == branches &&
+        _unrecognizedEquality.equals(
+          other._unrecognizedEntries,
+          _unrecognizedEntries,
+        );
   }
 
   @override
-  int get hashCode =>
-      Object.hash(path, raw, _linesEquality.hash(lines), functions, branches);
+  int get hashCode => Object.hash(
+    path,
+    _linesEquality.hash(lines),
+    functions,
+    branches,
+    _unrecognizedEquality.hash(_unrecognizedEntries),
+  );
 }
