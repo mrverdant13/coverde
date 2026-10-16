@@ -47,6 +47,8 @@ end_of_record
       expect(document.tree.path, 'lib');
       expect(document.isEmpty, isFalse);
       expect(document.tree.lineRate, document.lineRate);
+      expect(document.tree.functionRate, isNull);
+      expect(document.tree.branchRate, isNull);
       expect(document.tree.name, 'lib');
       expect(document.tree.directories.single.name, 'src');
       expect(document.tree.files.map((file) => file.path), ['lib/a.dart']);
@@ -91,6 +93,7 @@ end_of_record
         ),
       );
       expect(file.functionRate, 50);
+      expect(document.tree.functionRate, 50);
       expect(
         file.branches,
         CoverageBranches(
@@ -104,6 +107,7 @@ end_of_record
       );
       expect(file.branchRate, 50);
       expect(document.branchRate, 50);
+      expect(document.tree.branchRate, 50);
     });
 
     test('keeps the function name when an optional end line is present', () {
@@ -178,6 +182,7 @@ FN:4,other
 BRDA:1,0,0,2
 BRDA:1,0,1,-
 BRDA:1,0,2,4
+BRDA:2,1,0,4
 end_of_record
 SF:lib/add-functions.dart
 DA:1,1
@@ -244,6 +249,7 @@ end_of_record
         CoverageBranch(line: 1, block: 0, branch: 0, taken: 2),
         CoverageBranch(line: 1, block: 0, branch: 1, taken: 3),
         CoverageBranch(line: 1, block: 0, branch: 2, taken: 5),
+        CoverageBranch(line: 2, block: 1, branch: 0, taken: 4),
       ]);
       expect(
         document.files[1].functions!.functions.single,
