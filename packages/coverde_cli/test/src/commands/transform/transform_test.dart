@@ -422,6 +422,61 @@ end_of_record
         expect(outContent, isNot(contains('SF:$skippedPath')));
       });
 
+      test('--${TransformCommand.transformationsOption}=keep-by-coverage '
+          '| leaves a file with no line rate unmatched', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const inputContent = '''
+SF:lib/lines.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+SF:lib/functions.dart
+FN:4,only
+FNDA:1,only
+end_of_record
+''';
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-coverage=gte|0',
+        ]);
+
+        final kept = File(outputPath).readAsStringSync();
+        expect(kept, contains('SF:lib/lines.dart'));
+        expect(kept, isNot(contains('FN:4,only')));
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.modeOption}',
+          'w',
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-coverage=lt|100',
+        ]);
+
+        final skipped = File(outputPath).readAsStringSync();
+        expect(skipped, contains('SF:lib/lines.dart'));
+        expect(skipped, contains('FN:4,only'));
+        expect(skipped, contains('FNDA:1,only'));
+      });
+
       test('--${TransformCommand.inputOption}=<file> '
           '--${TransformCommand.outputOption}=<file> '
           '--${TransformCommand.transformationsOption}=relative=<base-path> '
