@@ -1,0 +1,137 @@
+import 'package:collection/collection.dart';
+import 'package:coverde/src/features/reporting/models/coverage_file.dart';
+import 'package:coverde/src/features/reporting/models/coverage_rate.dart';
+import 'package:meta/meta.dart';
+
+/// {@template coverde.coverage_directory}
+/// One directory in the coverage tree.
+///
+/// [path] is a `/`-separated prefix. It is empty for a root whose files do not
+/// share a directory. Single-child directory chains collapse into one node.
+/// {@endtemplate}
+@immutable
+final class CoverageDirectory {
+  /// {@macro coverde.coverage_directory}
+  CoverageDirectory({
+    required this.path,
+    required Iterable<CoverageDirectory> directories,
+    required Iterable<CoverageFile> files,
+  }) : directories = List<CoverageDirectory>.unmodifiable(directories),
+       files = List<CoverageFile>.unmodifiable(files);
+
+  /// The directory path relative to the trace, using `/`.
+  final String path;
+
+  /// The last segment of [path], or empty when [path] is empty.
+  String get name {
+    if (path.isEmpty) return '';
+    final slash = path.lastIndexOf('/');
+    if (slash == -1) return path;
+    return path.substring(slash + 1);
+  }
+
+  /// Immediate child directories, in the order they first appear in the trace.
+  final List<CoverageDirectory> directories;
+
+  /// Source files whose parent directory is [path], in trace order.
+  final List<CoverageFile> files;
+
+  /// Instrumented lines in this directory and its descendants.
+  late final int linesFound = _sum(
+    directories.map((directory) => directory.linesFound),
+    files.map((file) => file.linesFound),
+  );
+
+  /// Instrumented lines executed at least once.
+  late final int linesHit = _sum(
+    directories.map((directory) => directory.linesHit),
+    files.map((file) => file.linesHit),
+  );
+
+  /// Line coverage from 0 to 100, or null when [linesFound] is 0.
+  double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
+
+  /// Functions executed at least once, or null when no descendant reported
+  /// functions.
+  late final int? functionsHit = _optionalSum(
+    directories.map((directory) => directory.functionsHit),
+    files.map((file) => file.functions?.hit),
+  );
+
+  /// Functions found, or null when no descendant reported functions.
+  late final int? functionsFound = _optionalSum(
+    directories.map((directory) => directory.functionsFound),
+    files.map((file) => file.functions?.found),
+  );
+
+  /// Function coverage from 0 to 100.
+  ///
+  /// Null when function data is absent or no functions were found.
+  double? get functionRate =>
+      optionalCoverageRate(hit: functionsHit, found: functionsFound);
+
+  /// Branches taken at least once, or null when no descendant reported
+  /// branches.
+  late final int? branchesHit = _optionalSum(
+    directories.map((directory) => directory.branchesHit),
+    files.map((file) => file.branches?.hit),
+  );
+
+  /// Branches found, or null when no descendant reported branches.
+  late final int? branchesFound = _optionalSum(
+    directories.map((directory) => directory.branchesFound),
+    files.map((file) => file.branches?.found),
+  );
+
+  /// Branch coverage from 0 to 100.
+  ///
+  /// Null when branch data is absent or no branches were found.
+  double? get branchRate =>
+      optionalCoverageRate(hit: branchesHit, found: branchesFound);
+
+  static const _directoriesEquality = ListEquality<CoverageDirectory>();
+  static const _filesEquality = ListEquality<CoverageFile>();
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CoverageDirectory &&
+        other.path == path &&
+        _directoriesEquality.equals(other.directories, directories) &&
+        _filesEquality.equals(other.files, files);
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    path,
+    _directoriesEquality.hash(directories),
+    _filesEquality.hash(files),
+  );
+}
+
+int _sum(Iterable<int> left, Iterable<int> right) {
+  var total = 0;
+  for (final value in left) {
+    total += value;
+  }
+  for (final value in right) {
+    total += value;
+  }
+  return total;
+}
+
+/// Sums present measurements.
+///
+/// Returns null when every value is null, so an unknown child stays unknown
+/// instead of becoming zero.
+int? _optionalSum(Iterable<int?> left, Iterable<int?> right) {
+  var sawValue = false;
+  var total = 0;
+  for (final value in [...left, ...right]) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  if (!sawValue) return null;
+  return total;
+}
