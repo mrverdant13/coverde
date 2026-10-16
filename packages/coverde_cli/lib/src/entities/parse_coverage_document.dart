@@ -198,9 +198,8 @@ CoverageFile? _parseRecord(List<String> lines, {required String raw}) {
       functionHits[name] = _parseCount(hits, label: 'FNDA');
     } else if (line.startsWith('FN:')) {
       sawFunctions = true;
-      final (rawLine, name) = _splitOnce(
+      final (rawLine, name) = _parseFunctionRecord(
         line.substring('FN:'.length),
-        label: 'FN',
       );
       if (functionLines.containsKey(name)) {
         throw CoverageTraceFormatFailure(
@@ -409,6 +408,21 @@ CoverageBranch _parseBranch(String raw) {
     branch: _parseCount(parts[2], label: 'BRDA'),
     taken: taken,
   );
+}
+
+(String, String) _parseFunctionRecord(String raw) {
+  final (start, rest) = _splitOnce(raw, label: 'FN');
+  final comma = rest.indexOf(',');
+  if (comma <= 0) return (start, rest);
+  final endLine = int.tryParse(rest.substring(0, comma).trim());
+  if (endLine == null || endLine < 1) return (start, rest);
+  final name = rest.substring(comma + 1);
+  if (name.isEmpty) {
+    throw CoverageTraceFormatFailure(
+      readableMessage: 'Invalid `FN:` record `$raw`.',
+    );
+  }
+  return (start, name);
 }
 
 (String, String) _splitOnce(String raw, {required String label}) {

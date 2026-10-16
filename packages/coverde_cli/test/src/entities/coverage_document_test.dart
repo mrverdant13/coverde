@@ -106,6 +106,29 @@ end_of_record
       expect(document.branchRate, 50);
     });
 
+    test('keeps the function name when an optional end line is present', () {
+      const trace = '''
+SF:lib/app.dart
+FN:10,12,main
+FNDA:1,main
+FN:4,20
+FN:8,foo,bar
+FNDA:0,foo,bar
+FNF:3
+FNH:1
+end_of_record
+''';
+
+      final functions =
+          CoverageDocument.parse(trace).files.single.functions!.functions;
+
+      expect(functions, const [
+        CoverageFunction(name: '20', line: 4, hits: 0),
+        CoverageFunction(name: 'foo,bar', line: 8, hits: 0),
+        CoverageFunction(name: 'main', line: 10, hits: 1),
+      ]);
+    });
+
     test(
       'keeps a reported empty function group distinct from missing data',
       () {
