@@ -2,18 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
-import 'package:coverde/src/features/reporting/failures/coverage_trace_format_failure.dart';
-import 'package:coverde/src/features/reporting/models/coverage_branch.dart';
-import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
-import 'package:coverde/src/features/reporting/models/coverage_file.dart';
-import 'package:coverde/src/features/reporting/models/coverage_function.dart';
-import 'package:coverde/src/features/reporting/models/coverage_line.dart';
-import 'package:coverde/src/features/reporting/models/coverage_rate.dart';
-import 'package:coverde/src/features/reporting/parsing/build_coverage_tree.dart';
+import 'package:coverde/src/entities/build_coverage_tree.dart';
+import 'package:coverde/src/entities/coverage_branch.dart';
+import 'package:coverde/src/entities/coverage_directory.dart';
+import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
+import 'package:coverde/src/entities/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_rate.dart';
+import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
-part '../parsing/parse_coverage_document.dart';
+part 'parse_coverage_document.dart';
 
 /// {@template coverde.coverage_document}
 /// Presentation-agnostic coverage parsed from an LCOV trace.

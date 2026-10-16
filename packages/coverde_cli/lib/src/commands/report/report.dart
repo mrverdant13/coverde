@@ -1,8 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/html_report/html_coverage_report_generator.dart';
-import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';

@@ -1,5 +1,5 @@
-import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
-import 'package:coverde/src/features/reporting/models/coverage_file.dart';
+import 'package:coverde/src/entities/coverage_directory.dart';
+import 'package:coverde/src/entities/coverage_file.dart';
 
 /// Builds a directory tree whose root path is the shared parent prefix.
 ///

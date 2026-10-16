@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
-import 'package:coverde/src/features/reporting/models/coverage_branch.dart';
-import 'package:coverde/src/features/reporting/models/coverage_function.dart';
-import 'package:coverde/src/features/reporting/models/coverage_line.dart';
-import 'package:coverde/src/features/reporting/models/coverage_rate.dart';
+import 'package:coverde/src/entities/coverage_branch.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
+import 'package:coverde/src/entities/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_rate.dart';
 import 'package:meta/meta.dart';
 
 /// {@template coverde.coverage_file}

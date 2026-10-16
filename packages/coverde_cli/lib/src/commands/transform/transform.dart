@@ -1,6 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;

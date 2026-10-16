@@ -3,8 +3,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/entities/entities.dart';
-import 'package:coverde/src/features/reporting/models/coverage_directory.dart';
-import 'package:coverde/src/features/reporting/models/coverage_file.dart';
 import 'package:html/dom.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';

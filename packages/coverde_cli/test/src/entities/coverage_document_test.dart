@@ -1,8 +1,8 @@
-import 'package:coverde/src/features/reporting/failures/coverage_trace_format_failure.dart';
-import 'package:coverde/src/features/reporting/models/coverage_branch.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
-import 'package:coverde/src/features/reporting/models/coverage_function.dart';
-import 'package:coverde/src/features/reporting/models/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_branch.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
+import 'package:coverde/src/entities/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 

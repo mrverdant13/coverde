@@ -1,4 +1,4 @@
-part of '../models/coverage_document.dart';
+part of 'coverage_document.dart';
 
 /// Parses [trace] as LCOV.
 ///

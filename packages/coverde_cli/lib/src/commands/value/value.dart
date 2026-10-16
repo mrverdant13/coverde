@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
-import 'package:coverde/src/features/reporting/models/coverage_file.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';

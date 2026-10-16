@@ -1,6 +1,6 @@
 import 'package:coverde/src/commands/check/failures.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
 import 'package:yaml/yaml.dart' as yaml;

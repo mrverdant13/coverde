@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:coverde/src/commands/commands.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/update_check_mode.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
