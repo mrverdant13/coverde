@@ -610,6 +610,49 @@ end_of_record
         () => logger.info(wrapWith('n/a', [blue, styleBold])),
       ]);
     });
+
+    test(
+      'fails when the trace has no line coverage at the default log level',
+      () async {
+        final directory = Directory.systemTemp.createTempSync('coverde-check-');
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+        File(traceFilePath).writeAsStringSync('''
+SF:lib/fn.dart
+FN:1,only
+FNDA:1,only
+end_of_record
+''');
+
+        await IOOverrides.runZoned(() async {
+          Future<void> action() => cmdRunner.run([
+            'check',
+            '--${CheckCommand.inputOptionName}',
+            traceFilePath,
+            '0',
+          ]);
+
+          await expectLater(
+            action,
+            throwsA(
+              isA<CoverdeCheckNoLineCoverageFailure>().having(
+                (failure) => failure.readableMessage,
+                'readableMessage',
+                'Trace file at `$traceFilePath` has no line coverage to check.',
+              ),
+            ),
+          );
+        }, getCurrentDirectory: () => directory);
+
+        verifyInOrder([
+          () => logger.info('lib/fn.dart ${wrapWith('(n/a)', [lightRed])}'),
+          () => logger.info(''),
+          () => logger.info(''),
+          () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+          () => logger.info(wrapWith('n/a', [blue, styleBold])),
+        ]);
+      },
+    );
   });
 }
 

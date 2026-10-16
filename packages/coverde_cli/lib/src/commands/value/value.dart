@@ -132,6 +132,10 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       case FileCoverageLogLevel.lineContent:
         for (final fileCovData in traceFile.files) {
           logger.info(_fileCoverageDataString(fileCovData));
+          if (fileCovData.uncoveredLineNumbers.isEmpty) {
+            logger.info('');
+            continue;
+          }
           final sourceLines = () {
             final file = File(fileCovData.path).absolute;
             try {
