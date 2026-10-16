@@ -358,7 +358,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
               entries.map((e) {
                 final newPath = p.relative(e.path, from: bp);
                 final newRaw = e.raw.replaceFirst(
-                  RegExp(r'^SF:(.*)$', multiLine: true),
+                  RegExp(r'^[ \t]*SF:(.*)$', multiLine: true),
                   'SF:$newPath',
                 );
                 return (path: newPath, raw: newRaw, lineRate: e.lineRate);

@@ -515,6 +515,38 @@ end_of_record
         expect(outContent, isNot(contains(directory.path)));
       });
 
+      test('--${TransformCommand.transformationsOption}=relative=<base-path> '
+          '| rewrites an indented source path', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final baseDirectory = p.join(directory.path, 'repo');
+        final sourcePath = p.join(baseDirectory, 'lib', 'a.dart');
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(inputPath).writeAsStringSync('''
+  SF:$sourcePath
+DA:1,1
+end_of_record
+''');
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'relative=$baseDirectory',
+        ]);
+
+        expect(
+          File(outputPath).readAsStringSync(),
+          startsWith('SF:${p.relative(sourcePath, from: baseDirectory)}\n'),
+        );
+      });
+
       test('--${TransformCommand.modeOption}=w '
           '| overrides output file content', () async {
         final directory = Directory.systemTemp.createTempSync(

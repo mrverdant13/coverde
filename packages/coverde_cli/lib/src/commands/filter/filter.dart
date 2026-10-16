@@ -171,7 +171,7 @@ All the relative paths in the resulting coverage trace file will be resolved rel
         final raw = switch (baseDirectory) {
           null => fileCovData.raw,
           final String baseDirectory => fileCovData.raw.replaceFirst(
-            RegExp(r'^SF:(.*)$', multiLine: true),
+            RegExp(r'^[ \t]*SF:(.*)$', multiLine: true),
             'SF:${path.relative(fileCovData.path, from: baseDirectory)}',
           ),
         };

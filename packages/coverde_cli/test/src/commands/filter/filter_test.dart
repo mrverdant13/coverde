@@ -933,6 +933,39 @@ end_of_record
         },
       );
     });
+
+    test('--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+        '| rewrites an indented source path', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final baseDirectory = p.join(directory.path, 'repo');
+      final sourcePath = p.join(baseDirectory, 'lib', 'a.dart');
+      final inputPath = p.join(directory.path, 'original.info');
+      final outputPath = p.join(directory.path, 'actual.info');
+      File(inputPath).writeAsStringSync('''
+  SF:$sourcePath
+DA:1,1
+end_of_record
+''');
+
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        inputPath,
+        '--${FilterCommand.outputOption}',
+        outputPath,
+        '--${FilterCommand.baseDirectoryOptionName}',
+        baseDirectory,
+      ]);
+
+      expect(
+        File(outputPath).readAsStringSync(),
+        startsWith('SF:${p.relative(sourcePath, from: baseDirectory)}\n'),
+      );
+      verify(() => logger.warn(any())).called(1);
+    });
   });
 }
 
