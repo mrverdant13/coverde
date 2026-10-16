@@ -1,6 +1,6 @@
-import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/html_report/html_coverage_report_generator.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:io/ansi.dart';
 import 'package:meta/meta.dart';
@@ -191,7 +191,8 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final covTree = traceFileData.asTree;
     // Generate report doc.
     try {
-      covTree.generateReport(
+      const HtmlCoverageReportGenerator().generate(
+        root: covTree,
         traceFileName: path.basename(traceFileAbsPath),
         traceFileModificationDate: traceFileModificationDate,
         parentReportDirAbsPath: reportDirAbsPath,
@@ -219,85 +220,6 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
               ),
           },
       }, stackTrace);
-    }
-
-    // Copy static files.
-    final cssRootPath = path.join(reportDirAbsPath, 'report_style.css');
-    final cssFile = File(cssRootPath);
-    try {
-      cssFile.createSync(recursive: true);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileCreateFailure.fromFileSystemException(
-          filePath: cssRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
-    }
-    try {
-      cssFile.writeAsBytesSync(reportStyleCssBytes);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileWriteFailure.fromFileSystemException(
-          filePath: cssRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
-    }
-
-    final sortAlphaIconRootPath = path.join(reportDirAbsPath, 'sort_alpha.png');
-    final sortAlphaFile = File(sortAlphaIconRootPath);
-    try {
-      sortAlphaFile.createSync(recursive: true);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileCreateFailure.fromFileSystemException(
-          filePath: sortAlphaIconRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
-    }
-    try {
-      sortAlphaFile.writeAsBytesSync(sortAlphaPngBytes);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileWriteFailure.fromFileSystemException(
-          filePath: sortAlphaIconRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
-    }
-
-    final sortNumericIconRootPath = path.join(
-      reportDirAbsPath,
-      'sort_numeric.png',
-    );
-    final sortNumericFile = File(sortNumericIconRootPath);
-    try {
-      sortNumericFile.createSync(recursive: true);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileCreateFailure.fromFileSystemException(
-          filePath: sortNumericIconRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
-    }
-    try {
-      sortNumericFile.writeAsBytesSync(sortNumericPngBytes);
-    } on FileSystemException catch (exception, stackTrace) {
-      Error.throwWithStackTrace(
-        CoverdeReportFileWriteFailure.fromFileSystemException(
-          filePath: sortNumericIconRootPath,
-          exception: exception,
-        ),
-        stackTrace,
-      );
     }
 
     final reportIndexAbsPath = path.joinAll([reportDirAbsPath, 'index.html']);
