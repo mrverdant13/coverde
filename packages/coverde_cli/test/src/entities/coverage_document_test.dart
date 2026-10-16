@@ -154,6 +154,108 @@ end_of_record
       },
     );
 
+    test('merges records that share a source path', () async {
+      const trace = '''
+TN:first
+SF:lib/a.dart
+DA:1,1,7
+DA:2,1
+DA:3,1,4
+FN:1,main
+FNDA:1,main
+BRDA:1,0,0,-
+BRDA:1,0,1,3
+BRDA:1,0,2,1
+end_of_record
+TN:second
+SF:lib/a.dart
+DA:1,1,7
+DA:2,0,9
+DA:3,1
+FN:1,main
+FNDA:2,main
+FN:4,other
+BRDA:1,0,0,2
+BRDA:1,0,1,-
+BRDA:1,0,2,4
+end_of_record
+SF:lib/add-functions.dart
+DA:1,1
+end_of_record
+SF:lib/add-functions.dart
+FN:1,main
+FNDA:1,main
+end_of_record
+SF:lib/keep-functions.dart
+FN:1,main
+FNDA:1,main
+DA:1,1
+end_of_record
+SF:lib/keep-functions.dart
+DA:2,0
+end_of_record
+SF:lib/add-branches.dart
+DA:1,1
+end_of_record
+SF:lib/add-branches.dart
+BRDA:1,0,0,1
+end_of_record
+SF:lib/keep-branches.dart
+BRDA:1,0,0,-
+DA:1,1
+end_of_record
+SF:lib/keep-branches.dart
+DA:2,1
+end_of_record
+''';
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-coverage-document-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final file = File('${directory.path}/merged.lcov')
+        ..writeAsStringSync(trace);
+
+      final document = CoverageDocument.parse(trace);
+      final streamed = await CoverageDocument.parseStreaming(file);
+
+      expect(streamed.files.map((parsed) => parsed.path), [
+        'lib/a.dart',
+        'lib/add-functions.dart',
+        'lib/keep-functions.dart',
+        'lib/add-branches.dart',
+        'lib/keep-branches.dart',
+      ]);
+      expect(streamed, document);
+
+      final merged = document.files.first;
+      expect(merged.raw, contains('TN:first'));
+      expect(merged.raw, contains('TN:second'));
+      expect(merged.lines, const [
+        CoverageLine(number: 1, hits: 2, checksum: 7),
+        CoverageLine(number: 2, hits: 1, checksum: 9),
+        CoverageLine(number: 3, hits: 2, checksum: 4),
+      ]);
+      expect(merged.linesFound, 3);
+      expect(merged.functions!.functions, const [
+        CoverageFunction(name: 'main', line: 1, hits: 3),
+        CoverageFunction(name: 'other', line: 4, hits: 0),
+      ]);
+      expect(merged.branches!.branches, const [
+        CoverageBranch(line: 1, block: 0, branch: 0, taken: 2),
+        CoverageBranch(line: 1, block: 0, branch: 1, taken: 3),
+        CoverageBranch(line: 1, block: 0, branch: 2, taken: 5),
+      ]);
+      expect(
+        document.files[1].functions!.functions.single,
+        const CoverageFunction(name: 'main', line: 1, hits: 1),
+      );
+      expect(document.files[2].functions!.functions.single.hits, 1);
+      expect(document.files[2].linesFound, 2);
+      expect(document.files[3].branches!.branches.single.taken, 1);
+      expect(document.files[4].branches!.branches.single.taken, isNull);
+      expect(document.files[4].linesFound, 2);
+    });
+
     test(
       'keeps a relative file and an absolute file in separate directories',
       () {
@@ -355,13 +457,22 @@ end_of_record
       const cases = <String, String>{
         '''
 SF:lib/a.dart
-DA:1,1
+DA:1,1,1
 end_of_record
 SF:lib/a.dart
-DA:1,1
+DA:1,1,2
 end_of_record
 ''':
-            'more than one record',
+            'checksums',
+        '''
+SF:lib/a.dart
+FN:1,main
+end_of_record
+SF:lib/a.dart
+FN:2,main
+end_of_record
+''':
+            'repeats function `main`',
         '''
 DA:1,1
 end_of_record
@@ -621,14 +732,6 @@ end_of_record
         );
       }
 
-      await expectFailure('duplicate.lcov', '''
-SF:lib/a.dart
-DA:1,1
-end_of_record
-SF:lib/a.dart
-DA:1,1
-end_of_record
-''', 'more than one record');
       await expectFailure('open.lcov', '''
 SF:lib/a.dart
 DA:1,1

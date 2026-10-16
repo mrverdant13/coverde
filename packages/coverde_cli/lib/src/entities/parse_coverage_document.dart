@@ -9,17 +9,10 @@ CoverageDocument _parseCoverageDocument(
   DateTime? traceModifiedAt,
 }) {
   final files = <CoverageFile>[];
-  final paths = <String>{};
   for (final record in _records(trace)) {
     final file = _parseRecord(record.lines, raw: record.raw);
     if (file == null) continue;
-    if (!paths.add(file.path)) {
-      throw CoverageTraceFormatFailure(
-        readableMessage:
-            'Trace file contains more than one record for `${file.path}`.',
-      );
-    }
-    files.add(file);
+    _addParsedFile(files, file);
   }
   return CoverageDocument(traceModifiedAt: traceModifiedAt, files: files);
 }
@@ -29,7 +22,6 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
   DateTime? traceModifiedAt,
 }) async {
   final files = <CoverageFile>[];
-  final paths = <String>{};
   final recordLines = <String>[];
   final rawLines = <String>[];
   final lines = file
@@ -53,7 +45,6 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
           }
           _addRecord(
             files: files,
-            paths: paths,
             lines: recordLines,
             raw: rawLines.join('\n'),
           );
@@ -101,19 +92,42 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
 
 void _addRecord({
   required List<CoverageFile> files,
-  required Set<String> paths,
   required List<String> lines,
   required String raw,
 }) {
   final file = _parseRecord(lines, raw: raw);
   if (file == null) return;
-  if (!paths.add(file.path)) {
-    throw CoverageTraceFormatFailure(
-      readableMessage:
-          'Trace file contains more than one record for `${file.path}`.',
-    );
+  _addParsedFile(files, file);
+}
+
+void _addParsedFile(List<CoverageFile> files, CoverageFile file) {
+  final index = files.indexWhere((existing) => existing.path == file.path);
+  if (index == -1) {
+    files.add(file);
+    return;
   }
-  files.add(file);
+  files[index] = _mergeCoverageFiles(files[index], file);
+}
+
+CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
+  return CoverageFile(
+    path: current.path,
+    raw: '${current.raw}\n${incoming.raw}',
+    lines: _mergeLines(
+      sourcePath: current.path,
+      current: current.lines,
+      incoming: incoming.lines,
+    ),
+    functions: _mergeFunctions(
+      sourcePath: current.path,
+      current: current.functions,
+      incoming: incoming.functions,
+    ),
+    branches: _mergeBranches(
+      current: current.branches,
+      incoming: incoming.branches,
+    ),
+  );
 }
 
 final class _TraceRecord {
@@ -482,4 +496,129 @@ String _normalizePath(String raw) {
   final normalized = raw.trim().replaceAll(r'\', '/');
   if (normalized.length <= 1) return normalized;
   return normalized.replaceFirst(RegExp(r'/+$'), '');
+}
+
+List<CoverageLine> _mergeLines({
+  required String sourcePath,
+  required List<CoverageLine> current,
+  required List<CoverageLine> incoming,
+}) {
+  final byNumber = <int, CoverageLine>{
+    for (final line in current) line.number: line,
+  };
+  for (final line in incoming) {
+    final existing = byNumber[line.number];
+    if (existing == null) {
+      byNumber[line.number] = line;
+      continue;
+    }
+    byNumber[line.number] = CoverageLine(
+      number: line.number,
+      hits: existing.hits + line.hits,
+      checksum: _mergedChecksum(
+        sourcePath: sourcePath,
+        lineNumber: line.number,
+        current: existing.checksum,
+        incoming: line.checksum,
+      ),
+    );
+  }
+  final lines =
+      byNumber.values.toList()
+        ..sort((left, right) => left.number.compareTo(right.number));
+  return lines;
+}
+
+int? _mergedChecksum({
+  required String sourcePath,
+  required int lineNumber,
+  required int? current,
+  required int? incoming,
+}) {
+  if (current == null) return incoming;
+  if (incoming == null || current == incoming) return current;
+  throw CoverageTraceFormatFailure(
+    readableMessage:
+        'Trace record for `$sourcePath` repeats line $lineNumber '
+        'with checksums `$current` and `$incoming`.',
+  );
+}
+
+CoverageFunctions? _mergeFunctions({
+  required String sourcePath,
+  required CoverageFunctions? current,
+  required CoverageFunctions? incoming,
+}) {
+  if (current == null) return incoming;
+  if (incoming == null) return current;
+  final byName = <String, CoverageFunction>{
+    for (final function in current.functions) function.name: function,
+  };
+  for (final function in incoming.functions) {
+    final existing = byName[function.name];
+    if (existing == null) {
+      byName[function.name] = function;
+      continue;
+    }
+    if (existing.line != null &&
+        function.line != null &&
+        existing.line != function.line) {
+      throw CoverageTraceFormatFailure(
+        readableMessage:
+            'Trace record for `$sourcePath` repeats function '
+            '`${function.name}` on lines ${existing.line} and ${function.line}.',
+      );
+    }
+    byName[function.name] = CoverageFunction(
+      name: function.name,
+      line: existing.line ?? function.line,
+      hits: existing.hits + function.hits,
+    );
+  }
+  final functions =
+      byName.values.toList()
+        ..sort((left, right) => left.name.compareTo(right.name));
+  return CoverageFunctions(
+    hit: functions.where((function) => function.hits > 0).length,
+    found: functions.length,
+    functions: functions,
+  );
+}
+
+CoverageBranches? _mergeBranches({
+  required CoverageBranches? current,
+  required CoverageBranches? incoming,
+}) {
+  if (current == null) return incoming;
+  if (incoming == null) return current;
+  final byKey = <(int, int, int), CoverageBranch>{
+    for (final branch in current.branches)
+      (branch.line, branch.block, branch.branch): branch,
+  };
+  for (final branch in incoming.branches) {
+    final key = (branch.line, branch.block, branch.branch);
+    final existing = byKey[key];
+    if (existing == null) {
+      byKey[key] = branch;
+      continue;
+    }
+    final taken = switch ((existing.taken, branch.taken)) {
+      (null, final int? incomingTaken) => incomingTaken,
+      (final int currentTaken, null) => currentTaken,
+      (final int currentTaken, final int incomingTaken) =>
+        currentTaken + incomingTaken,
+    };
+    byKey[key] = CoverageBranch(
+      line: branch.line,
+      block: branch.block,
+      branch: branch.branch,
+      taken: taken,
+    );
+  }
+  final branches = byKey.values.toList();
+  return CoverageBranches(
+    hit: branches.where((branch) => (branch.taken ?? 0) > 0).length,
+    found: branches.length,
+    branches: branches,
+  );
 }
