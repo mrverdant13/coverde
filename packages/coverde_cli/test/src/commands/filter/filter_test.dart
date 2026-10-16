@@ -2,13 +2,23 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:coverde/src/commands/commands.dart';
-import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/entities/update_check_mode.dart';
+import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:coverde/src/utils/utils.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
+
+extension on CoverageDocument {
+  bool includeFileThatMatchPatterns(List<String> patterns) {
+    final regexps = patterns.map(RegExp.new);
+    return regexps.any(
+      (regexp) => files.any((file) => regexp.hasMatch(file.path)),
+    );
+  }
+}
 
 final class _MockLogger extends Mock implements Logger {}
 
@@ -111,11 +121,13 @@ end_of_record
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalTraceFile = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
       final originalFileIncludeFileThatMatchPatterns = originalTraceFile
           .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final filesDataToBeRemoved = originalTraceFile.files.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -138,7 +150,7 @@ end_of_record
       final filteredFileContent = filteredFile.readAsStringSync();
       final expectedFilteredFileContent = acceptedSourceFileData;
       final filteredFileIncludeFileThatMatchPatterns =
-          (await TraceFile.parseStreaming(
+          (await CoverageDocument.parseStreaming(
             filteredFile,
           )).includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
@@ -158,7 +170,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
       directory.deleteSync(recursive: true);
@@ -213,11 +225,13 @@ end_of_record
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalTraceFile = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
       final originalFileIncludeFileThatMatchPatterns = originalTraceFile
           .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final filesDataToBeRemoved = originalTraceFile.files.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -240,7 +254,7 @@ end_of_record
       final filteredFileContent = filteredFile.readAsStringSync();
       final expectedFilteredFileContent = acceptedSourceFileData;
       final filteredFileIncludeFileThatMatchPatterns =
-          (await TraceFile.parseStreaming(
+          (await CoverageDocument.parseStreaming(
             filteredFile,
           )).includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
@@ -260,7 +274,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
       directory.deleteSync(recursive: true);
@@ -317,11 +331,13 @@ $ignoredSourceFileData
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalTraceFile = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
       final originalFileIncludeFileThatMatchPatterns = originalTraceFile
           .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final filesDataToBeRemoved = originalTraceFile.files.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -350,9 +366,11 @@ LF:1
 LH:1
 end_of_record
 '''.trim();
-      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-      final expectedTraceFile = TraceFile(
-        sourceFilesCovData: [CovFile.parse(expectedFilteredFileContent)],
+      final filteredTraceFile = CoverageDocument.parse(
+        filteredFile.readAsStringSync(),
+      );
+      final expectedTraceFile = CoverageDocument.parse(
+        expectedFilteredFileContent,
       );
       final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
           .includeFileThatMatchPatterns(patterns);
@@ -373,7 +391,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
     });
@@ -445,11 +463,13 @@ $absoluteSourceFileData
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
+      final originalTraceFile = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
       final originalFileIncludeFileThatMatchPatterns = originalTraceFile
           .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final filesDataToBeRemoved = originalTraceFile.files.where(
+        (d) => patternsRegex.any((r) => r.hasMatch(d.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -470,29 +490,21 @@ $absoluteSourceFileData
 
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
-      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-      final expectedTraceFile = TraceFile(
-        sourceFilesCovData: [
-          CovFile.parse(
-            '''
+      final filteredTraceFile = CoverageDocument.parse(
+        filteredFile.readAsStringSync(),
+      );
+      final expectedTraceFile = CoverageDocument.parse('''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim(),
-          ),
-          CovFile.parse(
-            '''
 SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim(),
-          ),
-        ],
-      );
+''');
       final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
           .includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
@@ -512,7 +524,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
     });

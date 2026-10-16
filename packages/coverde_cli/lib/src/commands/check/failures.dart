@@ -1,6 +1,5 @@
 import 'package:coverde/coverde.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
-import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.check_failure}
