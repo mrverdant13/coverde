@@ -743,8 +743,18 @@ end_of_record
       const unrecognized = CoverageUnrecognizedEntry('TN:suite');
       expect(source, const CoverageSourceEntry());
       expect(source.hashCode, const CoverageSourceEntry().hashCode);
-      expect(CoverageSourceEntry() == CoverageSourceEntry(), isTrue);
-      expect(CoverageSourceEntry() == preserved, isFalse);
+      expect(
+        // Distinct instances exercise the non-identical equality branch.
+        // ignore: prefer_const_constructors
+        CoverageSourceEntry() == CoverageSourceEntry(),
+        isTrue,
+      );
+      expect(
+        // Distinct instances exercise the non-identical equality branch.
+        // ignore: prefer_const_constructors
+        CoverageSourceEntry() == preserved,
+        isFalse,
+      );
       expect(preserved, const CoveragePreservedEntry('DA:1,1'));
       expect(
         preserved.hashCode,
