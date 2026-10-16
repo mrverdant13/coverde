@@ -19,41 +19,45 @@ CoverageDirectory _subtree(List<String> base, List<CoverageFile> files) {
     final fewest = parents
         .map((parent) => parent.length)
         .reduce((left, right) => left < right ? left : right);
-    while (index < fewest) {
-      final group = <String>{
-        for (final parent in parents)
-          if (parent.length > index) parent[index],
-      };
-      if (group.length != 1) break;
-      prefix.add(group.single);
+    while (index < fewest && _sameSegment(parents, index)) {
+      prefix.add(parents.first[index]);
       index++;
     }
   }
-  final nextSegments = <String>[];
-  final seenSegments = <String>{};
-  for (final parent in parents) {
-    if (parent.length <= index) continue;
+  final childFiles = <String, List<CoverageFile>>{};
+  final childOrder = <String>[];
+  final filesHere = <CoverageFile>[];
+  for (var fileIndex = 0; fileIndex < files.length; fileIndex++) {
+    final parent = parents[fileIndex];
+    if (parent.length == index) {
+      filesHere.add(files[fileIndex]);
+      continue;
+    }
     final segment = parent[index];
-    if (seenSegments.add(segment)) nextSegments.add(segment);
+    final children = childFiles[segment];
+    if (children == null) {
+      childFiles[segment] = [files[fileIndex]];
+      childOrder.add(segment);
+    } else {
+      children.add(files[fileIndex]);
+    }
   }
-  final basePath = _directoryPath(prefix);
   return CoverageDirectory(
-    path: basePath,
+    path: _directoryPath(prefix),
     directories: [
-      for (final segment in nextSegments)
-        _subtree(
-          [...prefix, segment],
-          [
-            for (final file in files)
-              if (_isWithin([...prefix, segment], file.path)) file,
-          ],
-        ),
+      for (final segment in childOrder)
+        _subtree([...prefix, segment], childFiles[segment]!),
     ],
-    files: [
-      for (final file in files)
-        if (_directoryPath(_parentSegments(file.path)) == basePath) file,
-    ],
+    files: filesHere,
   );
+}
+
+bool _sameSegment(List<List<String>> parents, int index) {
+  final segment = parents.first[index];
+  for (final parent in parents) {
+    if (parent[index] != segment) return false;
+  }
+  return true;
 }
 
 String _directoryPath(List<String> segments) {
@@ -65,13 +69,4 @@ List<String> _parentSegments(String filePath) {
   final parts = path.posix.split(filePath);
   if (parts.length <= 1) return const [];
   return parts.sublist(0, parts.length - 1);
-}
-
-bool _isWithin(List<String> base, String path) {
-  final parent = _parentSegments(path);
-  if (parent.length < base.length) return false;
-  for (var index = 0; index < base.length; index++) {
-    if (parent[index] != base[index]) return false;
-  }
-  return true;
 }

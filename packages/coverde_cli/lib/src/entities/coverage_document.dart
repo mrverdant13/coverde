@@ -24,8 +24,7 @@ final class CoverageDocument {
   CoverageDocument({
     required this.traceModifiedAt,
     required Iterable<CoverageFile> files,
-  }) : files = List<CoverageFile>.unmodifiable(files),
-       tree = buildCoverageTree(files);
+  }) : files = List<CoverageFile>.unmodifiable(files);
 
   /// Parses [trace] into a coverage document.
   ///
@@ -67,8 +66,8 @@ final class CoverageDocument {
   /// Directory tree for [files].
   ///
   /// The root [CoverageDirectory.path] is the shared parent prefix, or empty
-  /// when the files do not share one.
-  final CoverageDirectory tree;
+  /// when the files do not share one. Built on first use.
+  late final CoverageDirectory tree = buildCoverageTree(files);
 
   /// Instrumented lines across [files].
   int get linesFound => _sum(files.map((file) => file.linesFound));
