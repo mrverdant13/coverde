@@ -1,4 +1,4 @@
-// cspell:words nbsp
+// cspell:words nbsp,genhtml
 
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
