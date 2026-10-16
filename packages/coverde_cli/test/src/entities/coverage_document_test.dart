@@ -433,6 +433,13 @@ end_of_record
             'positive line number',
         '''
 SF:lib/a.dart
+FN:10,12,
+DA:1,1
+end_of_record
+''':
+            'Invalid `FN:`',
+        '''
+SF:lib/a.dart
 DA:1,-1
 end_of_record
 ''':
