@@ -156,7 +156,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
         final messages = [
           () {
-            final filePath = p.join('lib', 'source_01.dart');
+            const filePath = 'lib/source_01.dart';
             final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
             return '$filePath $fileOverview';
           }(),
@@ -198,7 +198,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
         final messages = [
           () {
-            final filePath = p.join('lib', 'source_01.dart');
+            const filePath = 'lib/source_01.dart';
             final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
             return '$filePath $fileOverview';
           }(),
@@ -264,7 +264,7 @@ Compute the coverage value of the LCOV_FILE info file.
 
         final messages = [
           () {
-            final filePath = p.join('lib', 'source_01.dart');
+            const filePath = 'lib/source_01.dart';
             final fileOverview = wrapWith('(56.25% - 9/16)', [lightRed]);
             return '$filePath $fileOverview';
           }(),
@@ -495,6 +495,40 @@ end_of_record
           );
         },
       );
+    });
+
+    test('prints n/a when a file has no line rate', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-value-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+      File(traceFilePath).writeAsStringSync('''
+SF:lib/full.dart
+DA:1,1
+end_of_record
+SF:lib/fn.dart
+FN:1,only
+end_of_record
+''');
+
+      await IOOverrides.runZoned(() async {
+        await cmdRunner.run([
+          'value',
+          '--${ValueCommand.inputOption}',
+          traceFilePath,
+          '--${ValueCommand.fileCoverageLogLevelFlag}',
+          FileCoverageLogLevel.overview.identifier,
+        ]);
+      }, getCurrentDirectory: () => directory);
+
+      verifyInOrder([
+        () => logger.info(
+          'lib/full.dart ${wrapWith('(100.00% - 1/1)', [lightGreen])}',
+        ),
+        () => logger.info('lib/fn.dart ${wrapWith('(n/a)', [lightRed])}'),
+        () => logger.info(''),
+        () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+        () => logger.info(wrapWith('100.00% - 1/1', [blue, styleBold])),
+      ]);
     });
   });
 }

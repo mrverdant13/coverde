@@ -1,5 +1,5 @@
 import 'package:coverde/src/commands/commands.dart';
-import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -146,9 +146,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final origin = File(originPath);
     final destination = File(destinationPath);
 
-    final TraceFile traceFile;
+    final CoverageDocument traceFile;
     try {
-      traceFile = await TraceFile.parseStreaming(origin);
+      traceFile = await CoverageDocument.parseStreaming(origin);
     } on FileSystemException catch (exception) {
       throw CoverdeFilterTraceFileReadFailure.fromFileSystemException(
         traceFilePath: originPath,
@@ -158,21 +158,20 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final acceptedSrcFilesRawData = <String>{};
 
     // For each file coverage data.
-    for (final fileCovData in traceFile.sourceFilesCovData) {
+    for (final fileCovData in traceFile.files) {
       // Check if file should be ignored according to matching patterns.
       final shouldBeIgnored = validatedPatterns.any(
-        (regexp) => regexp.hasMatch(fileCovData.source.path),
+        (regexp) => regexp.hasMatch(fileCovData.path),
       );
 
       // Conditionally include file coverage data.
       if (shouldBeIgnored) {
-        logger.detail('<${fileCovData.source.path}> coverage data ignored.');
+        logger.detail('<${fileCovData.path}> coverage data ignored.');
       } else {
         final raw = switch (baseDirectory) {
-          null => fileCovData.raw,
-          final String baseDirectory => fileCovData.raw.replaceFirst(
-            RegExp(r'^SF:(.*)$', multiLine: true),
-            'SF:${path.relative(fileCovData.source.path, from: baseDirectory)}',
+          null => fileCovData.renderTrace(),
+          final String baseDirectory => fileCovData.renderTrace(
+            path: path.relative(fileCovData.path, from: baseDirectory),
           ),
         };
         acceptedSrcFilesRawData.add(raw);

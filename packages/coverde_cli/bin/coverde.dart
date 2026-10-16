@@ -63,6 +63,7 @@ extension on CoverdeCheckFailure {
     CoverdeCheckConfigFileReadFailure() => ExitCode.ioError,
     CoverdeCheckInvalidConfigFileFailure() => ExitCode.data,
     CoverdeCheckCoverageBelowMinimumFailure() => ExitCode.data,
+    CoverdeCheckNoLineCoverageFailure() => ExitCode.data,
   };
 }
 
@@ -149,6 +150,7 @@ extension on CoverdeReportFailure {
     final CoverdeReportInvalidInputFailure failure => failure.exitCode,
     final CoverdeReportInvalidTraceFileFailure failure => failure.exitCode,
     final CoverdeReportFileOperationFailure failure => failure.exitCode,
+    CoverdeReportOutsideDirectoryFailure() => ExitCode.data,
   };
 }
 

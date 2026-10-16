@@ -95,6 +95,26 @@ final class GenerateHtmlCoverageReportFileReadFailure
        );
 }
 
+/// {@template coverde.html_report_outside_failure}
+/// The report destination for a coverage path would leave the output
+/// directory.
+/// {@endtemplate}
+final class GenerateHtmlCoverageReportOutsideDirectoryFailure
+    extends GenerateHtmlCoverageReportFailure {
+  /// {@macro coverde.html_report_outside_failure}
+  const GenerateHtmlCoverageReportOutsideDirectoryFailure({
+    required this.sourcePath,
+  });
+
+  /// The coverage path that could not be placed inside the report directory.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` would be written outside the report '
+      'directory.';
+}
+
 /// {@template coverde_cli.generate_html_coverage_report_file_write_failure}
 /// The interface for a failure that occurs when writing to a file during HTML
 /// coverage report generation.

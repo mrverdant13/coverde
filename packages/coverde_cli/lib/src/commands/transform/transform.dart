@@ -1,5 +1,5 @@
 import 'package:coverde/src/commands/commands.dart';
-import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:meta/meta.dart';
@@ -212,9 +212,9 @@ Presets can be defined in $_configFileName under the `transformations` key.
     final origin = File(originPath);
     final destination = File(destinationPath);
 
-    final TraceFile traceFile;
+    final CoverageDocument traceFile;
     try {
-      traceFile = await TraceFile.parseStreaming(origin);
+      traceFile = await CoverageDocument.parseStreaming(origin);
     } on FileSystemException catch (exception) {
       throw CoverdeTransformFileReadFailure.fromFileSystemException(
         filePath: originPath,
@@ -304,12 +304,14 @@ Presets can be defined in $_configFileName under the `transformations` key.
   }
 
   List<String> _applyTransformations(
-    TraceFile traceFile,
+    CoverageDocument traceFile,
     List<Transformation> steps,
   ) {
     var entries =
-        traceFile.sourceFilesCovData
-            .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
+        traceFile.files
+            .map(
+              (file) => (path: file.path, file: file, lineRate: file.lineRate),
+            )
             .toList();
 
     final flatSteps = steps.flattenedSteps;
@@ -331,27 +333,32 @@ Presets can be defined in $_configFileName under the `transformations` key.
                   .toList();
         case KeepByCoverageTransformation(:final comparison):
           entries =
-              entries.where((e) => comparison.matches(e.coverage)).toList();
+              entries
+                  .where(
+                    (entry) =>
+                        entry.lineRate != null &&
+                        comparison.matches(entry.lineRate!),
+                  )
+                  .toList();
         case SkipByCoverageTransformation(:final comparison):
           entries =
-              entries.where((e) => !comparison.matches(e.coverage)).toList();
+              entries
+                  .where(
+                    (entry) =>
+                        entry.lineRate == null ||
+                        !comparison.matches(entry.lineRate!),
+                  )
+                  .toList();
         case RelativeTransformation(basePath: final bp):
           entries =
               entries.map((e) {
                 final newPath = p.relative(e.path, from: bp);
-                final newRaw = e.raw.replaceFirst(
-                  RegExp(
-                    '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
-                    multiLine: true,
-                  ),
-                  '${CovFile.sourceFileTag}$newPath',
-                );
-                return (path: newPath, raw: newRaw, coverage: e.coverage);
+                return (path: newPath, file: e.file, lineRate: e.lineRate);
               }).toList();
       }
     }
 
-    return entries.map((e) => e.raw).toList();
+    return entries.map((e) => e.file.renderTrace(path: e.path)).toList();
   }
 
   /// Normalize path for glob matching (use posix separators).

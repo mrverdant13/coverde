@@ -1,8 +1,10 @@
 # Allowed words for Dart files
 ansi
+brda
 canonicalize
 csslib
 endtemplate
+fnda
 linkifies
 mocktail
 pana

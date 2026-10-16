@@ -422,6 +422,61 @@ end_of_record
         expect(outContent, isNot(contains('SF:$skippedPath')));
       });
 
+      test('--${TransformCommand.transformationsOption}=keep-by-coverage '
+          '| leaves a file with no line rate unmatched', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        const inputContent = '''
+SF:lib/lines.dart
+DA:1,1
+LF:1
+LH:1
+end_of_record
+SF:lib/functions.dart
+FN:4,only
+FNDA:1,only
+end_of_record
+''';
+        File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(inputContent);
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-coverage=gte|0',
+        ]);
+
+        final kept = File(outputPath).readAsStringSync();
+        expect(kept, contains('SF:lib/lines.dart'));
+        expect(kept, isNot(contains('FN:4,only')));
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.modeOption}',
+          'w',
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-coverage=lt|100',
+        ]);
+
+        final skipped = File(outputPath).readAsStringSync();
+        expect(skipped, contains('SF:lib/lines.dart'));
+        expect(skipped, contains('FN:4,only'));
+        expect(skipped, contains('FNDA:1,only'));
+      });
+
       test('--${TransformCommand.inputOption}=<file> '
           '--${TransformCommand.outputOption}=<file> '
           '--${TransformCommand.transformationsOption}=relative=<base-path> '
@@ -458,6 +513,51 @@ end_of_record
         expect(outContent, contains('lib'));
         expect(outContent, contains('foo.dart'));
         expect(outContent, isNot(contains(directory.path)));
+      });
+
+      test('--${TransformCommand.transformationsOption}=relative=<base-path> '
+          '| rewrites an indented source path', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final baseDirectory = p.join(directory.path, 'repo');
+        final sourcePath = p.join(baseDirectory, 'lib', 'a.dart');
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(inputPath).writeAsStringSync('''
+  SF:$sourcePath
+DA:1,1
+TN:first
+end_of_record
+  SF:$sourcePath
+DA:2,0
+TN:second
+end_of_record
+''');
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'relative=$baseDirectory',
+        ]);
+
+        final relativePath = p.relative(sourcePath, from: baseDirectory);
+        expect(
+          File(outputPath).readAsStringSync(),
+          'SF:$relativePath\n'
+          'DA:1,1\n'
+          'TN:first\n'
+          'end_of_record\n'
+          'SF:$relativePath\n'
+          'DA:2,0\n'
+          'TN:second\n'
+          'end_of_record',
+        );
       });
 
       test('--${TransformCommand.modeOption}=w '
@@ -1340,7 +1440,7 @@ transformations:
                     ),
               );
             }
-            // Path from SF: line in trace is used to build CovFile; not opened.
+            // Path from SF: line in trace is stored on the file; not opened.
             if (filePath.contains('foo.dart')) {
               return _TransformTestFile(path: filePath);
             }
