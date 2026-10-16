@@ -154,6 +154,32 @@ end_of_record
       },
     );
 
+    test(
+      'keeps a relative file and an absolute file in separate directories',
+      () {
+        const trace = '''
+SF:local.dart
+DA:1,1
+end_of_record
+SF:/external.dart
+DA:1,0
+end_of_record
+''';
+
+        final document = CoverageDocument.parse(trace);
+        final tree = document.tree;
+
+        expect(document.linesHit, 1);
+        expect(document.linesFound, 2);
+        expect(document.lineRate, 50);
+        expect(tree.path, isEmpty);
+        expect(tree.linesFound, 2);
+        expect(tree.files.single.path, 'local.dart');
+        expect(tree.directories.single.path, '/');
+        expect(tree.directories.single.files.single.path, '/external.dart');
+      },
+    );
+
     test('uses an empty root path when files do not share a parent', () {
       const trace = '''
 SF:lib/a.dart

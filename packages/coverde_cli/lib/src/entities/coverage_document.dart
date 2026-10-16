@@ -71,10 +71,10 @@ final class CoverageDocument {
   final CoverageDirectory tree;
 
   /// Instrumented lines across [files].
-  int get linesFound => tree.linesFound;
+  int get linesFound => _sum(files.map((file) => file.linesFound));
 
   /// Instrumented lines executed at least once.
-  int get linesHit => tree.linesHit;
+  int get linesHit => _sum(files.map((file) => file.linesHit));
 
   /// Line coverage from 0 to 100, or null when [linesFound] is 0.
   double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
@@ -82,12 +82,18 @@ final class CoverageDocument {
   /// Function coverage from 0 to 100.
   ///
   /// Null when the trace has no function records or no functions were found.
-  double? get functionRate => tree.functionRate;
+  double? get functionRate => optionalCoverageRate(
+    hit: _sumOptional(files.map((file) => file.functions?.hit)),
+    found: _sumOptional(files.map((file) => file.functions?.found)),
+  );
 
   /// Branch coverage from 0 to 100.
   ///
   /// Null when the trace has no branch records or no branches were found.
-  double? get branchRate => tree.branchRate;
+  double? get branchRate => optionalCoverageRate(
+    hit: _sumOptional(files.map((file) => file.branches?.hit)),
+    found: _sumOptional(files.map((file) => file.branches?.found)),
+  );
 
   static const _filesEquality = ListEquality<CoverageFile>();
 
@@ -101,4 +107,24 @@ final class CoverageDocument {
 
   @override
   int get hashCode => Object.hash(traceModifiedAt, _filesEquality.hash(files));
+}
+
+int _sum(Iterable<int> values) {
+  var total = 0;
+  for (final value in values) {
+    total += value;
+  }
+  return total;
+}
+
+int? _sumOptional(Iterable<int?> values) {
+  var sawValue = false;
+  var total = 0;
+  for (final value in values) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  if (!sawValue) return null;
+  return total;
 }

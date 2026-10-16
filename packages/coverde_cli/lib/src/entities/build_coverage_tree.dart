@@ -1,5 +1,6 @@
 import 'package:coverde/src/entities/coverage_directory.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:path/path.dart' as path;
 
 /// Builds a directory tree whose root path is the shared parent prefix.
 ///
@@ -35,7 +36,7 @@ CoverageDirectory _subtree(List<String> base, List<CoverageFile> files) {
     final segment = parent[index];
     if (seenSegments.add(segment)) nextSegments.add(segment);
   }
-  final basePath = prefix.join('/');
+  final basePath = _directoryPath(prefix);
   return CoverageDirectory(
     path: basePath,
     directories: [
@@ -50,13 +51,18 @@ CoverageDirectory _subtree(List<String> base, List<CoverageFile> files) {
     ],
     files: [
       for (final file in files)
-        if (_parentSegments(file.path).join('/') == basePath) file,
+        if (_directoryPath(_parentSegments(file.path)) == basePath) file,
     ],
   );
 }
 
-List<String> _parentSegments(String path) {
-  final parts = path.split('/');
+String _directoryPath(List<String> segments) {
+  if (segments.isEmpty) return '';
+  return path.posix.joinAll(segments);
+}
+
+List<String> _parentSegments(String filePath) {
+  final parts = path.posix.split(filePath);
   if (parts.length <= 1) return const [];
   return parts.sublist(0, parts.length - 1);
 }
