@@ -565,26 +565,18 @@ end_of_record
         );
       }
 
-      await expectFailure(
-        'duplicate.lcov',
-        '''
+      await expectFailure('duplicate.lcov', '''
 SF:lib/a.dart
 DA:1,1
 end_of_record
 SF:lib/a.dart
 DA:1,1
 end_of_record
-''',
-        'more than one record',
-      );
-      await expectFailure(
-        'open.lcov',
-        '''
+''', 'more than one record');
+      await expectFailure('open.lcov', '''
 SF:lib/a.dart
 DA:1,1
-''',
-        'end_of_record',
-      );
+''', 'end_of_record');
       await expectFailure('empty.lcov', 'end_of_record\n', 'empty record');
     });
   });
