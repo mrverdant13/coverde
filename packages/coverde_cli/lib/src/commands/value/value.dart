@@ -1,6 +1,8 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/reporting/models/coverage_document.dart';
+import 'package:coverde/src/features/reporting/models/coverage_file.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
@@ -86,9 +88,9 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     final file = File(filePath);
 
-    final TraceFile traceFile;
+    final CoverageDocument traceFile;
     try {
-      traceFile = await TraceFile.parseStreaming(file);
+      traceFile = await CoverageDocument.parseStreaming(file);
     } on FileSystemException catch (exception) {
       throw CoverdeValueTraceFileReadFailure.fromFileSystemException(
         traceFilePath: filePath,
@@ -110,19 +112,19 @@ Compute the coverage value of the $_inputHelpValue info file.''';
   /// Log coverage values.
   static void logCoverage({
     required Logger logger,
-    required TraceFile traceFile,
+    required CoverageDocument traceFile,
     required FileCoverageLogLevel fileCoverageLogLevel,
   }) {
     switch (fileCoverageLogLevel) {
       case FileCoverageLogLevel.none:
         break;
       case FileCoverageLogLevel.overview:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
+        for (final fileCovData in traceFile.files) {
+          logger.info(_fileCoverageDataString(fileCovData));
         }
       case FileCoverageLogLevel.lineNumbers:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
+        for (final fileCovData in traceFile.files) {
+          logger.info(_fileCoverageDataString(fileCovData));
           final uncoveredLineNumbers = fileCovData.uncoveredLineNumbers;
           if (uncoveredLineNumbers.isNotEmpty) {
             final message = 'UNCOVERED: ${uncoveredLineNumbers.join(', ')}';
@@ -130,10 +132,10 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           }
         }
       case FileCoverageLogLevel.lineContent:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
+        for (final fileCovData in traceFile.files) {
+          logger.info(_fileCoverageDataString(fileCovData));
           final sourceLines = () {
-            final file = fileCovData.source.absolute;
+            final file = File(fileCovData.path).absolute;
             try {
               return file.readAsLinesSync();
             } on FileSystemException catch (exception, stackTrace) {
@@ -184,15 +186,41 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     // Show resulting coverage.
     logger
       ..info(wrapWith('GLOBAL:', [blue, styleBold]))
-      ..info(wrapWith(traceFile.coverageDataString, [blue, styleBold]));
+      ..info(wrapWith(_documentCoverageSummary(traceFile), [blue, styleBold]));
   }
 }
 
-extension on CovFile {
+String _fileCoverageDataString(CoverageFile file) {
+  final summary = _rateSummary(
+    rate: file.lineRate,
+    hit: file.linesHit,
+    found: file.linesFound,
+  );
+  final color =
+      file.lineRate != null && file.lineRate! >= 100 ? lightGreen : lightRed;
+  return '${file.path} ${color.wrap('($summary)')}';
+}
+
+String _documentCoverageSummary(CoverageDocument document) {
+  return _rateSummary(
+    rate: document.lineRate,
+    hit: document.linesHit,
+    found: document.linesFound,
+  );
+}
+
+String _rateSummary({
+  required double? rate,
+  required int hit,
+  required int found,
+}) {
+  if (rate == null) return 'n/a';
+  return '${rate.toStringAsFixed(2)}% - $hit/$found';
+}
+
+extension on CoverageFile {
   Iterable<int> get uncoveredLineNumbers {
-    return covLines
-        .where((line) => !line.hasBeenHit)
-        .map((line) => line.lineNumber);
+    return lines.where((line) => line.hits == 0).map((line) => line.number);
   }
 
   Iterable<Iterable<FileLineCoverageDetails>> getUncoveredLineRanges({
@@ -201,9 +229,9 @@ extension on CovFile {
     const maxGap = 5;
     const surroundingLines = 2;
     final sourceLinesCount = sourceLines.length;
-    final ranges = covLines
-        .where((line) => !line.hasBeenHit)
-        .map((line) => line.lineNumber)
+    final ranges = lines
+        .where((line) => line.hits == 0)
+        .map((line) => line.number)
         .splitBetween((a, b) => b - a > maxGap)
         .map(
           (group) => (
@@ -219,13 +247,13 @@ extension on CovFile {
             lineNumber++
           ) {
             final content = sourceLines.elementAt(lineNumber - 1);
-            final covLine = covLines.singleWhereOrNull(
-              (line) => line.lineNumber == lineNumber,
+            final covLine = lines.singleWhereOrNull(
+              (line) => line.number == lineNumber,
             );
-            final status = switch (covLine?.hasBeenHit) {
+            final status = switch (covLine?.hits) {
               null => FileLineCoverageStatus.neutral,
-              true => FileLineCoverageStatus.covered,
-              false => FileLineCoverageStatus.uncovered,
+              0 => FileLineCoverageStatus.uncovered,
+              _ => FileLineCoverageStatus.covered,
             };
             rangeLines.add(
               FileLineCoverageDetails(

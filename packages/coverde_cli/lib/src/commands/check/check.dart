@@ -1,6 +1,7 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
+import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -100,9 +101,9 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
     }
     final file = File(filePath);
 
-    final TraceFile traceFile;
+    final CoverageDocument traceFile;
     try {
-      traceFile = await TraceFile.parseStreaming(file);
+      traceFile = await CoverageDocument.parseStreaming(file);
     } on FileSystemException catch (exception) {
       throw CoverdeCheckTraceFileReadFailure.fromFileSystemException(
         traceFilePath: filePath,
@@ -120,7 +121,11 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       fileCoverageLogLevel: fileCoverageLogLevel,
     );
 
-    if (traceFile.coverage < coverageThreshold) {
+    final lineRate = traceFile.lineRate;
+    if (lineRate == null) {
+      throw CoverdeCheckNoLineCoverageFailure(traceFilePath: filePath);
+    }
+    if (lineRate < coverageThreshold) {
       throw CoverdeCheckCoverageBelowMinimumFailure(
         minimumCoverage: coverageThreshold,
         traceFile: traceFile,

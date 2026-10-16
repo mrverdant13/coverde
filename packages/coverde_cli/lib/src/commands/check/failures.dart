@@ -1,5 +1,6 @@
 import 'package:coverde/coverde.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
+import 'package:coverde/src/features/reporting/models/coverage_document.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template coverde_cli.check_failure}
@@ -285,15 +286,30 @@ final class CoverdeCheckCoverageBelowMinimumFailure
   final double minimumCoverage;
 
   /// The actual coverage value.
-  double get actualCoverage => traceFile.coverage;
+  double get actualCoverage => traceFile.lineRate!;
 
   /// The trace file.
-  final TraceFile traceFile;
+  final CoverageDocument traceFile;
 
   @override
   String get readableMessage => '''
 The minimum coverage value has not been reached.
 Expected min coverage: ${minimumCoverage.toStringAsFixed(2)} %.
-Actual coverage: ${traceFile.coverageString} %.
+Actual coverage: ${traceFile.lineRate!.toStringAsFixed(2)} %.
 ''';
+}
+
+/// {@template coverde_cli.check_no_line_coverage_failure}
+/// A [CheckCommand] failure that indicates that the trace has no line coverage.
+/// {@endtemplate}
+final class CoverdeCheckNoLineCoverageFailure extends CoverdeCheckFailure {
+  /// {@macro coverde_cli.check_no_line_coverage_failure}
+  const CoverdeCheckNoLineCoverageFailure({required this.traceFilePath});
+
+  /// The trace file that has no line coverage.
+  final String traceFilePath;
+
+  @override
+  String get readableMessage =>
+      'Trace file at `$traceFilePath` has no line coverage to check.';
 }
