@@ -6,13 +6,18 @@ import 'package:test/test.dart';
 
 void main() {
   group('$CoverageSourceEntry', () {
-    test('equates every source entry', () {
-      final subject = CoverageSourceEntry();
-      final same = CoverageSourceEntry();
+    test('stores the original source path', () {
+      expect(CoverageSourceEntry(r'lib\app.dart').path, r'lib\app.dart');
+    });
+
+    test('equates source entries with the same path', () {
+      final subject = CoverageSourceEntry(r'lib\app.dart');
+      final same = CoverageSourceEntry(r'lib\app.dart');
 
       expect(subject == subject, isTrue);
       expect(subject, same);
       expect(subject.hashCode, same.hashCode);
+      expect(subject, isNot(CoverageSourceEntry('lib/app.dart')));
       expect(subject, isA<CoverageTraceEntry>());
       expect(subject == CoveragePreservedEntry('DA:1,1'), isFalse);
     });

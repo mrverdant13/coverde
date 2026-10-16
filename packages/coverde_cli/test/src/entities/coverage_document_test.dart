@@ -646,7 +646,7 @@ end_of_record
       expect(document.files.last.branches!.branches.single.taken, isNull);
     });
 
-    test('renders a Windows source path with slashes', () async {
+    test('keeps the separator from a Windows source path', () async {
       final directory = Directory.systemTemp.createTempSync(
         'coverde-coverage-document-',
       );
@@ -675,7 +675,7 @@ end_of_record
       expect(streamed, parsed);
       expect(
         streamed.files.single.renderTrace(),
-        'SF:lib/a.dart\nFN:10,main\nFNDA:1,main\nDA:10,1\nend_of_record',
+        'SF:lib\\a.dart\nFN:10,main\nFNDA:1,main\nDA:10,1\nend_of_record',
       );
       expect(streamed.files.single.path, 'lib/a.dart');
     });

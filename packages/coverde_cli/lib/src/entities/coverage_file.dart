@@ -73,14 +73,16 @@ final class CoverageFile {
 
   /// Writes [entries] as LCOV text.
   ///
-  /// Each [CoverageSourceEntry] uses [path] when it is given, and this file's
-  /// path otherwise.
+  /// Each [CoverageSourceEntry] keeps the separator from its own path. [path]
+  /// replaces every source path, and a source entry without one uses this
+  /// file's path.
   String renderTrace({String? path}) {
-    final sourcePath = path ?? this.path;
+    final replacement = path;
     return [
       for (final entry in entries)
         switch (entry) {
-          CoverageSourceEntry() => 'SF:$sourcePath',
+          CoverageSourceEntry(:final path) =>
+            'SF:${replacement ?? path ?? this.path}',
           CoveragePreservedEntry(:final text) => text,
           CoverageUnrecognizedEntry(:final text) => text,
         },

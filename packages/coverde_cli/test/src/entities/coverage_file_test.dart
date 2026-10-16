@@ -123,6 +123,29 @@ void main() {
       );
     });
 
+    test('keeps the separator from the original source path', () {
+      final file = sample(
+        entries: [
+          CoverageSourceEntry(r'lib\app.dart'),
+          CoveragePreservedEntry('DA:1,1'),
+          CoveragePreservedEntry('end_of_record'),
+        ],
+      );
+
+      expect(
+        file.renderTrace(),
+        'SF:lib\\app.dart\n'
+        'DA:1,1\n'
+        'end_of_record',
+      );
+      expect(
+        file.renderTrace(path: r'src\app.dart'),
+        'SF:src\\app.dart\n'
+        'DA:1,1\n'
+        'end_of_record',
+      );
+    });
+
     test('equates files by measurements and unrecognized lines', () {
       final lines = [CoverageLine(number: 1, hits: 1)];
       final functions = CoverageFunctions(

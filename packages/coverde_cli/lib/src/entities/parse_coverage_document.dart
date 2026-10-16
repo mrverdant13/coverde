@@ -613,7 +613,9 @@ CoverageBranches? _mergeBranches({
 }
 
 CoverageTraceEntry _traceEntry(String line) {
-  if (line.startsWith('SF:')) return const CoverageSourceEntry();
+  if (line.startsWith('SF:')) {
+    return CoverageSourceEntry(line.substring('SF:'.length));
+  }
   if (line.startsWith('DA:') ||
       line.startsWith('FNDA:') ||
       line.startsWith('FN:') ||

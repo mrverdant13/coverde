@@ -271,13 +271,16 @@ void main() {
     test('throws when the source file cannot be read', () {
       final directory = Directory.systemTemp.createTempSync('coverde-html-');
       addTearDown(() => directory.deleteSync(recursive: true));
+      final previous = Directory.current;
+      Directory.current = directory;
+      addTearDown(() => Directory.current = previous);
       final reportDir = Directory(p.join(directory.path, 'html'));
       final root = CoverageDirectory(
         path: '',
         directories: const [],
         files: [
           sourceFile(
-            path: p.join(directory.path, 'missing.dart'),
+            path: 'missing.dart',
             lines: const [CoverageLine(number: 1, hits: 0)],
           ),
         ],

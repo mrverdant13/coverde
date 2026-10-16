@@ -8,19 +8,23 @@ sealed class CoverageTraceEntry {
 
 /// The `SF:` line of a record.
 ///
-/// Rendering uses the coverage file path.
+/// [path] is the path text from the trace, including its separator.
+/// Rendering uses that text unless a replacement path is given.
 final class CoverageSourceEntry extends CoverageTraceEntry {
   /// Creates the source-path entry.
-  const CoverageSourceEntry();
+  const CoverageSourceEntry([this.path]);
+
+  /// The original `SF:` path, or null when rendering should use the file path.
+  final String? path;
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CoverageSourceEntry;
+    return other is CoverageSourceEntry && other.path == path;
   }
 
   @override
-  int get hashCode => runtimeType.hashCode;
+  int get hashCode => Object.hash(runtimeType, path);
 }
 
 /// A trimmed line the parser already understands.
