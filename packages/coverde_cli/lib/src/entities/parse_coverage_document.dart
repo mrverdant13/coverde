@@ -566,7 +566,8 @@ CoverageFunctions? _mergeFunctions({
       throw CoverageTraceFormatFailure(
         readableMessage:
             'Trace record for `$sourcePath` repeats function '
-            '`${function.name}` on lines ${existing.line} and ${function.line}.',
+            '`${function.name}` on lines ${existing.line} '
+            'and ${function.line}.',
       );
     }
     byName[function.name] = CoverageFunction(
