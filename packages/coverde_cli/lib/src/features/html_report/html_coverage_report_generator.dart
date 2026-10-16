@@ -39,6 +39,7 @@ class HtmlCoverageReportGenerator {
     required double medium,
     required double high,
   }) {
+    final absoluteNamespace = _absoluteReportNamespace(root);
     _generateDirectory(
       directory: root,
       traceFileName: traceFileName,
@@ -46,6 +47,7 @@ class HtmlCoverageReportGenerator {
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: '',
       reportRelDepth: 0,
+      absoluteNamespace: absoluteNamespace,
       traceFileModificationDate: traceFileModificationDate,
       medium: medium,
       high: high,
@@ -71,6 +73,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required String absoluteNamespace,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -122,7 +125,11 @@ class HtmlCoverageReportGenerator {
 
     final table = folderReport.querySelector('.covTableBody');
     for (final child in directory.directories) {
-      final relPath = _relative(child.path, from: directory.path);
+      final relPath = _relative(
+        child.path,
+        from: directory.path,
+        absoluteNamespace: absoluteNamespace,
+      );
       table?.append(
         _folderReportRow(
           relativePath: relPath,
@@ -141,13 +148,18 @@ class HtmlCoverageReportGenerator {
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
         reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
+        absoluteNamespace: absoluteNamespace,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
       );
     }
     for (final file in directory.files) {
-      final relPath = _relative(file.path, from: directory.path);
+      final relPath = _relative(
+        file.path,
+        from: directory.path,
+        absoluteNamespace: absoluteNamespace,
+      );
       table?.append(
         _folderReportRow(
           relativePath: relPath,
@@ -323,12 +335,42 @@ class HtmlCoverageReportGenerator {
     return '${lineRate.toStringAsFixed(2)}&nbsp;%';
   }
 
-  String _relative(String target, {required String from}) {
+  String _relative(
+    String target, {
+    required String from,
+    required String absoluteNamespace,
+  }) {
     if (from.isEmpty && path.posix.isAbsolute(target)) {
-      return path.posix.relative(target, from: '/');
+      final stripped = path.posix.relative(target, from: '/');
+      if (stripped == '.') return absoluteNamespace;
+      return path.posix.join(absoluteNamespace, stripped);
     }
     if (from.isEmpty) return target;
     return path.posix.relative(target, from: from);
+  }
+
+  String _absoluteReportNamespace(CoverageDirectory root) {
+    final used = <String>{};
+    void visit(CoverageDirectory directory) {
+      if (directory.path.isNotEmpty && !path.posix.isAbsolute(directory.path)) {
+        used.add(path.posix.split(directory.path).first);
+      }
+      for (final file in directory.files) {
+        if (path.posix.isAbsolute(file.path)) continue;
+        final parts = path.posix.split(file.path);
+        if (parts.isNotEmpty) used.add(parts.first);
+      }
+      directory.directories.forEach(visit);
+    }
+
+    visit(root);
+    var name = 'absolute';
+    var suffix = 2;
+    while (used.contains(name)) {
+      name = 'absolute-$suffix';
+      suffix++;
+    }
+    return name;
   }
 
   String _absoluteInsideReport({
