@@ -150,6 +150,7 @@ extension on CoverdeReportFailure {
     final CoverdeReportInvalidInputFailure failure => failure.exitCode,
     final CoverdeReportInvalidTraceFileFailure failure => failure.exitCode,
     final CoverdeReportFileOperationFailure failure => failure.exitCode,
+    CoverdeReportOutsideDirectoryFailure() => ExitCode.data,
   };
 }
 

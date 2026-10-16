@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:collection/collection.dart';
@@ -1827,6 +1828,96 @@ end_of_record
         isTrue,
       );
       verify(() => logger.info(any())).called(2);
+    });
+
+    test('writes absolute sources inside the report directory', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-report-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:/src/a.dart
+DA:1,1
+end_of_record
+SF:/tests/b.dart
+DA:1,0
+end_of_record
+''');
+      final reportDir = Directory(p.join(directory.path, 'html'));
+      final outerZone = Zone.current;
+
+      await IOOverrides.runZoned(
+        () async {
+          await cmdRunner.run([
+            'report',
+            '--${ReportCommand.inputOption}',
+            traceFile.path,
+            '--${ReportCommand.outputOption}',
+            reportDir.path,
+          ]);
+        },
+        createFile: (filePath) {
+          if (filePath == '/src/a.dart' || filePath == '/tests/b.dart') {
+            return _ReportTestFile(
+              path: filePath,
+              readAsLinesSync: (encoding) => ['void main() {}'],
+            );
+          }
+          return outerZone.run(() => File(filePath));
+        },
+      );
+
+      final index =
+          File(p.join(reportDir.path, 'index.html')).readAsStringSync();
+      expect(index, contains('href="src/index.html"'));
+      expect(index, contains('href="tests/index.html"'));
+      expect(
+        File(p.join(reportDir.path, 'src', 'a.dart.html')).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(p.join(reportDir.path, 'tests', 'b.dart.html')).existsSync(),
+        isTrue,
+      );
+      verify(() => logger.info(any())).called(2);
+    });
+
+    test('rejects a source path that leaves the report directory', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-report-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:../shared/b.dart
+DA:1,0
+end_of_record
+''');
+      File(p.join(directory.path, 'lib', 'a.dart'))
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void a() {}');
+      final reportDir = Directory(p.join(directory.path, 'html'));
+      final previousDirectory = Directory.current;
+      Directory.current = directory;
+      addTearDown(() => Directory.current = previousDirectory);
+
+      await expectLater(
+        cmdRunner.run([
+          'report',
+          '--${ReportCommand.inputOption}',
+          traceFile.path,
+          '--${ReportCommand.outputOption}',
+          reportDir.path,
+        ]),
+        throwsA(
+          isA<CoverdeReportOutsideDirectoryFailure>().having(
+            (failure) => failure.sourcePath,
+            'sourcePath',
+            '../shared',
+          ),
+        ),
+      );
+      expect(Directory(p.join(directory.path, 'shared')).existsSync(), isFalse);
     });
   });
 

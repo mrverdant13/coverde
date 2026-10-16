@@ -42,6 +42,7 @@ class HtmlCoverageReportGenerator {
     _generateDirectory(
       directory: root,
       traceFileName: traceFileName,
+      reportRootAbsPath: parentReportDirAbsPath,
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: '',
       reportRelDepth: 0,
@@ -66,6 +67,7 @@ class HtmlCoverageReportGenerator {
   void _generateDirectory({
     required CoverageDirectory directory,
     required String traceFileName,
+    required String reportRootAbsPath,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
@@ -85,9 +87,10 @@ class HtmlCoverageReportGenerator {
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
-    final reportDirAbsPath = path.join(
-      parentReportDirAbsPath,
-      reportDirRelPath,
+    final reportDirAbsPath = _absoluteInsideReport(
+      reportRootAbsPath: reportRootAbsPath,
+      parentAbsPath: parentReportDirAbsPath,
+      relativePath: reportDirRelPath,
     );
     final reportFileAbsPath = path.join(reportDirAbsPath, 'index.html');
     final title = 'Coverage Report - $traceFileName';
@@ -134,6 +137,7 @@ class HtmlCoverageReportGenerator {
       _generateDirectory(
         directory: child,
         traceFileName: traceFileName,
+        reportRootAbsPath: reportRootAbsPath,
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
         reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
@@ -158,6 +162,7 @@ class HtmlCoverageReportGenerator {
       _generateFile(
         file: file,
         traceFileName: traceFileName,
+        reportRootAbsPath: reportRootAbsPath,
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
         reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
@@ -173,6 +178,7 @@ class HtmlCoverageReportGenerator {
   void _generateFile({
     required CoverageFile file,
     required String traceFileName,
+    required String reportRootAbsPath,
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
@@ -193,9 +199,10 @@ class HtmlCoverageReportGenerator {
       topLevelDirRelPath,
       reportStyleCssFilename,
     );
-    final reportFileAbsPath = path.join(
-      parentReportDirAbsPath,
-      '$reportDirRelPath.html',
+    final reportFileAbsPath = _absoluteInsideReport(
+      reportRootAbsPath: reportRootAbsPath,
+      parentAbsPath: parentReportDirAbsPath,
+      relativePath: '$reportDirRelPath.html',
     );
     final title = 'Coverage Report - $traceFileName';
     final currentDirPath = path.posix.dirname(file.path);
@@ -317,8 +324,34 @@ class HtmlCoverageReportGenerator {
   }
 
   String _relative(String target, {required String from}) {
+    if (from.isEmpty && path.posix.isAbsolute(target)) {
+      return path.posix.relative(target, from: '/');
+    }
     if (from.isEmpty) return target;
     return path.posix.relative(target, from: from);
+  }
+
+  String _absoluteInsideReport({
+    required String reportRootAbsPath,
+    required String parentAbsPath,
+    required String relativePath,
+  }) {
+    final destination = path.normalize(path.join(parentAbsPath, relativePath));
+    final root = path.normalize(reportRootAbsPath);
+    final parts =
+        relativePath.isEmpty
+            ? const <String>[]
+            : path.posix.split(relativePath);
+    final escapes =
+        path.posix.isAbsolute(relativePath) ||
+        parts.any((part) => part.isEmpty || part == '.' || part == '..') ||
+        (!path.equals(destination, root) && !path.isWithin(root, destination));
+    if (escapes) {
+      throw GenerateHtmlCoverageReportOutsideDirectoryFailure(
+        sourcePath: relativePath,
+      );
+    }
+    return destination;
   }
 
   void _copyAsset({required String filePath, required List<int> bytes}) {
