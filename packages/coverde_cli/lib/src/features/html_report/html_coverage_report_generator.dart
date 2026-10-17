@@ -401,17 +401,23 @@ final class _ReportLayout {
   final String reportRootAbsPath;
   String absoluteNamespace = 'absolute';
   final Map<String, String> driveNamespaces = <String, String>{};
+  final Map<String, String> driveRelativeNamespaces = <String, String>{};
 
   static final _driveLetter = RegExp('^([A-Za-z]):');
 
   void collect(CovDir root) {
     final used = <String>{};
-    final drives = <String>{};
+    final rootedDrives = <String>{};
+    final relativeDrives = <String>{};
     void visit(CovElement element) {
       final normalized = normalizePosixPath(element.source.path);
       final drive = _letter(normalized);
       if (drive != null) {
-        drives.add(drive);
+        if (_isDriveRelative(normalized)) {
+          relativeDrives.add(drive);
+        } else {
+          rootedDrives.add(drive);
+        }
       } else if (!path.posix.isAbsolute(normalized)) {
         final parts = path.posix.split(normalized);
         if (parts.isNotEmpty && parts.first != '.' && parts.first != '..') {
@@ -426,9 +432,14 @@ final class _ReportLayout {
     visit(root);
     absoluteNamespace = _freeName(used, 'absolute');
     used.add(absoluteNamespace);
-    for (final drive in drives) {
+    for (final drive in rootedDrives) {
       final namespace = _freeName(used, 'drive-$drive');
       driveNamespaces[drive] = namespace;
+      used.add(namespace);
+    }
+    for (final drive in relativeDrives) {
+      final namespace = _freeName(used, 'drive-$drive-relative');
+      driveRelativeNamespaces[drive] = namespace;
       used.add(namespace);
     }
   }
@@ -444,7 +455,11 @@ final class _ReportLayout {
       }
       final drive = _letter(to);
       if (drive != null) {
-        final namespace = driveNamespaces[drive] ?? 'drive-$drive';
+        final relativeDrive = _isDriveRelative(to);
+        final namespace =
+            relativeDrive
+                ? (driveRelativeNamespaces[drive] ?? 'drive-$drive-relative')
+                : (driveNamespaces[drive] ?? 'drive-$drive');
         final rest = to
             .substring(drive.length + 1)
             .replaceFirst(RegExp('^/+'), '');
@@ -478,6 +493,16 @@ final class _ReportLayout {
 
   static String? _letter(String posixPath) {
     return _driveLetter.firstMatch(posixPath)?.group(1)?.toLowerCase();
+  }
+
+  /// `C:a.dart` is relative to the current directory on that drive.
+  /// `C:` and `C:/a.dart` are the drive root. POSIX normalization removes the
+  /// slash from `C:/`, so an empty remainder stays on the drive root.
+  static bool _isDriveRelative(String posixPath) {
+    final drive = _letter(posixPath);
+    if (drive == null) return false;
+    final rest = posixPath.substring(drive.length + 1);
+    return rest.isNotEmpty && !rest.startsWith('/');
   }
 
   static String _freeName(Set<String> used, String base) {

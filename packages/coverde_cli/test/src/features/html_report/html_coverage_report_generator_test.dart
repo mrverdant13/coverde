@@ -105,6 +105,27 @@ void main() {
       expect(File(p.join(reportDir.path, 'drive-c')).existsSync(), isFalse);
     });
 
+    test('keeps a drive-relative path beside the drive root', () {
+      _generate(
+        reportDir: reportDir,
+        sources: const {
+          'C:/a.dart': 'void rooted() {}',
+          'C:a.dart': 'void relative() {}',
+        },
+      );
+
+      expect(
+        File(p.join(reportDir.path, 'drive-c', 'a.dart.html')).existsSync(),
+        isTrue,
+      );
+      expect(
+        File(
+          p.join(reportDir.path, 'drive-c-relative', 'a.dart.html'),
+        ).existsSync(),
+        isTrue,
+      );
+    });
+
     test('places each drive letter in its own folder', () {
       _generate(
         reportDir: reportDir,
