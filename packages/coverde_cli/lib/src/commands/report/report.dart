@@ -219,6 +219,8 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
                 errorMessage: failure.errorMessage,
               ),
           },
+        GenerateHtmlCoverageReportOutsideDirectoryFailure(:final sourcePath) =>
+          CoverdeReportOutsideDirectoryFailure(sourcePath: sourcePath),
       }, stackTrace);
     }
 

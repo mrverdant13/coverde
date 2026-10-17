@@ -83,11 +83,19 @@ class CovDir extends CovElement {
       nextSegments = nextSegmentsGroup();
     }
 
-    // Build actual base path.
-    final actualBasePath = commonSegments.reduce(path.join);
+    // Build actual base path. An empty prefix means the files share no parent.
+    final actualBasePath =
+        commonSegments.isEmpty ? '' : commonSegments.reduce(path.join);
+
+    // A parent of `.` compares equal to the empty root, so its files are
+    // already attached here. Building that child again counts them twice.
+    final childSegments =
+        actualBasePath.isEmpty
+            ? nextSegments.where((segment) => segment != '.')
+            : nextSegments;
 
     // Build nested folders data from next segments.
-    final allDirs = nextSegments.map(
+    final allDirs = childSegments.map(
       (nextSegment) => CovDir.subtree(
         baseDirPath: path.join(actualBasePath, nextSegment),
         coveredFiles: covFiles,

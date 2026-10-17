@@ -332,5 +332,19 @@ Usage message
         },
       );
     });
+
+    group('$CoverdeReportOutsideDirectoryFailure', () {
+      test('readableMessage | names the coverage path', () {
+        const failure = CoverdeReportOutsideDirectoryFailure(
+          sourcePath: '../shared',
+        );
+
+        expect(
+          failure.readableMessage,
+          'Coverage path `../shared` would be written '
+          'outside the report directory.',
+        );
+      });
+    });
   });
 }

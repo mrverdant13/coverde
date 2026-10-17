@@ -48,6 +48,42 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
       expect(result, covFile);
     });
 
+    test('| stores a source path with slashes', () {
+      expect(
+        CovFile.parse('SF:lib\\src\\a.dart\nDA:1,1').source.path,
+        'lib/src/a.dart',
+      );
+      expect(CovFile.parse('SF:./a.dart\nDA:1,1').source.path, 'a.dart');
+      expect(
+        CovFile.parse('SF:lib/./a.dart\nDA:1,1').source.path,
+        'lib/a.dart',
+      );
+      expect(
+        CovFile.parse('SF:lib//a.dart/\nDA:1,1').source.path,
+        'lib/a.dart',
+      );
+      expect(
+        CovFile.parse('SF:/external.dart\nDA:1,1').source.path,
+        '/external.dart',
+      );
+      expect(
+        CovFile.parse('SF:..\\shared\\b.dart\nDA:1,1').source.path,
+        '../shared/b.dart',
+      );
+      expect(
+        CovFile.parse('SF:C:\\src\\a.dart\nDA:1,1').source.path,
+        'C:/src/a.dart',
+      );
+      expect(
+        CovFile.parse('SF:lib/../src/a.dart\nDA:1,1').source.path,
+        'src/a.dart',
+      );
+      expect(
+        CovFile.parse('SF:./a.dart\nDA:1,1'),
+        CovFile.parse('SF:a.dart\nDA:1,1'),
+      );
+    });
+
     test('| throws $CovFileFormatFailure '
         'when parsing invalid string representation', () async {
       const rawCovFileString = '''

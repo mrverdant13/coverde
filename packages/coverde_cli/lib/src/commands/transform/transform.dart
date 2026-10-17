@@ -2,6 +2,7 @@ import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -338,20 +339,18 @@ Presets can be defined in $_configFileName under the `transformations` key.
         case RelativeTransformation(basePath: final bp):
           entries =
               entries.map((e) {
-                final newPath = p.relative(e.path, from: bp);
-                final newRaw = e.raw.replaceFirst(
-                  RegExp(
-                    '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
-                    multiLine: true,
-                  ),
-                  '${CovFile.sourceFileTag}$newPath',
+                final newPath = normalizePosixPath(
+                  p.relative(e.path, from: bp),
                 );
-                return (path: newPath, raw: newRaw, coverage: e.coverage);
+                return (path: newPath, raw: e.raw, coverage: e.coverage);
               }).toList();
       }
     }
 
-    return entries.map((e) => e.raw).toList();
+    return [
+      for (final entry in entries)
+        CovFile.rewriteSourcePath(entry.raw, entry.path),
+    ];
   }
 
   /// Normalize path for glob matching (use posix separators).

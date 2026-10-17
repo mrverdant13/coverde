@@ -201,6 +201,36 @@ end_of_record
 
       test('--${TransformCommand.inputOption}=<file> '
           '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=keep-by-regex=<regex> '
+          '| writes a source path with slashes', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(inputPath).writeAsStringSync(
+          'SF:.\\lib\\app.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+        );
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-regex=.*',
+        ]);
+
+        expect(
+          File(outputPath).readAsStringSync(),
+          contains('SF:lib/app.dart'),
+        );
+      });
+
+      test('--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
           '--${TransformCommand.transformationsOption}=skip-by-regex=<regex> '
           '| skips files matching regex', () async {
         final directory = Directory.systemTemp.createTempSync(

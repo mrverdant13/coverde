@@ -168,14 +168,16 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       if (shouldBeIgnored) {
         logger.detail('<${fileCovData.source.path}> coverage data ignored.');
       } else {
-        final raw = switch (baseDirectory) {
-          null => fileCovData.raw,
-          final String baseDirectory => fileCovData.raw.replaceFirst(
-            RegExp(r'^SF:(.*)$', multiLine: true),
-            'SF:${path.relative(fileCovData.source.path, from: baseDirectory)}',
+        final sourcePath = switch (baseDirectory) {
+          null => fileCovData.source.path,
+          final String baseDirectory => path.relative(
+            fileCovData.source.path,
+            from: baseDirectory,
           ),
         };
-        acceptedSrcFilesRawData.add(raw);
+        acceptedSrcFilesRawData.add(
+          CovFile.rewriteSourcePath(fileCovData.raw, sourcePath),
+        );
       }
     }
 

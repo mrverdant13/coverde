@@ -121,6 +121,29 @@ void main() {
       verifyNoMoreInteractions(logger);
     });
 
+    test('fails when a source path leaves the report directory', () async {
+      final temp = Directory.systemTemp.createTempSync('coverde_report_');
+      addTearDown(() => temp.deleteSync(recursive: true));
+      final trace = File(p.join(temp.path, 'lcov.info'))..writeAsStringSync('''
+SF:../shared/b.dart
+DA:1,1
+end_of_record
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      Future<void> action() => cmdRunner.run([
+        'report',
+        '--${ReportCommand.inputOption}',
+        trace.path,
+        '--${ReportCommand.outputOption}',
+        p.join(temp.path, 'report'),
+      ]);
+
+      expect(action, throwsA(isA<CoverdeReportOutsideDirectoryFailure>()));
+    });
+
     test('''--${ReportCommand.inputOption}=<empty_trace_file> '''
         '''| fails when trace file is empty''', () async {
       final emptyTraceFilePath = p.joinAll([
