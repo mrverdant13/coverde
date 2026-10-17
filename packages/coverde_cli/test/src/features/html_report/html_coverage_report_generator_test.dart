@@ -236,5 +236,5 @@ final class _SourceFile extends Fake implements File {
   List<String> readAsLinesSync({Encoding encoding = utf8}) => [_source];
 
   @override
-  Directory get parent => Directory(p.posix.dirname(filePath));
+  Directory get parent => Directory(p.dirname(filePath));
 }
