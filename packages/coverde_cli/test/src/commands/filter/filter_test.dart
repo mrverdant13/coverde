@@ -1005,6 +1005,6 @@ final class _FilterTestFile extends Fake implements File {
 
 String _posixTrace(String trace) {
   return trace.replaceAllMapped(RegExp(r'^SF:(.*)$', multiLine: true), (match) {
-    return 'SF:${CovFile.normalizeSourcePath(match.group(1)!)}';
+    return 'SF:${normalizePosixPath(match.group(1)!)}';
   });
 }

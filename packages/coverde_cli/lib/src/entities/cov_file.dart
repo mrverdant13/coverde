@@ -45,7 +45,7 @@ class CovFile extends CovElement {
             .replaceAll(sourceFileTag, '')
             .trim();
 
-    final sourceFilePath = normalizeSourcePath(sourcePath());
+    final sourceFilePath = normalizePosixPath(sourcePath());
 
     final covLines = dataLines
         .where((l) => l.startsWith(lineDataTag))
@@ -80,27 +80,11 @@ class CovFile extends CovElement {
   /// data about a [source] file.
   static const sourceFileTag = 'SF:';
 
-  /// The `SF:` [raw] path with `/` separators.
-  ///
-  /// `\` becomes `/`. `.` segments and repeated separators are removed.
-  /// A trailing slash is removed. A leading `/` and `..` segments stay.
-  static String normalizeSourcePath(String raw) {
-    final slashed = raw.trim().replaceAll(r'\', '/');
-    final absolute = slashed.startsWith('/');
-    final parts = <String>[
-      for (final part in slashed.split('/'))
-        if (part.isNotEmpty && part != '.') part,
-    ];
-    if (parts.isEmpty) return absolute ? '/' : '.';
-    final joined = parts.join('/');
-    return absolute ? '/$joined' : joined;
-  }
-
   /// Replaces the first `SF:` line in [raw] with [sourcePath].
   ///
-  /// [sourcePath] is passed through [normalizeSourcePath].
+  /// [sourcePath] is passed through [normalizePosixPath].
   static String rewriteSourcePath(String raw, String sourcePath) {
-    final normalized = normalizeSourcePath(sourcePath);
+    final normalized = normalizePosixPath(sourcePath);
     return raw.replaceFirst(
       RegExp('^${RegExp.escape(sourceFileTag)}(.*)\$', multiLine: true),
       '$sourceFileTag$normalized',

@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -407,7 +408,7 @@ final class _ReportLayout {
     final used = <String>{};
     final drives = <String>{};
     void visit(CovElement element) {
-      final normalized = CovFile.normalizeSourcePath(element.source.path);
+      final normalized = normalizePosixPath(element.source.path);
       final drive = _letter(normalized);
       if (drive != null) {
         drives.add(drive);
@@ -433,8 +434,8 @@ final class _ReportLayout {
   }
 
   String relative(String target, {required String from}) {
-    final to = CovFile.normalizeSourcePath(target);
-    final base = CovFile.normalizeSourcePath(from);
+    final to = normalizePosixPath(target);
+    final base = normalizePosixPath(from);
     if (base.isEmpty || base == '.') {
       if (path.posix.isAbsolute(to)) {
         final stripped = path.posix.relative(to, from: '/');
@@ -464,7 +465,7 @@ final class _ReportLayout {
             : path.posix.split(relativePath);
     final escapes =
         path.posix.isAbsolute(relativePath) ||
-        _letter(CovFile.normalizeSourcePath(relativePath)) != null ||
+        _letter(normalizePosixPath(relativePath)) != null ||
         parts.any((part) => part.isEmpty || part == '.' || part == '..') ||
         (!path.equals(destination, root) && !path.isWithin(root, destination));
     if (escapes) {

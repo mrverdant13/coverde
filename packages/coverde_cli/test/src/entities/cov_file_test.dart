@@ -75,6 +75,10 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
         'C:/src/a.dart',
       );
       expect(
+        CovFile.parse('SF:lib/../src/a.dart\nDA:1,1').source.path,
+        'src/a.dart',
+      );
+      expect(
         CovFile.parse('SF:./a.dart\nDA:1,1'),
         CovFile.parse('SF:a.dart\nDA:1,1'),
       );

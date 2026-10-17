@@ -2,6 +2,7 @@ import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -338,7 +339,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
         case RelativeTransformation(basePath: final bp):
           entries =
               entries.map((e) {
-                final newPath = CovFile.normalizeSourcePath(
+                final newPath = normalizePosixPath(
                   p.relative(e.path, from: bp),
                 );
                 return (path: newPath, raw: e.raw, coverage: e.coverage);
