@@ -180,6 +180,69 @@ void main() {
       );
     });
 
+    test('writes a current-directory file once at the report root', () {
+      _generate(
+        reportDir: reportDir,
+        sources: const {
+          'a.dart': 'void current() {}',
+          'lib/b.dart': 'void library() {}',
+        },
+      );
+
+      final index =
+          File(p.join(reportDir.path, 'index.html')).readAsStringSync();
+      expect(File(p.join(reportDir.path, 'a.dart.html')).existsSync(), isTrue);
+      expect(
+        File(p.join(reportDir.path, 'lib', 'b.dart.html')).existsSync(),
+        isTrue,
+      );
+      expect(index, contains('href="a.dart.html"'));
+      expect(index, contains('href="lib/index.html"'));
+      expect(index, isNot(contains('href="./index.html"')));
+    });
+
+    test('reserves a folder name that differs only by case', () {
+      _generate(
+        reportDir: reportDir,
+        sources: const {
+          'Absolute/a.dart': 'void named() {}',
+          '/b.dart': 'void root() {}',
+        },
+      );
+
+      expect(
+        File(p.join(reportDir.path, 'Absolute', 'a.dart.html')).existsSync(),
+        isTrue,
+      );
+      final namespace =
+          p.equals('Absolute', 'absolute') ? 'absolute-2' : 'absolute';
+      expect(
+        File(p.join(reportDir.path, namespace, 'b.dart.html')).existsSync(),
+        isTrue,
+      );
+    });
+
+    test('reserves a drive folder that differs only by case', () {
+      _generate(
+        reportDir: reportDir,
+        sources: const {
+          'Drive-C/a.dart': 'void named() {}',
+          'C:/b.dart': 'void rooted() {}',
+        },
+      );
+
+      expect(
+        File(p.join(reportDir.path, 'Drive-C', 'a.dart.html')).existsSync(),
+        isTrue,
+      );
+      final namespace =
+          p.equals('Drive-C', 'drive-c') ? 'drive-c-2' : 'drive-c';
+      expect(
+        File(p.join(reportDir.path, namespace, 'b.dart.html')).existsSync(),
+        isTrue,
+      );
+    });
+
     test('rejects a path that leaves the report directory', () {
       final failure = _failure(
         reportDir: reportDir,

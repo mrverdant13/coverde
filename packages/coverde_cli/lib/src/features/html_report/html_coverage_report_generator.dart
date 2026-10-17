@@ -505,10 +505,14 @@ final class _ReportLayout {
     return rest.isNotEmpty && !rest.startsWith('/');
   }
 
+  static bool _nameTaken(Set<String> used, String candidate) {
+    return used.any((name) => path.equals(name, candidate));
+  }
+
   static String _freeName(Set<String> used, String base) {
-    if (!used.contains(base)) return base;
+    if (!_nameTaken(used, base)) return base;
     var suffix = 2;
-    while (used.contains('$base-$suffix')) {
+    while (_nameTaken(used, '$base-$suffix')) {
       suffix++;
     }
     return '$base-$suffix';
