@@ -338,20 +338,18 @@ Presets can be defined in $_configFileName under the `transformations` key.
         case RelativeTransformation(basePath: final bp):
           entries =
               entries.map((e) {
-                final newPath = p.relative(e.path, from: bp);
-                final newRaw = e.raw.replaceFirst(
-                  RegExp(
-                    '^${RegExp.escape(CovFile.sourceFileTag)}(.*)\$',
-                    multiLine: true,
-                  ),
-                  '${CovFile.sourceFileTag}$newPath',
+                final newPath = CovFile.normalizeSourcePath(
+                  p.relative(e.path, from: bp),
                 );
-                return (path: newPath, raw: newRaw, coverage: e.coverage);
+                return (path: newPath, raw: e.raw, coverage: e.coverage);
               }).toList();
       }
     }
 
-    return entries.map((e) => e.raw).toList();
+    return [
+      for (final entry in entries)
+        CovFile.rewriteSourcePath(entry.raw, entry.path),
+    ];
   }
 
   /// Normalize path for glob matching (use posix separators).

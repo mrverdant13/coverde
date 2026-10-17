@@ -96,6 +96,17 @@ class CovFile extends CovElement {
     return absolute ? '/$joined' : joined;
   }
 
+  /// Replaces the first `SF:` line in [raw] with [sourcePath].
+  ///
+  /// [sourcePath] is passed through [normalizeSourcePath].
+  static String rewriteSourcePath(String raw, String sourcePath) {
+    final normalized = normalizeSourcePath(sourcePath);
+    return raw.replaceFirst(
+      RegExp('^${RegExp.escape(sourceFileTag)}(.*)\$', multiLine: true),
+      '$sourceFileTag$normalized',
+    );
+  }
+
   /// The ending line of a trace bloc that contains the [raw] coverage data
   /// about a [source] file.
   static const endOfRecordTag = 'end_of_record';

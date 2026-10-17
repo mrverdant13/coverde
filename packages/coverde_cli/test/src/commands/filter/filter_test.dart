@@ -66,6 +66,43 @@ All the relative paths in the resulting coverage trace file will be resolved rel
 
     test('--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '
+        '| writes a source path with slashes', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final originalFilePath = p.join(directory.path, 'original.info');
+      final filteredFilePath = p.join(directory.path, 'actual.info');
+      File(originalFilePath).writeAsStringSync(
+        'SF:.\\lib\\app.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+      );
+
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+      ]);
+
+      expect(
+        File(filteredFilePath).readAsStringSync(),
+        contains('SF:lib/app.dart'),
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
+            ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
         '--${FilterCommand.filtersOption}=<patterns> '
         '| filters trace file', () async {
       final directory = Directory.systemTemp.createTempSync(
@@ -136,7 +173,7 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = acceptedSourceFileData;
+      final expectedFilteredFileContent = _posixTrace(acceptedSourceFileData);
       final filteredFileIncludeFileThatMatchPatterns =
           (await TraceFile.parseStreaming(
             filteredFile,
@@ -238,7 +275,7 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = acceptedSourceFileData;
+      final expectedFilteredFileContent = _posixTrace(acceptedSourceFileData);
       final filteredFileIncludeFileThatMatchPatterns =
           (await TraceFile.parseStreaming(
             filteredFile,
@@ -964,4 +1001,10 @@ final class _FilterTestFile extends Fake implements File {
     if (_openRead case final cb?) return cb(start, end);
     throw UnimplementedError();
   }
+}
+
+String _posixTrace(String trace) {
+  return trace.replaceAllMapped(RegExp(r'^SF:(.*)$', multiLine: true), (match) {
+    return 'SF:${CovFile.normalizeSourcePath(match.group(1)!)}';
+  });
 }
