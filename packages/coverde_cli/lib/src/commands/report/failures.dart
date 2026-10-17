@@ -276,3 +276,20 @@ final class CoverdeReportFileReadFailure
          ].join('\n'),
        );
 }
+
+/// {@template coverde_cli.report_outside_directory_failure}
+/// A [ReportCommand] failure that indicates a coverage path would be written
+/// outside the report directory.
+/// {@endtemplate}
+final class CoverdeReportOutsideDirectoryFailure extends CoverdeReportFailure {
+  /// {@macro coverde_cli.report_outside_directory_failure}
+  const CoverdeReportOutsideDirectoryFailure({required this.sourcePath});
+
+  /// The coverage path that left the report directory.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` would be written '
+      'outside the report directory.';
+}

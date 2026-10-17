@@ -42,12 +42,15 @@ class HtmlCoverageReportGenerator {
     required double medium,
     required double high,
   }) {
+    final layout = _ReportLayout(reportRootAbsPath: parentReportDirAbsPath)
+      ..collect(root);
     _generateDirectory(
       directory: root,
       traceFileName: traceFileName,
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: '',
       reportRelDepth: 0,
+      layout: layout,
       traceFileModificationDate: traceFileModificationDate,
       medium: medium,
       high: high,
@@ -72,6 +75,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -83,6 +87,7 @@ class HtmlCoverageReportGenerator {
         parentReportDirAbsPath: parentReportDirAbsPath,
         reportDirRelPath: reportDirRelPath,
         reportRelDepth: reportRelDepth,
+        layout: layout,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
@@ -95,6 +100,7 @@ class HtmlCoverageReportGenerator {
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: reportDirRelPath,
       reportRelDepth: reportRelDepth,
+      layout: layout,
       traceFileModificationDate: traceFileModificationDate,
       medium: medium,
       high: high,
@@ -107,6 +113,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -125,7 +132,7 @@ class HtmlCoverageReportGenerator {
       reportStyleCssFilename,
     );
 
-    final reportDirAbsPath = path.join(
+    final reportDirAbsPath = layout.inside(
       parentReportDirAbsPath,
       reportDirRelPath,
     );
@@ -166,7 +173,7 @@ class HtmlCoverageReportGenerator {
 
     final table = folderReport.querySelector('.covTableBody');
     for (final element in directory.elements) {
-      final relPath = path.relative(
+      final relPath = layout.relative(
         element.source.path,
         from: directory.source.path,
       );
@@ -183,7 +190,8 @@ class HtmlCoverageReportGenerator {
         traceFileName: traceFileName,
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
-        reportRelDepth: reportRelDepth + path.split(relPath).length,
+        reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
+        layout: layout,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
@@ -199,6 +207,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -218,7 +227,7 @@ class HtmlCoverageReportGenerator {
       reportStyleCssFilename,
     );
 
-    final reportFileAbsPath = path.join(
+    final reportFileAbsPath = layout.inside(
       parentReportDirAbsPath,
       '$reportDirRelPath.html',
     );
@@ -382,5 +391,100 @@ class HtmlCoverageReportGenerator {
         stackTrace,
       );
     }
+  }
+}
+
+final class _ReportLayout {
+  _ReportLayout({required this.reportRootAbsPath});
+
+  final String reportRootAbsPath;
+  String absoluteNamespace = 'absolute';
+  final Map<String, String> driveNamespaces = <String, String>{};
+
+  static final _driveLetter = RegExp('^([A-Za-z]):');
+
+  void collect(CovDir root) {
+    final used = <String>{};
+    final drives = <String>{};
+    void visit(CovElement element) {
+      final normalized = CovFile.normalizeSourcePath(element.source.path);
+      final drive = _letter(normalized);
+      if (drive != null) {
+        drives.add(drive);
+      } else if (!path.posix.isAbsolute(normalized)) {
+        final parts = path.posix.split(normalized);
+        if (parts.isNotEmpty && parts.first != '.' && parts.first != '..') {
+          used.add(parts.first);
+        }
+      }
+      if (element is CovDir) {
+        element.elements.forEach(visit);
+      }
+    }
+
+    visit(root);
+    absoluteNamespace = _freeName(used, 'absolute');
+    used.add(absoluteNamespace);
+    for (final drive in drives) {
+      final namespace = _freeName(used, 'drive-$drive');
+      driveNamespaces[drive] = namespace;
+      used.add(namespace);
+    }
+  }
+
+  String relative(String target, {required String from}) {
+    final to = CovFile.normalizeSourcePath(target);
+    final base = CovFile.normalizeSourcePath(from);
+    if (base.isEmpty || base == '.') {
+      if (path.posix.isAbsolute(to)) {
+        final stripped = path.posix.relative(to, from: '/');
+        if (stripped == '.') return absoluteNamespace;
+        return path.posix.join(absoluteNamespace, stripped);
+      }
+      final drive = _letter(to);
+      if (drive != null) {
+        final namespace = driveNamespaces[drive] ?? 'drive-$drive';
+        final rest = to
+            .substring(drive.length + 1)
+            .replaceFirst(RegExp('^/+'), '');
+        if (rest.isEmpty) return namespace;
+        return path.posix.join(namespace, rest);
+      }
+      return to == '.' ? '' : to;
+    }
+    return path.posix.relative(to, from: base);
+  }
+
+  String inside(String parentAbsPath, String relativePath) {
+    final destination = path.normalize(path.join(parentAbsPath, relativePath));
+    final root = path.normalize(reportRootAbsPath);
+    final parts =
+        relativePath.isEmpty
+            ? const <String>[]
+            : path.posix.split(relativePath);
+    final escapes =
+        path.posix.isAbsolute(relativePath) ||
+        _letter(CovFile.normalizeSourcePath(relativePath)) != null ||
+        parts.any((part) => part.isEmpty || part == '.' || part == '..') ||
+        (!path.equals(destination, root) && !path.isWithin(root, destination));
+    if (escapes) {
+      throw GenerateHtmlCoverageReportOutsideDirectoryFailure(
+        sourcePath: relativePath,
+      );
+    }
+    return destination;
+  }
+
+  static String? _letter(String posixPath) {
+    return _driveLetter.firstMatch(posixPath)?.group(1)?.toLowerCase();
+  }
+
+  static String _freeName(Set<String> used, String base) {
+    if (!used.contains(base)) return base;
+    var suffix = 2;
+    while (used.contains('$base-$suffix')) {
+      suffix++;
+    }
+    return '$base-$suffix';
   }
 }
