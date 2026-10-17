@@ -45,7 +45,7 @@ class CovFile extends CovElement {
             .replaceAll(sourceFileTag, '')
             .trim();
 
-    final sourceFilePath = path.joinAll(path.split(sourcePath()));
+    final sourceFilePath = normalizeSourcePath(sourcePath());
 
     final covLines = dataLines
         .where((l) => l.startsWith(lineDataTag))
@@ -79,6 +79,22 @@ class CovFile extends CovElement {
   /// The beginning of the line of a trace bloc that contains the [raw] coverage
   /// data about a [source] file.
   static const sourceFileTag = 'SF:';
+
+  /// The `SF:` [raw] path with `/` separators.
+  ///
+  /// `\` becomes `/`. `.` segments and repeated separators are removed.
+  /// A trailing slash is removed. A leading `/` and `..` segments stay.
+  static String normalizeSourcePath(String raw) {
+    final slashed = raw.trim().replaceAll(r'\', '/');
+    final absolute = slashed.startsWith('/');
+    final parts = <String>[
+      for (final part in slashed.split('/'))
+        if (part.isNotEmpty && part != '.') part,
+    ];
+    if (parts.isEmpty) return absolute ? '/' : '.';
+    final joined = parts.join('/');
+    return absolute ? '/$joined' : joined;
+  }
 
   /// The ending line of a trace bloc that contains the [raw] coverage data
   /// about a [source] file.
