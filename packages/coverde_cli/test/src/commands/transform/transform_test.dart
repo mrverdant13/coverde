@@ -287,6 +287,36 @@ end_of_record
 
       test('--${TransformCommand.inputOption}=<file> '
           '--${TransformCommand.outputOption}=<file> '
+          '--${TransformCommand.transformationsOption}=keep-by-glob=<glob> '
+          '| matches a backslash coverage path', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(inputPath).writeAsStringSync(
+          'SF:lib\\app.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n'
+          'SF:bin\\bar.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+        );
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-glob=lib/*.dart',
+        ]);
+
+        final outContent = File(outputPath).readAsStringSync();
+        expect(outContent, contains(r'SF:lib\app.dart'));
+        expect(outContent, isNot(contains(r'SF:bin\bar.dart')));
+      });
+
+      test('--${TransformCommand.inputOption}=<file> '
+          '--${TransformCommand.outputOption}=<file> '
           '--${TransformCommand.transformationsOption}=skip-by-glob=<glob> '
           '| skips files matching glob', () async {
         final directory = Directory.systemTemp.createTempSync(
@@ -459,6 +489,71 @@ end_of_record
         expect(outContent, contains('foo.dart'));
         expect(outContent, isNot(contains(directory.path)));
       });
+
+      test('--${TransformCommand.transformationsOption}=keep-by-regex '
+          '| writes a source path with its own root', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final inputPath = p.join(directory.path, 'in.info');
+        final outputPath = p.join(directory.path, 'out.info');
+        File(inputPath).writeAsStringSync(
+          'SF:lib\\app.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+        );
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          inputPath,
+          '--${TransformCommand.outputOption}',
+          outputPath,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-regex=app',
+        ]);
+
+        expect(
+          File(outputPath).readAsStringSync(),
+          contains(r'SF:lib\app.dart'),
+        );
+      });
+
+      test(
+        '--${TransformCommand.transformationsOption}=relative=<base-path> '
+        '| fails when the coverage path cannot be resolved on this host',
+        () async {
+          final directory = Directory.systemTemp.createTempSync(
+            'coverde-transform-test-',
+          );
+          addTearDown(() => directory.deleteSync(recursive: true));
+          final inputPath = p.join(directory.path, 'in.info');
+          final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
+          File(inputPath).writeAsStringSync(
+            'SF:$sourcePath\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+          );
+
+          final action = cmdRunner.run([
+            'transform',
+            '--${TransformCommand.inputOption}',
+            inputPath,
+            '--${TransformCommand.outputOption}',
+            p.join(directory.path, 'out.info'),
+            '--${TransformCommand.transformationsOption}',
+            'relative=${directory.path}',
+          ]);
+
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeTransformUnresolvedCoveragePathFailure>().having(
+                (failure) => failure.readableMessage,
+                'readableMessage',
+                contains('cannot be resolved on this operating system'),
+              ),
+            ),
+          );
+        },
+      );
 
       test('--${TransformCommand.modeOption}=w '
           '| overrides output file content', () async {

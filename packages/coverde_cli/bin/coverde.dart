@@ -51,6 +51,7 @@ extension on CoverdeFailure {
     final CoverdeReportFailure failure => failure.exitCode,
     final CoverdeRmFailure failure => failure.exitCode,
     final CoverdeValueFailure failure => failure.exitCode,
+    CoverdeTransformUnresolvedCoveragePathFailure() => ExitCode.data,
     _ => ExitCode.software,
   };
 }
@@ -87,6 +88,7 @@ extension on CoverdeFilterFailure {
     final CoverdeFilterInvalidInputFailure failure => failure.exitCode,
     CoverdeFilterTraceFileNotFoundFailure() => ExitCode.noInput,
     CoverdeFilterTraceFileReadFailure() => ExitCode.ioError,
+    CoverdeFilterUnresolvedCoveragePathFailure() => ExitCode.data,
     final CoverdeFilterFileOperationFailure failure => failure.exitCode,
     final CoverdeFilterDirectoryOperationFailure failure => failure.exitCode,
   };
@@ -207,6 +209,7 @@ extension on CoverdeValueFailure {
   ExitCode get exitCode => switch (this) {
     final CoverdeValueInvalidTraceFileFailure failure => failure.exitCode,
     CoverdeValueFileReadFailure() => ExitCode.ioError,
+    CoverdeValueUnresolvedCoveragePathFailure() => ExitCode.data,
   };
 }
 

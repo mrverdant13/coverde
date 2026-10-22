@@ -84,6 +84,17 @@ class CovFile extends CovElement {
   /// about a [source] file.
   static const endOfRecordTag = 'end_of_record';
 
+  /// Replaces the first `SF:` line in [raw].
+  ///
+  /// [sourcePath] is passed through [normalizeCoveragePath].
+  static String rewriteSourcePath(String raw, String sourcePath) {
+    final normalized = normalizeCoveragePath(sourcePath);
+    return raw.replaceFirst(
+      RegExp('^$sourceFileTag(.*)\$', multiLine: true),
+      '$sourceFileTag$normalized',
+    );
+  }
+
   static const _equality = IterableEquality<CovLine>();
 
   @override

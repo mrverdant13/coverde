@@ -93,3 +93,21 @@ final class CoverdeValueFileReadFailure extends CoverdeValueFailure {
       'Failed to read file at `$filePath`.\n'
       '$errorMessage';
 }
+
+/// {@template coverde_cli.value_unresolved_coverage_path_failure}
+/// A [ValueCommand] failure that indicates that a coverage path cannot be
+/// resolved on this operating system.
+/// {@endtemplate}
+final class CoverdeValueUnresolvedCoveragePathFailure
+    extends CoverdeValueFailure {
+  /// {@macro coverde_cli.value_unresolved_coverage_path_failure}
+  const CoverdeValueUnresolvedCoveragePathFailure({required this.sourcePath});
+
+  /// The coverage path that cannot be resolved.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` cannot be resolved '
+      'on this operating system.';
+}

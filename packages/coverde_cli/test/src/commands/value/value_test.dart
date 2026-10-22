@@ -92,6 +92,36 @@ Compute the coverage value of the LCOV_FILE info file.
       );
     });
 
+    test('''--${ValueCommand.inputOption}=<trace_file>'''
+        ' | fails when source text cannot be resolved on this host', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-value-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+      final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:$sourcePath\nDA:1,0\nend_of_record\n');
+
+      final action = cmdRunner.run([
+        'value',
+        '--${ValueCommand.inputOption}',
+        traceFilePath,
+      ]);
+
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeValueUnresolvedCoveragePathFailure>().having(
+            (failure) => failure.readableMessage,
+            'readableMessage',
+            contains('cannot be resolved on this operating system'),
+          ),
+        ),
+      );
+    });
+
     test(
       '''--${ValueCommand.fileCoverageLogLevelFlag}=${FileCoverageLogLevel.none.identifier}''',
       () async {

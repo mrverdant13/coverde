@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
@@ -133,6 +134,14 @@ Compute the coverage value of the $_inputHelpValue info file.''';
         for (final fileCovData in traceFile.sourceFilesCovData) {
           logger.info(fileCovData.coverageDataString);
           final sourceLines = () {
+            if (!hostCanResolveCoveragePath(
+              fileCovData.source.path,
+              windowsHost: Platform.isWindows,
+            )) {
+              throw CoverdeValueUnresolvedCoveragePathFailure(
+                sourcePath: fileCovData.source.path,
+              );
+            }
             final file = fileCovData.source.absolute;
             try {
               return file.readAsLinesSync();
