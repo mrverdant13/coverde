@@ -48,6 +48,36 @@ ${covLinesEntries.map((covLineEntry) => 'DA:${covLineEntry.key},${covLineEntry.v
       expect(result, covFile);
     });
 
+    test('| stores a source path with its own root', () {
+      expect(
+        CovFile.parse('SF:lib\\a.dart\nDA:1,1').source.path,
+        r'lib\a.dart',
+      );
+      expect(
+        CovFile.parse('SF:./a.dart\nDA:1,1').source.path,
+        CovFile.parse('SF:a.dart\nDA:1,1').source.path,
+      );
+      expect(
+        CovFile.parse('SF:.\\a.dart\nDA:1,1').source.path,
+        CovFile.parse('SF:a.dart\nDA:1,1').source.path,
+      );
+      expect(
+        CovFile.parse(
+          r'SF:C:\src\..\a.dart'
+          '\nDA:1,1',
+        ).source.path,
+        r'C:\a.dart',
+      );
+      expect(
+        CovFile.parse(
+          r'SF:\\server\share\a.dart'
+          '\nDA:1,1',
+        ).source.path,
+        r'\\server\share\a.dart',
+      );
+      expect(CovFile.parse('SF:/foo/../a.dart\nDA:1,1').source.path, '/a.dart');
+    });
+
     test('| throws $CovFileFormatFailure '
         'when parsing invalid string representation', () async {
       const rawCovFileString = '''

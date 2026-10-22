@@ -190,6 +190,24 @@ sealed class CoverdeFilterDirectoryOperationFailure
       '$errorMessage';
 }
 
+/// {@template coverde_cli.filter_unresolved_coverage_path_failure}
+/// A [FilterCommand] failure that indicates that a coverage path cannot be
+/// resolved on this operating system.
+/// {@endtemplate}
+final class CoverdeFilterUnresolvedCoveragePathFailure
+    extends CoverdeFilterFailure {
+  /// {@macro coverde_cli.filter_unresolved_coverage_path_failure}
+  const CoverdeFilterUnresolvedCoveragePathFailure({required this.sourcePath});
+
+  /// The coverage path that cannot be resolved.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` cannot be resolved '
+      'on this operating system.';
+}
+
 /// {@template coverde_cli.filter_directory_create_failure}
 /// A [FilterCommand] failure that indicates that a directory creation
 /// operation failed.

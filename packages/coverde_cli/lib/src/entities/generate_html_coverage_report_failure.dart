@@ -95,6 +95,46 @@ final class GenerateHtmlCoverageReportFileReadFailure
        );
 }
 
+/// {@template coverde_cli.generate_html_coverage_report_outside_failure}
+/// A failure that indicates a report file would be written outside the report
+/// directory.
+/// {@endtemplate}
+final class GenerateHtmlCoverageReportOutsideDirectoryFailure
+    extends GenerateHtmlCoverageReportFailure {
+  /// {@macro coverde_cli.generate_html_coverage_report_outside_failure}
+  const GenerateHtmlCoverageReportOutsideDirectoryFailure({
+    required this.sourcePath,
+  });
+
+  /// The coverage path that left the report directory.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` would be written '
+      'outside the report directory.';
+}
+
+/// {@template coverde_cli.generate_html_coverage_report_unresolved_failure}
+/// A failure that indicates a coverage path cannot be read on this operating
+/// system.
+/// {@endtemplate}
+final class GenerateHtmlCoverageReportUnresolvedCoveragePathFailure
+    extends GenerateHtmlCoverageReportFailure {
+  /// {@macro coverde_cli.generate_html_coverage_report_unresolved_failure}
+  const GenerateHtmlCoverageReportUnresolvedCoveragePathFailure({
+    required this.sourcePath,
+  });
+
+  /// The coverage path that cannot be resolved.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` cannot be resolved '
+      'on this operating system.';
+}
+
 /// {@template coverde_cli.generate_html_coverage_report_file_write_failure}
 /// The interface for a failure that occurs when writing to a file during HTML
 /// coverage report generation.

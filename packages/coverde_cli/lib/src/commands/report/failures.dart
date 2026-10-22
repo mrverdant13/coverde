@@ -276,3 +276,38 @@ final class CoverdeReportFileReadFailure
          ].join('\n'),
        );
 }
+
+/// {@template coverde_cli.report_outside_directory_failure}
+/// A [ReportCommand] failure that indicates a report file would be written
+/// outside the report directory.
+/// {@endtemplate}
+final class CoverdeReportOutsideDirectoryFailure extends CoverdeReportFailure {
+  /// {@macro coverde_cli.report_outside_directory_failure}
+  const CoverdeReportOutsideDirectoryFailure({required this.sourcePath});
+
+  /// The coverage path that left the report directory.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` would be written '
+      'outside the report directory.';
+}
+
+/// {@template coverde_cli.report_unresolved_coverage_path_failure}
+/// A [ReportCommand] failure that indicates a coverage path cannot be read on
+/// this operating system.
+/// {@endtemplate}
+final class CoverdeReportUnresolvedCoveragePathFailure
+    extends CoverdeReportFailure {
+  /// {@macro coverde_cli.report_unresolved_coverage_path_failure}
+  const CoverdeReportUnresolvedCoveragePathFailure({required this.sourcePath});
+
+  /// The coverage path that cannot be resolved.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` cannot be resolved '
+      'on this operating system.';
+}

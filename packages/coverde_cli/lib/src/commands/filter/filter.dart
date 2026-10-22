@@ -1,5 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -168,14 +169,26 @@ All the relative paths in the resulting coverage trace file will be resolved rel
       if (shouldBeIgnored) {
         logger.detail('<${fileCovData.source.path}> coverage data ignored.');
       } else {
-        final raw = switch (baseDirectory) {
-          null => fileCovData.raw,
-          final String baseDirectory => fileCovData.raw.replaceFirst(
-            RegExp(r'^SF:(.*)$', multiLine: true),
-            'SF:${path.relative(fileCovData.source.path, from: baseDirectory)}',
-          ),
-        };
-        acceptedSrcFilesRawData.add(raw);
+        final String sourcePath;
+        if (baseDirectory == null) {
+          sourcePath = fileCovData.source.path;
+        } else {
+          if (!hostCanResolveCoveragePath(
+            fileCovData.source.path,
+            windowsHost: Platform.isWindows,
+          )) {
+            throw CoverdeFilterUnresolvedCoveragePathFailure(
+              sourcePath: fileCovData.source.path,
+            );
+          }
+          sourcePath = path.relative(
+            fileCovData.source.path,
+            from: baseDirectory,
+          );
+        }
+        acceptedSrcFilesRawData.add(
+          CovFile.rewriteSourcePath(fileCovData.raw, sourcePath),
+        );
       }
     }
 

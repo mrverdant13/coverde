@@ -136,7 +136,10 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = acceptedSourceFileData;
+      final expectedFilteredFileContent = CovFile.rewriteSourcePath(
+        acceptedSourceFileData,
+        acceptedSourceFilePath,
+      );
       final filteredFileIncludeFileThatMatchPatterns =
           (await TraceFile.parseStreaming(
             filteredFile,
@@ -238,7 +241,10 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = acceptedSourceFileData;
+      final expectedFilteredFileContent = CovFile.rewriteSourcePath(
+        acceptedSourceFileData,
+        acceptedSourceFilePath,
+      );
       final filteredFileIncludeFileThatMatchPatterns =
           (await TraceFile.parseStreaming(
             filteredFile,
@@ -265,6 +271,90 @@ end_of_record
       }
       directory.deleteSync(recursive: true);
     });
+
+    test('--${FilterCommand.inputOption}=<trace_file> '
+        '--${FilterCommand.outputOption}=<output_file> '
+        '| writes a source path with its own root', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-filter-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final originalFilePath = p.join(directory.path, 'original.info');
+      final filteredFilePath = p.join(directory.path, 'actual.info');
+      File(
+        originalFilePath,
+      ).writeAsStringSync('SF:lib\\app.dart\nDA:1,1\nend_of_record\n');
+
+      await cmdRunner.run([
+        'filter',
+        '--${FilterCommand.inputOption}',
+        originalFilePath,
+        '--${FilterCommand.outputOption}',
+        filteredFilePath,
+      ]);
+
+      expect(
+        File(filteredFilePath).readAsStringSync(),
+        contains(r'SF:lib\app.dart'),
+      );
+      verify(
+        () => logger.warn(
+          any(
+            that: startsWith(
+              'The `filter` command is deprecated '
+              'and will be removed in the next major update.',
+            ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test(
+      '--${FilterCommand.baseDirectoryOptionName}=<base_dir> '
+      '| fails when the coverage path cannot be resolved on this host',
+      () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-filter-test-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final originalFilePath = p.join(directory.path, 'original.info');
+        final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
+        File(
+          originalFilePath,
+        ).writeAsStringSync('SF:$sourcePath\nDA:1,1\nend_of_record\n');
+
+        final action = cmdRunner.run([
+          'filter',
+          '--${FilterCommand.inputOption}',
+          originalFilePath,
+          '--${FilterCommand.outputOption}',
+          p.join(directory.path, 'actual.info'),
+          '--${FilterCommand.baseDirectoryOptionName}',
+          directory.path,
+        ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeFilterUnresolvedCoveragePathFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              contains('cannot be resolved on this operating system'),
+            ),
+          ),
+        );
+        verify(
+          () => logger.warn(
+            any(
+              that: startsWith(
+                'The `filter` command is deprecated '
+                'and will be removed in the next major update.',
+              ),
+            ),
+          ),
+        ).called(1);
+      },
+    );
 
     test('--${FilterCommand.inputOption}=<trace_file> '
         '--${FilterCommand.outputOption}=<output_file> '

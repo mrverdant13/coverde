@@ -379,3 +379,23 @@ final class CoverdeTransformDirectoryCreateFailure
          ].join('\n'),
        );
 }
+
+/// {@template coverde_cli.transform_unresolved_coverage_path_failure}
+/// A [TransformCommand] failure that indicates that a coverage path cannot be
+/// resolved on this operating system.
+/// {@endtemplate}
+final class CoverdeTransformUnresolvedCoveragePathFailure
+    extends CoverdeTransformFailure {
+  /// {@macro coverde_cli.transform_unresolved_coverage_path_failure}
+  const CoverdeTransformUnresolvedCoveragePathFailure({
+    required this.sourcePath,
+  });
+
+  /// The coverage path that cannot be resolved.
+  final String sourcePath;
+
+  @override
+  String get readableMessage =>
+      'Coverage path `$sourcePath` cannot be resolved '
+      'on this operating system.';
+}
