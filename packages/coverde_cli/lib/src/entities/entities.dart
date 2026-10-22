@@ -1,8 +1,3 @@
-export 'cov_base.dart';
-export 'cov_dir.dart';
-export 'cov_file.dart';
-export 'cov_file_format.exception.dart';
-export 'cov_line.dart';
 export 'coverage_directory.dart';
 export 'coverage_document.dart';
 export 'coverage_file.dart';
@@ -18,5 +13,4 @@ export 'file_line_coverage_details.dart';
 export 'generate_html_coverage_report_failure.dart';
 export 'package_version_manager_dependencies.dart';
 export 'package_versioning_info.dart';
-export 'trace_file.dart';
 export 'update_check_mode.dart';
