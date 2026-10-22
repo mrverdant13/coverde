@@ -152,12 +152,15 @@ void main() {
       File(sourcePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('void library() {}\n');
-      final tree = CovDir.tree(
-        covFiles: [
-          CovFile.parse('SF:$sourcePath\nDA:1,1'),
-          CovFile.parse('SF:../shared/b.dart\nDA:1,0'),
-        ],
-      );
+      final tree =
+          CoverageDocument.parse('''
+SF:$sourcePath
+DA:1,1
+end_of_record
+SF:../shared/b.dart
+DA:1,0
+end_of_record
+''').tree;
 
       expect(
         () => const HtmlCoverageReportGenerator().generate(
@@ -184,9 +187,12 @@ void main() {
       );
       addTearDown(() => reportDir.deleteSync(recursive: true));
       final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
-      final tree = CovDir.tree(
-        covFiles: [CovFile.parse('SF:$sourcePath\nDA:1,1')],
-      );
+      final tree =
+          CoverageDocument.parse('''
+SF:$sourcePath
+DA:1,1
+end_of_record
+''').tree;
 
       expect(
         () => const HtmlCoverageReportGenerator().generate(

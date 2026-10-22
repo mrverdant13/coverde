@@ -159,9 +159,9 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       );
     }
 
-    final TraceFile traceFileData;
+    final CoverageDocument traceFileData;
     try {
-      traceFileData = await TraceFile.parseStreaming(traceFile);
+      traceFileData = await CoverageDocument.parseStreaming(traceFile);
     } on FileSystemException catch (exception) {
       throw CoverdeReportTraceFileReadFailure.fromFileSystemException(
         traceFilePath: traceFileAbsPath,
@@ -188,7 +188,7 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
       }
     }();
     // Build cov report base tree.
-    final covTree = traceFileData.asTree;
+    final covTree = traceFileData.tree;
     // Generate report doc.
     try {
       const HtmlCoverageReportGenerator().generate(
