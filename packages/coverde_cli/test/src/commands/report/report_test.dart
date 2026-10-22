@@ -152,6 +152,71 @@ void main() {
       );
     });
 
+    test('fails when a source path leaves the report directory', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+      final sourcePath = p.join(directory.path, 'lib', 'a.dart');
+      File(sourcePath).createSync(recursive: true);
+      File(sourcePath).writeAsStringSync('void library() {}\n');
+      File(traceFilePath).writeAsStringSync(
+        'SF:$sourcePath\nDA:1,1\nend_of_record\n'
+        'SF:../shared/b.dart\nDA:1,0\nend_of_record\n',
+      );
+
+      final action = cmdRunner.run([
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.outputOption}',
+        p.join(directory.path, 'report'),
+      ]);
+
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeReportOutsideDirectoryFailure>().having(
+            (failure) => failure.readableMessage,
+            'readableMessage',
+            contains('would be written outside the report directory'),
+          ),
+        ),
+      );
+    });
+
+    test('fails when a source path cannot be resolved on this host', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-report-test-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'lcov.info');
+      final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:$sourcePath\nDA:1,0\nend_of_record\n');
+
+      final action = cmdRunner.run([
+        'report',
+        '--${ReportCommand.inputOption}',
+        traceFilePath,
+        '--${ReportCommand.outputOption}',
+        p.join(directory.path, 'report'),
+      ]);
+
+      expect(
+        action,
+        throwsA(
+          isA<CoverdeReportUnresolvedCoveragePathFailure>().having(
+            (failure) => failure.readableMessage,
+            'readableMessage',
+            contains('cannot be resolved on this operating system'),
+          ),
+        ),
+      );
+    });
+
     test('| can be instantiated', () {
       final result = ReportCommand();
 

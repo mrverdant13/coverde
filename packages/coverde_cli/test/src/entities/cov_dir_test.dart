@@ -39,6 +39,40 @@ void main() {
       expect(hashComparisonResult, isTrue);
     });
 
+    test('| counts a file in the current directory once', () {
+      final tree = CovDir.tree(
+        covFiles: [
+          CovFile.parse('SF:a.dart\nDA:1,1'),
+          CovFile.parse('SF:lib/b.dart\nDA:1,0'),
+        ],
+      );
+
+      expect(tree.linesFound, 2);
+      expect(tree.linesHit, 1);
+      expect(
+        tree.elements.whereType<CovFile>().map((file) => file.source.path),
+        ['a.dart'],
+      );
+    });
+
+    test('| splits a backslash path into directories', () {
+      final tree = CovDir.tree(
+        covFiles: [
+          CovFile.parse('SF:a.dart\nDA:1,1'),
+          CovFile.parse('SF:lib\\b.dart\nDA:1,0'),
+        ],
+      );
+
+      expect(tree.linesFound, 2);
+      expect(tree.linesHit, 1);
+      final directory = tree.elements.whereType<CovDir>().single;
+      expect(directory.source.path, 'lib');
+      expect(
+        directory.elements.whereType<CovFile>().single.source.path,
+        r'lib\b.dart',
+      );
+    });
+
     {
       final covFiles = [
         CovFile(

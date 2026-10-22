@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
@@ -38,7 +39,10 @@ class CovDir extends CovElement {
         baseDirPath == null
             ? coveredFiles
             : coveredFiles.where(
-              (covFile) => path.isWithin(baseDirPath, covFile.source.path),
+              (covFile) => path.isWithin(
+                baseDirPath,
+                coveragePathSlashForm(covFile.source.path),
+              ),
             );
 
     // If no covered files within this folder, return the covered directory.
@@ -48,7 +52,12 @@ class CovDir extends CovElement {
 
     // Folders directly or indirectly within this directory.
     final dirPaths =
-        covFiles.map((covFile) => covFile.source.parent.path).toSet();
+        covFiles
+            .map(
+              (covFile) =>
+                  path.dirname(coveragePathSlashForm(covFile.source.path)),
+            )
+            .toSet();
 
     // Get folders segments.
     final dirsSegments = dirPaths.map(path.split).toList();
@@ -83,11 +92,19 @@ class CovDir extends CovElement {
       nextSegments = nextSegmentsGroup();
     }
 
-    // Build actual base path.
-    final actualBasePath = commonSegments.reduce(path.join);
+    // An empty prefix means the files share no parent.
+    final actualBasePath =
+        commonSegments.isEmpty ? '' : commonSegments.reduce(path.join);
+
+    // A parent of `.` compares equal to the empty root, so its files are
+    // already attached here. Building that child again counts them twice.
+    final childSegments =
+        actualBasePath.isEmpty
+            ? nextSegments.where((segment) => segment != '.')
+            : nextSegments;
 
     // Build nested folders data from next segments.
-    final allDirs = nextSegments.map(
+    final allDirs = childSegments.map(
       (nextSegment) => CovDir.subtree(
         baseDirPath: path.join(actualBasePath, nextSegment),
         coveredFiles: covFiles,
@@ -96,7 +113,10 @@ class CovDir extends CovElement {
     final validDirs = allDirs.where((dir) => dir.linesFound > 0);
 
     final files = covFiles.where(
-      (covFile) => path.equals(covFile.source.parent.path, actualBasePath),
+      (covFile) => path.equals(
+        path.dirname(coveragePathSlashForm(covFile.source.path)),
+        actualBasePath,
+      ),
     );
 
     return CovDir(

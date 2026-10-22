@@ -3,7 +3,9 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_io/io.dart';
 
@@ -42,12 +44,15 @@ class HtmlCoverageReportGenerator {
     required double medium,
     required double high,
   }) {
+    final layout = _ReportLayout(reportRootAbsPath: parentReportDirAbsPath)
+      ..collect(root);
     _generateDirectory(
       directory: root,
       traceFileName: traceFileName,
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: '',
       reportRelDepth: 0,
+      layout: layout,
       traceFileModificationDate: traceFileModificationDate,
       medium: medium,
       high: high,
@@ -72,6 +77,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -83,6 +89,7 @@ class HtmlCoverageReportGenerator {
         parentReportDirAbsPath: parentReportDirAbsPath,
         reportDirRelPath: reportDirRelPath,
         reportRelDepth: reportRelDepth,
+        layout: layout,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
@@ -95,6 +102,7 @@ class HtmlCoverageReportGenerator {
       parentReportDirAbsPath: parentReportDirAbsPath,
       reportDirRelPath: reportDirRelPath,
       reportRelDepth: reportRelDepth,
+      layout: layout,
       traceFileModificationDate: traceFileModificationDate,
       medium: medium,
       high: high,
@@ -107,6 +115,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -125,7 +134,7 @@ class HtmlCoverageReportGenerator {
       reportStyleCssFilename,
     );
 
-    final reportDirAbsPath = path.join(
+    final reportDirAbsPath = layout.inside(
       parentReportDirAbsPath,
       reportDirRelPath,
     );
@@ -166,7 +175,7 @@ class HtmlCoverageReportGenerator {
 
     final table = folderReport.querySelector('.covTableBody');
     for (final element in directory.elements) {
-      final relPath = path.relative(
+      final relPath = layout.relative(
         element.source.path,
         from: directory.source.path,
       );
@@ -183,7 +192,8 @@ class HtmlCoverageReportGenerator {
         traceFileName: traceFileName,
         parentReportDirAbsPath: reportDirAbsPath,
         reportDirRelPath: relPath,
-        reportRelDepth: reportRelDepth + path.split(relPath).length,
+        reportRelDepth: reportRelDepth + path.posix.split(relPath).length,
+        layout: layout,
         traceFileModificationDate: traceFileModificationDate,
         medium: medium,
         high: high,
@@ -199,6 +209,7 @@ class HtmlCoverageReportGenerator {
     required String parentReportDirAbsPath,
     required String reportDirRelPath,
     required int reportRelDepth,
+    required _ReportLayout layout,
     required DateTime traceFileModificationDate,
     required double medium,
     required double high,
@@ -218,16 +229,18 @@ class HtmlCoverageReportGenerator {
       reportStyleCssFilename,
     );
 
-    final reportFileAbsPath = path.join(
+    final reportFileAbsPath = layout.inside(
       parentReportDirAbsPath,
       '$reportDirRelPath.html',
     );
 
     final title = 'Coverage Report - $traceFileName';
     final currentDirPath = path.url.joinAll(
-      path.split(file.source.parent.path),
+      path.split(path.dirname(coveragePathSlashForm(file.source.path))),
     );
-    final fileName = path.basename(file.source.path);
+    final fileName = path.posix.basename(
+      coveragePathSlashForm(file.source.path),
+    );
     final suffix = _classSuffix(file, medium: medium, high: high);
 
     fileReport.head
@@ -251,6 +264,14 @@ class HtmlCoverageReportGenerator {
 
     final src = fileReport.querySelector('.source');
     final sourceLines = () {
+      if (!hostCanResolveCoveragePath(
+        file.source.path,
+        windowsHost: Platform.isWindows,
+      )) {
+        throw GenerateHtmlCoverageReportUnresolvedCoveragePathFailure(
+          sourcePath: file.source.path,
+        );
+      }
       try {
         return file.source.readAsLinesSync();
       } on FileSystemException catch (exception, stackTrace) {
@@ -382,5 +403,178 @@ class HtmlCoverageReportGenerator {
         stackTrace,
       );
     }
+  }
+}
+
+/// Report-relative path for [sourcePath] among [sourcePaths].
+@visibleForTesting
+String coverageReportRelativePath({
+  required Iterable<String> sourcePaths,
+  required String sourcePath,
+  String from = '',
+}) {
+  final layout = _ReportLayout(reportRootAbsPath: '.')
+    ..collectPaths(sourcePaths);
+  return layout.relative(sourcePath, from: from);
+}
+
+final class _ReportLayout {
+  _ReportLayout({required this.reportRootAbsPath});
+
+  final String reportRootAbsPath;
+  String absoluteNamespace = 'absolute';
+  final Map<String, String> driveNamespaces = <String, String>{};
+  final Map<String, String> driveRelativeNamespaces = <String, String>{};
+  final Map<String, String> uncNamespaces = <String, String>{};
+
+  static final _driveLetter = RegExp('^([A-Za-z]):');
+  static final _uncRoot = RegExp(r'^//([^/]+)/([^/]+)(.*)$');
+
+  void collect(CovDir root) {
+    final paths = <String>[];
+    void visit(CovElement element) {
+      paths.add(element.source.path);
+      if (element is CovDir) {
+        element.elements.forEach(visit);
+      }
+    }
+
+    visit(root);
+    collectPaths(paths);
+  }
+
+  void collectPaths(Iterable<String> sourcePaths) {
+    final used = <String>{};
+    final rootedDrives = <String>{};
+    final relativeDrives = <String>{};
+    final uncRoots = <String>{};
+    for (final sourcePath in sourcePaths) {
+      final normalized = coveragePathSlashForm(
+        normalizeCoveragePath(sourcePath),
+      );
+      final unc = _uncKey(normalized);
+      final drive = _letter(normalized);
+      if (unc != null) {
+        uncRoots.add(unc);
+      } else if (drive != null) {
+        if (_isDriveRelative(normalized)) {
+          relativeDrives.add(drive);
+        } else {
+          rootedDrives.add(drive);
+        }
+      } else if (!path.posix.isAbsolute(normalized)) {
+        final parts = path.posix.split(normalized);
+        if (parts.isNotEmpty && parts.first != '.' && parts.first != '..') {
+          used.add(parts.first);
+        }
+      }
+    }
+
+    absoluteNamespace = _freeName(used, 'absolute');
+    used.add(absoluteNamespace);
+    for (final drive in rootedDrives) {
+      final namespace = _freeName(used, 'drive-$drive');
+      driveNamespaces[drive] = namespace;
+      used.add(namespace);
+    }
+    for (final drive in relativeDrives) {
+      final namespace = _freeName(used, 'drive-$drive-relative');
+      driveRelativeNamespaces[drive] = namespace;
+      used.add(namespace);
+    }
+    for (final root in uncRoots) {
+      final namespace = _freeName(used, root);
+      uncNamespaces[root] = namespace;
+      used.add(namespace);
+    }
+  }
+
+  String relative(String target, {required String from}) {
+    final to = coveragePathSlashForm(normalizeCoveragePath(target));
+    final base = coveragePathSlashForm(normalizeCoveragePath(from));
+    if (base.isEmpty || base == '.') {
+      final unc = _uncRoot.firstMatch(to);
+      if (unc != null) {
+        final key = _uncKey(to)!;
+        final namespace = uncNamespaces[key] ?? key;
+        final rest = (unc.group(3) ?? '').replaceFirst(RegExp('^/+'), '');
+        if (rest.isEmpty) return namespace;
+        return path.posix.join(namespace, rest);
+      }
+      if (path.posix.isAbsolute(to)) {
+        final stripped = path.posix.relative(to, from: '/');
+        if (stripped == '.') return absoluteNamespace;
+        return path.posix.join(absoluteNamespace, stripped);
+      }
+      final drive = _letter(to);
+      if (drive != null) {
+        final relativeDrive = _isDriveRelative(to);
+        final namespace =
+            relativeDrive
+                ? (driveRelativeNamespaces[drive] ?? 'drive-$drive-relative')
+                : (driveNamespaces[drive] ?? 'drive-$drive');
+        final rest = to
+            .substring(drive.length + 1)
+            .replaceFirst(RegExp('^/+'), '');
+        if (rest.isEmpty) return namespace;
+        return path.posix.join(namespace, rest);
+      }
+      return to == '.' ? '' : to;
+    }
+    return path.posix.relative(to, from: base);
+  }
+
+  String inside(String parentAbsPath, String relativePath) {
+    final destination = path.normalize(path.join(parentAbsPath, relativePath));
+    final root = path.normalize(reportRootAbsPath);
+    final parts =
+        relativePath.isEmpty
+            ? const <String>[]
+            : path.posix.split(relativePath);
+    final escapes =
+        path.posix.isAbsolute(relativePath) ||
+        _letter(normalizeCoveragePath(relativePath)) != null ||
+        parts.any((part) => part.isEmpty || part == '.' || part == '..') ||
+        (!path.equals(destination, root) && !path.isWithin(root, destination));
+    if (escapes) {
+      throw GenerateHtmlCoverageReportOutsideDirectoryFailure(
+        sourcePath: relativePath,
+      );
+    }
+    return destination;
+  }
+
+  static String? _letter(String normalized) {
+    return _driveLetter.firstMatch(normalized)?.group(1)?.toLowerCase();
+  }
+
+  static String? _uncKey(String normalized) {
+    final match = _uncRoot.firstMatch(normalized);
+    if (match == null) return null;
+    final server = match.group(1)!.toLowerCase();
+    final share = match.group(2)!.toLowerCase();
+    return 'unc-$server-$share';
+  }
+
+  /// `C:a.dart` is relative to the current directory on that drive.
+  /// `C:` and `C:/a.dart` stay on the drive root.
+  static bool _isDriveRelative(String normalized) {
+    final drive = _letter(normalized);
+    if (drive == null) return false;
+    final rest = normalized.substring(drive.length + 1);
+    return rest.isNotEmpty && !rest.startsWith('/');
+  }
+
+  static bool _nameTaken(Set<String> used, String candidate) {
+    return used.any((name) => path.equals(name, candidate));
+  }
+
+  static String _freeName(Set<String> used, String base) {
+    if (!_nameTaken(used, base)) return base;
+    var suffix = 2;
+    while (_nameTaken(used, '$base-$suffix')) {
+      suffix++;
+    }
+    return '$base-$suffix';
   }
 }
