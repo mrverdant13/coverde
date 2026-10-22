@@ -45,7 +45,7 @@ class CovFile extends CovElement {
             .replaceAll(sourceFileTag, '')
             .trim();
 
-    final sourceFilePath = path.joinAll(path.split(sourcePath()));
+    final sourceFilePath = normalizeCoveragePath(sourcePath());
 
     final covLines = dataLines
         .where((l) => l.startsWith(lineDataTag))
