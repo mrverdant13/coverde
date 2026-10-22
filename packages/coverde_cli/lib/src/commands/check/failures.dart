@@ -278,22 +278,24 @@ final class CoverdeCheckCoverageBelowMinimumFailure
   /// {@macro coverde_cli.check_coverage_below_minimum_failure}
   const CoverdeCheckCoverageBelowMinimumFailure({
     required this.minimumCoverage,
-    required this.traceFile,
+    required this.document,
   });
 
   /// The minimum coverage threshold.
   final double minimumCoverage;
 
   /// The actual coverage value.
-  double get actualCoverage => traceFile.coverage;
+  ///
+  /// A document that reaches this failure has line data, so the rate is set.
+  double get actualCoverage => document.lineRate!;
 
-  /// The trace file.
-  final TraceFile traceFile;
+  /// The parsed trace.
+  final CoverageDocument document;
 
   @override
   String get readableMessage => '''
 The minimum coverage value has not been reached.
 Expected min coverage: ${minimumCoverage.toStringAsFixed(2)} %.
-Actual coverage: ${traceFile.coverageString} %.
+Actual coverage: ${document.lineRate!.toStringAsFixed(2)} %.
 ''';
 }

@@ -100,9 +100,9 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
     }
     final file = File(filePath);
 
-    final TraceFile traceFile;
+    final CoverageDocument document;
     try {
-      traceFile = await TraceFile.parseStreaming(file);
+      document = await CoverageDocument.parseStreaming(file);
     } on FileSystemException catch (exception) {
       throw CoverdeCheckTraceFileReadFailure.fromFileSystemException(
         traceFilePath: filePath,
@@ -110,20 +110,21 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       );
     }
 
-    if (traceFile.isEmpty) {
+    if (document.isEmpty) {
       throw CoverdeCheckEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
     ValueCommand.logCoverage(
       logger: logger,
-      traceFile: traceFile,
+      document: document,
       fileCoverageLogLevel: fileCoverageLogLevel,
     );
 
-    if (traceFile.coverage < coverageThreshold) {
+    final lineRate = document.lineRate!;
+    if (lineRate < coverageThreshold) {
       throw CoverdeCheckCoverageBelowMinimumFailure(
         minimumCoverage: coverageThreshold,
-        traceFile: traceFile,
+        document: document,
       );
     }
   }
