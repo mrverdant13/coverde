@@ -1,7 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
-import 'package:coverde/src/entities/coverage_rate.dart';
 import 'package:coverde/src/entities/coverage_trace_entry.dart';
+import 'package:coverde/src/utils/coverage.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:meta/meta.dart';
 

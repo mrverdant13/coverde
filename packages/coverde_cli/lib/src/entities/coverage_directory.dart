@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
-import 'package:coverde/src/entities/coverage_rate.dart';
+import 'package:coverde/src/utils/coverage.dart';
 import 'package:meta/meta.dart';
 
 /// {@template coverde.coverage_directory}

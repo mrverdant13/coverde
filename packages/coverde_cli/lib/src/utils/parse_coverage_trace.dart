@@ -1,10 +1,20 @@
-part of 'coverage_document.dart';
+import 'dart:async';
+import 'dart:convert';
 
-/// Parses [trace] as LCOV line coverage.
-CoverageDocument _parseCoverageDocument(
-  String trace, {
-  DateTime? traceModifiedAt,
-}) {
+import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:coverde/src/entities/coverage_line.dart';
+import 'package:coverde/src/entities/coverage_trace_entry.dart';
+import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
+import 'package:coverde/src/utils/path.dart';
+import 'package:universal_io/io.dart';
+
+/// Parses [trace] into source files.
+///
+/// A record is kept only when it has `DA:` lines. A trailing record with no
+/// `end_of_record` is still parsed.
+///
+/// Throws [CoverageTraceFormatFailure] when [trace] is not valid line coverage.
+List<CoverageFile> parseCoverageTrace(String trace) {
   final files = <CoverageFile>[];
   final indexByPath = <String, int>{};
   for (final record in _records(trace)) {
@@ -12,13 +22,18 @@ CoverageDocument _parseCoverageDocument(
     if (file == null) continue;
     _addParsedFile(files, indexByPath, file);
   }
-  return CoverageDocument(traceModifiedAt: traceModifiedAt, files: files);
+  return files;
 }
 
-Future<CoverageDocument> _parseCoverageDocumentStreaming(
-  File file, {
-  DateTime? traceModifiedAt,
-}) async {
+/// Parses [file] line by line into source files.
+///
+/// Records are built as each `end_of_record` arrives. The whole trace is not
+/// held as one string. A trailing record with no `end_of_record` is still
+/// parsed.
+///
+/// Throws [CoverageTraceFormatFailure] when [file] is not valid line coverage,
+/// and [FileSystemException] when [file] cannot be read.
+Future<List<CoverageFile>> parseCoverageTraceStreaming(File file) async {
   final files = <CoverageFile>[];
   final indexByPath = <String, int>{};
   final recordLines = <String>[];
@@ -85,7 +100,7 @@ Future<CoverageDocument> _parseCoverageDocumentStreaming(
     await subscription.cancel();
   }
 
-  return CoverageDocument(traceModifiedAt: traceModifiedAt, files: files);
+  return files;
 }
 
 void _addRecord({

@@ -1,19 +1,12 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:collection/collection.dart';
-import 'package:coverde/src/entities/build_coverage_tree.dart';
 import 'package:coverde/src/entities/coverage_directory.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
-import 'package:coverde/src/entities/coverage_line.dart';
-import 'package:coverde/src/entities/coverage_rate.dart';
-import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
-import 'package:coverde/src/utils/path.dart';
+import 'package:coverde/src/utils/coverage.dart';
+import 'package:coverde/src/utils/coverage_tree.dart';
+import 'package:coverde/src/utils/parse_coverage_trace.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
-
-part 'parse_coverage_document.dart';
 
 /// {@template coverde.coverage_document}
 /// Line coverage parsed from an LCOV trace.
@@ -34,7 +27,10 @@ final class CoverageDocument {
   /// Throws [CoverageTraceFormatFailure] when [trace] is not valid line
   /// coverage for this document.
   factory CoverageDocument.parse(String trace, {DateTime? traceModifiedAt}) {
-    return _parseCoverageDocument(trace, traceModifiedAt: traceModifiedAt);
+    return CoverageDocument(
+      traceModifiedAt: traceModifiedAt,
+      files: parseCoverageTrace(trace),
+    );
   }
 
   /// Parses [file] line by line.
@@ -49,10 +45,10 @@ final class CoverageDocument {
   static Future<CoverageDocument> parseStreaming(
     File file, {
     DateTime? traceModifiedAt,
-  }) {
-    return _parseCoverageDocumentStreaming(
-      file,
+  }) async {
+    return CoverageDocument(
       traceModifiedAt: traceModifiedAt,
+      files: await parseCoverageTraceStreaming(file),
     );
   }
 

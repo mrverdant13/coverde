@@ -3,6 +3,7 @@
 import 'package:collection/collection.dart';
 import 'package:coverde/src/assets/assets.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/utils/coverage.dart';
 import 'package:coverde/src/utils/path.dart';
 import 'package:html/dom.dart';
 import 'package:meta/meta.dart';
