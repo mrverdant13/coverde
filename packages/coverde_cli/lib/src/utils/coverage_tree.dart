@@ -1,6 +1,8 @@
 import 'package:coverde/src/entities/coverage_directory.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:coverde/src/utils/coverage.dart';
 import 'package:coverde/src/utils/path.dart';
+import 'package:io/ansi.dart';
 
 final _uncRoot = RegExp('^//([^/]+)/([^/]+)');
 final _driveRoot = RegExp('^[A-Za-z]:/');
@@ -116,4 +118,34 @@ List<String> _tail(String raw) {
     for (final part in raw.split('/'))
       if (part.isNotEmpty) part,
   ];
+}
+
+/// The `Node:` and `SF:` text logged for a coverage tree.
+///
+/// Directories come before files. A rate under 100 is red, and a full rate
+/// is green.
+String formatCoverageTree(CoverageDirectory directory) {
+  final data = _coverageData(
+    directory.path,
+    directory.linesHit,
+    directory.linesFound,
+  );
+  final buffer = StringBuffer('Node: $data');
+  for (final child in directory.directories) {
+    final nested = formatCoverageTree(child).replaceAll('\n', '\n│  ');
+    buffer.write('\n├─ $nested');
+  }
+  for (final file in directory.files) {
+    final data = _coverageData(file.path, file.linesHit, file.linesFound);
+    buffer.write('\n├─ SF: $data');
+  }
+  buffer.writeln();
+  return buffer.toString();
+}
+
+String _coverageData(String path, int linesHit, int linesFound) {
+  final rate = coverageRate(hit: linesHit, found: linesFound)!;
+  final color = rate < 100 ? lightRed : lightGreen;
+  final summary = '(${rate.toStringAsFixed(2)}% - $linesHit/$linesFound)';
+  return '$path ${color.wrap(summary)}';
 }

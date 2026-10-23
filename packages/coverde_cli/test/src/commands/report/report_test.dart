@@ -388,7 +388,10 @@ Error: Non-matching (plain text) file <$relFilePath>''',
         () =>
             logger.warn('Browser launch is not supported on android platform.'),
       ).called(1);
-      verify(() => logger.info(any())).called(2);
+      verify(() => logger.info(any(that: contains('Node:')))).called(1);
+      verify(
+        () => logger.info(any(that: contains('Report location:'))),
+      ).called(1);
       verifyNever(
         () => processManager.run(any(), runInShell: any(named: 'runInShell')),
       );
