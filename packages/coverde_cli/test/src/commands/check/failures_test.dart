@@ -1,6 +1,5 @@
 import 'package:coverde/src/commands/check/failures.dart';
-import 'package:coverde/src/entities/cov_file.dart';
-import 'package:coverde/src/entities/trace_file.dart';
+import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
@@ -465,16 +464,12 @@ Available thresholds: none.
     group('$CoverdeCheckCoverageBelowMinimumFailure', () {
       test('readableMessage '
           '| returns formatted message with coverage values', () {
-        final traceFile = TraceFile(
-          sourceFilesCovData: [
-            CovFile.parse(
-              'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
-            ),
-          ],
+        final document = CoverageDocument.parse(
+          'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
         );
         final failure = CoverdeCheckCoverageBelowMinimumFailure(
           minimumCoverage: 75,
-          traceFile: traceFile,
+          document: document,
         );
 
         final result = failure.readableMessage;
@@ -489,14 +484,12 @@ Available thresholds: none.
 
       test('minimumCoverage '
           '| returns the minimum coverage threshold', () {
-        final traceFile = TraceFile(
-          sourceFilesCovData: [
-            CovFile.parse('SF:path/to/file.dart\nDA:1,1\nend_of_record'),
-          ],
+        final document = CoverageDocument.parse(
+          'SF:path/to/file.dart\nDA:1,1\nend_of_record',
         );
         final failure = CoverdeCheckCoverageBelowMinimumFailure(
           minimumCoverage: 80.5,
-          traceFile: traceFile,
+          document: document,
         );
 
         final result = failure.minimumCoverage;
@@ -506,38 +499,32 @@ Available thresholds: none.
 
       test('actualCoverage '
           '| returns the actual coverage from trace file', () {
-        final traceFile = TraceFile(
-          sourceFilesCovData: [
-            CovFile.parse(
-              'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
-            ),
-          ],
+        final document = CoverageDocument.parse(
+          'SF:path/to/file.dart\nDA:1,1\nDA:2,0\nend_of_record',
         );
         final failure = CoverdeCheckCoverageBelowMinimumFailure(
           minimumCoverage: 75,
-          traceFile: traceFile,
+          document: document,
         );
 
         final result = failure.actualCoverage;
 
-        expect(result, traceFile.coverage);
+        expect(result, document.lineRate);
       });
 
-      test('traceFile '
-          '| returns the trace file', () {
-        final traceFile = TraceFile(
-          sourceFilesCovData: [
-            CovFile.parse('SF:path/to/file.dart\nDA:1,1\nend_of_record'),
-          ],
+      test('document '
+          '| returns the parsed trace', () {
+        final document = CoverageDocument.parse(
+          'SF:path/to/file.dart\nDA:1,1\nend_of_record',
         );
         final failure = CoverdeCheckCoverageBelowMinimumFailure(
           minimumCoverage: 75,
-          traceFile: traceFile,
+          document: document,
         );
 
-        final result = failure.traceFile;
+        final result = failure.document;
 
-        expect(result, traceFile);
+        expect(result, document);
       });
     });
   });

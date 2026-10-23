@@ -87,9 +87,9 @@ Compute the coverage value of the $_inputHelpValue info file.''';
 
     final file = File(filePath);
 
-    final TraceFile traceFile;
+    final CoverageDocument document;
     try {
-      traceFile = await TraceFile.parseStreaming(file);
+      document = await CoverageDocument.parseStreaming(file);
     } on FileSystemException catch (exception) {
       throw CoverdeValueTraceFileReadFailure.fromFileSystemException(
         traceFilePath: filePath,
@@ -97,13 +97,13 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       );
     }
 
-    if (traceFile.isEmpty) {
+    if (document.isEmpty) {
       throw CoverdeValueEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
     logCoverage(
       logger: logger,
-      traceFile: traceFile,
+      document: document,
       fileCoverageLogLevel: fileCoverageLogLevel,
     );
   }
@@ -111,44 +111,44 @@ Compute the coverage value of the $_inputHelpValue info file.''';
   /// Log coverage values.
   static void logCoverage({
     required Logger logger,
-    required TraceFile traceFile,
+    required CoverageDocument document,
     required FileCoverageLogLevel fileCoverageLogLevel,
   }) {
     switch (fileCoverageLogLevel) {
       case FileCoverageLogLevel.none:
         break;
       case FileCoverageLogLevel.overview:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
+        for (final file in document.files) {
+          logger.info(file.coverageDataString);
         }
       case FileCoverageLogLevel.lineNumbers:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
-          final uncoveredLineNumbers = fileCovData.uncoveredLineNumbers;
+        for (final file in document.files) {
+          logger.info(file.coverageDataString);
+          final uncoveredLineNumbers = file.uncoveredLineNumbers;
           if (uncoveredLineNumbers.isNotEmpty) {
             final message = 'UNCOVERED: ${uncoveredLineNumbers.join(', ')}';
             logger.info('└ ${wrapWith(message, [red, styleBold])}');
           }
         }
       case FileCoverageLogLevel.lineContent:
-        for (final fileCovData in traceFile.sourceFilesCovData) {
-          logger.info(fileCovData.coverageDataString);
+        for (final file in document.files) {
+          logger.info(file.coverageDataString);
           final sourceLines = () {
             if (!hostCanResolveCoveragePath(
-              fileCovData.source.path,
+              file.path,
               windowsHost: Platform.isWindows,
             )) {
               throw CoverdeValueUnresolvedCoveragePathFailure(
-                sourcePath: fileCovData.source.path,
+                sourcePath: file.path,
               );
             }
-            final file = fileCovData.source.absolute;
+            final source = File(file.path).absolute;
             try {
-              return file.readAsLinesSync();
+              return source.readAsLinesSync();
             } on FileSystemException catch (exception, stackTrace) {
               Error.throwWithStackTrace(
                 CoverdeValueFileReadFailure.fromFileSystemException(
-                  filePath: file.path,
+                  filePath: source.path,
                   exception: exception,
                 ),
                 stackTrace,
@@ -157,7 +157,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
           }();
           final sourceLinesCount = sourceLines.length;
           final lineNumberColumnWidth = '$sourceLinesCount'.length;
-          final uncoveredLineRanges = fileCovData.getUncoveredLineRanges(
+          final uncoveredLineRanges = file.uncoveredLineRanges(
             sourceLines: sourceLines,
           );
           final indexedUncoveredLineRanges = uncoveredLineRanges.indexed;
@@ -190,29 +190,40 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     }
     if (fileCoverageLogLevel != FileCoverageLogLevel.none) logger.info('');
 
-    // Show resulting coverage.
+    final lineRate = document.lineRate!;
     logger
       ..info(wrapWith('GLOBAL:', [blue, styleBold]))
-      ..info(wrapWith(traceFile.coverageDataString, [blue, styleBold]));
+      ..info(
+        wrapWith(
+          '${lineRate.toStringAsFixed(2)}% - '
+          '${document.linesHit}/${document.linesFound}',
+          [blue, styleBold],
+        ),
+      );
   }
 }
 
-extension on CovFile {
-  Iterable<int> get uncoveredLineNumbers {
-    return covLines
-        .where((line) => !line.hasBeenHit)
-        .map((line) => line.lineNumber);
+extension on CoverageFile {
+  String get coverageDataString {
+    final rate = lineRate!;
+    final color = rate < 100 ? lightRed : lightGreen;
+    final summary = '(${rate.toStringAsFixed(2)}% - $linesHit/$linesFound)';
+    return '$path ${color.wrap(summary)}';
   }
 
-  Iterable<Iterable<FileLineCoverageDetails>> getUncoveredLineRanges({
+  Iterable<int> get uncoveredLineNumbers {
+    return lines.where((line) => !line.hasBeenHit).map((line) => line.number);
+  }
+
+  Iterable<Iterable<FileLineCoverageDetails>> uncoveredLineRanges({
     required Iterable<String> sourceLines,
   }) {
     const maxGap = 5;
     const surroundingLines = 2;
     final sourceLinesCount = sourceLines.length;
-    final ranges = covLines
+    final ranges = lines
         .where((line) => !line.hasBeenHit)
-        .map((line) => line.lineNumber)
+        .map((line) => line.number)
         .splitBetween((a, b) => b - a > maxGap)
         .map(
           (group) => (
@@ -228,8 +239,8 @@ extension on CovFile {
             lineNumber++
           ) {
             final content = sourceLines.elementAt(lineNumber - 1);
-            final covLine = covLines.singleWhereOrNull(
-              (line) => line.lineNumber == lineNumber,
+            final covLine = lines.singleWhereOrNull(
+              (line) => line.number == lineNumber,
             );
             final status = switch (covLine?.hasBeenHit) {
               null => FileLineCoverageStatus.neutral,

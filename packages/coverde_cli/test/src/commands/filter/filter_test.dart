@@ -15,6 +15,13 @@ final class _MockLogger extends Mock implements Logger {}
 final class _MockPackageVersionManager extends Mock
     implements PackageVersionManager {}
 
+bool _includesPattern(CoverageDocument document, List<String> patterns) {
+  final expressions = patterns.map(RegExp.new);
+  return expressions.any(
+    (pattern) => document.files.any((file) => pattern.hasMatch(file.path)),
+  );
+}
+
 final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
   _FakeCoverdeCommandRunner({
     required super.logger,
@@ -111,11 +118,15 @@ end_of_record
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
-          .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final originalDocument = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
+      final originalFileIncludeFileThatMatchPatterns = _includesPattern(
+        originalDocument,
+        patterns,
+      );
+      final filesDataToBeRemoved = originalDocument.files.where(
+        (file) => patternsRegex.any((pattern) => pattern.hasMatch(file.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -136,14 +147,14 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = CovFile.rewriteSourcePath(
-        acceptedSourceFileData,
-        acceptedSourceFilePath,
+      final expectedFilteredFileContent =
+          CoverageDocument.parse(
+            acceptedSourceFileData,
+          ).files.single.renderTrace();
+      final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
+        await CoverageDocument.parseStreaming(filteredFile),
+        patterns,
       );
-      final filteredFileIncludeFileThatMatchPatterns =
-          (await TraceFile.parseStreaming(
-            filteredFile,
-          )).includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
       expect(
         splitter.convert(filteredFileContent),
@@ -161,7 +172,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
       directory.deleteSync(recursive: true);
@@ -216,11 +227,15 @@ end_of_record
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
-          .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final originalDocument = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
+      final originalFileIncludeFileThatMatchPatterns = _includesPattern(
+        originalDocument,
+        patterns,
+      );
+      final filesDataToBeRemoved = originalDocument.files.where(
+        (file) => patternsRegex.any((pattern) => pattern.hasMatch(file.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -241,14 +256,14 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent = CovFile.rewriteSourcePath(
-        acceptedSourceFileData,
-        acceptedSourceFilePath,
+      final expectedFilteredFileContent =
+          CoverageDocument.parse(
+            acceptedSourceFileData,
+          ).files.single.renderTrace();
+      final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
+        await CoverageDocument.parseStreaming(filteredFile),
+        patterns,
       );
-      final filteredFileIncludeFileThatMatchPatterns =
-          (await TraceFile.parseStreaming(
-            filteredFile,
-          )).includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
       expect(
         splitter.convert(filteredFileContent),
@@ -266,7 +281,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
       directory.deleteSync(recursive: true);
@@ -407,11 +422,15 @@ $ignoredSourceFileData
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
-          .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final originalDocument = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
+      final originalFileIncludeFileThatMatchPatterns = _includesPattern(
+        originalDocument,
+        patterns,
+      );
+      final filesDataToBeRemoved = originalDocument.files.where(
+        (file) => patternsRegex.any((pattern) => pattern.hasMatch(file.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -440,16 +459,20 @@ LF:1
 LH:1
 end_of_record
 '''.trim();
-      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-      final expectedTraceFile = TraceFile(
-        sourceFilesCovData: [CovFile.parse(expectedFilteredFileContent)],
+      final filteredDocument = await CoverageDocument.parseStreaming(
+        filteredFile,
       );
-      final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
-          .includeFileThatMatchPatterns(patterns);
+      final expectedDocument = CoverageDocument.parse(
+        expectedFilteredFileContent,
+      );
+      final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
+        filteredDocument,
+        patterns,
+      );
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
       expect(
-        filteredTraceFile,
-        expectedTraceFile,
+        filteredDocument,
+        expectedDocument,
         reason: 'Error: Non-matching trace files.',
       );
       verify(
@@ -463,7 +486,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
     });
@@ -535,11 +558,15 @@ $absoluteSourceFileData
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
       }
-      final originalTraceFile = await TraceFile.parseStreaming(originalFile);
-      final originalFileIncludeFileThatMatchPatterns = originalTraceFile
-          .includeFileThatMatchPatterns(patterns);
-      final filesDataToBeRemoved = originalTraceFile.sourceFilesCovData.where(
-        (d) => patternsRegex.any((r) => r.hasMatch(d.source.path)),
+      final originalDocument = await CoverageDocument.parseStreaming(
+        originalFile,
+      );
+      final originalFileIncludeFileThatMatchPatterns = _includesPattern(
+        originalDocument,
+        patterns,
+      );
+      final filesDataToBeRemoved = originalDocument.files.where(
+        (file) => patternsRegex.any((pattern) => pattern.hasMatch(file.path)),
       );
 
       expect(originalFile.existsSync(), isTrue);
@@ -560,35 +587,29 @@ $absoluteSourceFileData
 
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
-      final filteredTraceFile = await TraceFile.parseStreaming(filteredFile);
-      final expectedTraceFile = TraceFile(
-        sourceFilesCovData: [
-          CovFile.parse(
-            '''
+      final filteredDocument = await CoverageDocument.parseStreaming(
+        filteredFile,
+      );
+      final expectedDocument = CoverageDocument.parse('''
 SF:${p.relative(acceptedSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim(),
-          ),
-          CovFile.parse(
-            '''
 SF:${p.relative(absoluteSourceFilePath, from: baseDirectory)}
 DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim(),
-          ),
-        ],
+''');
+      final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
+        filteredDocument,
+        patterns,
       );
-      final filteredFileIncludeFileThatMatchPatterns = filteredTraceFile
-          .includeFileThatMatchPatterns(patterns);
       expect(filteredFileIncludeFileThatMatchPatterns, isFalse);
       expect(
-        filteredTraceFile,
-        expectedTraceFile,
+        filteredDocument,
+        expectedDocument,
         reason: 'Error: Non-matching trace files.',
       );
       verify(
@@ -602,7 +623,7 @@ end_of_record
         ),
       ).called(1);
       for (final fileData in filesDataToBeRemoved) {
-        final path = fileData.source.path;
+        final path = fileData.path;
         verify(() => logger.detail('<$path> coverage data ignored.')).called(1);
       }
     });

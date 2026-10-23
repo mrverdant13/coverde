@@ -1435,7 +1435,7 @@ transformations:
                     ),
               );
             }
-            // Path from SF: line in trace is used to build CovFile; not opened.
+            // The SF path is the source path. This test does not open it.
             if (filePath.contains('foo.dart')) {
               return _TransformTestFile(path: filePath);
             }
