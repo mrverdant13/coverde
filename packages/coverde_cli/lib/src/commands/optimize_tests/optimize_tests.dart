@@ -377,7 +377,7 @@ tearDown(() {
         return coder.Method(
           (b) => b
             ..body = coder.Block.of([
-              if (setUpInvocation != null) setUpInvocation,
+              ?setUpInvocation,
               mainInvocation.statement,
             ]),
         ).closure;
