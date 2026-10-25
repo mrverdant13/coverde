@@ -12,8 +12,9 @@ Future<void> main(List<String> args) async {
     return await coverde(
       args: args,
       logger: logger,
-      globalLockFilePath:
-          Platform.script.resolve('../pubspec.lock').toFilePath(),
+      globalLockFilePath: Platform.script
+          .resolve('../pubspec.lock')
+          .toFilePath(),
       pubApiBaseUrl: 'https://pub.dev',
       httpClient: httpClient,
       rawDartVersion: Platform.version,

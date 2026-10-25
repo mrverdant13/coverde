@@ -205,10 +205,9 @@ class HtmlCoverageReportGenerator {
   }) {
     final fileReport = _fileReportTemplate.clone(true);
 
-    final topLevelDirRelPath =
-        (reportRelDepth > 1)
-            ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
-            : '.';
+    final topLevelDirRelPath = (reportRelDepth > 1)
+        ? path.url.joinAll(List.filled(reportRelDepth - 1, '..'))
+        : '.';
     final topLevelReportRelPath = path.url.join(
       topLevelDirRelPath,
       'index.html',
@@ -307,10 +306,9 @@ class HtmlCoverageReportGenerator {
     final sanitizedRelativePath = path.url.joinAll(path.split(relativePath));
     final row = _folderReportRowTemplate.clone(true);
     final rate = coverageRate(hit: linesHit, found: linesFound);
-    final link =
-        isDirectory
-            ? path.url.join(sanitizedRelativePath, 'index.html')
-            : '$sanitizedRelativePath.html';
+    final link = isDirectory
+        ? path.url.join(sanitizedRelativePath, 'index.html')
+        : '$sanitizedRelativePath.html';
     row.querySelector('.coverFileAnchor')
       ?..attributes['href'] = link
       ..text = sanitizedRelativePath;
@@ -526,10 +524,9 @@ final class _ReportLayout {
       final drive = _letter(to);
       if (drive != null) {
         final relativeDrive = _isDriveRelative(to);
-        final namespace =
-            relativeDrive
-                ? (driveRelativeNamespaces[drive] ?? 'drive-$drive-relative')
-                : (driveNamespaces[drive] ?? 'drive-$drive');
+        final namespace = relativeDrive
+            ? (driveRelativeNamespaces[drive] ?? 'drive-$drive-relative')
+            : (driveNamespaces[drive] ?? 'drive-$drive');
         final rest = to
             .substring(drive.length + 1)
             .replaceFirst(RegExp('^/+'), '');
@@ -544,10 +541,9 @@ final class _ReportLayout {
   String inside(String parentAbsPath, String relativePath) {
     final destination = path.normalize(path.join(parentAbsPath, relativePath));
     final root = path.normalize(reportRootAbsPath);
-    final parts =
-        relativePath.isEmpty
-            ? const <String>[]
-            : path.posix.split(relativePath);
+    final parts = relativePath.isEmpty
+        ? const <String>[]
+        : path.posix.split(relativePath);
     final escapes =
         path.posix.isAbsolute(relativePath) ||
         _letter(normalizeCoveragePath(relativePath)) != null ||

@@ -99,7 +99,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final ignoredSourceFileData =
           '''
 SF:$ignoredSourceFilePath
@@ -107,13 +108,13 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final originalFileContent =
           '$acceptedSourceFileData\n$ignoredSourceFileData';
-      final originalFile =
-          File(originalFilePath)
-            ..createSync()
-            ..writeAsStringSync(originalFileContent);
+      final originalFile = File(originalFilePath)
+        ..createSync()
+        ..writeAsStringSync(originalFileContent);
       final filteredFile = File(filteredFilePath);
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
@@ -147,10 +148,9 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent =
-          CoverageDocument.parse(
-            acceptedSourceFileData,
-          ).files.single.renderTrace();
+      final expectedFilteredFileContent = CoverageDocument.parse(
+        acceptedSourceFileData,
+      ).files.single.renderTrace();
       final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
         await CoverageDocument.parseStreaming(filteredFile),
         patterns,
@@ -208,7 +208,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final ignoredSourceFileData =
           '''
 SF:$ignoredSourceFilePath
@@ -216,13 +217,13 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final originalFileContent =
           '$acceptedSourceFileData\n$ignoredSourceFileData';
-      final originalFile =
-          File(originalFilePath)
-            ..createSync()
-            ..writeAsStringSync(originalFileContent);
+      final originalFile = File(originalFilePath)
+        ..createSync()
+        ..writeAsStringSync(originalFileContent);
       final filteredFile = File(filteredFilePath);
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
@@ -256,10 +257,9 @@ end_of_record
       expect(originalFile.existsSync(), isTrue);
       expect(filteredFile.existsSync(), isTrue);
       final filteredFileContent = filteredFile.readAsStringSync();
-      final expectedFilteredFileContent =
-          CoverageDocument.parse(
-            acceptedSourceFileData,
-          ).files.single.renderTrace();
+      final expectedFilteredFileContent = CoverageDocument.parse(
+        acceptedSourceFileData,
+      ).files.single.renderTrace();
       final filteredFileIncludeFileThatMatchPatterns = _includesPattern(
         await CoverageDocument.parseStreaming(filteredFile),
         patterns,
@@ -401,7 +401,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final ignoredSourceFileData =
           '''
 SF:$ignoredSourceFilePath
@@ -409,15 +410,16 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
-      final originalFileContent = '''
+'''
+              .trim();
+      final originalFileContent =
+          '''
 $acceptedSourceFileData
 $ignoredSourceFileData
 ''';
-      final originalFile =
-          File(originalFilePath)
-            ..createSync()
-            ..writeAsStringSync(originalFileContent);
+      final originalFile = File(originalFilePath)
+        ..createSync()
+        ..writeAsStringSync(originalFileContent);
       final filteredFile = File(filteredFilePath);
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
@@ -458,7 +460,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final filteredDocument = await CoverageDocument.parseStreaming(
         filteredFile,
       );
@@ -528,7 +531,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final ignoredSourceFileData =
           '''
 SF:$ignoredSourceFilePath
@@ -536,7 +540,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final absoluteSourceFileData =
           '''
 SF:$absoluteSourceFilePath
@@ -544,16 +549,17 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
-      final originalFileContent = '''
+'''
+              .trim();
+      final originalFileContent =
+          '''
 $acceptedSourceFileData
 $ignoredSourceFileData
 $absoluteSourceFileData
 ''';
-      final originalFile =
-          File(originalFilePath)
-            ..createSync()
-            ..writeAsStringSync(originalFileContent);
+      final originalFile = File(originalFilePath)
+        ..createSync()
+        ..writeAsStringSync(originalFileContent);
       final filteredFile = File(filteredFilePath);
       if (filteredFile.existsSync()) {
         filteredFile.deleteSync(recursive: true);
@@ -779,7 +785,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final newContent =
           '''
 SF:new.dart
@@ -787,7 +794,8 @@ DA:1,1
 LF:1
 LH:1
 end_of_record
-'''.trim();
+'''
+              .trim();
       final testCases = [
         (
           mode: 'a',
@@ -904,16 +912,14 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final inputFilePath = p.join(directory.path, 'input.info');
-      final inputFile =
-          File(inputFilePath)
-            ..createSync()
-            ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
+      final inputFile = File(inputFilePath)
+        ..createSync()
+        ..writeAsStringSync('SF:lib/some_test.dart\nend_of_record');
       final outputFilePath = p.join(directory.path, 'output.info');
       final testFilePath = p.joinAll([directory.path, 'lib', 'some_test.dart']);
-      final testFile =
-          File(testFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final testFile = File(testFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
@@ -956,10 +962,9 @@ end_of_record
           if (p.basename(path) == 'output.info') {
             return _FilterTestFile(
               path: path,
-              open:
-                  () => Future<RandomAccessFile>.error(
-                    FileSystemException('Fake file write error', path),
-                  ),
+              open: () => Future<RandomAccessFile>.error(
+                FileSystemException('Fake file write error', path),
+              ),
             );
           }
           throw UnsupportedError(
@@ -1017,10 +1022,9 @@ end_of_record
           if (p.basename(path) == 'input.info') {
             return _FilterTestFile(
               path: path,
-              openRead:
-                  ([start, end]) => Stream<List<int>>.error(
-                    FileSystemException('Fake file read error', path),
-                  ),
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
             );
           }
           if (p.basename(path) == 'output.info') {

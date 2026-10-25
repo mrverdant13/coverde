@@ -261,9 +261,8 @@ Usage message
             'Permission denied',
             '/path/to/dir',
           );
-          const created =
-              CoverdeOptimizeTestsDirectoryCreateFailure
-                  .fromFileSystemException;
+          const created = CoverdeOptimizeTestsDirectoryCreateFailure
+              .fromFileSystemException;
           final failure = created(
             directoryPath: '/path/to/dir',
             exception: exception,

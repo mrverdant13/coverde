@@ -94,7 +94,8 @@ Override the $_outputHelpValue content, if any, with the filtered content.''',
   static const modeOption = 'mode';
 
   @override
-  String get description => '''
+  String get description =>
+      '''
 [DEPRECATED] Filter a coverage trace file. Use `coverde transform` instead.
 
 Filter the coverage info by ignoring data related to files with paths that matches the given $_filtersHelpValue.

@@ -214,7 +214,8 @@ transformations:
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/src/foo.dart';
         const skippedPath = 'test/foo_test.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -257,7 +258,8 @@ end_of_record
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/foo.dart';
         const skippedPath = 'test/bar_test.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -300,7 +302,8 @@ end_of_record
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/foo.dart';
         const skippedPath = 'bin/bar.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -373,7 +376,8 @@ end_of_record
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/foo.dart';
         const skippedPath = 'lib/foo.g.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 LF:1
@@ -418,7 +422,8 @@ end_of_record
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/foo.dart';
         const skippedPath = 'lib/bar.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 DA:2,2
@@ -465,7 +470,8 @@ end_of_record
         final outputPath = p.join(directory.path, 'out.info');
         const keptPath = 'lib/foo.dart';
         const skippedPath = 'lib/bar.dart';
-        const inputContent = '''
+        const inputContent =
+            '''
 SF:$keptPath
 DA:1,1
 DA:2,2
@@ -509,7 +515,8 @@ end_of_record
         final inputPath = p.join(directory.path, 'in.info');
         final outputPath = p.join(directory.path, 'out.info');
         final absolutePath = p.joinAll([directory.path, 'lib', 'foo.dart']);
-        final inputContent = '''
+        final inputContent =
+            '''
 SF:$absolutePath
 DA:1,1
 LF:1
@@ -726,12 +733,11 @@ end_of_record
         );
         addTearDown(() => directory.deleteSync(recursive: true));
         final inputPath = p.join(directory.path, 'in.info');
-        final inputFile =
-            File(inputPath)
-              ..createSync()
-              ..writeAsStringSync(
-                'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
-              );
+        final inputFile = File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          );
         final configPath = p.join(directory.path, 'coverde.yaml');
         File(configPath).createSync();
 
@@ -760,12 +766,8 @@ end_of_record
                 p.normalize(filePath) == p.normalize(configPath)) {
               return _TransformTestFile(
                 path: filePath,
-                readAsStringSync:
-                    () =>
-                        throw FileSystemException(
-                          'Cannot read config',
-                          filePath,
-                        ),
+                readAsStringSync: () =>
+                    throw FileSystemException('Cannot read config', filePath),
               );
             }
             if (p.normalize(filePath) == p.normalize(inputPath)) {
@@ -1128,12 +1130,10 @@ transformations:
             if (p.normalize(filePath) == p.normalize(configPath)) {
               return _TransformTestFile(
                 path: filePath,
-                readAsStringSync:
-                    () =>
-                        throw FileSystemException(
-                          'Cannot read external config',
-                          filePath,
-                        ),
+                readAsStringSync: () => throw FileSystemException(
+                  'Cannot read external config',
+                  filePath,
+                ),
               );
             }
             throw UnsupportedError(
@@ -1348,12 +1348,10 @@ transformations:
             if (p.normalize(filePath) == p.normalize(configPath)) {
               return _TransformTestFile(
                 path: filePath,
-                resolveSymbolicLinksSync:
-                    () =>
-                        throw FileSystemException(
-                          'Cannot resolve external config',
-                          filePath,
-                        ),
+                resolveSymbolicLinksSync: () => throw FileSystemException(
+                  'Cannot resolve external config',
+                  filePath,
+                ),
               );
             }
             throw UnsupportedError(
@@ -1440,12 +1438,11 @@ transformations:
         );
         addTearDown(() => directory.deleteSync(recursive: true));
         final inputPath = p.join(directory.path, 'in.info');
-        final inputFile =
-            File(inputPath)
-              ..createSync()
-              ..writeAsStringSync(
-                'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
-              );
+        final inputFile = File(inputPath)
+          ..createSync()
+          ..writeAsStringSync(
+            'SF:lib/foo.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record',
+          );
         final outputPath = p.join(directory.path, 'out.info');
 
         await IOOverrides.runZoned(
@@ -1475,10 +1472,9 @@ transformations:
             if (p.basename(filePath) == 'out.info') {
               return _TransformTestFile(
                 path: filePath,
-                open:
-                    () => Future<RandomAccessFile>.error(
-                      FileSystemException('Fake file write error', filePath),
-                    ),
+                open: () => Future<RandomAccessFile>.error(
+                  FileSystemException('Fake file write error', filePath),
+                ),
               );
             }
             // The SF path is the source path. This test does not open it.
@@ -1530,10 +1526,9 @@ transformations:
             if (p.basename(path) == 'in.info') {
               return _TransformTestFile(
                 path: path,
-                openRead:
-                    ([start, end]) => Stream<List<int>>.error(
-                      FileSystemException('Fake file read error', path),
-                    ),
+                openRead: ([start, end]) => Stream<List<int>>.error(
+                  FileSystemException('Fake file read error', path),
+                ),
               );
             }
             if (p.basename(path) == 'out.info') return outputFile;

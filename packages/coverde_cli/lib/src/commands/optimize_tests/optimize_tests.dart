@@ -129,18 +129,16 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final shardIndexStr = argResults.option(shardIndexOptionName);
     final (totalShards, shardIndex) = switch ((totalShardsStr, shardIndexStr)) {
       (null, null) => (null, null),
-      (null, final _?) =>
-        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
-          usageMessage: usageWithoutDescription,
-          totalShardsProvided: false,
-          shardIndexProvided: true,
-        ),
-      (final _?, null) =>
-        throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
-          usageMessage: usageWithoutDescription,
-          totalShardsProvided: true,
-          shardIndexProvided: false,
-        ),
+      (null, final _?) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+        usageMessage: usageWithoutDescription,
+        totalShardsProvided: false,
+        shardIndexProvided: true,
+      ),
+      (final _?, null) => throw CoverdeOptimizeTestsShardOptionsMismatchFailure(
+        usageMessage: usageWithoutDescription,
+        totalShardsProvided: true,
+        shardIndexProvided: false,
+      ),
       (final ts?, final si?) => () {
         final totalShardsInt = int.tryParse(ts);
         final shardIndexInt = int.tryParse(si);
@@ -232,28 +230,29 @@ class OptimizeTestsCommand extends CoverdeCommand {
     final useFlutterGoldenTests =
         argResults.flag(useFlutterGoldenTestsFlagName) && isFlutterPackage;
 
-    final fileRelativePaths = () {
-      try {
-        return projectDir.listSync(recursive: true);
-      } on FileSystemException catch (exception, stackTrace) {
-        Error.throwWithStackTrace(
-          CoverdeOptimizeTestsDirectoryListFailure.fromFileSystemException(
-            directoryPath: projectDir.path,
-            exception: exception,
-          ),
-          stackTrace,
-        );
-      }
-    }().whereType<File>().sortedBy((it) => it.path).map((it) {
-      final relativePath = p.relative(it.path, from: projectDir.path);
-      final segments = p.split(relativePath);
-      final posixRelativePath = p.posix.joinAll(segments);
-      final platformRelativePath = p.joinAll(segments);
-      return (
-        posixRelativePath: posixRelativePath,
-        platformRelativePath: platformRelativePath,
-      );
-    });
+    final fileRelativePaths =
+        () {
+          try {
+            return projectDir.listSync(recursive: true);
+          } on FileSystemException catch (exception, stackTrace) {
+            Error.throwWithStackTrace(
+              CoverdeOptimizeTestsDirectoryListFailure.fromFileSystemException(
+                directoryPath: projectDir.path,
+                exception: exception,
+              ),
+              stackTrace,
+            );
+          }
+        }().whereType<File>().sortedBy((it) => it.path).map((it) {
+          final relativePath = p.relative(it.path, from: projectDir.path);
+          final segments = p.split(relativePath);
+          final posixRelativePath = p.posix.joinAll(segments);
+          final platformRelativePath = p.joinAll(segments);
+          return (
+            posixRelativePath: posixRelativePath,
+            platformRelativePath: platformRelativePath,
+          );
+        });
 
     final includedFileRelativePaths = fileRelativePaths.where(
       (it) => includeGlob.matches(it.posixRelativePath),
@@ -266,9 +265,10 @@ class OptimizeTestsCommand extends CoverdeCommand {
     };
 
     final shardedFileRelativePaths = switch ((totalShards, shardIndex)) {
-      (final ts?, final si?) => validFileRelativePaths.indexed
-          .where((indexed) => indexed.$1 % ts == si)
-          .map((indexed) => indexed.$2),
+      (final ts?, final si?) =>
+        validFileRelativePaths.indexed
+            .where((indexed) => indexed.$1 % ts == si)
+            .map((indexed) => indexed.$2),
       _ => validFileRelativePaths,
     };
 
@@ -295,8 +295,8 @@ class OptimizeTestsCommand extends CoverdeCommand {
       );
       final unit = result.unit;
       final declarations = unit.declarations;
-      final functionDeclarations =
-          declarations.whereType<FunctionDeclaration>();
+      final functionDeclarations = declarations
+          .whereType<FunctionDeclaration>();
       final mainFunctionDeclaration = functionDeclarations.firstWhereOrNull(
         (declaration) => declaration.name.lexeme == 'main',
       );
@@ -307,12 +307,11 @@ class OptimizeTestsCommand extends CoverdeCommand {
         );
         continue;
       }
-      final mainFunctionHasParams = switch (mainFunctionDeclaration
-          .functionExpression
-          .parameters) {
-        FormalParameterList(:final parameters) => parameters.isNotEmpty,
-        null => false,
-      };
+      final mainFunctionHasParams =
+          switch (mainFunctionDeclaration.functionExpression.parameters) {
+            FormalParameterList(:final parameters) => parameters.isNotEmpty,
+            null => false,
+          };
       if (mainFunctionHasParams) {
         logger.warn(
           'Test file ${fileRelativePath.platformRelativePath} '
@@ -376,43 +375,37 @@ tearDown(() {
           ]);
         }();
         return coder.Method(
-          (b) =>
-              b
-                ..body = coder.Block.of([
-                  if (setUpInvocation != null) setUpInvocation,
-                  mainInvocation.statement,
-                ]),
+          (b) => b
+            ..body = coder.Block.of([
+              ?setUpInvocation,
+              mainInvocation.statement,
+            ]),
         ).closure;
       }();
-      final testFileGroupStatement =
-          const coder.Reference('group')
-              .call(
-                [coder.literalString(testRelativePath), testInvocation],
-                {
-                  if (onPlatform != null)
-                    'onPlatform': coder.CodeExpression(coder.Code(onPlatform)),
-                  if (skip != null)
-                    'skip': coder.CodeExpression(
-                      skip == ''
-                          ? coder.literalBool(true).code
-                          : coder.Code(skip),
-                    ),
-                  if (tags != null)
-                    'tags': coder.CodeExpression(coder.Code(tags)),
-                  if (testOn != null)
-                    'testOn': coder.CodeExpression(coder.Code(testOn)),
-                  if (timeout != null)
-                    'timeout': coder.CodeExpression(coder.Code(timeout)),
-                },
-              )
-              .statement;
+      final testFileGroupStatement = const coder.Reference('group')
+          .call(
+            [coder.literalString(testRelativePath), testInvocation],
+            {
+              if (onPlatform != null)
+                'onPlatform': coder.CodeExpression(coder.Code(onPlatform)),
+              if (skip != null)
+                'skip': coder.CodeExpression(
+                  skip == '' ? coder.literalBool(true).code : coder.Code(skip),
+                ),
+              if (tags != null) 'tags': coder.CodeExpression(coder.Code(tags)),
+              if (testOn != null)
+                'testOn': coder.CodeExpression(coder.Code(testOn)),
+              if (timeout != null)
+                'timeout': coder.CodeExpression(coder.Code(timeout)),
+            },
+          )
+          .statement;
       testFileGroupsStatements.add(testFileGroupStatement);
     }
     final mainFunction = coder.Method.returnsVoid(
-      (b) =>
-          b
-            ..name = 'main'
-            ..body = coder.Block.of([...testFileGroupsStatements]),
+      (b) => b
+        ..name = 'main'
+        ..body = coder.Block.of([...testFileGroupsStatements]),
     );
     final library = coder.Library((b) {
       if (testFileGroupsStatements.isNotEmpty) {

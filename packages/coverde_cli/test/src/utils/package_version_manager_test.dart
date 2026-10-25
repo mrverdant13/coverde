@@ -128,8 +128,8 @@ void main() {
               return _PackageVersionManagerTestFile(
                 path: path,
                 existsSync: () => true,
-                readAsString:
-                    () => throw FileSystemException('Permission denied', path),
+                readAsString: () =>
+                    throw FileSystemException('Permission denied', path),
               );
             }
             throw UnsupportedError(
@@ -827,8 +827,8 @@ sdks:
   dart: ">=3.6.0 <4.0.0"
 ''');
         when(() => dependencies.globalLockFilePath).thenReturn(lockFilePath);
-        final globalPackageInstallationInfo =
-            await packageVersionManager.getGlobalPackageInstallationInfo();
+        final globalPackageInstallationInfo = await packageVersionManager
+            .getGlobalPackageInstallationInfo();
         expect(
           globalPackageInstallationInfo,
           PackageVersioningInfo(

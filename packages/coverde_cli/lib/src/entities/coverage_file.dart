@@ -78,8 +78,9 @@ final class CoverageFile {
   /// [sourcePath] is normalized, so the written separator is the one that
   /// path already uses.
   String renderTrace({String? sourcePath}) {
-    final writtenPath =
-        sourcePath == null ? path : normalizeCoveragePath(sourcePath);
+    final writtenPath = sourcePath == null
+        ? path
+        : normalizeCoveragePath(sourcePath);
     return [
       for (final entry in entries)
         switch (entry) {

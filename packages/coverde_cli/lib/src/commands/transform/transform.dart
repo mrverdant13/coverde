@@ -10,8 +10,11 @@ import 'package:universal_io/io.dart';
 
 export 'failures.dart';
 
-typedef _ExternalPresetVisit =
-    ({String canonicalPath, String presetName, String label});
+typedef _ExternalPresetVisit = ({
+  String canonicalPath,
+  String presetName,
+  String label,
+});
 
 /// {@template transform_cmd}
 /// A command to transform coverage info files.
@@ -133,7 +136,8 @@ Override the $_outputHelpValue content, if any, with the transformed content.'''
   static const _configFileName = 'coverde.yaml';
 
   @override
-  String get description => '''
+  String get description =>
+      '''
 Transform a coverage trace file.
 
 Apply a sequence of transformations to the coverage data.
@@ -272,10 +276,9 @@ Presets can be defined in $_configFileName under the `transformations` key.
     var i = 1;
     final stepsWithPresetChains = steps.getStepsWithPresetChains();
     for (final (:presets, :transformation) in stepsWithPresetChains) {
-      final suffix =
-          presets.isEmpty
-              ? ''
-              : '   (from preset ${presets.join(presetChainSeparator)})';
+      final suffix = presets.isEmpty
+          ? ''
+          : '   (from preset ${presets.join(presetChainSeparator)})';
       logger.info('$i. ${transformation.describe}$suffix');
       i++;
     }
@@ -322,39 +325,34 @@ Presets can be defined in $_configFileName under the `transformations` key.
         case SkipByRegexTransformation(:final regex):
           entries = entries.where((e) => !regex.hasMatch(e.path)).toList();
         case KeepByGlobTransformation(:final glob):
-          entries =
-              entries
-                  .where((e) => glob.matches(_normalizePath(e.path)))
-                  .toList();
+          entries = entries
+              .where((e) => glob.matches(_normalizePath(e.path)))
+              .toList();
         case SkipByGlobTransformation(:final glob):
-          entries =
-              entries
-                  .where((e) => !glob.matches(_normalizePath(e.path)))
-                  .toList();
+          entries = entries
+              .where((e) => !glob.matches(_normalizePath(e.path)))
+              .toList();
         case KeepByCoverageTransformation(:final comparison):
-          entries =
-              entries
-                  .where((e) => _matchesCoverage(e.coverage, comparison))
-                  .toList();
+          entries = entries
+              .where((e) => _matchesCoverage(e.coverage, comparison))
+              .toList();
         case SkipByCoverageTransformation(:final comparison):
-          entries =
-              entries
-                  .where((e) => !_matchesCoverage(e.coverage, comparison))
-                  .toList();
+          entries = entries
+              .where((e) => !_matchesCoverage(e.coverage, comparison))
+              .toList();
         case RelativeTransformation(basePath: final bp):
-          entries =
-              entries.map((e) {
-                if (!hostCanResolveCoveragePath(
-                  e.path,
-                  windowsHost: Platform.isWindows,
-                )) {
-                  throw CoverdeTransformUnresolvedCoveragePathFailure(
-                    sourcePath: e.path,
-                  );
-                }
-                final newPath = p.relative(e.path, from: bp);
-                return (path: newPath, file: e.file, coverage: e.coverage);
-              }).toList();
+          entries = entries.map((e) {
+            if (!hostCanResolveCoveragePath(
+              e.path,
+              windowsHost: Platform.isWindows,
+            )) {
+              throw CoverdeTransformUnresolvedCoveragePathFailure(
+                sourcePath: e.path,
+              );
+            }
+            final newPath = p.relative(e.path, from: bp);
+            return (path: newPath, file: e.file, coverage: e.coverage);
+          }).toList();
       }
     }
 

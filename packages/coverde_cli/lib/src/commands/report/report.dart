@@ -143,14 +143,12 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
     final shouldLaunch = argResults.flag(launchFlag);
 
     // Report dir path should be absolute.
-    final reportDirAbsPath =
-        path.isAbsolute(reportDirPath)
-            ? reportDirPath
-            : path.join(Directory.current.path, reportDirPath);
-    final traceFileAbsPath =
-        path.isAbsolute(traceFilePath)
-            ? traceFilePath
-            : path.join(Directory.current.path, traceFilePath);
+    final reportDirAbsPath = path.isAbsolute(reportDirPath)
+        ? reportDirPath
+        : path.join(Directory.current.path, reportDirPath);
+    final traceFileAbsPath = path.isAbsolute(traceFilePath)
+        ? traceFilePath
+        : path.join(Directory.current.path, traceFilePath);
 
     final traceFile = File(traceFileAbsPath);
 
@@ -233,12 +231,9 @@ Generate the coverage report inside $_outputHelpValue from the $_inputHelpValue 
 
     logger.info(formatCoverageTree(covTree));
 
-    final reportLocationMessage =
-        StringBuffer()
-          ..write(wrapWith('Report location: ', [blue, styleBold]))
-          ..write(
-            wrapWith(reportIndexAbsPath, [blue, styleBold, styleUnderlined]),
-          );
+    final reportLocationMessage = StringBuffer()
+      ..write(wrapWith('Report location: ', [blue, styleBold]))
+      ..write(wrapWith(reportIndexAbsPath, [blue, styleBold, styleUnderlined]));
     logger.info('$reportLocationMessage\n');
 
     if (shouldLaunch) {

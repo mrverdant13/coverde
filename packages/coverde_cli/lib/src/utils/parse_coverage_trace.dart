@@ -294,25 +294,23 @@ CoverageFile? _parseRecord(List<String> lines) {
       readableMessage: 'Trace record is missing an `SF:` line.',
     );
   }
-  final functions =
-      sawFunctions
-          ? _functions(
-            sourcePath: sourcePath,
-            lines: functionLines,
-            hits: functionHits,
-            found: functionsFound,
-            hit: functionsHit,
-          )
-          : null;
-  final branches =
-      sawBranches
-          ? _branches(
-            sourcePath: sourcePath,
-            branches: branchRecords,
-            found: branchesFound,
-            hit: branchesHit,
-          )
-          : null;
+  final functions = sawFunctions
+      ? _functions(
+          sourcePath: sourcePath,
+          lines: functionLines,
+          hits: functionHits,
+          found: functionsFound,
+          hit: functionsHit,
+        )
+      : null;
+  final branches = sawBranches
+      ? _branches(
+          sourcePath: sourcePath,
+          branches: branchRecords,
+          found: branchesFound,
+          hit: branchesHit,
+        )
+      : null;
 
   final seenLineNumbers = <int>{};
   for (final record in lineRecords) {
@@ -549,9 +547,8 @@ List<CoverageLine> _mergeLines({
       ),
     );
   }
-  final lines =
-      byNumber.values.toList()
-        ..sort((left, right) => left.number.compareTo(right.number));
+  final lines = byNumber.values.toList()
+    ..sort((left, right) => left.number.compareTo(right.number));
   return lines;
 }
 
@@ -602,9 +599,8 @@ CoverageFunctions? _mergeFunctions({
       hits: existing.hits + function.hits,
     );
   }
-  final functions =
-      byName.values.toList()
-        ..sort((left, right) => left.name.compareTo(right.name));
+  final functions = byName.values.toList()
+    ..sort((left, right) => left.name.compareTo(right.name));
   return CoverageFunctions(
     hit: functions.where((function) => function.hits > 0).length,
     found: functions.length,
