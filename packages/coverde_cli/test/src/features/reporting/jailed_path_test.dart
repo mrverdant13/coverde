@@ -75,7 +75,7 @@ void main() {
   test('rejects a symlink that points outside the destination', () async {
     final destination = Directory(p.join(root.path, 'out'))..createSync();
     final outside = Directory(p.join(root.path, 'secret'))..createSync();
-    _symlink(p.join(destination.path, 'assets'), outside.path);
+    Link(p.join(destination.path, 'assets')).createSync(outside.path);
     _write(root, 'templates/page.liquid', 'x\n');
     _write(root, 'static/report.css', 'body{}\n');
 
@@ -95,7 +95,7 @@ void main() {
   test('follows a symlink that stays inside the destination', () async {
     final destination = Directory(p.join(root.path, 'out'))..createSync();
     final inner = Directory(p.join(destination.path, 'inner'))..createSync();
-    _symlink(p.join(destination.path, 'linked'), inner.path);
+    Link(p.join(destination.path, 'linked')).createSync(inner.path);
     _write(root, 'templates/page.liquid', 'inside\n');
 
     await _render(
@@ -112,7 +112,9 @@ void main() {
 
   test('rejects a symlink that cannot be resolved', () async {
     final destination = Directory(p.join(root.path, 'out'))..createSync();
-    _symlink(p.join(destination.path, 'broken'), p.join(root.path, 'missing'));
+    Link(
+      p.join(destination.path, 'broken'),
+    ).createSync(p.join(root.path, 'missing'));
     _write(root, 'templates/page.liquid', 'x\n');
 
     await expectLater(
@@ -120,14 +122,6 @@ void main() {
       throwsA(isA<CoverageReportPathFailure>()),
     );
   });
-}
-
-void _symlink(String linkPath, String target) {
-  try {
-    Link(linkPath).createSync(target);
-  } on FileSystemException {
-    markTestSkipped('Directory symlinks are unavailable.');
-  }
 }
 
 void _write(Directory root, String relativePath, String contents) {
