@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
@@ -140,6 +141,11 @@ CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
       current: current.lines,
       incoming: incoming.lines,
     ),
+    functions: _mergeFunctions(
+      sourcePath: current.path,
+      current: current.functions,
+      incoming: incoming.functions,
+    ),
   );
 }
 
@@ -169,8 +175,13 @@ CoverageFile? _parseRecord(List<String> lines) {
   String? sourcePath;
   final entries = <CoverageTraceEntry>[];
   final lineRecords = <CoverageLine>[];
+  final functionLines = <String, int>{};
+  final functionHits = <String, int>{};
+  int? functionsFound;
+  int? functionsHit;
   int? linesFound;
   int? linesHit;
+  var sawFunctions = false;
 
   for (final line in lines) {
     entries.add(_traceEntry(line));
@@ -189,6 +200,43 @@ CoverageFile? _parseRecord(List<String> lines) {
       sourcePath = normalizeCoveragePath(rawPath);
     } else if (line.startsWith('DA:')) {
       lineRecords.add(_parseLine(line.substring('DA:'.length)));
+    } else if (line.startsWith('FNDA:')) {
+      sawFunctions = true;
+      final (hits, name) = _splitOnce(
+        line.substring('FNDA:'.length),
+        label: 'FNDA',
+      );
+      if (functionHits.containsKey(name)) {
+        throw CoverageTraceFormatFailure(
+          readableMessage: 'Trace record repeats function `$name`.',
+        );
+      }
+      functionHits[name] = _parseCount(hits, label: 'FNDA');
+    } else if (line.startsWith('FN:')) {
+      sawFunctions = true;
+      final (rawLine, name) = _parseFunctionRecord(
+        line.substring('FN:'.length),
+      );
+      if (functionLines.containsKey(name)) {
+        throw CoverageTraceFormatFailure(
+          readableMessage: 'Trace record repeats function `$name`.',
+        );
+      }
+      functionLines[name] = _parsePositive(rawLine, label: 'FN');
+    } else if (line.startsWith('FNF:')) {
+      sawFunctions = true;
+      functionsFound = _parseSummaryOnce(
+        current: functionsFound,
+        raw: line.substring('FNF:'.length),
+        label: 'FNF',
+      );
+    } else if (line.startsWith('FNH:')) {
+      sawFunctions = true;
+      functionsHit = _parseSummaryOnce(
+        current: functionsHit,
+        raw: line.substring('FNH:'.length),
+        label: 'FNH',
+      );
     } else if (line.startsWith('LF:')) {
       linesFound = _parseSummaryOnce(
         current: linesFound,
@@ -209,6 +257,16 @@ CoverageFile? _parseRecord(List<String> lines) {
       readableMessage: 'Trace record is missing an `SF:` line.',
     );
   }
+  final functions =
+      sawFunctions
+          ? _functions(
+            sourcePath: sourcePath,
+            lines: functionLines,
+            hits: functionHits,
+            found: functionsFound,
+            hit: functionsHit,
+          )
+          : null;
   if (lineRecords.isEmpty) return null;
 
   final seenLineNumbers = <int>{};
@@ -242,7 +300,68 @@ CoverageFile? _parseRecord(List<String> lines) {
     path: sourcePath,
     entries: [...entries, const CoveragePreservedEntry('end_of_record')],
     lines: lineRecords,
+    functions: functions,
   );
+}
+
+CoverageFunctions _functions({
+  required String sourcePath,
+  required Map<String, int> lines,
+  required Map<String, int> hits,
+  required int? found,
+  required int? hit,
+}) {
+  final names = {...lines.keys, ...hits.keys}.toList()..sort();
+  final functions = [
+    for (final name in names)
+      CoverageFunction(name: name, line: lines[name], hits: hits[name] ?? 0),
+  ];
+  final computedFound = functions.length;
+  final computedHit = functions.where((function) => function.hits > 0).length;
+  if (found != null && found != computedFound) {
+    throw CoverageTraceFormatFailure(
+      readableMessage:
+          'Trace record for `$sourcePath` has `FNF:$found`, '
+          'which does not match $computedFound functions.',
+    );
+  }
+  if (hit != null && hit != computedHit) {
+    throw CoverageTraceFormatFailure(
+      readableMessage:
+          'Trace record for `$sourcePath` has `FNH:$hit`, '
+          'which does not match $computedHit hit functions.',
+    );
+  }
+  return CoverageFunctions(
+    hit: computedHit,
+    found: computedFound,
+    functions: functions,
+  );
+}
+
+(String, String) _parseFunctionRecord(String raw) {
+  final (start, rest) = _splitOnce(raw, label: 'FN');
+  final comma = rest.indexOf(',');
+  if (comma <= 0) return (start, rest);
+  final endLine = int.tryParse(rest.substring(0, comma).trim());
+  if (endLine == null || endLine < 1) return (start, rest);
+  final name = rest.substring(comma + 1);
+  if (name.isEmpty) {
+    throw CoverageTraceFormatFailure(
+      readableMessage: 'Invalid `FN:` record `$raw`.',
+    );
+  }
+  return (start, name);
+}
+
+(String, String) _splitOnce(String raw, {required String label}) {
+  final comma = raw.indexOf(',');
+  if (comma <= 0 || comma == raw.length - 1) {
+    throw CoverageTraceFormatFailure(
+      readableMessage: 'Invalid `$label:` record `$raw`.',
+    );
+  }
+  return (raw.substring(0, comma), raw.substring(comma + 1));
 }
 
 CoverageLine _parseLine(String raw) {
@@ -348,11 +467,57 @@ int? _mergedChecksum({
   );
 }
 
+CoverageFunctions? _mergeFunctions({
+  required String sourcePath,
+  required CoverageFunctions? current,
+  required CoverageFunctions? incoming,
+}) {
+  if (current == null) return incoming;
+  if (incoming == null) return current;
+  final byName = <String, CoverageFunction>{
+    for (final function in current.functions) function.name: function,
+  };
+  for (final function in incoming.functions) {
+    final existing = byName[function.name];
+    if (existing == null) {
+      byName[function.name] = function;
+      continue;
+    }
+    if (existing.line != null &&
+        function.line != null &&
+        existing.line != function.line) {
+      throw CoverageTraceFormatFailure(
+        readableMessage:
+            'Trace record for `$sourcePath` repeats function '
+            '`${function.name}` on lines ${existing.line} '
+            'and ${function.line}.',
+      );
+    }
+    byName[function.name] = CoverageFunction(
+      name: function.name,
+      line: existing.line ?? function.line,
+      hits: existing.hits + function.hits,
+    );
+  }
+  final functions =
+      byName.values.toList()
+        ..sort((left, right) => left.name.compareTo(right.name));
+  return CoverageFunctions(
+    hit: functions.where((function) => function.hits > 0).length,
+    found: functions.length,
+    functions: functions,
+  );
+}
+
 CoverageTraceEntry _traceEntry(String line) {
   if (line.startsWith('SF:')) {
     return CoverageSourceEntry(line.substring('SF:'.length));
   }
   if (line.startsWith('DA:') ||
+      line.startsWith('FNDA:') ||
+      line.startsWith('FN:') ||
+      line.startsWith('FNF:') ||
+      line.startsWith('FNH:') ||
       line.startsWith('LF:') ||
       line.startsWith('LH:') ||
       line == 'end_of_record') {

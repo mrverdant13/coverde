@@ -4,6 +4,9 @@ brda
 canonicalize
 csslib
 endtemplate
+fnda
+fnf
+fnh
 linkifies
 mocktail
 pana

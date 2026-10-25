@@ -1,4 +1,5 @@
 import 'package:coverde/src/entities/coverage_document.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/entities/coverage_trace_format_failure.dart';
@@ -25,6 +26,15 @@ end_of_record
       expect(file.linesFound, 2);
       expect(file.linesHit, 1);
       expect(file.lineRate, 50);
+      expect(file.functionRate, 0);
+      expect(
+        file.functions,
+        CoverageFunctions(
+          hit: 0,
+          found: 1,
+          functions: const [CoverageFunction(name: 'main', line: 10, hits: 0)],
+        ),
+      );
       expect(file.lines, const [
         CoverageLine(number: 1, hits: 1, checksum: 9),
         CoverageLine(number: 2, hits: 0),
@@ -221,6 +231,189 @@ end_of_record
       ]);
     });
 
+    test('parses function records and keeps the original FN text', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+FN:10,12,main
+FN:4,20
+FN:8,foo,bar
+FNDA:3,main
+FNDA:0,20
+end_of_record
+''';
+
+      final file = CoverageDocument.parse(trace).files.single;
+
+      expect(
+        file.functions,
+        CoverageFunctions(
+          hit: 1,
+          found: 3,
+          functions: const [
+            CoverageFunction(name: '20', line: 4, hits: 0),
+            CoverageFunction(name: 'foo,bar', line: 8, hits: 0),
+            CoverageFunction(name: 'main', line: 10, hits: 3),
+          ],
+        ),
+      );
+      expect(file.functionRate, closeTo(100 / 3, 0.0001));
+      expect(file.renderTrace(), contains('FN:10,12,main'));
+      expect(file.renderTrace(), contains('FN:8,foo,bar'));
+    });
+
+    test('treats a reported empty function group as present', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+FNF:0
+FNH:0
+end_of_record
+SF:lib/b.dart
+DA:1,0
+FN:2,main
+FNDA:1,main
+end_of_record
+SF:lib/c.dart
+DA:1,1
+end_of_record
+''';
+
+      final document = CoverageDocument.parse(trace);
+
+      expect(document.files[0].functions, isNotNull);
+      expect(document.files[0].functions!.found, 0);
+      expect(document.files[0].functionRate, isNull);
+      expect(document.files[0].lineRate, 100);
+      expect(document.files[2].functions, isNull);
+      expect(document.functionRate, 100);
+    });
+
+    test('parses functions that omit a matching FN or FNDA line', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+FNDA:4,onlyHit
+FN:9,onlyDeclared
+end_of_record
+''';
+
+      final file = CoverageDocument.parse(trace).files.single;
+
+      expect(file.functions!.functions, const [
+        CoverageFunction(name: 'onlyDeclared', line: 9, hits: 0),
+        CoverageFunction(name: 'onlyHit', line: null, hits: 4),
+      ]);
+    });
+
+    test('merges functions that share a name', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+FNDA:1,main
+FN:3,other
+end_of_record
+SF:lib/a.dart
+DA:1,0
+FN:8,main
+FNDA:2,main
+FNDA:4,extra
+end_of_record
+''';
+
+      final functions = CoverageDocument.parse(trace).files.single.functions;
+
+      expect(
+        functions,
+        CoverageFunctions(
+          hit: 2,
+          found: 3,
+          functions: const [
+            CoverageFunction(name: 'extra', line: null, hits: 4),
+            CoverageFunction(name: 'main', line: 8, hits: 3),
+            CoverageFunction(name: 'other', line: 3, hits: 0),
+          ],
+        ),
+      );
+    });
+
+    test('keeps functions when only one record reports them', () {
+      const later = '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/a.dart
+DA:2,0
+FN:4,main
+FNDA:2,main
+end_of_record
+''';
+      const earlier = '''
+SF:lib/a.dart
+DA:1,1
+FN:4,main
+FNDA:2,main
+end_of_record
+SF:lib/a.dart
+DA:2,0
+end_of_record
+''';
+
+      for (final trace in [later, earlier]) {
+        final file = CoverageDocument.parse(trace).files.single;
+        expect(file.linesFound, 2);
+        expect(
+          file.functions,
+          CoverageFunctions(
+            hit: 1,
+            found: 1,
+            functions: const [CoverageFunction(name: 'main', line: 4, hits: 2)],
+          ),
+        );
+      }
+    });
+
+    test('rejects function records that disagree', () {
+      void expectFailure(String trace, String message) {
+        expect(
+          () => CoverageDocument.parse(trace),
+          throwsA(
+            isA<CoverageTraceFormatFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              contains(message),
+            ),
+          ),
+        );
+      }
+
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:10,\nend_of_record\n',
+        'Invalid `FN:`',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:10,12,\nend_of_record\n',
+        'Invalid `FN:`',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:1,main\nFN:1,main\nend_of_record\n',
+        'repeats function `main`',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:1,main\nFNF:2\nend_of_record\n',
+        'FNF:2',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:1,main\nFNDA:1,main\nFNH:0\nend_of_record\n',
+        'FNH:0',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFN:10,main\nend_of_record\n'
+            'SF:lib/a.dart\nDA:1,1\nFN:11,main\nend_of_record\n',
+        'lines 10 and 11',
+      );
+    });
+
     test('rejects a summary that disagrees with the DA lines', () {
       const found = '''
 SF:lib/a.dart
@@ -264,7 +457,11 @@ DA:1,1
 end_of_record
 ''';
 
-      expect(CoverageDocument.parse(trace).files.single.linesFound, 1);
+      final document = CoverageDocument.parse(trace);
+
+      expect(document.files.single.linesFound, 1);
+      expect(document.files.single.functions, isNull);
+      expect(document.functionRate, isNull);
     });
 
     test('rejects malformed records', () {
@@ -501,6 +698,7 @@ end_of_record
       expect(document.isEmpty, isTrue);
       expect(document.tree.path, isEmpty);
       expect(document.lineRate, isNull);
+      expect(document.functionRate, isNull);
       expect(document.tree.lineRate, isNull);
       expect(document, document);
     });

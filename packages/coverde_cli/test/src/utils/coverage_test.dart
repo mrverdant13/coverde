@@ -38,4 +38,11 @@ void main() {
       });
     });
   });
+
+  test('optionalCoverageRate is null without a measurement', () {
+    expect(optionalCoverageRate(hit: null, found: 1), isNull);
+    expect(optionalCoverageRate(hit: 1, found: null), isNull);
+    expect(optionalCoverageRate(hit: 0, found: 0), isNull);
+    expect(optionalCoverageRate(hit: 1, found: 2), 50);
+  });
 }

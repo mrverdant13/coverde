@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/entities/coverage_trace_entry.dart';
 import 'package:coverde/src/utils/coverage.dart';
@@ -17,6 +18,7 @@ final class CoverageFile {
     required this.path,
     required Iterable<CoverageTraceEntry> entries,
     required Iterable<CoverageLine> lines,
+    required this.functions,
   }) : entries = List<CoverageTraceEntry>.unmodifiable(entries),
        lines = List<CoverageLine>.unmodifiable(lines);
 
@@ -50,6 +52,15 @@ final class CoverageFile {
   /// Line coverage from 0 to 100, or null when [linesFound] is 0.
   double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
 
+  /// Function coverage, or null when the trace has no function records.
+  final CoverageFunctions? functions;
+
+  /// Function coverage from 0 to 100.
+  ///
+  /// Null when [functions] is null or no functions were found.
+  double? get functionRate =>
+      optionalCoverageRate(hit: functions?.hit, found: functions?.found);
+
   /// Writes [entries] as LCOV text.
   ///
   /// Every `SF:` line uses [path], or [sourcePath] when a caller rewrites it.
@@ -80,6 +91,7 @@ final class CoverageFile {
     if (identical(this, other)) return true;
     return other is CoverageFile &&
         other.path == path &&
+        other.functions == functions &&
         _linesEquality.equals(other.lines, lines) &&
         _unrecognizedEquality.equals(
           other._unrecognizedEntries,
@@ -90,6 +102,7 @@ final class CoverageFile {
   @override
   int get hashCode => Object.hash(
     path,
+    functions,
     _linesEquality.hash(lines),
     _unrecognizedEquality.hash(_unrecognizedEntries),
   );
