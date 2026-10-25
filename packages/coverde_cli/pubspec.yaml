@@ -19,7 +19,7 @@ screenshots:
   - description: Coverage value example
     path: doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png
 environment:
-  sdk: ">=3.7.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
   analyzer: ">=8.0.0 <15.0.0"
