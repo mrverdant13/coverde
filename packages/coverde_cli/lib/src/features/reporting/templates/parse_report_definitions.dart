@@ -68,11 +68,10 @@ ReportDefinition resolveReportDefinition({
   if (reportName == null) {
     if (reports.length == 1) return reports.values.single;
     final available = reports.keys.toList()..sort();
-    final message =
-        reports.isEmpty
-            ? 'No reports are defined in `$configPath`.'
-            : '`$configPath` defines more than one report.\n'
-                'Pass --report with one of: ${available.join(', ')}.';
+    final message = reports.isEmpty
+        ? 'No reports are defined in `$configPath`.'
+        : '`$configPath` defines more than one report.\n'
+              'Pass --report with one of: ${available.join(', ')}.';
     throw CoverageReportDefinitionFailure(readableMessage: message);
   }
   final report = reports[reportName];
@@ -109,10 +108,9 @@ ReportDefinition _parseReport({
       value: value,
       baseDirectory: baseDirectory,
     ),
-    _ =>
-      throw CoverageReportDefinitionFailure(
-        readableMessage: 'Report `$name` has unknown type `$type`.',
-      ),
+    _ => throw CoverageReportDefinitionFailure(
+      readableMessage: 'Report `$name` has unknown type `$type`.',
+    ),
   };
 }
 

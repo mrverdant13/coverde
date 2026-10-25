@@ -66,8 +66,9 @@ final class UnknownCoverageReportFailure extends CoverageReportFailure {
 
   @override
   String get readableMessage {
-    final available =
-        availableReports.isEmpty ? 'none' : availableReports.join(', ');
+    final available = availableReports.isEmpty
+        ? 'none'
+        : availableReports.join(', ');
     return 'Unknown report `$reportName` in `$configPath`.\n'
         'Available reports: $available.';
   }

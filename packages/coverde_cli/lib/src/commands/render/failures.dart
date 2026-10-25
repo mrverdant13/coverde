@@ -27,7 +27,8 @@ final class CoverdeRenderInvalidVariableFailure extends CoverdeRenderFailure {
   final String usageMessage;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 `--variable` value `$rawValue` must use the form name=value.
 
 $usageMessage

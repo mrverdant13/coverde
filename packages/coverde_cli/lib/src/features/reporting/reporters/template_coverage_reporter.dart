@@ -155,8 +155,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String destination,
     required Set<String> written,
   }) async {
-    final slot =
-        isRoot ? definition.root ?? definition.directory : definition.directory;
+    final slot = isRoot
+        ? definition.root ?? definition.directory
+        : definition.directory;
     if (slot != null) {
       final binding = isRoot && definition.root != null ? 'root' : 'directory';
       map['outputPath'] = await _outputPath(
@@ -212,8 +213,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required Map<String, String> variables,
     required String destination,
   }) async {
-    final slot =
-        isRoot ? definition.root ?? definition.directory : definition.directory;
+    final slot = isRoot
+        ? definition.root ?? definition.directory
+        : definition.directory;
     if (slot != null) {
       final binding = isRoot && definition.root != null ? 'root' : 'directory';
       final relative = map['outputPath']! as String;
@@ -282,12 +284,11 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String destination,
     required Set<String> written,
   }) async {
-    final rendered =
-        (await _renderSource(
-          source: slot.path,
-          label: 'path `${slot.path}`',
-          data: data,
-        )).trim();
+    final rendered = (await _renderSource(
+      source: slot.path,
+      label: 'path `${slot.path}`',
+      data: data,
+    )).trim();
     final resolved = resolveInsideRoot(
       rootDirectory: destination,
       relativePath: rendered,

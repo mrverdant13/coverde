@@ -160,8 +160,9 @@ The report is selected from the reports defined in $_configFileName.''';
   }
 
   String _absolute(String path) {
-    final resolved =
-        p.isAbsolute(path) ? path : p.join(Directory.current.path, path);
+    final resolved = p.isAbsolute(path)
+        ? path
+        : p.join(Directory.current.path, path);
     return p.normalize(resolved);
   }
 }
