@@ -221,6 +221,10 @@ reports:
     template: templates/summary.liquid
 ''');
 
+      final traceFilePath = p.normalize(
+        p.join(root.path, 'coverage', 'lcov.info'),
+      );
+
       await IOOverrides.runZoned(() async {
         expect(
           () => cmdRunner.run(['render']),
@@ -228,8 +232,7 @@ reports:
             isA<CoverdeRenderTraceFileNotFoundFailure>().having(
               (failure) => failure.readableMessage,
               'readableMessage',
-              'No trace file found at '
-                  '`${p.join(root.path, 'coverage', 'lcov.info')}`.',
+              'No trace file found at `$traceFilePath`.',
             ),
           ),
         );
@@ -290,7 +293,7 @@ reports:
         },
         getCurrentDirectory: () => root,
         createFile: (path) {
-          if (path == traceFile.path) {
+          if (p.equals(path, traceFile.path)) {
             return _ThrowingFile(
               path: path,
               readAsStringSync: () => throw const FileSystemException('denied'),
@@ -325,7 +328,7 @@ reports:
         },
         getCurrentDirectory: () => root,
         createFile: (path) {
-          if (path == config.path) {
+          if (p.equals(path, config.path)) {
             return _ThrowingFile(
               path: path,
               readAsStringSync: () => throw const FileSystemException('denied'),

@@ -76,7 +76,9 @@ The report is selected from the reports defined in $_configFileName.''';
     final argResults = this.argResults!;
     final traceFilePath = _absolute(argResults.option(inputOption)!);
     final variables = _variables(argResults.multiOption(variableOption));
-    final configPath = p.join(Directory.current.path, _configFileName);
+    final configPath = p.normalize(
+      p.join(Directory.current.path, _configFileName),
+    );
     final definition = resolveReportDefinition(
       reports: parseReportDefinitions(
         _readConfig(configPath),
@@ -158,6 +160,8 @@ The report is selected from the reports defined in $_configFileName.''';
   }
 
   String _absolute(String path) {
-    return p.isAbsolute(path) ? path : p.join(Directory.current.path, path);
+    final resolved =
+        p.isAbsolute(path) ? path : p.join(Directory.current.path, path);
+    return p.normalize(resolved);
   }
 }
