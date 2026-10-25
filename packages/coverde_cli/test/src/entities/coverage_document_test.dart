@@ -80,32 +80,43 @@ end_of_record
       );
     });
 
-    test('drops a record that has neither lines nor functions', () {
-      const trace = '''
+    test(
+      'drops a record that has neither lines nor functions nor branches',
+      () {
+        const trace = '''
 SF:lib/empty.dart
 TN:ignored
 end_of_record
 SF:lib/fn.dart
 FN:4,only
 end_of_record
+SF:lib/br.dart
+BRDA:3,1,0,-
+end_of_record
 SF:lib/kept.dart
 DA:1,1
 end_of_record
 ''';
 
-      final document = CoverageDocument.parse(trace);
+        final document = CoverageDocument.parse(trace);
 
-      expect(document.files.map((file) => file.path), [
-        'lib/fn.dart',
-        'lib/kept.dart',
-      ]);
-      expect(document.files.first.linesFound, 0);
-      expect(document.files.first.lineRate, isNull);
-      expect(document.files.first.functions!.found, 1);
-      expect(document.files.last.lineRate, 100);
-      expect(document.linesFound, 1);
-      expect(document.lineRate, 100);
-    });
+        expect(document.files.map((file) => file.path), [
+          'lib/fn.dart',
+          'lib/br.dart',
+          'lib/kept.dart',
+        ]);
+        expect(document.files.first.linesFound, 0);
+        expect(document.files.first.lineRate, isNull);
+        expect(document.files.first.functions!.found, 1);
+        expect(document.files[1].functions, isNull);
+        expect(document.files[1].lineRate, isNull);
+        expect(document.files[1].branches!.found, 1);
+        expect(document.files[1].branches!.hit, 0);
+        expect(document.files.last.lineRate, 100);
+        expect(document.linesFound, 1);
+        expect(document.lineRate, 100);
+      },
+    );
 
     test('merges records that share a normalized path', () {
       const trace = r'''
@@ -871,6 +882,73 @@ end_of_record
       expect(tree.directories, isEmpty);
       expect(tree.files.single.path, r'lib\src\deep\a.dart');
       expect(tree.files.single.name, 'a.dart');
+      expect(tree.functionsFound, isNull);
+      expect(tree.branchesFound, isNull);
+      expect(tree.functionRate, isNull);
+      expect(tree.branchRate, isNull);
+    });
+
+    test('sums present directory function and branch groups', () {
+      const trace = '''
+SF:plain.dart
+DA:1,1
+end_of_record
+SF:lib/a.dart
+DA:1,0
+FN:1,main
+FNDA:1,main
+BRDA:1,0,0,-
+end_of_record
+SF:lib/nested/b.dart
+DA:1,1
+FN:2,other
+BRDA:4,1,0,3
+end_of_record
+SF:other/c.dart
+DA:1,1
+end_of_record
+SF:zero.dart
+DA:1,1
+FNF:0
+BRF:0
+end_of_record
+''';
+
+      final tree = CoverageDocument.parse(trace).tree;
+      final lib = tree.directories.singleWhere(
+        (directory) => directory.path == 'lib',
+      );
+
+      expect(tree.functionsHit, 1);
+      expect(tree.functionsFound, 2);
+      expect(tree.functionRate, 50);
+      expect(tree.branchesHit, 1);
+      expect(tree.branchesFound, 2);
+      expect(tree.branchRate, 50);
+      expect(lib.functionsHit, 1);
+      expect(lib.functionsFound, 2);
+      expect(lib.branchesHit, 1);
+      expect(lib.branchesFound, 2);
+      expect(
+        CoverageDocument.parse('''
+SF:zero.dart
+DA:1,1
+FNF:0
+BRF:0
+end_of_record
+''').tree.functionRate,
+        isNull,
+      );
+      expect(
+        CoverageDocument.parse('''
+SF:zero.dart
+DA:1,1
+FNF:0
+BRF:0
+end_of_record
+''').tree.branchRate,
+        isNull,
+      );
     });
 
     test('keeps one drive root and one UNC root', () {
@@ -912,6 +990,10 @@ end_of_record
       expect(document.functionRate, isNull);
       expect(document.branchRate, isNull);
       expect(document.tree.lineRate, isNull);
+      expect(document.tree.functionsFound, isNull);
+      expect(document.tree.branchesFound, isNull);
+      expect(document.tree.functionRate, isNull);
+      expect(document.tree.branchRate, isNull);
       expect(document, document);
     });
 

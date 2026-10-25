@@ -12,10 +12,10 @@ import 'package:universal_io/io.dart';
 
 /// Parses [trace] into source files.
 ///
-/// A record is kept when it has line or function data. Repeated records for
-/// one source file merge. `\` and `/` name the same file, and the stored path
-/// keeps the separator from the first record. A trailing record with no
-/// `end_of_record` is still parsed.
+/// A record is kept when it has line, function, or branch data. Repeated
+/// records for one source file merge. `\` and `/` name the same file, and the
+/// stored path keeps the separator from the first record. A trailing record
+/// with no `end_of_record` is still parsed.
 ///
 /// Throws [CoverageTraceFormatFailure] when [trace] is not valid line coverage.
 List<CoverageFile> parseCoverageTrace(String trace) {
@@ -32,8 +32,8 @@ List<CoverageFile> parseCoverageTrace(String trace) {
 /// Parses [file] line by line into source files.
 ///
 /// Records are built as each `end_of_record` arrives. The whole trace is not
-/// held as one string. A record is kept when it has line or function data.
-/// Repeated records for one source file merge. `\` and `/` name the same
+/// held as one string. A record is kept when it has line, function, or branch
+/// data. Repeated records for one source file merge. `\` and `/` name the same
 /// file, and the stored path keeps the separator from the first record. A
 /// trailing record with no `end_of_record` is still parsed.
 ///
@@ -340,7 +340,9 @@ CoverageFile? _parseRecord(List<String> lines) {
           'which does not match $computedLinesHit covered lines.',
     );
   }
-  if (lineRecords.isEmpty && functions == null) return null;
+  if (lineRecords.isEmpty && functions == null && branches == null) {
+    return null;
+  }
 
   return CoverageFile(
     path: sourcePath,

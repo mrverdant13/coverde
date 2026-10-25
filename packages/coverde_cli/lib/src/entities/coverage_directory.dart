@@ -52,6 +52,50 @@ final class CoverageDirectory {
   /// Line coverage from 0 to 100, or null when [linesFound] is 0.
   double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
 
+  /// Functions executed at least once.
+  ///
+  /// Null when no descendant reported functions.
+  late final int? functionsHit = _optionalSum(
+    directories.map((directory) => directory.functionsHit),
+    files.map((file) => file.functions?.hit),
+  );
+
+  /// Functions found.
+  ///
+  /// Null when no descendant reported functions.
+  late final int? functionsFound = _optionalSum(
+    directories.map((directory) => directory.functionsFound),
+    files.map((file) => file.functions?.found),
+  );
+
+  /// Function coverage from 0 to 100.
+  ///
+  /// Null when function data is absent or no functions were found.
+  double? get functionRate =>
+      optionalCoverageRate(hit: functionsHit, found: functionsFound);
+
+  /// Branches taken at least once.
+  ///
+  /// Null when no descendant reported branches.
+  late final int? branchesHit = _optionalSum(
+    directories.map((directory) => directory.branchesHit),
+    files.map((file) => file.branches?.hit),
+  );
+
+  /// Branches found.
+  ///
+  /// Null when no descendant reported branches.
+  late final int? branchesFound = _optionalSum(
+    directories.map((directory) => directory.branchesFound),
+    files.map((file) => file.branches?.found),
+  );
+
+  /// Branch coverage from 0 to 100.
+  ///
+  /// Null when branch data is absent or no branches were found.
+  double? get branchRate =>
+      optionalCoverageRate(hit: branchesHit, found: branchesFound);
+
   static const _directoriesEquality = ListEquality<CoverageDirectory>();
   static const _filesEquality = ListEquality<CoverageFile>();
 
@@ -80,5 +124,26 @@ int _sum(Iterable<int> left, Iterable<int> right) {
   for (final value in right) {
     total += value;
   }
+  return total;
+}
+
+/// Sums present measurements.
+///
+/// Returns null when every value is null, so an unknown child stays unknown
+/// instead of becoming zero.
+int? _optionalSum(Iterable<int?> left, Iterable<int?> right) {
+  var sawValue = false;
+  var total = 0;
+  for (final value in left) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  for (final value in right) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  if (!sawValue) return null;
   return total;
 }
