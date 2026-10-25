@@ -315,18 +315,18 @@ class HtmlCoverageReportGenerator {
       ?..attributes['href'] = link
       ..text = sanitizedRelativePath;
     final covBar = row.querySelector('.barCov');
-    if (rate == null || rate < 1) {
-      covBar?.remove();
-    } else {
-      final suffix = _classSuffix(rate, medium: medium, high: high);
-      covBar
-        ?..attributes['width'] = '${_coverageString(rate)}%'
-        ..classes.add('barCov$suffix');
-    }
     if (rate == null) {
+      covBar?.remove();
       row.querySelector('.coverPer')?.text = 'n/a';
     } else {
       final suffix = _classSuffix(rate, medium: medium, high: high);
+      if (rate < 1) {
+        covBar?.remove();
+      } else {
+        covBar
+          ?..attributes['width'] = '${_coverageString(rate)}%'
+          ..classes.add('barCov$suffix');
+      }
       row.querySelector('.coverPer')
         ?..classes.add('coverPer$suffix')
         ..innerHtml = '${_coverageString(rate)}&nbsp;%';
