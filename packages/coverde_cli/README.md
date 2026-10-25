@@ -65,6 +65,7 @@ This installs a `coverde` executable in the pub cache `bin` directory:
 - [**Filter a coverage trace file.**](#coverde-filter)
 - [**Transform a coverage trace file.**](#coverde-transform)
 - [**Generate the coverage report from a trace file.**](#coverde-report)
+- [**Render a named coverage report from a trace file.**](#coverde-render)
 - [**Remove a set of files and folders.**](#coverde-remove)
 - [**Compute the coverage value (%) of an info file.**](#coverde-value)
 
@@ -746,6 +747,38 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 ![coverde-report-dir.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/browser/coverde-report-dir.png)
 ![coverde-report-file.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/browser/coverde-report-file.png)
+
+
+## `coverde render`
+
+Render a named coverage report from a trace file.
+
+The report is selected from the reports defined in coverde.yaml.
+
+### Arguments
+
+#### Single-options
+
+- `--input`
+
+  Coverage trace file to render.\
+  **Default value:** `coverage/lcov.info`
+
+- `--report`
+
+  Name of the report defined in coverde.yaml.
+
+  Required when coverde.yaml defines more than one report.
+  When it defines one report, that report is used.
+
+#### Multi-options
+
+- `--variable`
+
+  A name=value pair exposed to the template as variables["name"].
+
+  Repeat to set more than one variable. A later copy of the same name wins.\
+  **Default value:** _None_
 
 
 ## `coverde remove`
