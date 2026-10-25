@@ -123,6 +123,104 @@ end_of_record
       );
     });
 
+    test('merges records that differ only by separator', () {
+      const trace = r'''
+SF:lib/a.dart
+DA:1,1
+TN:slash
+end_of_record
+SF:lib\a.dart
+DA:1,0
+DA:2,1
+TN:backslash
+end_of_record
+SF:C:\proj\a.dart
+DA:4,1
+end_of_record
+SF:C:/proj/a.dart
+DA:4,2,7
+end_of_record
+SF://server/share/a.dart
+DA:1,1
+end_of_record
+SF:\\server\share\a.dart
+DA:1,0
+end_of_record
+''';
+
+      final document = CoverageDocument.parse(trace);
+
+      expect(document.files.map((file) => file.path), [
+        'lib/a.dart',
+        r'C:\proj\a.dart',
+        '//server/share/a.dart',
+      ]);
+      final relative = document.files[0];
+      expect(relative.lines, const [
+        CoverageLine(number: 1, hits: 1),
+        CoverageLine(number: 2, hits: 1),
+      ]);
+      expect(
+        relative.renderTrace(),
+        'SF:lib/a.dart\n'
+        'DA:1,1\n'
+        'TN:slash\n'
+        'end_of_record\n'
+        'SF:lib/a.dart\n'
+        'DA:1,0\n'
+        'DA:2,1\n'
+        'TN:backslash\n'
+        'end_of_record',
+      );
+      expect(document.files[1].lines, const [
+        CoverageLine(number: 4, hits: 3, checksum: 7),
+      ]);
+      expect(document.files[2].linesHit, 1);
+      expect(document.linesFound, 4);
+      expect(document.linesHit, 4);
+      expect(document.tree.directories.first.files, hasLength(1));
+    });
+
+    test('keeps paths apart when the difference is not the separator', () {
+      const trace = '''
+SF:src/a.dart
+DA:1,1
+end_of_record
+SF:/src/a.dart
+DA:1,0
+end_of_record
+SF:C:/src/a.dart
+DA:1,1
+end_of_record
+SF:C:src/a.dart
+DA:1,0
+end_of_record
+SF:Lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/a.dart
+DA:1,0
+end_of_record
+SF://server/share/a.dart
+DA:1,1
+end_of_record
+SF://other/share/a.dart
+DA:1,0
+end_of_record
+''';
+
+      expect(CoverageDocument.parse(trace).files.map((file) => file.path), [
+        'src/a.dart',
+        '/src/a.dart',
+        'C:/src/a.dart',
+        'C:src/a.dart',
+        'Lib/a.dart',
+        'lib/a.dart',
+        '//server/share/a.dart',
+        '//other/share/a.dart',
+      ]);
+    });
+
     test('rejects a summary that disagrees with the DA lines', () {
       const found = '''
 SF:lib/a.dart
