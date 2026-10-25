@@ -1,3 +1,4 @@
+export 'coverage_branch.dart';
 export 'coverage_directory.dart';
 export 'coverage_document.dart';
 export 'coverage_file.dart';

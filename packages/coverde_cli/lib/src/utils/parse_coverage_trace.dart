@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:coverde/src/entities/coverage_branch.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
 import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
@@ -11,10 +12,10 @@ import 'package:universal_io/io.dart';
 
 /// Parses [trace] into source files.
 ///
-/// A record is kept when it has line or function data. Repeated records for
-/// one source file merge. `\` and `/` name the same file, and the stored path
-/// keeps the separator from the first record. A trailing record with no
-/// `end_of_record` is still parsed.
+/// A record is kept when it has line, function, or branch data. Repeated
+/// records for one source file merge. `\` and `/` name the same file, and the
+/// stored path keeps the separator from the first record. A trailing record
+/// with no `end_of_record` is still parsed.
 ///
 /// Throws [CoverageTraceFormatFailure] when [trace] is not valid line coverage.
 List<CoverageFile> parseCoverageTrace(String trace) {
@@ -31,8 +32,8 @@ List<CoverageFile> parseCoverageTrace(String trace) {
 /// Parses [file] line by line into source files.
 ///
 /// Records are built as each `end_of_record` arrives. The whole trace is not
-/// held as one string. A record is kept when it has line or function data.
-/// Repeated records for one source file merge. `\` and `/` name the same
+/// held as one string. A record is kept when it has line, function, or branch
+/// data. Repeated records for one source file merge. `\` and `/` name the same
 /// file, and the stored path keeps the separator from the first record. A
 /// trailing record with no `end_of_record` is still parsed.
 ///
@@ -147,6 +148,10 @@ CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
       current: current.functions,
       incoming: incoming.functions,
     ),
+    branches: _mergeBranches(
+      current: current.branches,
+      incoming: incoming.branches,
+    ),
   );
 }
 
@@ -178,11 +183,16 @@ CoverageFile? _parseRecord(List<String> lines) {
   final lineRecords = <CoverageLine>[];
   final functionLines = <String, int>{};
   final functionHits = <String, int>{};
+  final branchRecords = <CoverageBranch>[];
+  final seenBranches = <(int, int, int)>{};
   int? functionsFound;
   int? functionsHit;
+  int? branchesFound;
+  int? branchesHit;
   int? linesFound;
   int? linesHit;
   var sawFunctions = false;
+  var sawBranches = false;
 
   for (final line in lines) {
     entries.add(_traceEntry(line));
@@ -238,6 +248,32 @@ CoverageFile? _parseRecord(List<String> lines) {
         raw: line.substring('FNH:'.length),
         label: 'FNH',
       );
+    } else if (line.startsWith('BRDA:')) {
+      sawBranches = true;
+      final branch = _parseBranch(line.substring('BRDA:'.length));
+      final key = (branch.line, branch.block, branch.branch);
+      if (!seenBranches.add(key)) {
+        throw CoverageTraceFormatFailure(
+          readableMessage:
+              'Trace record repeats branch '
+              '${branch.line},${branch.block},${branch.branch}.',
+        );
+      }
+      branchRecords.add(branch);
+    } else if (line.startsWith('BRF:')) {
+      sawBranches = true;
+      branchesFound = _parseSummaryOnce(
+        current: branchesFound,
+        raw: line.substring('BRF:'.length),
+        label: 'BRF',
+      );
+    } else if (line.startsWith('BRH:')) {
+      sawBranches = true;
+      branchesHit = _parseSummaryOnce(
+        current: branchesHit,
+        raw: line.substring('BRH:'.length),
+        label: 'BRH',
+      );
     } else if (line.startsWith('LF:')) {
       linesFound = _parseSummaryOnce(
         current: linesFound,
@@ -268,6 +304,15 @@ CoverageFile? _parseRecord(List<String> lines) {
             hit: functionsHit,
           )
           : null;
+  final branches =
+      sawBranches
+          ? _branches(
+            sourcePath: sourcePath,
+            branches: branchRecords,
+            found: branchesFound,
+            hit: branchesHit,
+          )
+          : null;
 
   final seenLineNumbers = <int>{};
   for (final record in lineRecords) {
@@ -295,13 +340,16 @@ CoverageFile? _parseRecord(List<String> lines) {
           'which does not match $computedLinesHit covered lines.',
     );
   }
-  if (lineRecords.isEmpty && functions == null) return null;
+  if (lineRecords.isEmpty && functions == null && branches == null) {
+    return null;
+  }
 
   return CoverageFile(
     path: sourcePath,
     entries: [...entries, const CoveragePreservedEntry('end_of_record')],
     lines: lineRecords,
     functions: functions,
+    branches: branches,
   );
 }
 
@@ -338,6 +386,60 @@ CoverageFunctions _functions({
     found: computedFound,
     functions: functions,
   );
+}
+
+CoverageBranches _branches({
+  required String sourcePath,
+  required List<CoverageBranch> branches,
+  required int? found,
+  required int? hit,
+}) {
+  final ordered = branches.toList()..sort(_compareBranches);
+  final computedHit = ordered.where((branch) => (branch.taken ?? 0) > 0).length;
+  if (found != null && found != ordered.length) {
+    throw CoverageTraceFormatFailure(
+      readableMessage:
+          'Trace record for `$sourcePath` has `BRF:$found`, '
+          'which does not match ${ordered.length} branches.',
+    );
+  }
+  if (hit != null && hit != computedHit) {
+    throw CoverageTraceFormatFailure(
+      readableMessage:
+          'Trace record for `$sourcePath` has `BRH:$hit`, '
+          'which does not match $computedHit taken branches.',
+    );
+  }
+  return CoverageBranches(
+    hit: computedHit,
+    found: ordered.length,
+    branches: ordered,
+  );
+}
+
+CoverageBranch _parseBranch(String raw) {
+  final parts = raw.split(',');
+  if (parts.length != 4) {
+    throw CoverageTraceFormatFailure(
+      readableMessage: 'Invalid `BRDA:` record `$raw`.',
+    );
+  }
+  final takenText = parts[3].trim();
+  final taken = takenText == '-' ? null : _parseCount(takenText, label: 'BRDA');
+  return CoverageBranch(
+    line: _parsePositive(parts[0], label: 'BRDA'),
+    block: _parseCount(parts[1], label: 'BRDA'),
+    branch: _parseCount(parts[2], label: 'BRDA'),
+    taken: taken,
+  );
+}
+
+int _compareBranches(CoverageBranch left, CoverageBranch right) {
+  final byLine = left.line.compareTo(right.line);
+  if (byLine != 0) return byLine;
+  final byBlock = left.block.compareTo(right.block);
+  if (byBlock != 0) return byBlock;
+  return left.branch.compareTo(right.branch);
 }
 
 (String, String) _parseFunctionRecord(String raw) {
@@ -510,6 +612,44 @@ CoverageFunctions? _mergeFunctions({
   );
 }
 
+CoverageBranches? _mergeBranches({
+  required CoverageBranches? current,
+  required CoverageBranches? incoming,
+}) {
+  if (current == null) return incoming;
+  if (incoming == null) return current;
+  final byKey = <(int, int, int), CoverageBranch>{
+    for (final branch in current.branches)
+      (branch.line, branch.block, branch.branch): branch,
+  };
+  for (final branch in incoming.branches) {
+    final key = (branch.line, branch.block, branch.branch);
+    final existing = byKey[key];
+    if (existing == null) {
+      byKey[key] = branch;
+      continue;
+    }
+    final taken = switch ((existing.taken, branch.taken)) {
+      (null, final int? incomingTaken) => incomingTaken,
+      (final int currentTaken, null) => currentTaken,
+      (final int currentTaken, final int incomingTaken) =>
+        currentTaken + incomingTaken,
+    };
+    byKey[key] = CoverageBranch(
+      line: branch.line,
+      block: branch.block,
+      branch: branch.branch,
+      taken: taken,
+    );
+  }
+  final branches = byKey.values.toList()..sort(_compareBranches);
+  return CoverageBranches(
+    hit: branches.where((branch) => (branch.taken ?? 0) > 0).length,
+    found: branches.length,
+    branches: branches,
+  );
+}
+
 CoverageTraceEntry _traceEntry(String line) {
   if (line.startsWith('SF:')) {
     return CoverageSourceEntry(line.substring('SF:'.length));
@@ -519,6 +659,9 @@ CoverageTraceEntry _traceEntry(String line) {
       line.startsWith('FN:') ||
       line.startsWith('FNF:') ||
       line.startsWith('FNH:') ||
+      line.startsWith('BRDA:') ||
+      line.startsWith('BRF:') ||
+      line.startsWith('BRH:') ||
       line.startsWith('LF:') ||
       line.startsWith('LH:') ||
       line == 'end_of_record') {

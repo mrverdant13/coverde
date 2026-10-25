@@ -85,6 +85,14 @@ final class CoverageDocument {
     found: _sumOptional(files.map((file) => file.functions?.found)),
   );
 
+  /// Branch coverage from 0 to 100.
+  ///
+  /// Null when the trace has no branch records or no branches were found.
+  double? get branchRate => optionalCoverageRate(
+    hit: _sumOptional(files.map((file) => file.branches?.hit)),
+    found: _sumOptional(files.map((file) => file.branches?.found)),
+  );
+
   static const _filesEquality = ListEquality<CoverageFile>();
 
   @override
