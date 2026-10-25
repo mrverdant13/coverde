@@ -357,6 +357,66 @@ end_of_record
       );
     });
 
+    test('keeps an assignment made inside a for loop', () async {
+      _write(root, 'templates/summary.liquid', '''
+{% for file in document.files %}
+{% assign label = file.path %}
+{% endfor %}
+{{ label }}
+''');
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(sink.toString(), contains('lib/a.dart'));
+    });
+
+    test('rejects the loop variable and forloop after the loop', () async {
+      final sink = StringBuffer();
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''';
+
+      for (final name in ['item', 'forloop']) {
+        _write(root, 'templates/summary.liquid', '''
+{% for item in document.files %}
+{{ item.path }}
+{% endfor %}
+{{ $name }}
+''');
+        expect(
+          () => _render(
+            root: root,
+            definition: const ConsoleReportDefinition(
+              template: 'templates/summary.liquid',
+            ),
+            destination: ConsoleReportDestination(sink),
+            trace: trace,
+          ),
+          throwsA(
+            isA<CoverageTemplateRenderFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              contains(name),
+            ),
+          ),
+        );
+      }
+    });
+
     test('rejects an unknown template variable', () async {
       _write(root, 'templates/summary.liquid', '{{ nope }}\n');
       final sink = StringBuffer();

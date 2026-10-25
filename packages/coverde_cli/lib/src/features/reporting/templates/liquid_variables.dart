@@ -46,12 +46,9 @@ void _checkTag(
         );
       }
       _checkExpression(binary.right, declared, readTemplate, rendering);
-      _checkNodes(
-        tag.body,
-        {...declared, variable.name, 'forloop'},
-        readTemplate,
-        rendering,
-      );
+      final loopDeclared = <String>{...declared, variable.name, 'forloop'};
+      _checkNodes(tag.body, loopDeclared, readTemplate, rendering);
+      declared.addAll(loopDeclared.difference({variable.name, 'forloop'}));
     case 'assign':
       final assignment = _assignment(tag);
       if (assignment == null || assignment.variable is! liquid.Identifier) {
