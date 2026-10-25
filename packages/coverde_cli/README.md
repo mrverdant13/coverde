@@ -753,7 +753,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 Render a named coverage report from a trace file.
 
-The report is selected from the reports defined in coverde.yaml.
+The report is selected from the reports defined in coverde.yaml. A report is either `type: console` with a `template`, or `type: files` with a `destination` and at least one of `root`, `directory`, and `file`. See [Reports](#reports).
 
 ### Arguments
 
@@ -864,15 +864,15 @@ Compute the coverage value of the LCOV_FILE info file.
 
 # `coverde.yaml` configuration file
 
-The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check) and reusable transformation presets for [`coverde transform`](#coverde-transform).
+The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check), reusable transformation presets for [`coverde transform`](#coverde-transform), and named reports for [`coverde render`](#coverde-render).
 
-The file is optional. Both commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
+The file is optional. These commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
 
 ## File Format
 
-The configuration file uses YAML. Two keys are recognized at the root: `coverage` and `transformations`. Either key can be omitted.
+The configuration file uses YAML. Three keys are recognized at the root: `coverage`, `transformations`, and `reports`. Each key can be omitted.
 
-`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps.
+`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps. `reports` is a map of named reports.
 
 ```yaml
 # coverde.yaml
@@ -887,6 +887,38 @@ transformations:
       <parameter-2-name>: <value-2>
     - type: <transformation-type>
       <parameter-1-name>: <value-1>
+```
+
+## Reports
+
+`reports` names the reports that [`coverde render`](#coverde-render) can select. A missing `reports` key means there are no reports.
+
+A `console` report prints one template. It sets `template` and no other key.
+
+A `files` report writes into `destination`. A relative destination is resolved from the directory that contains `coverde.yaml`. The report sets at least one of `root`, `directory`, and `file`. Each slot sets `template` and `path`. `path` is a template for that node. A `file` slot may set `includeSource`. When it is true, the file render includes source text. Root and directory renders do not. `assets` copies static files into the destination after the templates render. Each asset sets `from`, relative to the configuration directory, and `to`, relative to the destination.
+
+```yaml
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+
+  pages:
+    type: files
+    destination: build/coverage
+    root:
+      template: templates/root.liquid
+      path: index.html
+    directory:
+      template: templates/directory.liquid
+      path: "{{ directory.path }}/index.html"
+    file:
+      template: templates/file.liquid
+      path: "{{ file.path }}.html"
+      includeSource: true
+    assets:
+      - from: assets/style.css
+        to: style.css
 ```
 
 ## Coverage thresholds
