@@ -104,8 +104,9 @@ end_of_record
 ''',
         );
 
-        final comment =
-            File('${destination.path}/comment.md').readAsStringSync();
+        final comment = File(
+          '${destination.path}/comment.md',
+        ).readAsStringSync();
         expect(comment, contains('<summary>lib'));
         expect(comment, contains('<summary>lib/src'));
         expect(comment, contains('Uncovered lines: 2-3'));
@@ -175,12 +176,14 @@ end_of_record
       expect(index, contains('href="report.css"'));
       expect(index, contains('href="lib/src/index.html"'));
       expect(index, contains('href="lib/a.dart.html"'));
-      final directoryPage =
-          File('${destination.path}/lib/src/index.html').readAsStringSync();
+      final directoryPage = File(
+        '${destination.path}/lib/src/index.html',
+      ).readAsStringSync();
       expect(directoryPage, contains('href="../../report.css"'));
       expect(directoryPage, contains('href="../../lib/src/app.dart.html"'));
-      final filePage =
-          File('${destination.path}/lib/src/app.dart.html').readAsStringSync();
+      final filePage = File(
+        '${destination.path}/lib/src/app.dart.html',
+      ).readAsStringSync();
       expect(filePage, contains('1||class App {'));
       expect(filePage, contains('2|3|  return;'));
       expect(filePage, contains('3||}'));
@@ -318,6 +321,37 @@ end_of_record
             (failure) => failure.readableMessage,
             'readableMessage',
             contains('index.html'),
+          ),
+        ),
+      );
+    });
+
+    test('checks a later render of the same partial on its own', () async {
+      _write(root, 'templates/summary.liquid', '''
+{% render 'templates/row.liquid', label: document.linesHit %}
+{% render 'templates/row.liquid', other: document.linesFound %}
+''');
+      _write(root, 'templates/row.liquid', '{{ label }}');
+      final sink = StringBuffer();
+
+      expect(
+        () => _render(
+          root: root,
+          definition: const ConsoleReportDefinition(
+            template: 'templates/summary.liquid',
+          ),
+          destination: ConsoleReportDestination(sink),
+          trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+        ),
+        throwsA(
+          isA<CoverageTemplateRenderFailure>().having(
+            (failure) => failure.readableMessage,
+            'readableMessage',
+            contains('label'),
           ),
         ),
       );

@@ -74,12 +74,16 @@ void _checkTag(
         partialNames.add(argument.identifier.name);
       }
       if (!rendering.add(partial)) return;
-      assertKnownTemplateVariables(
-        source: readTemplate(partial),
-        known: partialNames,
-        readTemplate: readTemplate,
-        rendering: rendering,
-      );
+      try {
+        assertKnownTemplateVariables(
+          source: readTemplate(partial),
+          known: partialNames,
+          readTemplate: readTemplate,
+          rendering: rendering,
+        );
+      } finally {
+        rendering.remove(partial);
+      }
     default:
       for (final child in tag.content) {
         _checkExpression(child, declared, readTemplate, rendering);
@@ -148,10 +152,9 @@ void _checkExpression(
     return;
   }
   if (node is liquid.GroupedExpression || node is liquid.UnaryOperation) {
-    final expression =
-        node is liquid.GroupedExpression
-            ? node.expression
-            : (node as liquid.UnaryOperation).expression;
+    final expression = node is liquid.GroupedExpression
+        ? node.expression
+        : (node as liquid.UnaryOperation).expression;
     _checkExpression(expression, declared, readTemplate, rendering);
     return;
   }
