@@ -5,10 +5,12 @@ brf
 brh
 canonicalize
 csslib
+endfor
 endtemplate
 fnda
 fnf
 fnh
+forloop
 linkifies
 mocktail
 pana
