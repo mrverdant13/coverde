@@ -734,18 +734,17 @@ Error: Non-matching (plain text) file <$relFilePath>''',
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              openRead:
-                  ([start, end]) => Stream.value(
-                    utf8.encode('''
+              openRead: ([start, end]) => Stream.value(
+                utf8.encode('''
 SF:test.dart
 DA:1,0
 LF:1
 LH:0
 end_of_record
 '''),
-                  ),
-              lastModifiedSync:
-                  () => throw FileSystemException('Fake file read error', path),
+              ),
+              lastModifiedSync: () =>
+                  throw FileSystemException('Fake file read error', path),
             );
           }
           if (p.basename(path) == 'test.dart') {
@@ -765,10 +764,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -780,10 +778,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -859,10 +856,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -874,10 +870,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -935,13 +930,10 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsBytesSync: (
-                bytes, {
-                mode = FileMode.write,
-                flush = false,
-              }) {
-                throw FileSystemException('Fake file write error', path);
-              },
+              writeAsBytesSync:
+                  (bytes, {mode = FileMode.write, flush = false}) {
+                    throw FileSystemException('Fake file write error', path);
+                  },
             );
           }
           throw UnsupportedError(
@@ -958,10 +950,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -973,10 +964,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1060,10 +1050,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1075,10 +1064,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1144,13 +1132,10 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsBytesSync: (
-                bytes, {
-                mode = FileMode.write,
-                flush = false,
-              }) {
-                throw FileSystemException('Fake file write error', path);
-              },
+              writeAsBytesSync:
+                  (bytes, {mode = FileMode.write, flush = false}) {
+                    throw FileSystemException('Fake file write error', path);
+                  },
             );
           }
           throw UnsupportedError(
@@ -1167,10 +1152,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1182,10 +1166,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1277,10 +1260,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1292,10 +1274,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final coverageHtmlReportPath = p.joinAll([
         directory.path,
         'coverage',
@@ -1369,13 +1350,10 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsBytesSync: (
-                bytes, {
-                mode = FileMode.write,
-                flush = false,
-              }) {
-                throw FileSystemException('Fake file write error', path);
-              },
+              writeAsBytesSync:
+                  (bytes, {mode = FileMode.write, flush = false}) {
+                    throw FileSystemException('Fake file write error', path);
+                  },
             );
           }
           throw UnsupportedError(
@@ -1392,10 +1370,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1430,9 +1407,8 @@ end_of_record
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              readAsLinesSync:
-                  (encoding) =>
-                      throw FileSystemException('Fake file read error', path),
+              readAsLinesSync: (encoding) =>
+                  throw FileSystemException('Fake file read error', path),
             );
           }
           throw UnsupportedError(
@@ -1475,10 +1451,9 @@ end_of_record
             return _ReportTestFile(
               path: path,
               existsSync: () => true,
-              openRead:
-                  ([start, end]) => Stream<List<int>>.error(
-                    FileSystemException('Fake file read error', path),
-                  ),
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
             );
           }
           throw UnsupportedError(
@@ -1495,10 +1470,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1510,10 +1484,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final outputDirPath = p.joinAll([directory.path, 'coverage', 'html']);
       final rootIndexHtmlFilePath = p.joinAll([outputDirPath, 'index.html']);
 
@@ -1584,10 +1557,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1599,10 +1571,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
       final outputDirPath = p.joinAll([directory.path, 'coverage', 'html']);
       final rootIndexHtmlFilePath = p.joinAll([outputDirPath, 'index.html']);
 
@@ -1639,17 +1610,18 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsStringSync: (
-                contents, {
-                mode = FileMode.write,
-                encoding = utf8,
-                flush = false,
-              }) {
-                throw FileSystemException(
-                  'Fake directory index write error',
-                  path,
-                );
-              },
+              writeAsStringSync:
+                  (
+                    contents, {
+                    mode = FileMode.write,
+                    encoding = utf8,
+                    flush = false,
+                  }) {
+                    throw FileSystemException(
+                      'Fake directory index write error',
+                      path,
+                    );
+                  },
             );
           }
           if (p.basename(path) == 'some_source_file.dart.html') {
@@ -1679,10 +1651,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1694,10 +1665,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
@@ -1761,10 +1731,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'coverage', 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 SF:lib/some_source_file.dart
 DA:1,0
 LF:1
@@ -1776,10 +1745,9 @@ end_of_record
         'lib',
         'some_source_file.dart',
       ]);
-      final sourceFile =
-          File(sourceFilePath)
-            ..createSync(recursive: true)
-            ..writeAsStringSync('void main() {}');
+      final sourceFile = File(sourceFilePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}');
 
       await IOOverrides.runZoned(
         () async {
@@ -1822,14 +1790,18 @@ end_of_record
             return _ReportTestFile(
               path: path,
               createSync: ({recursive = false, exclusive = false}) {},
-              writeAsStringSync: (
-                contents, {
-                mode = FileMode.write,
-                encoding = utf8,
-                flush = false,
-              }) {
-                throw FileSystemException('Fake source HTML write error', path);
-              },
+              writeAsStringSync:
+                  (
+                    contents, {
+                    mode = FileMode.write,
+                    encoding = utf8,
+                    flush = false,
+                  }) {
+                    throw FileSystemException(
+                      'Fake source HTML write error',
+                      path,
+                    );
+                  },
             );
           }
           throw UnsupportedError(

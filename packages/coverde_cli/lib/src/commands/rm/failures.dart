@@ -27,7 +27,8 @@ sealed class CoverdeRmInvalidInputFailure extends CoverdeRmFailure {
   final String usageMessage;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 $invalidInputDescription
 
 $usageMessage

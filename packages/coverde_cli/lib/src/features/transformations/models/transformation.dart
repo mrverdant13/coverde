@@ -601,14 +601,10 @@ PresetTransformation _lookupLocalPreset(
 ) {
   return presets.singleWhere(
     (preset) => preset.presetName == name,
-    orElse:
-        () =>
-            throw TransformationFromCliOptionUnknownPresetFailure(
-              unknownPreset: name,
-              availablePresets: [
-                for (final preset in presets) preset.presetName,
-              ],
-            ),
+    orElse: () => throw TransformationFromCliOptionUnknownPresetFailure(
+      unknownPreset: name,
+      availablePresets: [for (final preset in presets) preset.presetName],
+    ),
   );
 }
 
@@ -616,8 +612,10 @@ PresetTransformation _lookupLocalPreset(
 typedef Transformations = Iterable<Transformation>;
 
 /// A tuple of a transformation and its preset chains.
-typedef LeafTransformationWithPresetChains =
-    ({LeafTransformation transformation, List<String> presets});
+typedef LeafTransformationWithPresetChains = ({
+  LeafTransformation transformation,
+  List<String> presets,
+});
 
 /// Extension methods for [Iterable<Transformation>].
 extension ExtendedTransformations on Iterable<Transformation> {

@@ -192,11 +192,10 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     if (fileCoverageLogLevel != FileCoverageLogLevel.none) logger.info('');
 
     final lineRate = document.lineRate;
-    final summary =
-        lineRate == null
-            ? 'n/a - ${document.linesHit}/${document.linesFound}'
-            : '${lineRate.toStringAsFixed(2)}% - '
-                '${document.linesHit}/${document.linesFound}';
+    final summary = lineRate == null
+        ? 'n/a - ${document.linesHit}/${document.linesFound}'
+        : '${lineRate.toStringAsFixed(2)}% - '
+              '${document.linesHit}/${document.linesFound}';
     logger
       ..info(wrapWith('GLOBAL:', [blue, styleBold]))
       ..info(wrapWith(summary, [blue, styleBold]));

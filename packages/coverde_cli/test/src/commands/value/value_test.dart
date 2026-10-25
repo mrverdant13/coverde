@@ -98,8 +98,9 @@ end_of_record
         'coverde-value-covered-',
       );
       addTearDown(() => directory.deleteSync(recursive: true));
-      final sourcePath =
-          Platform.isWindows ? '/lib/covered.dart' : r'C:\covered.dart';
+      final sourcePath = Platform.isWindows
+          ? '/lib/covered.dart'
+          : r'C:\covered.dart';
       final traceFile = File(p.join(directory.path, 'lcov.info'))
         ..writeAsStringSync('''
 SF:$sourcePath
@@ -493,10 +494,9 @@ end_of_record
       );
       addTearDown(() => directory.delete(recursive: true));
       final traceFilePath = p.join(directory.path, 'lcov.info');
-      final traceFile =
-          File(traceFilePath)
-            ..createSync()
-            ..writeAsStringSync('''
+      final traceFile = File(traceFilePath)
+        ..createSync()
+        ..writeAsStringSync('''
 SF:lib/some_test.dart
 DA:1,0
 LF:1
@@ -568,10 +568,9 @@ end_of_record
             return _ValueTestFile(
               path: path,
               existsSync: () => true,
-              openRead:
-                  ([start, end]) => Stream<List<int>>.error(
-                    FileSystemException('Fake file read error', path),
-                  ),
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
             );
           }
           throw UnsupportedError(

@@ -477,21 +477,18 @@ $currentPackageVersion \u2192 $latestVersion''';
         return ' ' * leftPadding + styled + ' ' * rightPadding;
       }
 
-      final messageBuffer =
-          StringBuffer()
-            ..writeln('┏${'━' * boxLength}┓')
-            ..writeln('┃${' ' * boxLength}┃')
-            ..writeln(
-              '┃${addPadding(unstyledUpdateMessage, styledUpdateMessage)}┃',
-            )
-            ..writeln(
-              '┃${addPadding(unstyledVersionsMessage, styledVersionsMessage)}┃',
-            )
-            ..writeln(
-              '┃${addPadding(unstyledCommandMessage, styledCommandMessage)}┃',
-            )
-            ..writeln('┃${' ' * boxLength}┃')
-            ..writeln('┗${'━' * boxLength}┛');
+      final messageBuffer = StringBuffer()
+        ..writeln('┏${'━' * boxLength}┓')
+        ..writeln('┃${' ' * boxLength}┃')
+        ..writeln('┃${addPadding(unstyledUpdateMessage, styledUpdateMessage)}┃')
+        ..writeln(
+          '┃${addPadding(unstyledVersionsMessage, styledVersionsMessage)}┃',
+        )
+        ..writeln(
+          '┃${addPadding(unstyledCommandMessage, styledCommandMessage)}┃',
+        )
+        ..writeln('┃${' ' * boxLength}┃')
+        ..writeln('┗${'━' * boxLength}┛');
       logger.write(messageBuffer.toString());
     } on Object catch (e) {
       var errorLogged = false;

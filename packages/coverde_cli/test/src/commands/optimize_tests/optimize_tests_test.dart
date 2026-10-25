@@ -53,7 +53,8 @@ Usage: coverde optimize-tests [arguments]
                               (defaults to on)
 
 Run "coverde help" to see global options.
-'''.trim();
+'''
+        .trim();
 
 void main() {
   group('coverde optimize-tests', () {
@@ -103,8 +104,8 @@ void main() {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -136,8 +137,8 @@ void main() {
                 '--${OptimizeTestsCommand.outputOptionName}=test/.optimized_test.dart',
               ]);
             },
-            getCurrentDirectory:
-                () => Directory(p.join(currentDirectory.path, projectPath)),
+            getCurrentDirectory: () =>
+                Directory(p.join(currentDirectory.path, projectPath)),
           );
 
           verify(
@@ -176,8 +177,8 @@ void main() {
             final optimizedTestFile = File(
               p.join(projectPath, 'test', 'optimized_test.dart'),
             );
-            final optimizedTestFileContent =
-                optimizedTestFile.readAsStringSync();
+            final optimizedTestFileContent = optimizedTestFile
+                .readAsStringSync();
             const expectedOutput = '''
 // ignore_for_file: type=lint
 
@@ -190,8 +191,8 @@ void main() {}
             );
             expect(optimizedTestFileContent.hasEmptyMainFunction, isTrue);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
       }
     });
@@ -227,8 +228,8 @@ void main() {}
           () async {
             await cmdRunner.run(['optimize-tests']);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
 
         final optimizedTestFileContent = optimizedTestFile.readAsStringSync();
@@ -316,8 +317,8 @@ void main() {}
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
 
         final formatter = DartFormatter(
@@ -425,8 +426,8 @@ void main() {
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
 
         final formatter = DartFormatter(
@@ -608,8 +609,8 @@ void main() {
               '--no-${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
 
         final formatter = DartFormatter(
@@ -749,8 +750,8 @@ void main() {
               '--${OptimizeTestsCommand.useFlutterGoldenTestsFlagName}',
             ]);
           },
-          getCurrentDirectory:
-              () => Directory(p.join(currentDirectory.path, projectPath)),
+          getCurrentDirectory: () =>
+              Directory(p.join(currentDirectory.path, projectPath)),
         );
 
         final formatter = DartFormatter(
@@ -1193,8 +1194,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1232,8 +1233,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1266,8 +1267,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1300,8 +1301,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1332,8 +1333,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1366,8 +1367,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1400,8 +1401,8 @@ final class _DelegatingGoldenFileComparator extends GoldenFileComparator {
             ),
           );
         },
-        getCurrentDirectory:
-            () => Directory(p.join(currentDirectory.path, projectPath)),
+        getCurrentDirectory: () =>
+            Directory(p.join(currentDirectory.path, projectPath)),
       );
     });
 
@@ -1551,8 +1552,8 @@ void main() {
             return _OptimizeTestsTestFile(
               path: path,
               existsSync: () => true,
-              readAsStringSync:
-                  () => throw FileSystemException('Fake file read error', path),
+              readAsStringSync: () =>
+                  throw FileSystemException('Fake file read error', path),
             );
           }
           throw UnsupportedError(
@@ -1569,10 +1570,9 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
-      final pubspecFile =
-          File(pubspecFilePath)
-            ..createSync()
-            ..writeAsStringSync('name: test');
+      final pubspecFile = File(pubspecFilePath)
+        ..createSync()
+        ..writeAsStringSync('name: test');
       final outputFilePath = p.join(directory.path, 'output.dart');
 
       await IOOverrides.runZoned(
@@ -1603,9 +1603,8 @@ void main() {
             return _OptimizeTestsTestFile(
               path: path,
               existsSync: () => true,
-              deleteSync:
-                  ({recursive = false}) =>
-                      throw FileSystemException('Fake file delete error', path),
+              deleteSync: ({recursive = false}) =>
+                  throw FileSystemException('Fake file delete error', path),
             );
           }
           return File(path);
@@ -1620,10 +1619,9 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
-      final pubspecFile =
-          File(pubspecFilePath)
-            ..createSync()
-            ..writeAsStringSync('name: test');
+      final pubspecFile = File(pubspecFilePath)
+        ..createSync()
+        ..writeAsStringSync('name: test');
       final outputFilePath = p.join(directory.path, 'output.dart');
       final outputFile = File(outputFilePath);
 
@@ -1646,16 +1644,14 @@ void main() {
             ),
           );
         },
-        getCurrentDirectory:
-            () => _OptimizeTestsTestDirectory(
-              path: directory.path,
-              listSync:
-                  ({recursive = false, followLinks = true}) =>
-                      throw FileSystemException(
-                        'Fake directory list error',
-                        directory.path,
-                      ),
-            ),
+        getCurrentDirectory: () => _OptimizeTestsTestDirectory(
+          path: directory.path,
+          listSync: ({recursive = false, followLinks = true}) =>
+              throw FileSystemException(
+                'Fake directory list error',
+                directory.path,
+              ),
+        ),
         createFile: (path) {
           if (p.basename(path) == 'pubspec.yaml') {
             return pubspecFile;
@@ -1677,10 +1673,9 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
-      final pubspecFile =
-          File(pubspecFilePath)
-            ..createSync()
-            ..writeAsStringSync('name: test');
+      final pubspecFile = File(pubspecFilePath)
+        ..createSync()
+        ..writeAsStringSync('name: test');
       final outputFilePath = p.join(directory.path, 'output.dart');
       final outputFile = File(outputFilePath);
       final testFilePath = p.joinAll([
@@ -1722,12 +1717,10 @@ void main() {
           if (p.basename(path) == 'some_test.dart') {
             return _OptimizeTestsTestFile(
               path: path,
-              readAsStringSync:
-                  () =>
-                      throw FileSystemException(
-                        'Fake file read error',
-                        testFilePath,
-                      ),
+              readAsStringSync: () => throw FileSystemException(
+                'Fake file read error',
+                testFilePath,
+              ),
             );
           }
           throw UnsupportedError(
@@ -1744,10 +1737,9 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
-      final pubspecFile =
-          File(pubspecFilePath)
-            ..createSync()
-            ..writeAsStringSync('name: test');
+      final pubspecFile = File(pubspecFilePath)
+        ..createSync()
+        ..writeAsStringSync('name: test');
       final outputFilePath = p.joinAll([
         directory.path,
         'output',
@@ -1810,10 +1802,9 @@ void main() {
       );
       addTearDown(() => directory.delete(recursive: true));
       final pubspecFilePath = p.join(directory.path, 'pubspec.yaml');
-      final pubspecFile =
-          File(pubspecFilePath)
-            ..createSync()
-            ..writeAsStringSync('name: test');
+      final pubspecFile = File(pubspecFilePath)
+        ..createSync()
+        ..writeAsStringSync('name: test');
       final outputDirectoryPath = p.join(directory.path, 'output');
       final outputDirectory = Directory(outputDirectoryPath)
         ..createSync(recursive: true);
