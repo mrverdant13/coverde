@@ -35,6 +35,7 @@ void main() {
           isA<FilterCommand>(),
           isA<TransformCommand>(),
           isA<ReportCommand>(),
+          isA<RenderCommand>(),
           isA<RmCommand>(),
           isA<ValueCommand>(),
         ]),
