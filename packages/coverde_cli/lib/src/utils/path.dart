@@ -70,8 +70,9 @@ String normalizeCoveragePath(String raw) {
 
 /// [path] with `\` written as `/`.
 ///
-/// Splits, globs, and the directory tree use this so `\` is a separator on
-/// every host. The stored coverage path keeps the separator it already had.
+/// Splits, globs, the directory tree, and file identity use this so `\` is a
+/// separator on every host. The stored coverage path keeps the separator it
+/// already had.
 String coveragePathSlashForm(String path) => path.replaceAll(r'\', '/');
 
 /// The root class of [raw].
