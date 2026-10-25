@@ -152,8 +152,7 @@ void main() {
       File(sourcePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('void library() {}\n');
-      final tree =
-          CoverageDocument.parse('''
+      final tree = CoverageDocument.parse('''
 SF:$sourcePath
 DA:1,1
 end_of_record
@@ -190,8 +189,7 @@ end_of_record
       File(sourcePath)
         ..createSync(recursive: true)
         ..writeAsStringSync('void main() {}\n');
-      final tree =
-          CoverageDocument.parse('''
+      final tree = CoverageDocument.parse('''
 SF:$sourcePath
 FN:1,main
 FNDA:1,main
@@ -225,8 +223,7 @@ end_of_record
       );
       addTearDown(() => reportDir.deleteSync(recursive: true));
       final sourcePath = Platform.isWindows ? '/abs/a.dart' : 'C:/a.dart';
-      final tree =
-          CoverageDocument.parse('''
+      final tree = CoverageDocument.parse('''
 SF:$sourcePath
 DA:1,1
 end_of_record

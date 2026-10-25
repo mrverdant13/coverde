@@ -287,10 +287,9 @@ end_of_record
           if (p.basename(path) == 'trace.lcov.info') {
             return _CheckTraceFileReadTestFile(
               path: path,
-              openRead:
-                  ([start, end]) => Stream<List<int>>.error(
-                    FileSystemException('Fake file read error', path),
-                  ),
+              openRead: ([start, end]) => Stream<List<int>>.error(
+                FileSystemException('Fake file read error', path),
+              ),
             );
           }
           throw UnsupportedError(
@@ -598,9 +597,8 @@ coverage:
           if (p.basename(filePath) == 'coverde.yaml') {
             return _CheckConfigReadTestFile(
               path: filePath,
-              readAsStringSync:
-                  () =>
-                      throw FileSystemException('Cannot read config', filePath),
+              readAsStringSync: () =>
+                  throw FileSystemException('Cannot read config', filePath),
             );
           }
           throw UnsupportedError(

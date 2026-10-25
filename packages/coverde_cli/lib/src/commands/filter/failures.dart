@@ -24,7 +24,8 @@ sealed class CoverdeFilterInvalidInputFailure extends CoverdeFilterFailure {
   final String usageMessage;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 $invalidInputDescription
 
 $usageMessage

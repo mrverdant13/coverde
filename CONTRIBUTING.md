@@ -37,7 +37,7 @@ If you can include screenshots, trace data or any additional context, it could b
 
 ### Pre-requisites
 
-- [Dart SDK][dart_link] — the published CLI advertises `>=3.7.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.7.0`.
+- [Dart SDK][dart_link] — the published CLI advertises `>=3.8.0`. **Developing this repo needs Dart 3.13** because tools and CLI e2e depend on `very_good_analysis` 11. The published constraint stays `>=3.8.0`.
 - Ripple — package discovery and script runner. Install the pinned CLI:
   ```bash
   dart install 'ripple_cli@{git: {url: https://github.com/mrverdant13/ripple.git, ref: 27d5a0bc6f78f4ff35651a820b4fbae80cd96670}}'

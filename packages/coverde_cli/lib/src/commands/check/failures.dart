@@ -28,7 +28,8 @@ sealed class CoverdeCheckInvalidInputFailure extends CoverdeCheckFailure {
   final String usageMessage;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 $invalidInputDescription
 
 $usageMessage
@@ -102,10 +103,9 @@ final class CoverdeCheckUnknownCoverageThresholdFailure
 
   @override
   String get readableMessage {
-    final available =
-        availableThresholds.isEmpty
-            ? 'none'
-            : availableThresholds.map((name) => '`$name`').join(', ');
+    final available = availableThresholds.isEmpty
+        ? 'none'
+        : availableThresholds.map((name) => '`$name`').join(', ');
     return '''
 Unknown coverage threshold `$thresholdName` in `$configPath`.
 Available thresholds: $available.
@@ -308,7 +308,8 @@ final class CoverdeCheckCoverageBelowMinimumFailure
   final CoverageDocument document;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 The minimum coverage value has not been reached.
 Expected min coverage: ${minimumCoverage.toStringAsFixed(2)} %.
 Actual coverage: ${document.lineRate!.toStringAsFixed(2)} %.

@@ -27,7 +27,8 @@ sealed class CoverdeReportInvalidInputFailure extends CoverdeReportFailure {
   final String usageMessage;
 
   @override
-  String get readableMessage => '''
+  String get readableMessage =>
+      '''
 $invalidInputDescription
 
 $usageMessage

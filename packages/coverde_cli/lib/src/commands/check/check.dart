@@ -73,8 +73,9 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
     final argResults = this.argResults!;
     final filePath = p.absolute(argResults.option(inputOptionName)!);
     final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel =
-          argResults.option(fileCoverageLogLevelOptionName)!;
+      final rawFileCoverageLogLevel = argResults.option(
+        fileCoverageLogLevelOptionName,
+      )!;
       return FileCoverageLogLevel.values.firstWhere(
         // It is safe to look up the log level by identifier because the allowed
         // values are validated by the args parser.
