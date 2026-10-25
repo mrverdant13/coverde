@@ -147,9 +147,9 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     final origin = File(originPath);
     final destination = File(destinationPath);
 
-    final TraceFile traceFile;
+    final CoverageDocument document;
     try {
-      traceFile = await TraceFile.parseStreaming(origin);
+      document = await CoverageDocument.parseStreaming(origin);
     } on FileSystemException catch (exception) {
       throw CoverdeFilterTraceFileReadFailure.fromFileSystemException(
         traceFilePath: originPath,
@@ -158,37 +158,29 @@ All the relative paths in the resulting coverage trace file will be resolved rel
     }
     final acceptedSrcFilesRawData = <String>{};
 
-    // For each file coverage data.
-    for (final fileCovData in traceFile.sourceFilesCovData) {
-      // Check if file should be ignored according to matching patterns.
+    for (final file in document.files) {
       final shouldBeIgnored = validatedPatterns.any(
-        (regexp) => regexp.hasMatch(fileCovData.source.path),
+        (regexp) => regexp.hasMatch(file.path),
       );
 
-      // Conditionally include file coverage data.
       if (shouldBeIgnored) {
-        logger.detail('<${fileCovData.source.path}> coverage data ignored.');
+        logger.detail('<${file.path}> coverage data ignored.');
       } else {
         final String sourcePath;
         if (baseDirectory == null) {
-          sourcePath = fileCovData.source.path;
+          sourcePath = file.path;
         } else {
           if (!hostCanResolveCoveragePath(
-            fileCovData.source.path,
+            file.path,
             windowsHost: Platform.isWindows,
           )) {
             throw CoverdeFilterUnresolvedCoveragePathFailure(
-              sourcePath: fileCovData.source.path,
+              sourcePath: file.path,
             );
           }
-          sourcePath = path.relative(
-            fileCovData.source.path,
-            from: baseDirectory,
-          );
+          sourcePath = path.relative(file.path, from: baseDirectory);
         }
-        acceptedSrcFilesRawData.add(
-          CovFile.rewriteSourcePath(fileCovData.raw, sourcePath),
-        );
+        acceptedSrcFilesRawData.add(file.renderTrace(sourcePath: sourcePath));
       }
     }
 

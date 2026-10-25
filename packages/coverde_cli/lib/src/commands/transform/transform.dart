@@ -213,9 +213,9 @@ Presets can be defined in $_configFileName under the `transformations` key.
     final origin = File(originPath);
     final destination = File(destinationPath);
 
-    final TraceFile traceFile;
+    final CoverageDocument document;
     try {
-      traceFile = await TraceFile.parseStreaming(origin);
+      document = await CoverageDocument.parseStreaming(origin);
     } on FileSystemException catch (exception) {
       throw CoverdeTransformFileReadFailure.fromFileSystemException(
         filePath: originPath,
@@ -223,7 +223,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
       );
     }
 
-    final acceptedRawData = _applyTransformations(traceFile, steps);
+    final acceptedRawData = _applyTransformations(document, steps);
 
     try {
       destination.parent.createSync(recursive: true);
@@ -305,13 +305,13 @@ Presets can be defined in $_configFileName under the `transformations` key.
   }
 
   List<String> _applyTransformations(
-    TraceFile traceFile,
+    CoverageDocument document,
     List<Transformation> steps,
   ) {
-    var entries =
-        traceFile.sourceFilesCovData
-            .map((f) => (path: f.source.path, raw: f.raw, coverage: f.coverage))
-            .toList();
+    var entries = [
+      for (final file in document.files)
+        (path: file.path, file: file, coverage: file.lineRate!),
+    ];
 
     final flatSteps = steps.flattenedSteps;
     for (final step in flatSteps) {
@@ -348,14 +348,14 @@ Presets can be defined in $_configFileName under the `transformations` key.
                   );
                 }
                 final newPath = p.relative(e.path, from: bp);
-                return (path: newPath, raw: e.raw, coverage: e.coverage);
+                return (path: newPath, file: e.file, coverage: e.coverage);
               }).toList();
       }
     }
 
     return [
       for (final entry in entries)
-        CovFile.rewriteSourcePath(entry.raw, entry.path),
+        entry.file.renderTrace(sourcePath: entry.path),
     ];
   }
 
