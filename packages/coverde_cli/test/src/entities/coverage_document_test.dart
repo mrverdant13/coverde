@@ -1,3 +1,4 @@
+import 'package:coverde/src/entities/coverage_branch.dart';
 import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
@@ -27,6 +28,17 @@ end_of_record
       expect(file.linesHit, 1);
       expect(file.lineRate, 50);
       expect(file.functionRate, 0);
+      expect(file.branchRate, 100);
+      expect(
+        file.branches,
+        CoverageBranches(
+          hit: 1,
+          found: 1,
+          branches: const [
+            CoverageBranch(line: 1, block: 0, branch: 0, taken: 1),
+          ],
+        ),
+      );
       expect(
         file.functions,
         CoverageFunctions(
@@ -427,6 +439,190 @@ end_of_record
       );
     });
 
+    test('parses branch records and keeps the original BRDA text', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+BRDA:2,1,0,0
+BRDA:1,1,0,0
+BRDA:1,0,1,-
+BRDA:1,0,0,2
+end_of_record
+''';
+
+      final file = CoverageDocument.parse(trace).files.single;
+
+      expect(
+        file.branches,
+        CoverageBranches(
+          hit: 1,
+          found: 4,
+          branches: const [
+            CoverageBranch(line: 1, block: 0, branch: 0, taken: 2),
+            CoverageBranch(line: 1, block: 0, branch: 1, taken: null),
+            CoverageBranch(line: 1, block: 1, branch: 0, taken: 0),
+            CoverageBranch(line: 2, block: 1, branch: 0, taken: 0),
+          ],
+        ),
+      );
+      expect(file.branchRate, 25);
+      expect(file.branches.hashCode, file.branches!.hashCode);
+      expect(file.branches!.branches.first.hashCode, isA<int>());
+      expect(file.branches, file.branches);
+      expect(file.branches!.branches.first, file.branches!.branches.first);
+      expect(file.renderTrace(), contains('BRDA:1,0,1,-'));
+    });
+
+    test('treats a reported empty branch group as present', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+BRF:0
+BRH:0
+end_of_record
+SF:lib/b.dart
+DA:1,0
+BRDA:4,0,0,1
+end_of_record
+SF:lib/c.dart
+DA:1,1
+end_of_record
+''';
+
+      final document = CoverageDocument.parse(trace);
+
+      expect(document.files[0].branches, isNotNull);
+      expect(document.files[0].branches!.found, 0);
+      expect(document.files[0].branchRate, isNull);
+      expect(document.files[2].branches, isNull);
+      expect(document.files[2].branchRate, isNull);
+      expect(document.branchRate, 100);
+    });
+
+    test('merges branches that share a line, block, and branch', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+BRDA:1,0,0,-
+BRDA:1,0,1,2
+BRDA:4,0,0,-
+BRDA:5,0,0,1
+end_of_record
+SF:lib/a.dart
+DA:1,0
+BRDA:1,0,0,3
+BRDA:1,0,1,-
+BRDA:4,0,0,-
+BRDA:3,0,0,4
+BRDA:5,0,0,4
+end_of_record
+''';
+
+      final branches = CoverageDocument.parse(trace).files.single.branches;
+
+      expect(
+        branches,
+        CoverageBranches(
+          hit: 4,
+          found: 5,
+          branches: const [
+            CoverageBranch(line: 1, block: 0, branch: 0, taken: 3),
+            CoverageBranch(line: 1, block: 0, branch: 1, taken: 2),
+            CoverageBranch(line: 3, block: 0, branch: 0, taken: 4),
+            CoverageBranch(line: 4, block: 0, branch: 0, taken: null),
+            CoverageBranch(line: 5, block: 0, branch: 0, taken: 5),
+          ],
+        ),
+      );
+    });
+
+    test('keeps branches when only one record reports them', () {
+      const later = '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/a.dart
+DA:2,0
+BRDA:2,0,1,5
+end_of_record
+''';
+      const earlier = '''
+SF:lib/a.dart
+DA:1,1
+BRDA:2,0,1,5
+end_of_record
+SF:lib/a.dart
+DA:2,0
+end_of_record
+''';
+
+      for (final trace in [later, earlier]) {
+        final file = CoverageDocument.parse(trace).files.single;
+        expect(
+          file.branches,
+          CoverageBranches(
+            hit: 1,
+            found: 1,
+            branches: const [
+              CoverageBranch(line: 2, block: 0, branch: 1, taken: 5),
+            ],
+          ),
+        );
+      }
+    });
+
+    test('rejects branch records that disagree', () {
+      void expectFailure(String trace, String message) {
+        expect(
+          () => CoverageDocument.parse(trace),
+          throwsA(
+            isA<CoverageTraceFormatFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              contains(message),
+            ),
+          ),
+        );
+      }
+
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,0\nend_of_record\n',
+        'Invalid `BRDA:`',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,-,1\nend_of_record\n',
+        'not an integer',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:0,0,0,1\nend_of_record\n',
+        'positive line number',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,-1,0,1\nend_of_record\n',
+        'must not be negative',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,0,-1\nend_of_record\n',
+        'must not be negative',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,0,1\nBRDA:1,0,0,2\nend_of_record\n',
+        'repeats branch 1,0,0',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,0,1\nBRF:2\nend_of_record\n',
+        'BRF:2',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRDA:1,0,0,1\nBRH:0\nend_of_record\n',
+        'BRH:0',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nBRF:0\nBRF:0\nend_of_record\n',
+        'repeats `BRF:`',
+      );
+    });
+
     test('rejects a summary that disagrees with the DA lines', () {
       const found = '''
 SF:lib/a.dart
@@ -474,7 +670,9 @@ end_of_record
 
       expect(document.files.single.linesFound, 1);
       expect(document.files.single.functions, isNull);
+      expect(document.files.single.branches, isNull);
       expect(document.functionRate, isNull);
+      expect(document.branchRate, isNull);
     });
 
     test('rejects malformed records', () {
@@ -712,6 +910,7 @@ end_of_record
       expect(document.tree.path, isEmpty);
       expect(document.lineRate, isNull);
       expect(document.functionRate, isNull);
+      expect(document.branchRate, isNull);
       expect(document.tree.lineRate, isNull);
       expect(document, document);
     });

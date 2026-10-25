@@ -1,6 +1,8 @@
 # Allowed words for Dart files
 ansi
 brda
+brf
+brh
 canonicalize
 csslib
 endtemplate
