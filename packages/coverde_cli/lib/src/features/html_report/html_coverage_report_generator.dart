@@ -109,11 +109,10 @@ class HtmlCoverageReportGenerator {
       topLevelDirRelPath,
       sortNumericPngFilename,
     );
-    final rate = _lineRate(
-      linesHit: directory.linesHit,
-      linesFound: directory.linesFound,
+    final rate = coverageRate(
+      hit: directory.linesHit,
+      found: directory.linesFound,
     );
-    final suffix = _classSuffix(rate, medium: medium, high: high);
 
     folderReport.head
       ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
@@ -130,9 +129,12 @@ class HtmlCoverageReportGenerator {
     folderReport.querySelector('.traceFileName')?.text = traceFileName;
     folderReport.querySelector('.linesHit')?.text = '${directory.linesHit}';
     folderReport.querySelector('.linesFound')?.text = '${directory.linesFound}';
-    folderReport.querySelector('.covValue')
-      ?..text = '${_coverageString(rate)} %'
-      ..classes.add('headerCovTableEntry$suffix');
+    _writeCoverageValue(
+      folderReport.querySelector('.covValue'),
+      rate,
+      medium: medium,
+      high: high,
+    );
 
     folderReport.querySelector('.lastTraceFileModificationDate')?.text =
         traceFileModificationDate.toString();
@@ -226,11 +228,7 @@ class HtmlCoverageReportGenerator {
       path.split(path.dirname(coveragePathSlashForm(file.path))),
     );
     final fileName = path.posix.basename(coveragePathSlashForm(file.path));
-    final rate = _lineRate(
-      linesHit: file.linesHit,
-      linesFound: file.linesFound,
-    );
-    final suffix = _classSuffix(rate, medium: medium, high: high);
+    final rate = coverageRate(hit: file.linesHit, found: file.linesFound);
 
     fileReport.head
       ?..querySelector('link')?.attributes['href'] = topLevelCssRelPath
@@ -244,9 +242,12 @@ class HtmlCoverageReportGenerator {
     fileReport.querySelector('.traceFileName')?.text = traceFileName;
     fileReport.querySelector('.linesHit')?.text = '${file.linesHit}';
     fileReport.querySelector('.linesFound')?.text = '${file.linesFound}';
-    fileReport.querySelector('.covValue')
-      ?..text = '${_coverageString(rate)} %'
-      ..classes.add('headerCovTableEntry$suffix');
+    _writeCoverageValue(
+      fileReport.querySelector('.covValue'),
+      rate,
+      medium: medium,
+      high: high,
+    );
 
     fileReport.querySelector('.lastTraceFileModificationDate')?.text =
         traceFileModificationDate.toString();
@@ -305,8 +306,7 @@ class HtmlCoverageReportGenerator {
   }) {
     final sanitizedRelativePath = path.url.joinAll(path.split(relativePath));
     final row = _folderReportRowTemplate.clone(true);
-    final rate = _lineRate(linesHit: linesHit, linesFound: linesFound);
-    final suffix = _classSuffix(rate, medium: medium, high: high);
+    final rate = coverageRate(hit: linesHit, found: linesFound);
     final link =
         isDirectory
             ? path.url.join(sanitizedRelativePath, 'index.html')
@@ -315,20 +315,42 @@ class HtmlCoverageReportGenerator {
       ?..attributes['href'] = link
       ..text = sanitizedRelativePath;
     final covBar = row.querySelector('.barCov');
-    if (rate < 1) {
+    if (rate == null) {
       covBar?.remove();
+      row.querySelector('.coverPer')?.text = 'n/a';
     } else {
-      covBar
-        ?..attributes['width'] = '${_coverageString(rate)}%'
-        ..classes.add('barCov$suffix');
+      final suffix = _classSuffix(rate, medium: medium, high: high);
+      if (rate < 1) {
+        covBar?.remove();
+      } else {
+        covBar
+          ?..attributes['width'] = '${_coverageString(rate)}%'
+          ..classes.add('barCov$suffix');
+      }
+      row.querySelector('.coverPer')
+        ?..classes.add('coverPer$suffix')
+        ..innerHtml = '${_coverageString(rate)}&nbsp;%';
+      row.querySelector('.coverNum')?.classes.add('coverNum$suffix');
     }
-    row.querySelector('.coverPer')
-      ?..classes.add('coverPer$suffix')
-      ..innerHtml = '${_coverageString(rate)}&nbsp;%';
-    row.querySelector('.coverNum')
-      ?..classes.add('coverNum$suffix')
-      ..innerHtml = '$linesHit&nbsp;/&nbsp;$linesFound';
+    row.querySelector('.coverNum')?.innerHtml =
+        '$linesHit&nbsp;/&nbsp;$linesFound';
     return row;
+  }
+
+  void _writeCoverageValue(
+    Element? element,
+    double? rate, {
+    required double medium,
+    required double high,
+  }) {
+    if (rate == null) {
+      element?.text = 'n/a';
+      return;
+    }
+    final suffix = _classSuffix(rate, medium: medium, high: high);
+    element
+      ?..text = '${_coverageString(rate)} %'
+      ..classes.add('headerCovTableEntry$suffix');
   }
 
   String _classSuffix(
@@ -343,10 +365,6 @@ class HtmlCoverageReportGenerator {
     } else {
       return 'Hi';
     }
-  }
-
-  double _lineRate({required int linesHit, required int linesFound}) {
-    return coverageRate(hit: linesHit, found: linesFound)!;
   }
 
   String _coverageString(double rate) => rate.toStringAsFixed(2);

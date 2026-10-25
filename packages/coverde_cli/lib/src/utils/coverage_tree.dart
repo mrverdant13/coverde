@@ -144,7 +144,8 @@ String formatCoverageTree(CoverageDirectory directory) {
 }
 
 String _coverageData(String path, int linesHit, int linesFound) {
-  final rate = coverageRate(hit: linesHit, found: linesFound)!;
+  final rate = coverageRate(hit: linesHit, found: linesFound);
+  if (rate == null) return '$path (n/a - $linesHit/$linesFound)';
   final color = rate < 100 ? lightRed : lightGreen;
   final summary = '(${rate.toStringAsFixed(2)}% - $linesHit/$linesFound)';
   return '$path ${color.wrap(summary)}';

@@ -73,6 +73,52 @@ Presets can be defined in coverde.yaml under the `transformations` key.''';
     });
 
     group('run', () {
+      test('a file with no line rate misses a coverage comparison', () async {
+        final directory = Directory.systemTemp.createTempSync(
+          'coverde-transform-functions-',
+        );
+        addTearDown(() => directory.deleteSync(recursive: true));
+        final input = File(p.join(directory.path, 'lcov.info'))
+          ..writeAsStringSync('''
+SF:lib/fn.dart
+FN:1,main
+FNDA:1,main
+end_of_record
+SF:lib/lines.dart
+DA:1,1
+end_of_record
+''');
+        final kept = File(p.join(directory.path, 'kept.info'));
+        final skipped = File(p.join(directory.path, 'skipped.info'));
+
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          input.path,
+          '--${TransformCommand.outputOption}',
+          kept.path,
+          '--${TransformCommand.transformationsOption}',
+          'keep-by-coverage=gte|0',
+        ]);
+        await cmdRunner.run([
+          'transform',
+          '--${TransformCommand.inputOption}',
+          input.path,
+          '--${TransformCommand.outputOption}',
+          skipped.path,
+          '--${TransformCommand.transformationsOption}',
+          'skip-by-coverage=gte|0',
+        ]);
+
+        expect(kept.readAsStringSync(), contains('SF:lib/lines.dart'));
+        expect(kept.readAsStringSync(), isNot(contains('SF:lib/fn.dart')));
+        expect(skipped.readAsStringSync(), contains('SF:lib/fn.dart'));
+        expect(
+          skipped.readAsStringSync(),
+          isNot(contains('SF:lib/lines.dart')),
+        );
+      });
+
       test(
         '--${TransformCommand.explainFlag} | prints resolved steps and exits '
         'without modifying files',

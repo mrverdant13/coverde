@@ -9,7 +9,7 @@ import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
 /// {@template coverde.coverage_document}
-/// Line coverage parsed from an LCOV trace.
+/// Coverage parsed from an LCOV trace.
 /// {@endtemplate}
 @immutable
 final class CoverageDocument {
@@ -77,6 +77,14 @@ final class CoverageDocument {
   /// Line coverage from 0 to 100, or null when [linesFound] is 0.
   double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
 
+  /// Function coverage from 0 to 100.
+  ///
+  /// Null when the trace has no function records or no functions were found.
+  double? get functionRate => optionalCoverageRate(
+    hit: _sumOptional(files.map((file) => file.functions?.hit)),
+    found: _sumOptional(files.map((file) => file.functions?.found)),
+  );
+
   static const _filesEquality = ListEquality<CoverageFile>();
 
   @override
@@ -96,5 +104,17 @@ int _sum(Iterable<int> values) {
   for (final value in values) {
     total += value;
   }
+  return total;
+}
+
+int? _sumOptional(Iterable<int?> values) {
+  var sawValue = false;
+  var total = 0;
+  for (final value in values) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  if (!sawValue) return null;
   return total;
 }

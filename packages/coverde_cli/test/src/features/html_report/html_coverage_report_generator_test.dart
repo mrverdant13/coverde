@@ -181,6 +181,44 @@ end_of_record
       );
     });
 
+    test('shows n/a and no bar when a file has no line coverage', () {
+      final reportDir = Directory.systemTemp.createTempSync(
+        'coverde-html-report-',
+      );
+      addTearDown(() => reportDir.deleteSync(recursive: true));
+      final sourcePath = p.join(reportDir.path, 'a.dart');
+      File(sourcePath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('void main() {}\n');
+      final tree =
+          CoverageDocument.parse('''
+SF:$sourcePath
+FN:1,main
+FNDA:1,main
+end_of_record
+''').tree;
+
+      const HtmlCoverageReportGenerator().generate(
+        root: tree,
+        traceFileName: 'lcov.info',
+        parentReportDirAbsPath: reportDir.path,
+        traceFileModificationDate: DateTime.utc(2026),
+        medium: 80,
+        high: 90,
+      );
+
+      final html = reportDir
+          .listSync(recursive: true)
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.html'))
+          .map((file) => file.readAsStringSync())
+          .join('\n');
+
+      expect(html, contains('n/a'));
+      expect(html, contains('a.dart'));
+      expect(html, isNot(contains('barCov')));
+    });
+
     test('rejects a source path this host cannot read', () {
       final reportDir = Directory.systemTemp.createTempSync(
         'coverde-html-report-',

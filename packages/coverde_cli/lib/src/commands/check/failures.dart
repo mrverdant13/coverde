@@ -269,6 +269,21 @@ final class CoverdeCheckTraceFileReadFailure
       'Failed to read trace file at `$traceFilePath`.\n$errorMessage';
 }
 
+/// {@template coverde_cli.check_no_line_coverage_failure}
+/// A [CheckCommand] failure that indicates that the trace has no line coverage.
+/// {@endtemplate}
+final class CoverdeCheckNoLineCoverageFailure extends CoverdeCheckFailure {
+  /// {@macro coverde_cli.check_no_line_coverage_failure}
+  const CoverdeCheckNoLineCoverageFailure({required this.traceFilePath});
+
+  /// The trace that has function data and no instrumented lines.
+  final String traceFilePath;
+
+  @override
+  String get readableMessage =>
+      'Trace file at `$traceFilePath` has no line coverage to check.';
+}
+
 /// {@template coverde_cli.check_coverage_below_minimum_failure}
 /// A [CheckCommand] failure that indicates that the coverage value is below the
 /// minimum coverage threshold.

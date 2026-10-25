@@ -104,6 +104,46 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       },
     );
 
+    test('''--${CheckCommand.inputOptionName}=<function_only_trace> '''
+        '''<min_coverage> '''
+        '''| fails when the trace has no line coverage''', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-check-functions-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:lib/fn.dart
+FN:1,main
+FNDA:1,main
+end_of_record
+''');
+
+      Future<void> action() => cmdRunner.run([
+        'check',
+        '--${CheckCommand.inputOptionName}',
+        traceFile.path,
+        '--${CheckCommand.fileCoverageLogLevelOptionName}',
+        FileCoverageLogLevel.none.identifier,
+        '80',
+      ]);
+
+      await expectLater(
+        action,
+        throwsA(
+          isA<CoverdeCheckNoLineCoverageFailure>().having(
+            (failure) => failure.readableMessage,
+            'readableMessage',
+            'Trace file at `${traceFile.path}` has no line coverage to check.',
+          ),
+        ),
+      );
+      verifyInOrder([
+        () => logger.info(wrapWith('GLOBAL:', [blue, styleBold])),
+        () => logger.info(wrapWith('n/a - 0/0', [blue, styleBold])),
+      ]);
+    });
+
     test('''--${CheckCommand.inputOptionName}=<empty_trace_file> '''
         '''<min_coverage> '''
         '''| fails when trace file is empty''', () async {

@@ -133,6 +133,7 @@ Compute the coverage value of the $_inputHelpValue info file.''';
       case FileCoverageLogLevel.lineContent:
         for (final file in document.files) {
           logger.info(file.coverageDataString);
+          if (file.uncoveredLineNumbers.isEmpty) continue;
           final sourceLines = () {
             if (!hostCanResolveCoveragePath(
               file.path,
@@ -190,22 +191,22 @@ Compute the coverage value of the $_inputHelpValue info file.''';
     }
     if (fileCoverageLogLevel != FileCoverageLogLevel.none) logger.info('');
 
-    final lineRate = document.lineRate!;
+    final lineRate = document.lineRate;
+    final summary =
+        lineRate == null
+            ? 'n/a - ${document.linesHit}/${document.linesFound}'
+            : '${lineRate.toStringAsFixed(2)}% - '
+                '${document.linesHit}/${document.linesFound}';
     logger
       ..info(wrapWith('GLOBAL:', [blue, styleBold]))
-      ..info(
-        wrapWith(
-          '${lineRate.toStringAsFixed(2)}% - '
-          '${document.linesHit}/${document.linesFound}',
-          [blue, styleBold],
-        ),
-      );
+      ..info(wrapWith(summary, [blue, styleBold]));
   }
 }
 
 extension on CoverageFile {
   String get coverageDataString {
-    final rate = lineRate!;
+    final rate = lineRate;
+    if (rate == null) return '$path (n/a - $linesHit/$linesFound)';
     final color = rate < 100 ? lightRed : lightGreen;
     final summary = '(${rate.toStringAsFixed(2)}% - $linesHit/$linesFound)';
     return '$path ${color.wrap(summary)}';

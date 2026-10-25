@@ -64,6 +64,60 @@ Compute the coverage value of the LCOV_FILE info file.
       expect(result.trim(), expected.trim());
     });
 
+    test('''--${ValueCommand.inputOption}=<function_only_trace>'''
+        ''' | prints n/a and does not read source text''', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-value-functions-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:lib/missing.dart
+FN:1,main
+FNDA:0,main
+end_of_record
+''');
+
+      await cmdRunner.run([
+        'value',
+        '--${ValueCommand.inputOption}',
+        traceFile.path,
+      ]);
+
+      verify(
+        () => logger.info(any(that: contains('lib/missing.dart (n/a - 0/0)'))),
+      ).called(1);
+      verify(
+        () => logger.info(wrapWith('n/a - 0/0', [blue, styleBold])),
+      ).called(1);
+    });
+
+    test('''--${ValueCommand.inputOption}=<fully_covered_trace>'''
+        ''' | does not open a fully covered source path''', () async {
+      final directory = Directory.systemTemp.createTempSync(
+        'coverde-value-covered-',
+      );
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final sourcePath =
+          Platform.isWindows ? '/lib/covered.dart' : r'C:\covered.dart';
+      final traceFile = File(p.join(directory.path, 'lcov.info'))
+        ..writeAsStringSync('''
+SF:$sourcePath
+DA:1,1
+end_of_record
+''');
+
+      await cmdRunner.run([
+        'value',
+        '--${ValueCommand.inputOption}',
+        traceFile.path,
+        '--${ValueCommand.fileCoverageLogLevelFlag}',
+        FileCoverageLogLevel.lineContent.identifier,
+      ]);
+
+      verify(() => logger.info(any(that: contains('100.00% - 1/1')))).called(2);
+    });
+
     test('''--${ValueCommand.inputOption}=<empty_trace_file>'''
         ''' | fails when trace file is empty''', () async {
       final emptyTraceFilePath = p.joinAll([

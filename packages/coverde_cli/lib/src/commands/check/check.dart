@@ -120,7 +120,10 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       fileCoverageLogLevel: fileCoverageLogLevel,
     );
 
-    final lineRate = document.lineRate!;
+    final lineRate = document.lineRate;
+    if (lineRate == null) {
+      throw CoverdeCheckNoLineCoverageFailure(traceFilePath: filePath);
+    }
     if (lineRate < coverageThreshold) {
       throw CoverdeCheckCoverageBelowMinimumFailure(
         minimumCoverage: coverageThreshold,
