@@ -11,8 +11,8 @@ import 'package:universal_io/io.dart';
 
 /// Parses [trace] into source files.
 ///
-/// A record is kept only when it has `DA:` lines. Repeated records for one
-/// source file merge. `\` and `/` name the same file, and the stored path
+/// A record is kept when it has line or function data. Repeated records for
+/// one source file merge. `\` and `/` name the same file, and the stored path
 /// keeps the separator from the first record. A trailing record with no
 /// `end_of_record` is still parsed.
 ///
@@ -31,9 +31,10 @@ List<CoverageFile> parseCoverageTrace(String trace) {
 /// Parses [file] line by line into source files.
 ///
 /// Records are built as each `end_of_record` arrives. The whole trace is not
-/// held as one string. Repeated records for one source file merge. `\` and
-/// `/` name the same file, and the stored path keeps the separator from the
-/// first record. A trailing record with no `end_of_record` is still parsed.
+/// held as one string. A record is kept when it has line or function data.
+/// Repeated records for one source file merge. `\` and `/` name the same
+/// file, and the stored path keeps the separator from the first record. A
+/// trailing record with no `end_of_record` is still parsed.
 ///
 /// Throws [CoverageTraceFormatFailure] when [file] is not valid line coverage,
 /// and [FileSystemException] when [file] cannot be read.
@@ -267,7 +268,6 @@ CoverageFile? _parseRecord(List<String> lines) {
             hit: functionsHit,
           )
           : null;
-  if (lineRecords.isEmpty) return null;
 
   final seenLineNumbers = <int>{};
   for (final record in lineRecords) {
@@ -295,6 +295,7 @@ CoverageFile? _parseRecord(List<String> lines) {
           'which does not match $computedLinesHit covered lines.',
     );
   }
+  if (lineRecords.isEmpty && functions == null) return null;
 
   return CoverageFile(
     path: sourcePath,

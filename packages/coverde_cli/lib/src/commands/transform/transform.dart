@@ -1,5 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/comparison/models/numeric_comparison.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:coverde/src/features/transformations/transformations.dart';
 import 'package:coverde/src/utils/path.dart';
@@ -310,7 +311,7 @@ Presets can be defined in $_configFileName under the `transformations` key.
   ) {
     var entries = [
       for (final file in document.files)
-        (path: file.path, file: file, coverage: file.lineRate!),
+        (path: file.path, file: file, coverage: file.lineRate),
     ];
 
     final flatSteps = steps.flattenedSteps;
@@ -332,10 +333,14 @@ Presets can be defined in $_configFileName under the `transformations` key.
                   .toList();
         case KeepByCoverageTransformation(:final comparison):
           entries =
-              entries.where((e) => comparison.matches(e.coverage)).toList();
+              entries
+                  .where((e) => _matchesCoverage(e.coverage, comparison))
+                  .toList();
         case SkipByCoverageTransformation(:final comparison):
           entries =
-              entries.where((e) => !comparison.matches(e.coverage)).toList();
+              entries
+                  .where((e) => !_matchesCoverage(e.coverage, comparison))
+                  .toList();
         case RelativeTransformation(basePath: final bp):
           entries =
               entries.map((e) {
@@ -487,4 +492,10 @@ Presets can be defined in $_configFileName under the `transformations` key.
       steps: resolvedSteps,
     );
   }
+}
+
+/// A missing line rate matches no numeric comparison.
+bool _matchesCoverage(double? coverage, NumericComparison<double> comparison) {
+  if (coverage == null) return false;
+  return comparison.matches(coverage);
 }

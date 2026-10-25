@@ -68,7 +68,7 @@ end_of_record
       );
     });
 
-    test('drops a record that has no DA lines', () {
+    test('drops a record that has neither lines nor functions', () {
       const trace = '''
 SF:lib/empty.dart
 TN:ignored
@@ -83,7 +83,14 @@ end_of_record
 
       final document = CoverageDocument.parse(trace);
 
-      expect(document.files.map((file) => file.path), ['lib/kept.dart']);
+      expect(document.files.map((file) => file.path), [
+        'lib/fn.dart',
+        'lib/kept.dart',
+      ]);
+      expect(document.files.first.linesFound, 0);
+      expect(document.files.first.lineRate, isNull);
+      expect(document.files.first.functions!.found, 1);
+      expect(document.files.last.lineRate, 100);
       expect(document.linesFound, 1);
       expect(document.lineRate, 100);
     });
@@ -258,6 +265,8 @@ end_of_record
         ),
       );
       expect(file.functionRate, closeTo(100 / 3, 0.0001));
+      expect(file.functions.hashCode, file.functions!.hashCode);
+      expect(file.functions!.functions.first.hashCode, isA<int>());
       expect(file.renderTrace(), contains('FN:10,12,main'));
       expect(file.renderTrace(), contains('FN:8,foo,bar'));
     });
@@ -397,6 +406,10 @@ end_of_record
       );
       expectFailure(
         'SF:lib/a.dart\nDA:1,1\nFN:1,main\nFN:1,main\nend_of_record\n',
+        'repeats function `main`',
+      );
+      expectFailure(
+        'SF:lib/a.dart\nDA:1,1\nFNDA:1,main\nFNDA:1,main\nend_of_record\n',
         'repeats function `main`',
       );
       expectFailure(

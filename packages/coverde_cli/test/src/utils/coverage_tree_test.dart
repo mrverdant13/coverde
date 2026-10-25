@@ -42,4 +42,18 @@ Node: test (75.00% - 3/4)
       splitter.convert(expected).map((line) => line.trim()),
     );
   });
+
+  test('formatCoverageTree prints n/a when a file has no lines', () {
+    const trace = '''
+SF:lib/a.dart
+FN:1,main
+FNDA:1,main
+end_of_record
+''';
+
+    final result = formatCoverageTree(CoverageDocument.parse(trace).tree);
+
+    expect(result, contains('Node: lib (n/a - 0/0)'));
+    expect(result, contains('SF: lib/a.dart (n/a - 0/0)'));
+  });
 }

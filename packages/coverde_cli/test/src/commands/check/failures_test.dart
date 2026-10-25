@@ -527,5 +527,18 @@ Available thresholds: none.
         expect(result, document);
       });
     });
+
+    group('$CoverdeCheckNoLineCoverageFailure', () {
+      test('readableMessage | names the trace file', () {
+        const failure = CoverdeCheckNoLineCoverageFailure(
+          traceFilePath: 'coverage/lcov.info',
+        );
+
+        expect(
+          failure.readableMessage,
+          'Trace file at `coverage/lcov.info` has no line coverage to check.',
+        );
+      });
+    });
   });
 }
