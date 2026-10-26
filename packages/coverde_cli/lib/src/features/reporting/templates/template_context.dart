@@ -1,6 +1,8 @@
+import 'package:coverde/src/entities/coverage_branch.dart';
 import 'package:coverde/src/entities/coverage_directory.dart';
 import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/coverage_file.dart';
+import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/features/reporting/reporters/coverage_source_reader.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
@@ -64,9 +66,12 @@ final class TemplateContext {
   }
 
   List<StrictTemplateMap> _sourceLines(CoverageFile file) {
+    final branches = _branchesOf(file);
     final source = _sources.readLines(file.path);
     if (source == null) {
-      return [for (final line in file.lines) _lineMap(line)];
+      return [
+        for (final line in file.lines) _lineMap(line, branches: branches),
+      ];
     }
     final byNumber = {for (final line in file.lines) line.number: line};
     final lastNumber = _lastLineNumber(
@@ -79,6 +84,7 @@ final class TemplateContext {
           byNumber[number],
           number: number,
           source: number <= source.length ? source[number - 1] : null,
+          branches: branches,
         ),
     ];
   }
@@ -93,7 +99,11 @@ StrictTemplateMap _documentMap(
     'linesFound': document.linesFound,
     'lineRate': document.lineRate,
     'functionRate': document.functionRate,
+    'functionsHit': document.functionsHit,
+    'functionsFound': document.functionsFound,
     'branchRate': document.branchRate,
+    'branchesHit': document.branchesHit,
+    'branchesFound': document.branchesFound,
     'files': [for (final file in document.files) fileMaps[file.path]],
   });
 }
@@ -109,7 +119,11 @@ StrictTemplateMap _directoryMap(
     'linesHit': directory.linesHit,
     'linesFound': directory.linesFound,
     'functionRate': directory.functionRate,
+    'functionsHit': directory.functionsHit,
+    'functionsFound': directory.functionsFound,
     'branchRate': directory.branchRate,
+    'branchesHit': directory.branchesHit,
+    'branchesFound': directory.branchesFound,
     'outputPath': null,
     'files': [for (final file in directory.files) fileMaps[file.path]],
     'directories': [
@@ -126,18 +140,67 @@ StrictTemplateMap _recordFileMap(CoverageFile file) {
     'linesHit': file.linesHit,
     'linesFound': file.linesFound,
     'functionRate': file.functionRate,
+    'functionsHit': file.functions?.hit,
+    'functionsFound': file.functions?.found,
+    'functions': _functionMaps(file.functions),
     'branchRate': file.branchRate,
+    'branchesHit': file.branches?.hit,
+    'branchesFound': file.branches?.found,
+    'branches': _branchMaps(file.branches),
     'outputPath': null,
-    'lines': [for (final line in file.lines) _lineMap(line)],
+    'lines': [
+      for (final line in file.lines)
+        _lineMap(line, branches: _branchesOf(file)),
+    ],
   });
 }
 
-StrictTemplateMap _lineMap(CoverageLine? line, {int? number, String? source}) {
+List<CoverageBranch> _branchesOf(CoverageFile file) {
+  return file.branches?.branches ?? const [];
+}
+
+List<StrictTemplateMap>? _functionMaps(CoverageFunctions? functions) {
+  if (functions == null) return null;
+  return [
+    for (final function in functions.functions)
+      StrictTemplateMap({
+        'name': function.name,
+        'line': function.line,
+        'hits': function.hits,
+      }),
+  ];
+}
+
+List<StrictTemplateMap>? _branchMaps(CoverageBranches? branches) {
+  if (branches == null) return null;
+  return [for (final branch in branches.branches) _branchMap(branch)];
+}
+
+StrictTemplateMap _branchMap(CoverageBranch branch) {
   return StrictTemplateMap({
-    'number': number ?? line!.number,
+    'line': branch.line,
+    'block': branch.block,
+    'branch': branch.branch,
+    'taken': branch.taken,
+  });
+}
+
+StrictTemplateMap _lineMap(
+  CoverageLine? line, {
+  int? number,
+  String? source,
+  List<CoverageBranch> branches = const [],
+}) {
+  final lineNumber = number ?? line!.number;
+  return StrictTemplateMap({
+    'number': lineNumber,
     'hits': line?.hits,
     'checksum': line?.checksum,
     'source': source,
+    'branches': [
+      for (final branch in branches)
+        if (branch.line == lineNumber) _branchMap(branch),
+    ],
   });
 }
 

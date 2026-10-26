@@ -57,6 +57,76 @@ end_of_record
       expect(sink.toString(), contains('Below 80%.'));
     });
 
+    test('exposes function and branch counts, including per line', () async {
+      _write(root, 'templates/root.liquid', '''
+root {{ root.functionsHit }}/{{ root.functionsFound }} {{ root.branchesHit }}/{{ root.branchesFound }}
+doc {{ document.functionsHit }}/{{ document.functionsFound }} {{ document.branchesHit }}/{{ document.branchesFound }}
+{%- for file in root.files %}
+{%- if file.functions == null %}
+{{ file.path }} functions n/a
+{%- else %}
+{{ file.path }} functions {{ file.functionsHit }}/{{ file.functionsFound }}
+{%- for function in file.functions %}
+fn {{ function.name }} {{ function.line }} {{ function.hits }}
+{%- endfor %}
+{%- endif %}
+{%- if file.branches == null %}
+{{ file.path }} branches n/a
+{%- else %}
+{{ file.path }} branches {{ file.branchesHit }}/{{ file.branchesFound }}
+{%- for branch in file.branches %}
+br {{ branch.line }} {{ branch.block }} {{ branch.branch }} {{ branch.taken }}-
+{%- endfor %}
+{%- for line in file.lines %}
+{%- for branch in line.branches %}
+lb {{ line.number }} {{ line.hits }} {{ branch.branch }} {{ branch.taken }}-
+{%- endfor %}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+''');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+FN:1,main
+FNDA:3,main
+FN:4,other
+BRDA:1,0,0,2
+BRDA:1,0,1,-
+end_of_record
+SF:lib/b.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      final page = File('${destination.path}/index.html').readAsStringSync();
+      expect(page, contains('root 1/2 1/2'));
+      expect(page, contains('doc 1/2 1/2'));
+      expect(page, contains('lib/a.dart functions 1/2'));
+      expect(page, contains('fn main 1 3'));
+      expect(page, contains('fn other 4 0'));
+      expect(page, contains('lib/a.dart branches 1/2'));
+      expect(page, contains('br 1 0 0 2-'));
+      expect(page, contains('br 1 0 1 -'));
+      expect(page, contains('lb 1 1 0 2-'));
+      expect(page, contains('lb 1 1 1 -'));
+      expect(page, contains('lib/b.dart functions n/a'));
+      expect(page, contains('lib/b.dart branches n/a'));
+    });
+
     test(
       'nests directories in one file and leaves output paths empty',
       () async {
