@@ -14,6 +14,7 @@ import 'package:coverde/src/features/reporting/templates/template_context.dart';
 import 'package:coverde/src/features/reporting/templates/text_filters.dart';
 import 'package:coverde/src/utils/coverage_tree.dart';
 import 'package:coverde/src/utils/report_paths.dart';
+import 'package:io/ansi.dart';
 import 'package:liquify/liquify.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
@@ -38,6 +39,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   final File Function(String path) _open;
   ReportPaths _reportPaths = ReportPaths();
   int _columns = 80;
+  bool _color = false;
 
   static const _knownNames = {
     'document',
@@ -47,9 +49,29 @@ final class TemplateCoverageReporter implements CoverageReporter {
     'directory',
     'file',
     'columns',
+    'color',
   };
 
   static var _filtersRegistered = false;
+
+  String _colorize(
+    dynamic value,
+    List<dynamic> arguments,
+    Map<String, dynamic> namedArguments,
+  ) {
+    final text = value == null ? '' : '$value';
+    if (!_color || arguments.isEmpty) return text;
+    final styles = switch (arguments.first) {
+      'light_red' => [lightRed],
+      'light_green' => [lightGreen],
+      'red_bold' => [red, styleBold],
+      'green_bold' => [green, styleBold],
+      'blue_bold' => [blue, styleBold],
+      _ => const <AnsiCode>[],
+    };
+    if (styles.isEmpty) return text;
+    return wrapWith(text, styles)!;
+  }
 
   String _reportPath(
     dynamic value,
@@ -76,6 +98,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   Future<void> render(CoverageReportRequest request) async {
     _registerFilters();
     _columns = request.columns;
+    _color = request.color;
     final tree = buildCoverageTree(
       request.document.files,
       collapse: definition.collapse,
@@ -379,6 +402,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       'directory': directory,
       'file': file,
       'columns': _columns,
+      'color': _color,
     };
   }
 
@@ -411,7 +435,8 @@ final class TemplateCoverageReporter implements CoverageReporter {
         environmentSetup: (environment) {
           environment
             ..registerLocalFilter('compact_ranges', compactRanges)
-            ..registerLocalFilter('report_path', _reportPath);
+            ..registerLocalFilter('report_path', _reportPath)
+            ..registerLocalFilter('colorize', _colorize);
         },
       ).renderAsync();
     } on CoverageReportFailure {

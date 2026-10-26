@@ -11,6 +11,31 @@ export 'failures.dart';
 @visibleForTesting
 int? debugReportColumns;
 
+/// Whether a printed report should emit ANSI color.
+///
+/// A report written to a file stays plain. [printing] is false in that case.
+bool reportColor({required bool printing}) {
+  if (!printing) return false;
+  final override = debugReportColor;
+  if (override != null) return override;
+  // A test process has no terminal, so ANSI support is not read in tests.
+  // coverage:ignore-start
+  if (stdout.hasTerminal && stdout.supportsAnsiEscapes) return true;
+  // coverage:ignore-end
+  return false;
+}
+
+/// Overrides color for tests. A test process has no terminal.
+@visibleForTesting
+bool? debugReportColor;
+
+bool _printing(ReportDefinition definition) {
+  return switch (definition) {
+    ConsoleReportDefinition(:final destination) => destination == null,
+    FilesReportDefinition() => false,
+  };
+}
+
 /// The terminal width, or 80 when stdout is not a terminal.
 int reportColumns() {
   final override = debugReportColumns;
@@ -142,6 +167,7 @@ The report is selected from the reports defined in $_configFileName.''';
         destination: destination,
         variables: variables,
         columns: reportColumns(),
+        color: reportColor(printing: _printing(definition)),
       ),
     );
     if (destination is ConsoleReportDestination) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:coverde/src/commands/commands.dart';
+import 'package:io/ansi.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/reporting/reporting.dart';
 import 'package:coverde/src/utils/utils.dart';
@@ -134,6 +135,53 @@ end_of_record
       );
 
       verify(() => logger.write('48')).called(1);
+    });
+
+    test('colors printed text and leaves a destination file plain', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      debugReportColor = true;
+      addTearDown(() => debugReportColor = null);
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+  saved:
+    type: console
+    template: templates/summary.liquid
+    destination: out/summary.txt
+''');
+      _write(
+        root,
+        'templates/summary.liquid',
+        '{{ "hi" | colorize: "light_red" }}',
+      );
+      _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run([
+          'render',
+          '--${RenderCommand.reportOption}',
+          'summary',
+        ]),
+        getCurrentDirectory: () => root,
+      );
+      verify(() => logger.write(wrapWith('hi', [lightRed]))).called(1);
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run([
+          'render',
+          '--${RenderCommand.reportOption}',
+          'saved',
+        ]),
+        getCurrentDirectory: () => root,
+      );
+      expect(File('${root.path}/out/summary.txt').readAsStringSync(), 'hi');
     });
 
     test('writes a files report into the configured destination', () async {

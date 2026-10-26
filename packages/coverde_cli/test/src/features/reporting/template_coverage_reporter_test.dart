@@ -1,4 +1,5 @@
 import 'package:coverde/src/features/reporting/reporting.dart';
+import 'package:io/ansi.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -749,6 +750,58 @@ end_of_record
       expect(buffer.toString(), '120');
     });
 
+    test('colors text only when color is enabled', () async {
+      _write(root, 'templates/summary.liquid', '''
+{{ "hi" | colorize: "light_red" }}
+{{ "hi" | colorize: "light_green" }}
+{{ "hi" | colorize: "red_bold" }}
+{{ "hi" | colorize: "green_bold" }}
+{{ "hi" | colorize: "blue_bold" }}
+{{ "hi" | colorize: "other" }}
+{{ document.branchRate | colorize: "light_red" }}
+{{ "z" | colorize }}
+{{ color }}
+''');
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''';
+      final plain = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(plain),
+        trace: trace,
+      );
+      expect(plain.toString(), 'hi\nhi\nhi\nhi\nhi\nhi\n\nz\nfalse\n');
+
+      final colored = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(colored),
+        trace: trace,
+        color: true,
+      );
+      expect(
+        colored.toString(),
+        '${wrapWith('hi', [lightRed])}\n'
+        '${wrapWith('hi', [lightGreen])}\n'
+        '${wrapWith('hi', [red, styleBold])}\n'
+        '${wrapWith('hi', [green, styleBold])}\n'
+        '${wrapWith('hi', [blue, styleBold])}\n'
+        'hi\n'
+        '\n'
+        'z\n'
+        'true\n',
+      );
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {
@@ -1302,6 +1355,7 @@ Future<void> _render({
   CoverageSourceReader? sources,
   File Function(String path) open = File.new,
   int columns = 80,
+  bool color = false,
 }) {
   return TemplateCoverageReporter(
     definition: definition,
@@ -1314,6 +1368,7 @@ Future<void> _render({
       destination: destination,
       variables: variables,
       columns: columns,
+      color: color,
     ),
   );
 }

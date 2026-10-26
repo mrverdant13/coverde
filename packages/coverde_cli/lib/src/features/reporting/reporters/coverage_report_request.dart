@@ -15,6 +15,7 @@ final class CoverageReportRequest {
     required this.destination,
     Map<String, String> variables = const {},
     this.columns = 80,
+    this.color = false,
   }) : variables = Map<String, String>.unmodifiable(variables);
 
   /// The coverage to render.
@@ -28,6 +29,11 @@ final class CoverageReportRequest {
 
   /// Terminal width, or 80 when stdout is not a terminal.
   final int columns;
+
+  /// Whether the template should emit ANSI color.
+  ///
+  /// True only when the report is printed to a terminal.
+  final bool color;
 
   /// Caller-supplied values.
   ///
