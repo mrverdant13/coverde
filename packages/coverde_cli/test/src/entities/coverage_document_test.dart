@@ -144,6 +144,21 @@ end_of_record
       expect(document.testNames, ['first', 'third']);
     });
 
+    test('keeps unrecognized lines and omits records it understands', () {
+      const trace = '''
+SF:lib/a.dart
+DA:1,1
+FN:1,main
+BRDA:1,0,0,1
+XX:extra
+end_of_record
+''';
+
+      final file = CoverageDocument.parse(trace).files.single;
+
+      expect(file.unrecognized, ['XX:extra']);
+    });
+
     test('merges records that share a normalized path', () {
       const trace = r'''
 SF:lib\a.dart

@@ -183,10 +183,32 @@ end_of_record
 ''',
       );
 
-      expect(
-        sink.toString(),
-        'suite\nlib/a.dart suite\nlib/b.dart \n\n',
+      expect(sink.toString(), 'suite\nlib/a.dart suite\nlib/b.dart \n\n');
+    });
+
+    test('prints unrecognized trace lines', () async {
+      _write(root, 'templates/summary.liquid', '''
+{%- for file in document.files %}
+{%- for line in file.unrecognized %}{{ line }}{% endfor %}
+{%- endfor %}
+''');
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+XX:extra
+end_of_record
+''',
       );
+
+      expect(sink.toString(), contains('XX:extra'));
     });
 
     test(

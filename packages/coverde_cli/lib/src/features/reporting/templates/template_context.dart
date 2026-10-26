@@ -139,6 +139,7 @@ StrictTemplateMap _recordFileMap(CoverageFile file) {
     'path': file.path,
     'name': file.name,
     'testName': file.testName,
+    'unrecognized': file.unrecognized,
     'lineRate': file.lineRate,
     'linesHit': file.linesHit,
     'linesFound': file.linesFound,

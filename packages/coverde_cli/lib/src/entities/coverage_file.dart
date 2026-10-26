@@ -102,6 +102,14 @@ final class CoverageFile {
   List<CoverageUnrecognizedEntry> get _unrecognizedEntries =>
       entries.whereType<CoverageUnrecognizedEntry>().toList();
 
+  /// Lines the parser did not understand, in trace order.
+  ///
+  /// `DA:`, `FN:`, `BRDA:`, and the other records the parser stores as
+  /// measurements are not included.
+  List<String> get unrecognized => [
+    for (final entry in _unrecognizedEntries) entry.text,
+  ];
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
