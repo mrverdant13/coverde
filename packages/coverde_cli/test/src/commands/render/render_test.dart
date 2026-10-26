@@ -210,6 +210,42 @@ end_of_record
       verify(() => logger.write('90')).called(1);
     });
 
+    test('reads a config file and resolves paths from its directory', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'nested/coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    destination: out/summary.txt
+''');
+      _write(
+        root,
+        'nested/templates/summary.liquid',
+        '{{ document.linesHit }}',
+      );
+      _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run([
+          'render',
+          '--${RenderCommand.configOption}',
+          'nested/coverde.yaml',
+        ]),
+        getCurrentDirectory: () => root,
+      );
+
+      expect(
+        File('${root.path}/nested/out/summary.txt').readAsStringSync(),
+        '1',
+      );
+    });
+
     test('writes a files report into the configured destination', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));

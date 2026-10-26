@@ -71,6 +71,15 @@ Required when coverde.yaml defines more than one report.
 When it defines one report, that report is used.''',
         valueHelp: _reportHelpValue,
       )
+      ..addOption(
+        configOption,
+        help: '''
+Path to the coverde.yaml file.
+
+Relative report paths resolve from that file's directory.''',
+        valueHelp: _configHelpValue,
+        defaultsTo: _configFileName,
+      )
       ..addMultiOption(
         variableOption,
         abbr: 'D',
@@ -87,6 +96,7 @@ Repeat to set more than one variable. A later copy of the same name wins.''',
   static const _inputHelpValue = 'TRACE_FILE';
   static const _reportHelpValue = 'REPORT';
   static const _variableHelpValue = 'NAME=VALUE';
+  static const _configHelpValue = 'coverde.yaml';
 
   /// Option name for the origin trace file.
   @visibleForTesting
@@ -99,6 +109,10 @@ Repeat to set more than one variable. A later copy of the same name wins.''',
   /// Option name for a template variable.
   @visibleForTesting
   static const variableOption = 'variable';
+
+  /// Option name for the configuration file.
+  @visibleForTesting
+  static const configOption = 'config';
 
   @override
   String get description => '''
@@ -117,9 +131,7 @@ The report is selected from the reports defined in $_configFileName.''';
     final argResults = this.argResults!;
     final traceFilePath = _absolute(argResults.option(inputOption)!);
     final variables = _variables(argResults.multiOption(variableOption));
-    final configPath = p.normalize(
-      p.join(Directory.current.path, _configFileName),
-    );
+    final configPath = _absolute(argResults.option(configOption)!);
     final config = _readConfig(configPath);
     final definition = resolveReportDefinition(
       reports: parseReportDefinitions(

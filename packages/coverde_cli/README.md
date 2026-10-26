@@ -753,7 +753,7 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 
 Render a named coverage report from a trace file.
 
-The report is selected from the reports defined in coverde.yaml. A report is either `type: console` with a `template`, or `type: files` with a `destination` and at least one of `root`, `directory`, and `file`. See [Reports](#reports).
+The report is selected from the reports defined in coverde.yaml. A report is either `type: console` with a `template`, or `type: files` with a `destination` and at least one of `root`, `directory`, and `file`. See [Reports](#reports). `--config` selects the yaml file. It defaults to `coverde.yaml` in the working directory. Relative report paths resolve from the directory that contains that file.
 
 ### Arguments
 
@@ -763,6 +763,13 @@ The report is selected from the reports defined in coverde.yaml. A report is eit
 
   Coverage trace file to render.\
   **Default value:** `coverage/lcov.info`
+
+- `--config`
+
+  Path to the coverde.yaml file.
+
+  Relative report paths resolve from that file's directory.\
+  **Default value:** `coverde.yaml`
 
 - `--report`
 
