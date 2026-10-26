@@ -548,6 +548,49 @@ end_of_record
       );
     });
 
+    test('maps rooted paths onto the report namespaces', () async {
+      _write(root, 'templates/summary.liquid', '''
+{% for file in document.files %}{{ file.path | report_path }}
+{% endfor %}
+''');
+      final buffer = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:absolute/local.dart
+DA:1,1
+end_of_record
+SF:/tmp/a.dart
+DA:1,1
+end_of_record
+SF:C:/lib/b.dart
+DA:1,1
+end_of_record
+SF:C:relative.dart
+DA:1,1
+end_of_record
+SF://server/share/c.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(
+        buffer.toString(),
+        'absolute/local.dart\n'
+        'absolute-2/tmp/a.dart\n'
+        'drive-c/lib/b.dart\n'
+        'drive-c-relative/relative.dart\n'
+        'unc-server-share/c.dart\n'
+        '\n',
+      );
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {

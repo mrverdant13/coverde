@@ -11,6 +11,7 @@ import 'package:coverde/src/features/reporting/templates/liquid_variables.dart';
 import 'package:coverde/src/features/reporting/templates/report_definition.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
 import 'package:coverde/src/features/reporting/templates/template_context.dart';
+import 'package:coverde/src/utils/report_paths.dart';
 import 'package:liquify/liquify.dart';
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
@@ -33,6 +34,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   final String baseDirectory;
 
   final File Function(String path) _open;
+  ReportPaths _reportPaths = ReportPaths();
 
   static const _knownNames = {
     'document',
@@ -45,6 +47,14 @@ final class TemplateCoverageReporter implements CoverageReporter {
 
   static var _filtersRegistered = false;
 
+  String _reportPath(
+    dynamic value,
+    List<dynamic> arguments,
+    Map<String, dynamic> namedArguments,
+  ) {
+    return _reportPaths.relative('$value');
+  }
+
   static void _registerFilters() {
     if (_filtersRegistered) return;
     FilterRegistry.register('compact_ranges', compactRanges);
@@ -55,6 +65,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   @override
   Future<void> render(CoverageReportRequest request) async {
     _registerFilters();
+    _reportPaths = ReportPaths()..collectTree(request.document.tree);
     switch (definition) {
       case ConsoleReportDefinition(:final template, :final includeSource):
         final destination = request.destination;
@@ -381,7 +392,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
         data: data,
         root: _PackRoot(baseDirectory, _open),
         environmentSetup: (environment) {
-          environment.registerLocalFilter('compact_ranges', compactRanges);
+          environment
+            ..registerLocalFilter('compact_ranges', compactRanges)
+            ..registerLocalFilter('report_path', _reportPath);
         },
       ).renderAsync();
     } on CoverageReportFailure {
