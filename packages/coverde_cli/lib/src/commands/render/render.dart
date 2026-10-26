@@ -128,7 +128,14 @@ The report is selected from the reports defined in $_configFileName.''';
       ),
     );
     if (destination is ConsoleReportDestination) {
-      logger.write(buffer.toString());
+      final output = (definition as ConsoleReportDefinition).destination;
+      if (output == null) {
+        logger.write(buffer.toString());
+      } else {
+        final file = File(output);
+        file.parent.createSync(recursive: true);
+        file.writeAsStringSync(buffer.toString());
+      }
     }
   }
 

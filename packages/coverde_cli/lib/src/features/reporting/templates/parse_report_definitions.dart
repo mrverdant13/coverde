@@ -102,7 +102,11 @@ ReportDefinition _parseReport({
     );
   }
   return switch (type) {
-    'console' => _parseConsoleReport(name: name, value: value),
+    'console' => _parseConsoleReport(
+      name: name,
+      value: value,
+      baseDirectory: baseDirectory,
+    ),
     'files' => _parseFilesReport(
       name: name,
       value: value,
@@ -117,15 +121,16 @@ ReportDefinition _parseReport({
 ConsoleReportDefinition _parseConsoleReport({
   required String name,
   required yaml.YamlMap value,
+  required String baseDirectory,
 }) {
-  for (final key in ['destination', 'root', 'directory', 'file', 'assets']) {
+  for (final key in ['root', 'directory', 'file', 'assets']) {
     if (value.containsKey(key)) {
       throw CoverageReportDefinitionFailure(
         readableMessage: 'Console report `$name` cannot set `$key`.',
       );
     }
   }
-  const allowed = {'type', 'template', 'includeSource'};
+  const allowed = {'type', 'template', 'includeSource', 'destination'};
   _rejectUnknownKeys(name: name, value: value, allowed: allowed);
   final includeSource = value['includeSource'];
   if (includeSource != null && includeSource is! bool) {
@@ -134,9 +139,20 @@ ConsoleReportDefinition _parseConsoleReport({
           'Console report `$name` `includeSource` must be a boolean.',
     );
   }
+  final destination = value['destination'];
+  if (destination != null &&
+      (destination is! String || destination.trim().isEmpty)) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage:
+          'Console report `$name` `destination` must be a non-empty string.',
+    );
+  }
   return ConsoleReportDefinition(
     template: _requiredString(name, value, 'template'),
     includeSource: includeSource == true,
+    destination: destination is String
+        ? path.normalize(path.join(baseDirectory, destination))
+        : null,
   );
 }
 

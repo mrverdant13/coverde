@@ -53,6 +53,7 @@ final class ConsoleReportDefinition extends ReportDefinition {
   const ConsoleReportDefinition({
     required this.template,
     this.includeSource = false,
+    this.destination,
   });
 
   /// Template path relative to the configuration directory.
@@ -60,6 +61,11 @@ final class ConsoleReportDefinition extends ReportDefinition {
 
   /// Whether file lines in this template include source text.
   final bool includeSource;
+
+  /// Absolute file that receives the report, when set.
+  ///
+  /// Null prints the report.
+  final String? destination;
 }
 
 /// {@template coverde.files_report_definition}

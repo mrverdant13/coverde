@@ -82,6 +82,34 @@ end_of_record
       verify(() => logger.write(any(that: contains('1/2 80')))).called(1);
     });
 
+    test('writes a console report to its destination file', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    destination: out/summary.txt
+''');
+      _write(root, 'templates/summary.liquid', '{{ document.linesHit }}');
+      _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run(['render']),
+        getCurrentDirectory: () => root,
+      );
+
+      expect(
+        File('${root.path}/out/summary.txt').readAsStringSync(),
+        contains('1'),
+      );
+    });
+
     test('writes a files report into the configured destination', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));

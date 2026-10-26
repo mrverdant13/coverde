@@ -1,26 +1,44 @@
 import 'package:coverde/src/features/reporting/failures/coverage_report_failure.dart';
 import 'package:coverde/src/features/reporting/templates/parse_report_definitions.dart';
 import 'package:coverde/src/features/reporting/templates/report_definition.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 void main() {
   group('parseReportDefinitions', () {
-    test('rejects destination on a console report', () {
+    test('rejects a page slot on a console report', () {
       expect(
         () => parseReportDefinitions('''
 reports:
   summary:
     type: console
     template: templates/summary.liquid
-    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
 ''', baseDirectory: '/config'),
         throwsA(
           isA<CoverageReportDefinitionFailure>().having(
             (failure) => failure.readableMessage,
             'readableMessage',
-            contains('cannot set `destination`'),
+            contains('cannot set `root`'),
           ),
         ),
+      );
+    });
+
+    test('resolves a console destination from the configuration directory', () {
+      final reports = parseReportDefinitions('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    destination: out/summary.txt
+''', baseDirectory: '/config');
+
+      expect(
+        (reports['summary']! as ConsoleReportDefinition).destination,
+        p.normalize(p.join('/config', 'out/summary.txt')),
       );
     });
 
@@ -205,6 +223,13 @@ reports:
     template: templates/summary.liquid
     extra: 1
 ''', 'unknown key `extra`');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    destination: "  "
+''', '`destination` must be a non-empty string');
       rejects('''
 reports:
   pages:
