@@ -18,9 +18,7 @@ final class ReportSlot {
   /// Liquid path pattern for each rendered node.
   final String path;
 
-  /// Whether a file render includes source text.
-  ///
-  /// Only file slots use this. Root and directory renders never include it.
+  /// Whether this render includes source text on its files.
   final bool includeSource;
 }
 
@@ -52,10 +50,16 @@ sealed class ReportDefinition {
 /// {@endtemplate}
 final class ConsoleReportDefinition extends ReportDefinition {
   /// {@macro coverde.console_report_definition}
-  const ConsoleReportDefinition({required this.template});
+  const ConsoleReportDefinition({
+    required this.template,
+    this.includeSource = false,
+  });
 
   /// Template path relative to the configuration directory.
   final String template;
+
+  /// Whether file lines in this template include source text.
+  final bool includeSource;
 }
 
 /// {@template coverde.files_report_definition}

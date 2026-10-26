@@ -220,8 +220,8 @@ reports:
     root:
       template: templates/root.liquid
       path: index.html
-      includeSource: true
-''', 'unknown key `includeSource`');
+      extra: true
+''', 'unknown key `extra`');
       rejects('''
 reports:
   pages:
@@ -291,6 +291,33 @@ reports:
       expect(definition.file!.includeSource, isTrue);
       expect(definition.file!.template, 'templates/file.liquid');
       expect(definition.file!.path, '{{ file.path }}.html');
+    });
+
+    test('keeps includeSource on console, root, and directory reports', () {
+      final reports = parseReportDefinitions('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    includeSource: true
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      includeSource: true
+    directory:
+      template: templates/directory.liquid
+      path: "{{ directory.path }}/index.html"
+      includeSource: true
+''', baseDirectory: '/config');
+
+      final summary = reports['summary']! as ConsoleReportDefinition;
+      final pages = reports['pages']! as FilesReportDefinition;
+      expect(summary.includeSource, isTrue);
+      expect(pages.root!.includeSource, isTrue);
+      expect(pages.directory!.includeSource, isTrue);
     });
 
     test('names no available reports when none are defined', () {

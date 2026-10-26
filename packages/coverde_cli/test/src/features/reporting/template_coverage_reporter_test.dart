@@ -186,6 +186,163 @@ end_of_record
       expect(sink.toString(), 'suite\nlib/a.dart suite\nlib/b.dart \n\n');
     });
 
+    test(
+      'includes source on a console report without changing other pages',
+      () async {
+        _write(root, 'templates/summary.liquid', '''
+{%- for file in document.files %}
+{{ file.path }} {{ file.sourceAvailable }} {{ file.lines[1].source }}
+{%- endfor %}
+{%- for file in root.files %}
+root {{ file.lines[0].source }}
+{%- endfor %}
+''');
+        _write(
+          root,
+          'templates/file.liquid',
+          '{{ file.sourceAvailable }} {{ file.lines[0].source }}\n',
+        );
+        final sink = StringBuffer();
+        final destination = Directory('${root.path}/out');
+
+        await _render(
+          root: root,
+          definition: ConsoleReportDefinition(
+            template: 'templates/summary.liquid',
+            includeSource: true,
+          ),
+          destination: ConsoleReportDestination(sink),
+          sources: _MapSourceReader(const {
+            'lib/a.dart': ['one', 'two'],
+          }),
+          trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/b.dart
+DA:1,0
+end_of_record
+''',
+        );
+        await _render(
+          root: root,
+          definition: FilesReportDefinition(
+            destination: destination.path,
+            file: const ReportSlot(
+              template: 'templates/file.liquid',
+              path: '{{ file.path }}.html',
+            ),
+          ),
+          destination: DirectoryReportDestination(destination),
+          sources: _MapSourceReader(const {
+            'lib/a.dart': ['one', 'two'],
+          }),
+          trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+        );
+
+        expect(sink.toString(), contains('lib/a.dart true two'));
+        expect(sink.toString(), contains('lib/b.dart false '));
+        expect(sink.toString(), contains('root one'));
+        expect(
+          File('${destination.path}/lib/a.dart.html').readAsStringSync().trim(),
+          isEmpty,
+        );
+      },
+    );
+
+    test('includes source on a directory page only', () async {
+      _write(root, 'templates/root.liquid', '''
+{%- for file in root.directories.first.files %}
+root {{ file.lines[0].source }}-
+{%- endfor %}
+''');
+      _write(root, 'templates/directory.liquid', '''
+{%- for file in directory.files %}
+dir {{ file.sourceAvailable }} {{ file.lines[0].source }}
+{%- endfor %}
+''');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+          ),
+          directory: const ReportSlot(
+            template: 'templates/directory.liquid',
+            path: '{{ directory.path }}/index.html',
+            includeSource: true,
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        sources: _MapSourceReader(const {
+          'lib/src/b.dart': ['body'],
+        }),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/src/b.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      expect(
+        File('${destination.path}/index.html').readAsStringSync(),
+        contains('root -'),
+      );
+      expect(
+        File('${destination.path}/lib/src/index.html').readAsStringSync(),
+        contains('dir true body'),
+      );
+    });
+
+    test('walks the directory tree from a console report', () async {
+      _write(root, 'templates/summary.liquid', '''
+{{ root.path }}
+{%- for directory in root.directories %}
+dir {{ directory.path }} out {{ directory.outputPath }}-
+{%- for file in directory.files %}
+file {{ file.path }} out {{ file.outputPath }}-
+{%- endfor %}
+{%- endfor %}
+{%- for file in root.files %}
+root-file {{ file.path }}
+{%- endfor %}
+''');
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+SF:lib/src/b.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      final text = sink.toString();
+      expect(text, contains('lib'));
+      expect(text, contains('dir lib/src out -'));
+      expect(text, contains('file lib/src/b.dart out -'));
+      expect(text, contains('root-file lib/a.dart'));
+    });
+
     test('prints unrecognized trace lines', () async {
       _write(root, 'templates/summary.liquid', '''
 {%- for file in document.files %}

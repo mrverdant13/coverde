@@ -125,10 +125,18 @@ ConsoleReportDefinition _parseConsoleReport({
       );
     }
   }
-  const allowed = {'type', 'template'};
+  const allowed = {'type', 'template', 'includeSource'};
   _rejectUnknownKeys(name: name, value: value, allowed: allowed);
+  final includeSource = value['includeSource'];
+  if (includeSource != null && includeSource is! bool) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage:
+          'Console report `$name` `includeSource` must be a boolean.',
+    );
+  }
   return ConsoleReportDefinition(
     template: _requiredString(name, value, 'template'),
+    includeSource: includeSource == true,
   );
 }
 
@@ -154,12 +162,7 @@ FilesReportDefinition _parseFilesReport({
     slot: 'directory',
     value: value['directory'],
   );
-  final file = _parseSlot(
-    name: name,
-    slot: 'file',
-    value: value['file'],
-    allowIncludeSource: true,
-  );
+  final file = _parseSlot(name: name, slot: 'file', value: value['file']);
   if (root == null && directory == null && file == null) {
     throw CoverageReportDefinitionFailure(
       readableMessage:
@@ -179,7 +182,6 @@ ReportSlot? _parseSlot({
   required String name,
   required String slot,
   required dynamic value,
-  bool allowIncludeSource = false,
 }) {
   if (value == null) return null;
   if (value is! yaml.YamlMap) {
@@ -187,7 +189,7 @@ ReportSlot? _parseSlot({
       readableMessage: 'Report `$name` slot `$slot` must be a map.',
     );
   }
-  final allowed = {'template', 'path', if (allowIncludeSource) 'includeSource'};
+  final allowed = {'template', 'path', 'includeSource'};
   _rejectUnknownKeys(name: '$name.$slot', value: value, allowed: allowed);
   final includeSource = value['includeSource'];
   if (includeSource != null && includeSource is! bool) {

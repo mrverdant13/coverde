@@ -19,6 +19,7 @@ final class TemplateContext {
   }) {
     final fileMaps = _createFileMaps(document);
     return TemplateContext._(
+      document: document,
       sources: sources,
       fileMaps: fileMaps,
       documentMap: _documentMap(document, fileMaps),
@@ -27,15 +28,60 @@ final class TemplateContext {
   }
 
   TemplateContext._({
+    required CoverageDocument document,
     required CoverageSourceReader sources,
     required Map<String, StrictTemplateMap> fileMaps,
     required this.documentMap,
     required this.root,
-  }) : _fileMaps = fileMaps,
+  }) : _document = document,
+       _fileMaps = fileMaps,
        _sources = sources;
 
+  final CoverageDocument _document;
   final Map<String, StrictTemplateMap> _fileMaps;
   final CoverageSourceReader _sources;
+
+  /// `document` with source text on every file.
+  ///
+  /// The shared file maps stay unchanged.
+  StrictTemplateMap documentWithSource() {
+    return StrictTemplateMap({
+      for (final key in documentMap.keys)
+        key: key == 'files'
+            ? [
+                for (final file in _document.files)
+                  fileRenderMap(file, includeSource: true),
+              ]
+            : documentMap[key],
+    });
+  }
+
+  /// A directory map whose files, at every depth, include source text.
+  ///
+  /// The shared file maps stay unchanged.
+  StrictTemplateMap directoryWithSource(
+    CoverageDirectory directory,
+    StrictTemplateMap map,
+  ) {
+    final childMaps = map['directories']! as List<Object?>;
+    return StrictTemplateMap({
+      for (final key in map.keys)
+        key: switch (key) {
+          'files' => [
+            for (final file in directory.files)
+              fileRenderMap(file, includeSource: true),
+          ],
+          'directories' => [
+            for (var index = 0; index < directory.directories.length; index++)
+              directoryWithSource(
+                directory.directories[index],
+                childMaps[index]! as StrictTemplateMap,
+              ),
+          ],
+          _ => map[key],
+        },
+    });
+  }
 
   /// The `document` value.
   final StrictTemplateMap documentMap;

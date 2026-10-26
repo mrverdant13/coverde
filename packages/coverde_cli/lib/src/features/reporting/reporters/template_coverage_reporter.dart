@@ -56,23 +56,31 @@ final class TemplateCoverageReporter implements CoverageReporter {
   Future<void> render(CoverageReportRequest request) async {
     _registerFilters();
     switch (definition) {
-      case ConsoleReportDefinition(:final template):
+      case ConsoleReportDefinition(:final template, :final includeSource):
         final destination = request.destination;
         if (destination is! ConsoleReportDestination) {
           throw const CoverageReportDefinitionFailure(
             readableMessage: 'A console report writes to a console sink.',
           );
         }
+        final context = TemplateContext(
+          document: request.document,
+          sources: request.sources,
+        );
         destination.sink.write(
           await _renderTemplate(
             template: template,
             data: _data(
-              context: TemplateContext(
-                document: request.document,
-                sources: request.sources,
-              ),
+              context: context,
               variables: request.variables,
               pathToRoot: '',
+              document: includeSource ? context.documentWithSource() : null,
+              root: includeSource
+                  ? context.directoryWithSource(
+                      request.document.tree,
+                      context.root,
+                    )
+                  : context.root,
             ),
           ),
         );
@@ -219,6 +227,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
     if (slot != null) {
       final binding = isRoot && definition.root != null ? 'root' : 'directory';
       final relative = map['outputPath']! as String;
+      final bound = slot.includeSource
+          ? context.directoryWithSource(directory, map)
+          : map;
       await _writeRendered(
         slot: slot,
         relativePath: relative,
@@ -227,8 +238,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
           context: context,
           variables: variables,
           pathToRoot: pathToRootPrefix(relative),
-          root: binding == 'root' ? map : null,
-          directory: binding == 'directory' ? map : null,
+          document: slot.includeSource ? context.documentWithSource() : null,
+          root: binding == 'root' ? bound : null,
+          directory: binding == 'directory' ? bound : null,
         ),
       );
     }
@@ -327,12 +339,13 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required TemplateContext context,
     required Map<String, String> variables,
     required String pathToRoot,
+    StrictTemplateMap? document,
     StrictTemplateMap? root,
     StrictTemplateMap? directory,
     StrictTemplateMap? file,
   }) {
     return {
-      'document': context.documentMap,
+      'document': document ?? context.documentMap,
       'variables': StrictTemplateMap(Map<String, Object?>.of(variables)),
       'pathToRoot': pathToRoot,
       'root': root,
