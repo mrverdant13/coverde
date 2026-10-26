@@ -127,6 +127,36 @@ end_of_record
       expect(page, contains('lib/b.dart branches n/a'));
     });
 
+    test('prints the trace modification time when one was provided', () async {
+      _write(
+        root,
+        'templates/summary.liquid',
+        '{{ document.traceModifiedAt }}-',
+      );
+      final sink = StringBuffer();
+      const definition = ConsoleReportDefinition(
+        template: 'templates/summary.liquid',
+      );
+
+      await _render(
+        root: root,
+        definition: definition,
+        destination: ConsoleReportDestination(sink),
+        trace: _lineTrace,
+      );
+      expect(sink.toString(), '-');
+
+      sink.clear();
+      await _render(
+        root: root,
+        definition: definition,
+        destination: ConsoleReportDestination(sink),
+        trace: _lineTrace,
+        traceModifiedAt: DateTime.utc(2026, 10, 26, 15, 4),
+      );
+      expect(sink.toString(), '2026-10-26T15:04:00.000Z-');
+    });
+
     test(
       'nests directories in one file and leaves output paths empty',
       () async {
@@ -815,6 +845,7 @@ Future<void> _render({
   required ReportDefinition definition,
   required ReportDestination destination,
   required String trace,
+  DateTime? traceModifiedAt,
   Map<String, String> variables = const {},
   CoverageSourceReader? sources,
   File Function(String path) open = File.new,
@@ -825,7 +856,7 @@ Future<void> _render({
     open: open,
   ).render(
     CoverageReportRequest(
-      document: CoverageDocument.parse(trace),
+      document: CoverageDocument.parse(trace, traceModifiedAt: traceModifiedAt),
       sources: sources ?? const FileCoverageSourceReader(),
       destination: destination,
       variables: variables,

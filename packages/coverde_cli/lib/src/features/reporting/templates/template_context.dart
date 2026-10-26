@@ -104,6 +104,7 @@ StrictTemplateMap _documentMap(
     'branchRate': document.branchRate,
     'branchesHit': document.branchesHit,
     'branchesFound': document.branchesFound,
+    'traceModifiedAt': document.traceModifiedAt?.toIso8601String(),
     'files': [for (final file in document.files) fileMaps[file.path]],
   });
 }
