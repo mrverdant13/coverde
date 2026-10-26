@@ -284,7 +284,7 @@ end_of_record
 ''');
       _write(root, 'templates/file.liquid', '''
 <link rel="stylesheet" href="{{ pathToRoot }}report.css">
-<h1>{{ file.path }}</h1>
+<h1>{{ file.path }} {{ file.sourceAvailable }}</h1>
 {%- for line in file.lines %}
 {{ line.number }}|{{ line.hits }}|{{ line.source }}
 {%- endfor %}
@@ -338,9 +338,14 @@ end_of_record
       final filePage = File(
         '${destination.path}/lib/src/app.dart.html',
       ).readAsStringSync();
+      expect(filePage, contains('<h1>lib/src/app.dart true</h1>'));
       expect(filePage, contains('1||class App {'));
       expect(filePage, contains('2|3|  return;'));
       expect(filePage, contains('3||}'));
+      expect(
+        File('${destination.path}/lib/a.dart.html').readAsStringSync(),
+        contains('<h1>lib/a.dart false</h1>'),
+      );
       expect(
         File('${destination.path}/report.css').readAsStringSync(),
         'body{}\n',
@@ -387,11 +392,7 @@ end_of_record
     test(
       'keeps a missing source render successful with null source text',
       () async {
-        _write(
-          root,
-          'templates/file.liquid',
-          '{%- for line in file.lines %}{{ line.source }}{%- endfor %}\n',
-        );
+        _write(root, 'templates/file.liquid', '{{ file.sourceAvailable }}\n');
         final destination = Directory('${root.path}/out');
 
         await _render(
@@ -415,7 +416,7 @@ end_of_record
 
         expect(
           File('${destination.path}/lib/a.dart.html').readAsStringSync().trim(),
-          isEmpty,
+          'false',
         );
       },
     );

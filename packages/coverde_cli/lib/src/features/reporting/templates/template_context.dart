@@ -53,9 +53,14 @@ final class TemplateContext {
   }) {
     final shared = fileMap(file);
     if (!includeSource) return shared;
+    final source = _sources.readLines(file.path);
     return StrictTemplateMap({
       for (final key in shared.keys)
-        key: key == 'lines' ? _sourceLines(file) : shared[key],
+        key: switch (key) {
+          'lines' => _expandedLines(file, source),
+          'sourceAvailable' => source != null,
+          _ => shared[key],
+        },
     });
   }
 
@@ -65,9 +70,11 @@ final class TemplateContext {
     return {for (final file in document.files) file.path: _recordFileMap(file)};
   }
 
-  List<StrictTemplateMap> _sourceLines(CoverageFile file) {
+  List<StrictTemplateMap> _expandedLines(
+    CoverageFile file,
+    List<String>? source,
+  ) {
     final branches = _branchesOf(file);
-    final source = _sources.readLines(file.path);
     if (source == null) {
       return [
         for (final line in file.lines) _lineMap(line, branches: branches),
@@ -140,6 +147,7 @@ StrictTemplateMap _recordFileMap(CoverageFile file) {
     'name': file.name,
     'testName': file.testName,
     'unrecognized': file.unrecognized,
+    'sourceAvailable': null,
     'lineRate': file.lineRate,
     'linesHit': file.linesHit,
     'linesFound': file.linesFound,
