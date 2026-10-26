@@ -934,6 +934,22 @@ reports:
         to: style.css
 ```
 
+### Limits
+
+A template does not get a separate statement count. A statement column uses the line hit and found counts.
+
+`directory.files` are the files directly in that directory. Nested files stay under `directories`.
+
+A files report cannot write the same output path twice.
+
+An output path cannot be absolute, empty, or a trailing slash, and it cannot contain `..`.
+
+`{%- -%}` and `{{- -}}` strip the whitespace around a tag, including a space between class names. `{% render %}` sees only the arguments it was given, not the names of the template that called it.
+
+`0` is empty in `{% if %}` and `default`. Compare `hits == null` and `hits > 0`.
+
+`--report` is required when `coverde.yaml` defines more than one report. One report is used when the flag is omitted.
+
 ## Coverage thresholds
 
 `coverage` names the thresholds that [`coverde check`](#coverde-check) can select. A missing `coverage` key means there are no named thresholds.
