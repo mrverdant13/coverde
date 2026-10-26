@@ -58,6 +58,17 @@ final class CoverageDocument {
   /// Source files, in the order their records first appear in the trace.
   final List<CoverageFile> files;
 
+  /// Distinct `TN:` names, in the order they first appear.
+  List<String> get testNames {
+    final names = <String>[];
+    for (final file in files) {
+      final name = file.testName;
+      if (name == null || names.contains(name)) continue;
+      names.add(name);
+    }
+    return List.unmodifiable(names);
+  }
+
   /// Whether the trace contains no coverage records.
   bool get isEmpty => files.isEmpty;
 

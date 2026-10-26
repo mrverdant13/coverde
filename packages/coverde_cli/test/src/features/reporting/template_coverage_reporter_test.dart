@@ -157,6 +157,38 @@ end_of_record
       expect(sink.toString(), '2026-10-26T15:04:00.000Z-');
     });
 
+    test('prints test names from TN records', () async {
+      _write(root, 'templates/summary.liquid', '''
+{%- for name in document.testNames %}{{ name }}
+{% endfor %}
+{%- for file in document.files %}{{ file.path }} {{ file.testName }}
+{% endfor %}
+''');
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: '''
+SF:lib/a.dart
+TN:suite
+DA:1,1
+end_of_record
+SF:lib/b.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      expect(
+        sink.toString(),
+        'suite\nlib/a.dart suite\nlib/b.dart \n\n',
+      );
+    });
+
     test(
       'nests directories in one file and leaves output paths empty',
       () async {

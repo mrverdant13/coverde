@@ -27,6 +27,8 @@ end_of_record
       expect(file.linesFound, 2);
       expect(file.linesHit, 1);
       expect(file.lineRate, 50);
+      expect(file.testName, 'suite');
+      expect(CoverageDocument.parse(trace).testNames, ['suite']);
       expect(file.functionRate, 0);
       expect(file.branchRate, 100);
       expect(
@@ -118,6 +120,30 @@ end_of_record
       },
     );
 
+    test('keeps the first test name and lists distinct names in order', () {
+      const trace = '''
+SF:lib/a.dart
+TN:
+TN:first
+TN:second
+DA:1,1
+end_of_record
+SF:lib/b.dart
+TN:first
+DA:1,0
+end_of_record
+SF:lib/c.dart
+TN:third
+DA:1,1
+end_of_record
+''';
+
+      final document = CoverageDocument.parse(trace);
+
+      expect(document.files.first.testName, 'first');
+      expect(document.testNames, ['first', 'third']);
+    });
+
     test('merges records that share a normalized path', () {
       const trace = r'''
 SF:lib\a.dart
@@ -147,6 +173,7 @@ end_of_record
       ]);
       expect(merged.linesFound, 2);
       expect(merged.linesHit, 1);
+      expect(merged.testName, 'first');
       expect(document.linesFound, 3);
       expect(document.linesHit, 1);
       expect(

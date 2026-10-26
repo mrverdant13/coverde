@@ -21,8 +21,12 @@ final class CoverageFile {
     required Iterable<CoverageLine> lines,
     required this.functions,
     required this.branches,
+    this.testName,
   }) : entries = List<CoverageTraceEntry>.unmodifiable(entries),
        lines = List<CoverageLine>.unmodifiable(lines);
+
+  /// The test name from the first non-empty `TN:` line, if the record has one.
+  final String? testName;
 
   /// The normalized source path from `SF:`.
   final String path;
@@ -103,6 +107,7 @@ final class CoverageFile {
     if (identical(this, other)) return true;
     return other is CoverageFile &&
         other.path == path &&
+        other.testName == testName &&
         other.functions == functions &&
         other.branches == branches &&
         _linesEquality.equals(other.lines, lines) &&
@@ -115,6 +120,7 @@ final class CoverageFile {
   @override
   int get hashCode => Object.hash(
     path,
+    testName,
     functions,
     branches,
     _linesEquality.hash(lines),

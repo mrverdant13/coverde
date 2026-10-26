@@ -105,6 +105,7 @@ StrictTemplateMap _documentMap(
     'branchesHit': document.branchesHit,
     'branchesFound': document.branchesFound,
     'traceModifiedAt': document.traceModifiedAt?.toIso8601String(),
+    'testNames': document.testNames,
     'files': [for (final file in document.files) fileMaps[file.path]],
   });
 }
@@ -137,6 +138,7 @@ StrictTemplateMap _recordFileMap(CoverageFile file) {
   return StrictTemplateMap({
     'path': file.path,
     'name': file.name,
+    'testName': file.testName,
     'lineRate': file.lineRate,
     'linesHit': file.linesHit,
     'linesFound': file.linesFound,
