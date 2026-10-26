@@ -16,7 +16,9 @@ final class CoverageReportRequest {
     Map<String, String> variables = const {},
     this.columns = 80,
     this.color = false,
-  }) : variables = Map<String, String>.unmodifiable(variables);
+    Map<String, num> thresholds = const {},
+  }) : variables = Map<String, String>.unmodifiable(variables),
+       thresholds = Map<String, num>.unmodifiable(thresholds);
 
   /// The coverage to render.
   final CoverageDocument document;
@@ -29,6 +31,9 @@ final class CoverageReportRequest {
 
   /// Terminal width, or 80 when stdout is not a terminal.
   final int columns;
+
+  /// Named coverage thresholds from the configuration.
+  final Map<String, num> thresholds;
 
   /// Whether the template should emit ANSI color.
   ///

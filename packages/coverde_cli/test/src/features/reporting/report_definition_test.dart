@@ -42,6 +42,36 @@ reports:
       );
     });
 
+    test('reads numeric coverage thresholds', () {
+      expect(
+        parseCoverageThresholds('''
+coverage:
+  pkg-min: 90
+  line: 80.5
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+'''),
+        {'pkg-min': 90, 'line': 80.5},
+      );
+      expect(parseCoverageThresholds(''), isEmpty);
+      expect(parseCoverageThresholds('1\n'), isEmpty);
+      expect(parseCoverageThresholds('reports: {}\n'), isEmpty);
+      expect(
+        () => parseCoverageThresholds('coverage: 1\n'),
+        throwsA(isA<CoverageReportDefinitionFailure>()),
+      );
+      expect(
+        () => parseCoverageThresholds('coverage:\n  1: 2\n'),
+        throwsA(isA<CoverageReportDefinitionFailure>()),
+      );
+      expect(
+        () => parseCoverageThresholds('coverage: [\n'),
+        throwsA(isA<CoverageReportDefinitionFailure>()),
+      );
+    });
+
     test('keeps collapse false on a files report', () {
       final reports = parseReportDefinitions('''
 reports:

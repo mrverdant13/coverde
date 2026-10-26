@@ -750,6 +750,26 @@ end_of_record
       expect(buffer.toString(), '120');
     });
 
+    test('reads a coverage threshold by name', () async {
+      _write(root, 'templates/summary.liquid', '{{ thresholds["pkg-min"] }}');
+      final buffer = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+        thresholds: const {'pkg-min': 90},
+      );
+
+      expect(buffer.toString(), '90');
+    });
+
     test('colors text only when color is enabled', () async {
       _write(root, 'templates/summary.liquid', '''
 {{ "hi" | colorize: "light_red" }}
@@ -1356,6 +1376,7 @@ Future<void> _render({
   File Function(String path) open = File.new,
   int columns = 80,
   bool color = false,
+  Map<String, num> thresholds = const {},
 }) {
   return TemplateCoverageReporter(
     definition: definition,
@@ -1369,6 +1390,7 @@ Future<void> _render({
       variables: variables,
       columns: columns,
       color: color,
+      thresholds: thresholds,
     ),
   );
 }

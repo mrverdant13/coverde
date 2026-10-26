@@ -3,6 +3,41 @@ import 'package:coverde/src/features/reporting/templates/report_definition.dart'
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
+/// Reads the `coverage` map as numeric thresholds.
+///
+/// A missing `coverage` member yields an empty map. Values stay numbers.
+Map<String, num> parseCoverageThresholds(String yamlString) {
+  final dynamic rawConfig;
+  try {
+    rawConfig = yaml.loadYaml(yamlString);
+  } on yaml.YamlException catch (exception) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: 'Invalid report configuration.\n$exception',
+    );
+  }
+  if (rawConfig is! yaml.YamlMap) return const {};
+  final coverage = rawConfig['coverage'];
+  if (coverage == null) return const {};
+  if (coverage is! yaml.YamlMap) {
+    throw const CoverageReportDefinitionFailure(
+      readableMessage: '`coverage` must be a map of named thresholds.',
+    );
+  }
+  final thresholds = <String, num>{};
+  for (final entry in coverage.entries) {
+    final key = entry.key;
+    final value = entry.value;
+    if (key is! String || key.isEmpty || value is! num) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            '`coverage` entry `$key` must be a named number, not `$value`.',
+      );
+    }
+    thresholds[key] = value;
+  }
+  return Map<String, num>.unmodifiable(thresholds);
+}
+
 /// Reads the `reports` map from a `coverde.yaml` document.
 ///
 /// [baseDirectory] is the directory that contains the yaml file. Relative

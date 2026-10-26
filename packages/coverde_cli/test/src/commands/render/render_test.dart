@@ -184,6 +184,32 @@ end_of_record
       expect(File('${root.path}/out/summary.txt').readAsStringSync(), 'hi');
     });
 
+    test('passes coverage thresholds into the template', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'coverde.yaml', '''
+coverage:
+  pkg-min: 90
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+''');
+      _write(root, 'templates/summary.liquid', '{{ thresholds["pkg-min"] }}');
+      _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run(['render']),
+        getCurrentDirectory: () => root,
+      );
+
+      verify(() => logger.write('90')).called(1);
+    });
+
     test('writes a files report into the configured destination', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));

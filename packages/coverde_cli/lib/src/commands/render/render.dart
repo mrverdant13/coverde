@@ -120,9 +120,10 @@ The report is selected from the reports defined in $_configFileName.''';
     final configPath = p.normalize(
       p.join(Directory.current.path, _configFileName),
     );
+    final config = _readConfig(configPath);
     final definition = resolveReportDefinition(
       reports: parseReportDefinitions(
-        _readConfig(configPath),
+        config,
         baseDirectory: p.dirname(configPath),
       ),
       reportName: argResults.option(reportOption),
@@ -168,6 +169,7 @@ The report is selected from the reports defined in $_configFileName.''';
         variables: variables,
         columns: reportColumns(),
         color: reportColor(printing: _printing(definition)),
+        thresholds: parseCoverageThresholds(config),
       ),
     );
     if (destination is ConsoleReportDestination) {

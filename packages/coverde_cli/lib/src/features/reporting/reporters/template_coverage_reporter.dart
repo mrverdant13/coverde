@@ -40,6 +40,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   ReportPaths _reportPaths = ReportPaths();
   int _columns = 80;
   bool _color = false;
+  Map<String, num> _thresholds = const {};
 
   static const _knownNames = {
     'document',
@@ -50,6 +51,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
     'file',
     'columns',
     'color',
+    'thresholds',
   };
 
   static var _filtersRegistered = false;
@@ -99,6 +101,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
     _registerFilters();
     _columns = request.columns;
     _color = request.color;
+    _thresholds = request.thresholds;
     final tree = buildCoverageTree(
       request.document.files,
       collapse: definition.collapse,
@@ -403,6 +406,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       'file': file,
       'columns': _columns,
       'color': _color,
+      'thresholds': _thresholds,
     };
   }
 
