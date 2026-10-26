@@ -729,6 +729,26 @@ end_of_record
       );
     });
 
+    test('exposes the terminal width', () async {
+      _write(root, 'templates/summary.liquid', '{{ columns }}');
+      final buffer = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+        columns: 120,
+      );
+
+      expect(buffer.toString(), '120');
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {
@@ -1281,6 +1301,7 @@ Future<void> _render({
   Map<String, String> variables = const {},
   CoverageSourceReader? sources,
   File Function(String path) open = File.new,
+  int columns = 80,
 }) {
   return TemplateCoverageReporter(
     definition: definition,
@@ -1292,6 +1313,7 @@ Future<void> _render({
       sources: sources ?? const FileCoverageSourceReader(),
       destination: destination,
       variables: variables,
+      columns: columns,
     ),
   );
 }

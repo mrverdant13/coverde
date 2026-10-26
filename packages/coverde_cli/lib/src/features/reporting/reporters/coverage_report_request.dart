@@ -14,6 +14,7 @@ final class CoverageReportRequest {
     required this.sources,
     required this.destination,
     Map<String, String> variables = const {},
+    this.columns = 80,
   }) : variables = Map<String, String>.unmodifiable(variables);
 
   /// The coverage to render.
@@ -24,6 +25,9 @@ final class CoverageReportRequest {
 
   /// Where the rendered report is written.
   final ReportDestination destination;
+
+  /// Terminal width, or 80 when stdout is not a terminal.
+  final int columns;
 
   /// Caller-supplied values.
   ///

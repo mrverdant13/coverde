@@ -110,6 +110,32 @@ end_of_record
       );
     });
 
+    test('passes the terminal width into the template', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      debugReportColumns = 48;
+      addTearDown(() => debugReportColumns = null);
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+''');
+      _write(root, 'templates/summary.liquid', '{{ columns }}');
+      _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run(['render']),
+        getCurrentDirectory: () => root,
+      );
+
+      verify(() => logger.write('48')).called(1);
+    });
+
     test('writes a files report into the configured destination', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));

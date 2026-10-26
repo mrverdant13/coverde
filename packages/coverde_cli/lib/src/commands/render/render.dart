@@ -6,6 +6,22 @@ import 'package:universal_io/io.dart';
 
 export 'failures.dart';
 
+/// Overrides the terminal width. Tests set this because a test process has
+/// no terminal.
+@visibleForTesting
+int? debugReportColumns;
+
+/// The terminal width, or 80 when stdout is not a terminal.
+int reportColumns() {
+  final override = debugReportColumns;
+  if (override != null) return override;
+  // A test process has no terminal, so this width is not read in tests.
+  // coverage:ignore-start
+  if (stdout.hasTerminal) return stdout.terminalColumns;
+  // coverage:ignore-end
+  return 80;
+}
+
 /// {@template render_cmd}
 /// A command to render a named coverage report.
 /// {@endtemplate}
@@ -125,6 +141,7 @@ The report is selected from the reports defined in $_configFileName.''';
         sources: const FileCoverageSourceReader(),
         destination: destination,
         variables: variables,
+        columns: reportColumns(),
       ),
     );
     if (destination is ConsoleReportDestination) {

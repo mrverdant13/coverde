@@ -37,6 +37,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
 
   final File Function(String path) _open;
   ReportPaths _reportPaths = ReportPaths();
+  int _columns = 80;
 
   static const _knownNames = {
     'document',
@@ -45,6 +46,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
     'root',
     'directory',
     'file',
+    'columns',
   };
 
   static var _filtersRegistered = false;
@@ -73,6 +75,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
   @override
   Future<void> render(CoverageReportRequest request) async {
     _registerFilters();
+    _columns = request.columns;
     final tree = buildCoverageTree(
       request.document.files,
       collapse: definition.collapse,
@@ -375,6 +378,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       'root': root,
       'directory': directory,
       'file': file,
+      'columns': _columns,
     };
   }
 
