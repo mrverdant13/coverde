@@ -130,7 +130,13 @@ ConsoleReportDefinition _parseConsoleReport({
       );
     }
   }
-  const allowed = {'type', 'template', 'includeSource', 'destination'};
+  const allowed = {
+    'type',
+    'template',
+    'includeSource',
+    'destination',
+    'collapse',
+  };
   _rejectUnknownKeys(name: name, value: value, allowed: allowed);
   final includeSource = value['includeSource'];
   if (includeSource != null && includeSource is! bool) {
@@ -153,6 +159,7 @@ ConsoleReportDefinition _parseConsoleReport({
     destination: destination is String
         ? path.normalize(path.join(baseDirectory, destination))
         : null,
+    collapse: _collapse(name, value),
   );
 }
 
@@ -164,7 +171,15 @@ FilesReportDefinition _parseFilesReport({
   _rejectUnknownKeys(
     name: name,
     value: value,
-    allowed: {'type', 'destination', 'root', 'directory', 'file', 'assets'},
+    allowed: {
+      'type',
+      'destination',
+      'root',
+      'directory',
+      'file',
+      'assets',
+      'collapse',
+    },
   );
   final destination = value['destination'];
   if (destination is! String || destination.trim().isEmpty) {
@@ -191,6 +206,7 @@ FilesReportDefinition _parseFilesReport({
     directory: directory,
     file: file,
     assets: _parseAssets(name: name, value: value['assets']),
+    collapse: _collapse(name, value),
   );
 }
 
@@ -263,6 +279,17 @@ String _requiredString(String owner, yaml.YamlMap value, String key) {
     );
   }
   return raw;
+}
+
+bool _collapse(String name, yaml.YamlMap value) {
+  final collapse = value['collapse'];
+  if (collapse == null) return true;
+  if (collapse is! bool) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: 'Report `$name` `collapse` must be a boolean.',
+    );
+  }
+  return collapse;
 }
 
 void _rejectUnknownKeys({

@@ -16,6 +16,7 @@ final class TemplateContext {
   factory TemplateContext({
     required CoverageDocument document,
     required CoverageSourceReader sources,
+    CoverageDirectory? tree,
   }) {
     final fileMaps = _createFileMaps(document);
     return TemplateContext._(
@@ -23,7 +24,7 @@ final class TemplateContext {
       sources: sources,
       fileMaps: fileMaps,
       documentMap: _documentMap(document, fileMaps),
-      root: _directoryMap(document.tree, fileMaps),
+      root: _directoryMap(tree ?? document.tree, fileMaps),
     );
   }
 

@@ -42,7 +42,10 @@ final class ReportAsset {
 /// {@endtemplate}
 sealed class ReportDefinition {
   /// {@macro coverde.report_definition}
-  const ReportDefinition();
+  const ReportDefinition({this.collapse = true});
+
+  /// Whether a single-child directory chain becomes one node.
+  final bool collapse;
 }
 
 /// {@template coverde.console_report_definition}
@@ -54,6 +57,7 @@ final class ConsoleReportDefinition extends ReportDefinition {
     required this.template,
     this.includeSource = false,
     this.destination,
+    super.collapse,
   });
 
   /// Template path relative to the configuration directory.
@@ -79,6 +83,7 @@ final class FilesReportDefinition extends ReportDefinition {
     this.directory,
     this.file,
     this.assets = const [],
+    super.collapse,
   });
 
   /// Absolute directory that receives the rendered files.

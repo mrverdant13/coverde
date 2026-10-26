@@ -42,6 +42,21 @@ reports:
       );
     });
 
+    test('keeps collapse false on a files report', () {
+      final reports = parseReportDefinitions('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    collapse: false
+    root:
+      template: templates/root.liquid
+      path: index.html
+''', baseDirectory: '/config');
+
+      expect(reports['pages']!.collapse, isFalse);
+    });
+
     test('requires a destination and a slot for a files report', () {
       expect(
         () => parseReportDefinitions('''
@@ -230,6 +245,13 @@ reports:
     template: templates/summary.liquid
     destination: "  "
 ''', '`destination` must be a non-empty string');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    collapse: 1
+''', '`collapse` must be a boolean');
       rejects('''
 reports:
   pages:

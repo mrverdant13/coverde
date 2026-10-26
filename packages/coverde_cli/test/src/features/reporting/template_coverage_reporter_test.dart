@@ -591,6 +591,58 @@ end_of_record
       );
     });
 
+    test('keeps a single-child directory chain when collapse is false', () async {
+      _write(
+        root,
+        'templates/summary.liquid',
+        '[{{ root.path }}]'
+            '[{{ root.directories.first.directories.first.directories.first.path }}]',
+      );
+      final buffer = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+          collapse: false,
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/src/deep/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(buffer.toString(), '[][lib/src/deep]');
+    });
+
+    test('coerces numeric strings and keeps a null round null', () async {
+      _write(root, 'templates/summary.liquid', '''
+{{ variables["width"] | minus: 1 }}
+{{ variables["width"] | times: "2" }}
+{{ document.branchRate | round: 2 }}-
+{{ "1.26" | round: variables["places"] }}
+''');
+      final buffer = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        variables: const {'width': '8', 'places': '2'},
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(buffer.toString(), '7\n16\n-\n1.26\n');
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {

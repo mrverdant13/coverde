@@ -11,6 +11,7 @@ import 'package:coverde/src/features/reporting/templates/liquid_variables.dart';
 import 'package:coverde/src/features/reporting/templates/report_definition.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
 import 'package:coverde/src/features/reporting/templates/template_context.dart';
+import 'package:coverde/src/utils/coverage_tree.dart';
 import 'package:coverde/src/utils/report_paths.dart';
 import 'package:liquify/liquify.dart';
 import 'package:meta/meta.dart';
@@ -59,13 +60,20 @@ final class TemplateCoverageReporter implements CoverageReporter {
     if (_filtersRegistered) return;
     FilterRegistry.register('compact_ranges', compactRanges);
     FilterRegistry.register('plus', coercingPlus);
+    FilterRegistry.register('minus', coercingMinus);
+    FilterRegistry.register('times', coercingTimes);
+    FilterRegistry.register('round', coercingRound);
     _filtersRegistered = true;
   }
 
   @override
   Future<void> render(CoverageReportRequest request) async {
     _registerFilters();
-    _reportPaths = ReportPaths()..collectTree(request.document.tree);
+    final tree = buildCoverageTree(
+      request.document.files,
+      collapse: definition.collapse,
+    );
+    _reportPaths = ReportPaths()..collectTree(tree);
     switch (definition) {
       case ConsoleReportDefinition(:final template, :final includeSource):
         final destination = request.destination;
@@ -77,6 +85,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
         final context = TemplateContext(
           document: request.document,
           sources: request.sources,
+          tree: tree,
         );
         destination.sink.write(
           await _renderTemplate(
@@ -87,10 +96,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
               pathToRoot: '',
               document: includeSource ? context.documentWithSource() : null,
               root: includeSource
-                  ? context.directoryWithSource(
-                      request.document.tree,
-                      context.root,
-                    )
+                  ? context.directoryWithSource(tree, context.root)
                   : context.root,
             ),
           ),
@@ -106,6 +112,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
           request,
           definition as FilesReportDefinition,
           destination,
+          tree,
         );
     }
   }
@@ -114,15 +121,17 @@ final class TemplateCoverageReporter implements CoverageReporter {
     CoverageReportRequest request,
     FilesReportDefinition definition,
     DirectoryReportDestination destination,
+    CoverageDirectory tree,
   ) async {
     final context = TemplateContext(
       document: request.document,
       sources: request.sources,
+      tree: tree,
     );
     final variables = request.variables;
     final written = <String>{};
     await _assignDirectoryPaths(
-      directory: request.document.tree,
+      directory: tree,
       map: context.root,
       isRoot: true,
       definition: definition,
@@ -132,7 +141,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       written: written,
     );
     await _renderDirectory(
-      directory: request.document.tree,
+      directory: tree,
       map: context.root,
       isRoot: true,
       definition: definition,
