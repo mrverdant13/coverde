@@ -163,24 +163,6 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String destination,
     required Set<String> written,
   }) async {
-    final slot = isRoot
-        ? definition.root ?? definition.directory
-        : definition.directory;
-    if (slot != null) {
-      final binding = isRoot && definition.root != null ? 'root' : 'directory';
-      map['outputPath'] = await _outputPath(
-        slot: slot,
-        data: _data(
-          context: context,
-          variables: variables,
-          pathToRoot: '',
-          root: binding == 'root' ? map : null,
-          directory: binding == 'directory' ? map : null,
-        ),
-        destination: destination,
-        written: written,
-      );
-    }
     final childMaps = map['directories']! as List<Object?>;
     for (var index = 0; index < directory.directories.length; index++) {
       await _assignDirectoryPaths(
@@ -195,21 +177,39 @@ final class TemplateCoverageReporter implements CoverageReporter {
       );
     }
     final fileSlot = definition.file;
-    if (fileSlot == null) return;
-    for (final file in directory.files) {
-      final fileMap = context.fileMap(file);
-      fileMap['outputPath'] = await _outputPath(
-        slot: fileSlot,
-        data: _data(
-          context: context,
-          variables: variables,
-          pathToRoot: '',
-          file: fileMap,
-        ),
-        destination: destination,
-        written: written,
-      );
+    if (fileSlot != null) {
+      for (final file in directory.files) {
+        final fileMap = context.fileMap(file);
+        fileMap['outputPath'] = await _outputPath(
+          slot: fileSlot,
+          data: _data(
+            context: context,
+            variables: variables,
+            pathToRoot: '',
+            file: fileMap,
+          ),
+          destination: destination,
+          written: written,
+        );
+      }
     }
+    final slot = isRoot
+        ? definition.root ?? definition.directory
+        : definition.directory;
+    if (slot == null) return;
+    final binding = isRoot && definition.root != null ? 'root' : 'directory';
+    map['outputPath'] = await _outputPath(
+      slot: slot,
+      data: _data(
+        context: context,
+        variables: variables,
+        pathToRoot: '',
+        root: binding == 'root' ? map : null,
+        directory: binding == 'directory' ? map : null,
+      ),
+      destination: destination,
+      written: written,
+    );
   }
 
   Future<void> _renderDirectory({

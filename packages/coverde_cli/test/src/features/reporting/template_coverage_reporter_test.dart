@@ -509,6 +509,45 @@ end_of_record
       );
     });
 
+    test('reads a child output path from the parent path template', () async {
+      _write(
+        root,
+        'templates/root.liquid',
+        '{{ root.directories.first.outputPath }}',
+      );
+      _write(root, 'templates/directory.liquid', 'dir\n');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+          ),
+          directory: const ReportSlot(
+            template: 'templates/directory.liquid',
+            path: '{{ directory.path }}/index.html',
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        trace: '''
+SF:lib/a/x.dart
+DA:1,1
+end_of_record
+SF:lib/b/y.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      expect(
+        File('${destination.path}/index.html').readAsStringSync(),
+        'lib/a/index.html',
+      );
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {
