@@ -1007,6 +1007,32 @@ end_of_record
       expect(sink.toString(), contains('lib/a.dart'));
     });
 
+    test('keeps a capture for a class name that contains a space', () async {
+      _write(root, 'templates/summary.liquid', '''
+{% capture class %}covValue headerCovTableEntryLo{% endcapture %}
+<td class="{{ class }}">
+''');
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(
+        sink.toString(),
+        contains('<td class="covValue headerCovTableEntryLo">'),
+      );
+    });
+
     test('rejects the loop variable and forloop after the loop', () async {
       final sink = StringBuffer();
       const trace = '''

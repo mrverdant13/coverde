@@ -12,7 +12,45 @@ void assertKnownTemplateVariables({
   Set<String>? rendering,
 }) {
   final stack = rendering ?? <String>{};
-  _checkNodes(liquid.parseInput(source), {...known}, readTemplate, stack);
+  _checkNodes(
+    groupCaptureBlocks(liquid.parseInput(source)),
+    {...known},
+    readTemplate,
+    stack,
+  );
+}
+
+/// Puts the nodes between `capture` and `endcapture` on the capture tag.
+///
+/// The Liquid grammar does not treat `capture` as a block, so the body would
+/// otherwise be rendered immediately and the name would stay empty.
+List<liquid.ASTNode> groupCaptureBlocks(List<liquid.ASTNode> nodes) {
+  final grouped = <liquid.ASTNode>[];
+  for (var index = 0; index < nodes.length; index++) {
+    final node = nodes[index];
+    if (node is! liquid.Tag) {
+      grouped.add(node);
+      continue;
+    }
+    if (node.name == 'capture') {
+      final body = <liquid.ASTNode>[];
+      index++;
+      while (index < nodes.length) {
+        final next = nodes[index];
+        if (next is liquid.Tag && next.name == 'endcapture') break;
+        body.add(next);
+        index++;
+      }
+      node.body = groupCaptureBlocks(body);
+      grouped.add(node);
+      continue;
+    }
+    if (node.body.isNotEmpty) {
+      node.body = groupCaptureBlocks(node.body);
+    }
+    grouped.add(node);
+  }
+  return grouped;
 }
 
 void _checkNodes(
@@ -58,6 +96,10 @@ void _checkTag(
       }
       _checkExpression(assignment.value, declared, readTemplate, rendering);
       declared.add((assignment.variable as liquid.Identifier).name);
+    case 'capture':
+      final captured = tag.content.whereType<liquid.Identifier>().first;
+      _checkNodes(tag.body, declared, readTemplate, rendering);
+      declared.add(captured.name);
     case 'render':
       final partial = tag.content.whereType<liquid.Literal>().first.value;
       if (partial is! String) {

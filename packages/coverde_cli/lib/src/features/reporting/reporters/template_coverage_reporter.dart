@@ -16,6 +16,7 @@ import 'package:coverde/src/utils/coverage_tree.dart';
 import 'package:coverde/src/utils/report_paths.dart';
 import 'package:io/ansi.dart';
 import 'package:liquify/liquify.dart';
+import 'package:liquify/parser.dart' as liquid;
 import 'package:meta/meta.dart';
 import 'package:universal_io/io.dart';
 
@@ -432,7 +433,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
         known: _knownNames,
         readTemplate: _readTemplate,
       );
-      return await Template.parse(
+      final template = Template.parse(
         source,
         data: data,
         root: _PackRoot(baseDirectory, _open),
@@ -442,7 +443,12 @@ final class TemplateCoverageReporter implements CoverageReporter {
             ..registerLocalFilter('report_path', _reportPath)
             ..registerLocalFilter('colorize', _colorize);
         },
-      ).renderAsync();
+      );
+      final nodes = groupCaptureBlocks(liquid.parseInput(source));
+      return await liquid.Evaluator(
+            template.environment,
+          ).evaluateNodesAsync(nodes)
+          as String;
     } on CoverageReportFailure {
       rethrow;
     } on Object catch (error) {
