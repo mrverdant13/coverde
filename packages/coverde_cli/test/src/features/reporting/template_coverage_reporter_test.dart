@@ -680,6 +680,55 @@ end_of_record
       }
     });
 
+    test('aligns, truncates, and fixes numbers', () async {
+      _write(root, 'templates/summary.liquid', '''
+[{{ "hi" | pad: "4" }}]
+[{{ "hi" | pad: 4, "right" }}]
+[{{ "toolong" | pad: 3 }}]
+[{{ "abcdefghijk" | truncate: 10 }}]
+[{{ "ab" | truncate: 10 }}]
+[{{ "abcdef" | truncate: 2 }}]
+[{{ "ab" | truncate: -1 }}]
+[{{ 100 | fixed: 2 }}]
+[{{ document.branchRate | fixed: 2 }}]
+[{{ 1 | fixed }}]
+[{{ document.branchRate | pad: 2 }}]
+[{{ document.branchRate | truncate: 2 }}]
+[{{ "x" | fixed: 0 }}]
+''');
+      final buffer = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(
+        buffer.toString(),
+        '[hi  ]\n'
+        '[  hi]\n'
+        '[toolong]\n'
+        '[...efghijk]\n'
+        '[ab]\n'
+        '[ef]\n'
+        '[ab]\n'
+        '[100.00]\n'
+        '[]\n'
+        '[1]\n'
+        '[  ]\n'
+        '[]\n'
+        '[0]\n',
+      );
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {

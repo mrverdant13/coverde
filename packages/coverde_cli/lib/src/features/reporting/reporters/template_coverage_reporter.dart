@@ -11,6 +11,7 @@ import 'package:coverde/src/features/reporting/templates/liquid_variables.dart';
 import 'package:coverde/src/features/reporting/templates/report_definition.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
 import 'package:coverde/src/features/reporting/templates/template_context.dart';
+import 'package:coverde/src/features/reporting/templates/text_filters.dart';
 import 'package:coverde/src/utils/coverage_tree.dart';
 import 'package:coverde/src/utils/report_paths.dart';
 import 'package:liquify/liquify.dart';
@@ -63,6 +64,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
     FilterRegistry.register('minus', coercingMinus);
     FilterRegistry.register('times', coercingTimes);
     FilterRegistry.register('round', coercingRound);
+    FilterRegistry.register('fixed', fixed);
+    FilterRegistry.register('pad', pad);
+    FilterRegistry.register('truncate', truncate);
     _filtersRegistered = true;
   }
 
