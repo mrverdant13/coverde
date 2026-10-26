@@ -54,12 +54,16 @@ class RenderCommand extends CoverdeCommand {
   /// {@macro render_cmd}
   RenderCommand() {
     argParser
-      ..addOption(
+      ..addMultiOption(
         inputOption,
         abbr: inputOption[0],
-        help: 'Coverage trace file to render.',
+        help: '''
+Coverage trace file to render.
+
+Repeat to merge traces. Records with the same path are merged.
+The trace time is the latest modification time.''',
         valueHelp: _inputHelpValue,
-        defaultsTo: 'coverage/lcov.info',
+        defaultsTo: const ['coverage/lcov.info'],
       )
       ..addOption(
         reportOption,
@@ -129,7 +133,9 @@ The report is selected from the reports defined in $_configFileName.''';
   @override
   Future<void> run() async {
     final argResults = this.argResults!;
-    final traceFilePath = _absolute(argResults.option(inputOption)!);
+    final tracePaths = [
+      for (final path in argResults.multiOption(inputOption)) _absolute(path),
+    ];
     final variables = _variables(argResults.multiOption(variableOption));
     final configPath = _absolute(argResults.option(configOption)!);
     final config = _readConfig(configPath);
@@ -142,25 +148,36 @@ The report is selected from the reports defined in $_configFileName.''';
       configPath: configPath,
     );
 
-    if (!FileSystemEntity.isFileSync(traceFilePath)) {
-      throw CoverdeRenderTraceFileNotFoundFailure(traceFilePath: traceFilePath);
+    final trace = StringBuffer();
+    DateTime? traceModifiedAt;
+    for (final traceFilePath in tracePaths) {
+      if (!FileSystemEntity.isFileSync(traceFilePath)) {
+        throw CoverdeRenderTraceFileNotFoundFailure(
+          traceFilePath: traceFilePath,
+        );
+      }
+      final traceFile = File(traceFilePath);
+      try {
+        final modified = traceFile.lastModifiedSync();
+        if (traceModifiedAt == null || modified.isAfter(traceModifiedAt)) {
+          traceModifiedAt = modified;
+        }
+        trace.writeln(traceFile.readAsStringSync());
+      } on FileSystemException catch (exception) {
+        throw CoverdeRenderTraceFileReadFailure.fromFileSystemException(
+          traceFilePath: traceFilePath,
+          exception: exception,
+        );
+      }
     }
-    final traceFile = File(traceFilePath);
-    final CoverageDocument document;
-    try {
-      final traceModifiedAt = traceFile.lastModifiedSync();
-      document = await CoverageDocument.parseStreaming(
-        traceFile,
-        traceModifiedAt: traceModifiedAt,
-      );
-    } on FileSystemException catch (exception) {
-      throw CoverdeRenderTraceFileReadFailure.fromFileSystemException(
-        traceFilePath: traceFilePath,
-        exception: exception,
-      );
-    }
+    final document = CoverageDocument.parse(
+      trace.toString(),
+      traceModifiedAt: traceModifiedAt,
+    );
     if (document.files.isEmpty) {
-      throw CoverdeRenderEmptyTraceFileFailure(traceFilePath: traceFilePath);
+      throw CoverdeRenderEmptyTraceFileFailure(
+        traceFilePath: tracePaths.join(', '),
+      );
     }
 
     final buffer = StringBuffer();

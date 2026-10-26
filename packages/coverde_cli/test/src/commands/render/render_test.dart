@@ -246,6 +246,97 @@ end_of_record
       );
     });
 
+    test('merges repeated inputs and keeps the latest trace time', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+''');
+      _write(
+        root,
+        'templates/summary.liquid',
+        '{{ document.linesHit }}/{{ document.linesFound }} {{ document.traceModifiedAt }}',
+      );
+      _write(root, 'coverage/one.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+      _write(root, 'coverage/two.info', '''
+SF:lib/b.dart
+DA:1,0
+end_of_record
+''');
+      File(
+        '${root.path}/coverage/one.info',
+      ).setLastModifiedSync(DateTime.utc(2020));
+      final newer = File('${root.path}/coverage/two.info')
+        ..setLastModifiedSync(DateTime.utc(2024, 1, 2, 3, 4, 5));
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run([
+          'render',
+          '--${RenderCommand.inputOption}',
+          'coverage/one.info',
+          '--${RenderCommand.inputOption}',
+          'coverage/two.info',
+        ]),
+        getCurrentDirectory: () => root,
+      );
+
+      verify(
+        () => logger.write(
+          any(
+            that: contains(
+              '1/2 ${newer.lastModifiedSync().toIso8601String()}',
+            ),
+          ),
+        ),
+      ).called(1);
+    });
+
+    test('fails when one of several trace files is missing', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+''');
+      _write(root, 'templates/summary.liquid', 'x');
+      _write(root, 'coverage/one.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+      final missing = p.normalize(
+        p.join(root.path, 'coverage', 'missing.info'),
+      );
+
+      await IOOverrides.runZoned(() async {
+        expect(
+          () => cmdRunner.run([
+            'render',
+            '--${RenderCommand.inputOption}',
+            'coverage/one.info',
+            '--${RenderCommand.inputOption}',
+            'coverage/missing.info',
+          ]),
+          throwsA(
+            isA<CoverdeRenderTraceFileNotFoundFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              'No trace file found at `$missing`.',
+            ),
+          ),
+        );
+      }, getCurrentDirectory: () => root);
+    });
+
     test('writes a files report into the configured destination', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));
