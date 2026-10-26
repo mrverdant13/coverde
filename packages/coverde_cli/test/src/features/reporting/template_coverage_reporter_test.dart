@@ -128,6 +128,40 @@ end_of_record
       expect(page, contains('lib/b.dart branches n/a'));
     });
 
+    test('writes slot pages with merged variables', () async {
+      _write(root, 'templates/root.liquid', 'sort={{ variables.sort }}\n');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+            variables: {'sort': 'name'},
+            pages: [
+              ReportPage(
+                path: 'index-sort-l.html',
+                variables: {'sort': 'line'},
+              ),
+            ],
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        trace: _lineTrace,
+      );
+
+      expect(
+        File('${destination.path}/index.html').readAsStringSync(),
+        'sort=name\n',
+      );
+      expect(
+        File('${destination.path}/index-sort-l.html').readAsStringSync(),
+        'sort=line\n',
+      );
+    });
+
     test('prints the trace modification time when one was provided', () async {
       _write(
         root,

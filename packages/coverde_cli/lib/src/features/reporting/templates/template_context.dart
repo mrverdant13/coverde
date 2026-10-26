@@ -6,6 +6,7 @@ import 'package:coverde/src/entities/coverage_function.dart';
 import 'package:coverde/src/entities/coverage_line.dart';
 import 'package:coverde/src/features/reporting/reporters/coverage_source_reader.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
+import 'package:coverde/src/utils/coverage.dart';
 
 /// Template maps for one coverage document.
 ///
@@ -168,6 +169,32 @@ StrictTemplateMap _directoryMap(
   CoverageDirectory directory,
   Map<String, StrictTemplateMap> fileMaps,
 ) {
+  final filesLinesHit = [
+    for (final file in directory.files) file.linesHit,
+  ].fold<int>(0, (total, value) => total + value);
+  final filesLinesFound = [
+    for (final file in directory.files) file.linesFound,
+  ].fold<int>(0, (total, value) => total + value);
+  final filesFunctionsHit = _optionalSum(
+    directory.files.map((file) => file.functions?.hit),
+  );
+  final filesFunctionsFound = _optionalSum(
+    directory.files.map((file) => file.functions?.found),
+  );
+  final filesBranchesHit = _optionalSum(
+    directory.files.map((file) => file.branches?.hit),
+  );
+  final filesBranchesFound = _optionalSum(
+    directory.files.map((file) => file.branches?.found),
+  );
+  final directories = [
+    for (final child in directory.directories) _directoryMap(child, fileMaps),
+  ];
+  final fileDirectories = [
+    for (final child in directories) ..._fileDirectoriesOf(child),
+  ]..sort((left, right) {
+      return (left['path']! as String).compareTo(right['path']! as String);
+    });
   return StrictTemplateMap({
     'path': directory.path,
     'name': directory.name,
@@ -180,12 +207,51 @@ StrictTemplateMap _directoryMap(
     'branchRate': directory.branchRate,
     'branchesHit': directory.branchesHit,
     'branchesFound': directory.branchesFound,
+    'filesLineRate': coverageRate(
+      hit: filesLinesHit,
+      found: filesLinesFound,
+    ),
+    'filesLinesHit': filesLinesHit,
+    'filesLinesFound': filesLinesFound,
+    'filesFunctionRate': optionalCoverageRate(
+      hit: filesFunctionsHit,
+      found: filesFunctionsFound,
+    ),
+    'filesFunctionsHit': filesFunctionsHit,
+    'filesFunctionsFound': filesFunctionsFound,
+    'filesBranchRate': optionalCoverageRate(
+      hit: filesBranchesHit,
+      found: filesBranchesFound,
+    ),
+    'filesBranchesHit': filesBranchesHit,
+    'filesBranchesFound': filesBranchesFound,
     'outputPath': null,
     'files': [for (final file in directory.files) fileMaps[file.path]],
-    'directories': [
-      for (final child in directory.directories) _directoryMap(child, fileMaps),
-    ],
+    'directories': directories,
+    'fileDirectories': fileDirectories,
   });
+}
+
+List<StrictTemplateMap> _fileDirectoriesOf(StrictTemplateMap directory) {
+  final files = directory['files']! as List<Object?>;
+  final children = directory['directories']! as List<Object?>;
+  return [
+    if (files.isNotEmpty) directory,
+    for (final child in children)
+      ..._fileDirectoriesOf(child! as StrictTemplateMap),
+  ];
+}
+
+int? _optionalSum(Iterable<int?> values) {
+  var sawValue = false;
+  var total = 0;
+  for (final value in values) {
+    if (value == null) continue;
+    sawValue = true;
+    total += value;
+  }
+  if (!sawValue) return null;
+  return total;
 }
 
 StrictTemplateMap _recordFileMap(CoverageFile file) {

@@ -382,6 +382,16 @@ reports:
     template: "  "
 ''', 'requires `template`');
       rejects('reports: [\n', 'Invalid report configuration');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      pages: true
+''', '`pages` must be a list');
     });
 
     test('keeps includeSource on a file slot', () {
@@ -400,6 +410,30 @@ reports:
       expect(definition.file!.includeSource, isTrue);
       expect(definition.file!.template, 'templates/file.liquid');
       expect(definition.file!.path, '{{ file.path }}.html');
+    });
+
+    test('keeps pages and variables on a root slot', () {
+      final reports = parseReportDefinitions('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables:
+        sort: name
+      pages:
+        - path: index-sort-l.html
+          variables:
+            sort: line
+''', baseDirectory: '/config');
+
+      final definition = reports['pages']! as FilesReportDefinition;
+      expect(definition.root!.variables, {'sort': 'name'});
+      expect(definition.root!.pages, hasLength(1));
+      expect(definition.root!.pages.single.path, 'index-sort-l.html');
+      expect(definition.root!.pages.single.variables, {'sort': 'line'});
     });
 
     test('keeps includeSource on console, root, and directory reports', () {

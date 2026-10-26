@@ -256,7 +256,7 @@ ReportSlot? _parseSlot({
       readableMessage: 'Report `$name` slot `$slot` must be a map.',
     );
   }
-  final allowed = {'template', 'path', 'includeSource'};
+  final allowed = {'template', 'path', 'includeSource', 'variables', 'pages'};
   _rejectUnknownKeys(name: '$name.$slot', value: value, allowed: allowed);
   final includeSource = value['includeSource'];
   if (includeSource != null && includeSource is! bool) {
@@ -265,11 +265,80 @@ ReportSlot? _parseSlot({
           'Report `$name` slot `$slot` `includeSource` must be a boolean.',
     );
   }
+  final owner = '$name.$slot';
   return ReportSlot(
-    template: _requiredString('$name.$slot', value, 'template'),
-    path: _requiredString('$name.$slot', value, 'path'),
+    template: _requiredString(owner, value, 'template'),
+    path: _requiredString(owner, value, 'path'),
     includeSource: includeSource == true,
+    variables: _parsePageVariables(owner: owner, value: value['variables']),
+    pages: _parsePages(name: name, slot: slot, value: value['pages']),
   );
+}
+
+List<ReportPage> _parsePages({
+  required String name,
+  required String slot,
+  required dynamic value,
+}) {
+  if (value == null) return const [];
+  if (value is! yaml.YamlList) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: 'Report `$name` slot `$slot` `pages` must be a list.',
+    );
+  }
+  return [
+    for (final (index, page) in value.indexed)
+      _parsePage(name: name, slot: slot, index: index, value: page),
+  ];
+}
+
+ReportPage _parsePage({
+  required String name,
+  required String slot,
+  required int index,
+  required dynamic value,
+}) {
+  final owner = '$name.$slot.pages[${index + 1}]';
+  if (value is! yaml.YamlMap) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: '`$owner` must be a map.',
+    );
+  }
+  _rejectUnknownKeys(name: owner, value: value, allowed: {'path', 'variables'});
+  return ReportPage(
+    path: _requiredString(owner, value, 'path'),
+    variables: _parsePageVariables(owner: owner, value: value['variables']),
+  );
+}
+
+Map<String, String> _parsePageVariables({
+  required String owner,
+  required dynamic value,
+}) {
+  if (value == null) return const {};
+  if (value is! yaml.YamlMap) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: '`$owner` `variables` must be a map.',
+    );
+  }
+  final variables = <String, String>{};
+  for (final entry in value.entries) {
+    final key = entry.key;
+    final raw = entry.value;
+    if (key is! String || key.trim().isEmpty) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage: '`$owner` `variables` keys must be non-empty strings.',
+      );
+    }
+    if (raw is! String) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            '`$owner` `variables.$key` must be a string.',
+      );
+    }
+    variables[key] = raw;
+  }
+  return variables;
 }
 
 List<ReportAsset> _parseAssets({required String name, required dynamic value}) {

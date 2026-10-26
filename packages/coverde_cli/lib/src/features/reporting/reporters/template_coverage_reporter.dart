@@ -259,17 +259,32 @@ final class TemplateCoverageReporter implements CoverageReporter {
     if (fileSlot != null) {
       for (final file in directory.files) {
         final fileMap = context.fileMap(file);
+        final fileVariables = _slotVariables(fileSlot, variables);
+        final fileData = _data(
+          context: context,
+          variables: fileVariables,
+          pathToRoot: '',
+          file: fileMap,
+        );
         fileMap['outputPath'] = await _outputPath(
-          slot: fileSlot,
-          data: _data(
-            context: context,
-            variables: variables,
-            pathToRoot: '',
-            file: fileMap,
-          ),
+          pathTemplate: fileSlot.path,
+          data: fileData,
           destination: destination,
           written: written,
         );
+        for (final page in fileSlot.pages) {
+          await _outputPath(
+            pathTemplate: page.path,
+            data: _data(
+              context: context,
+              variables: _pageVariables(fileSlot, page, variables),
+              pathToRoot: '',
+              file: fileMap,
+            ),
+            destination: destination,
+            written: written,
+          );
+        }
       }
     }
     final slot = isRoot
@@ -277,18 +292,34 @@ final class TemplateCoverageReporter implements CoverageReporter {
         : definition.directory;
     if (slot == null) return;
     final binding = isRoot && definition.root != null ? 'root' : 'directory';
+    final slotVariables = _slotVariables(slot, variables);
+    final data = _data(
+      context: context,
+      variables: slotVariables,
+      pathToRoot: '',
+      root: binding == 'root' ? map : null,
+      directory: binding == 'directory' ? map : null,
+    );
     map['outputPath'] = await _outputPath(
-      slot: slot,
-      data: _data(
-        context: context,
-        variables: variables,
-        pathToRoot: '',
-        root: binding == 'root' ? map : null,
-        directory: binding == 'directory' ? map : null,
-      ),
+      pathTemplate: slot.path,
+      data: data,
       destination: destination,
       written: written,
     );
+    for (final page in slot.pages) {
+      await _outputPath(
+        pathTemplate: page.path,
+        data: _data(
+          context: context,
+          variables: _pageVariables(slot, page, variables),
+          pathToRoot: '',
+          root: binding == 'root' ? map : null,
+          directory: binding == 'directory' ? map : null,
+        ),
+        destination: destination,
+        written: written,
+      );
+    }
   }
 
   Future<void> _renderDirectory({
@@ -309,19 +340,49 @@ final class TemplateCoverageReporter implements CoverageReporter {
       final bound = slot.includeSource
           ? context.directoryWithSource(directory, map)
           : map;
+      final document = slot.includeSource
+          ? context.documentWithSource()
+          : null;
+      final slotVariables = _slotVariables(slot, variables);
       await _writeRendered(
         slot: slot,
         relativePath: relative,
         destination: destination,
         data: _data(
           context: context,
-          variables: variables,
+          variables: slotVariables,
           pathToRoot: pathToRootPrefix(relative),
-          document: slot.includeSource ? context.documentWithSource() : null,
+          document: document,
           root: binding == 'root' ? bound : null,
           directory: binding == 'directory' ? bound : null,
         ),
       );
+      for (final page in slot.pages) {
+        final pageVariables = _pageVariables(slot, page, variables);
+        final pageRelative = await _renderPath(
+          pathTemplate: page.path,
+          data: _data(
+            context: context,
+            variables: pageVariables,
+            pathToRoot: '',
+            root: binding == 'root' ? map : null,
+            directory: binding == 'directory' ? map : null,
+          ),
+        );
+        await _writeRendered(
+          slot: slot,
+          relativePath: pageRelative,
+          destination: destination,
+          data: _data(
+            context: context,
+            variables: pageVariables,
+            pathToRoot: pathToRootPrefix(pageRelative),
+            document: document,
+            root: binding == 'root' ? bound : null,
+            directory: binding == 'directory' ? bound : null,
+          ),
+        );
+      }
     }
     final childMaps = map['directories']! as List<Object?>;
     for (var index = 0; index < directory.directories.length; index++) {
@@ -356,45 +417,98 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String destination,
   }) async {
     final relative = context.fileMap(file)['outputPath']! as String;
+    final renderedFile = context.fileRenderMap(
+      file,
+      includeSource: slot.includeSource,
+    );
+    final slotVariables = _slotVariables(slot, variables);
     await _writeRendered(
       slot: slot,
       relativePath: relative,
       destination: destination,
       data: _data(
         context: context,
-        variables: variables,
+        variables: slotVariables,
         pathToRoot: pathToRootPrefix(relative),
-        file: context.fileRenderMap(file, includeSource: slot.includeSource),
+        file: renderedFile,
       ),
     );
+    for (final page in slot.pages) {
+      final pageVariables = _pageVariables(slot, page, variables);
+      final pageRelative = await _renderPath(
+        pathTemplate: page.path,
+        data: _data(
+          context: context,
+          variables: pageVariables,
+          pathToRoot: '',
+          file: context.fileMap(file),
+        ),
+      );
+      await _writeRendered(
+        slot: slot,
+        relativePath: pageRelative,
+        destination: destination,
+        data: _data(
+          context: context,
+          variables: pageVariables,
+          pathToRoot: pathToRootPrefix(pageRelative),
+          file: renderedFile,
+        ),
+      );
+    }
+  }
+
+  Map<String, String> _slotVariables(
+    ReportSlot slot,
+    Map<String, String> variables,
+  ) {
+    return {...variables, ...slot.variables};
+  }
+
+  Map<String, String> _pageVariables(
+    ReportSlot slot,
+    ReportPage page,
+    Map<String, String> variables,
+  ) {
+    return {...variables, ...slot.variables, ...page.variables};
   }
 
   Future<String> _outputPath({
-    required ReportSlot slot,
+    required String pathTemplate,
     required Map<String, Object?> data,
     required String destination,
     required Set<String> written,
   }) async {
-    final rendered = (await _renderSource(
-      source: slot.path,
-      label: 'path `${slot.path}`',
+    final relative = await _renderPath(
+      pathTemplate: pathTemplate,
       data: data,
-    )).trim();
+    );
     final resolved = resolveInsideRoot(
       rootDirectory: destination,
-      relativePath: rendered,
+      relativePath: relative,
       description: 'Report path',
     );
-    final relative = relativeReportPath(
+    final jailed = relativeReportPath(
       rootDirectory: destination,
       resolvedPath: resolved,
     );
-    if (!written.add(relative)) {
+    if (!written.add(jailed)) {
       throw CoverageReportPathFailure(
-        readableMessage: 'Report path `$relative` is written more than once.',
+        readableMessage: 'Report path `$jailed` is written more than once.',
       );
     }
-    return relative;
+    return jailed;
+  }
+
+  Future<String> _renderPath({
+    required String pathTemplate,
+    required Map<String, Object?> data,
+  }) async {
+    return (await _renderSource(
+      source: pathTemplate,
+      label: 'path `$pathTemplate`',
+      data: data,
+    )).trim();
   }
 
   Future<void> _writeRendered({

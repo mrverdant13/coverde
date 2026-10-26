@@ -1,5 +1,23 @@
 import 'package:meta/meta.dart';
 
+/// {@template coverde.report_page}
+/// An extra path that reuses a slot template with extra [variables].
+/// {@endtemplate}
+@immutable
+final class ReportPage {
+  /// {@macro coverde.report_page}
+  const ReportPage({
+    required this.path,
+    this.variables = const {},
+  });
+
+  /// Liquid path pattern for this page.
+  final String path;
+
+  /// Values merged into `variables` for this page only.
+  final Map<String, String> variables;
+}
+
 /// {@template coverde.report_slot}
 /// One Liquid template and the path pattern it writes.
 /// {@endtemplate}
@@ -10,6 +28,8 @@ final class ReportSlot {
     required this.template,
     required this.path,
     this.includeSource = false,
+    this.variables = const {},
+    this.pages = const [],
   });
 
   /// Template path relative to the configuration directory.
@@ -20,6 +40,12 @@ final class ReportSlot {
 
   /// Whether this render includes source text on its files.
   final bool includeSource;
+
+  /// Values merged into `variables` for every render of this slot.
+  final Map<String, String> variables;
+
+  /// Extra pages that reuse [template] with their own path and variables.
+  final List<ReportPage> pages;
 }
 
 /// {@template coverde.report_asset}
