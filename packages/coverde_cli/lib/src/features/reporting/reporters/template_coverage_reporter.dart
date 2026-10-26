@@ -102,6 +102,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
     FilterRegistry.register('fixed', fixed);
     FilterRegistry.register('pad', pad);
     FilterRegistry.register('truncate', truncate);
+    FilterRegistry.register('sort_by_rate', sortByRate);
     _filtersRegistered = true;
   }
 

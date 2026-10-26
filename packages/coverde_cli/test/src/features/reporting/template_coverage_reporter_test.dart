@@ -770,6 +770,60 @@ end_of_record
       expect(buffer.toString(), '90');
     });
 
+    test('sorts by a rate and leaves null rates last', () async {
+      _write(root, 'templates/summary.liquid', '''
+{% assign files = document.files | sort_by_rate %}
+{% for file in files %}{{ file.path }}
+{% endfor %}
+{% assign down = document.files | sort_by_rate: "lineRate", "desc" %}
+{% for file in down %}{{ file.path }}
+{% endfor %}
+{{ "x" | sort_by_rate }}
+''');
+      final buffer = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/mid.dart
+DA:1,1
+DA:2,0
+end_of_record
+SF:lib/none.dart
+FN:1,main
+FNDA:1,main
+end_of_record
+SF:lib/also.dart
+FN:1,other
+FNDA:0,other
+end_of_record
+SF:lib/low.dart
+DA:1,0
+end_of_record
+''',
+      );
+
+      expect(
+        buffer.toString(),
+        '\n'
+        'lib/low.dart\n'
+        'lib/mid.dart\n'
+        'lib/none.dart\n'
+        'lib/also.dart\n'
+        '\n'
+        '\n'
+        'lib/mid.dart\n'
+        'lib/low.dart\n'
+        'lib/none.dart\n'
+        'lib/also.dart\n'
+        '\n'
+        'x\n',
+      );
+    });
+
     test('renders an asset as a template and copies the rest', () async {
       _write(root, 'templates/page.liquid', 'page');
       _write(
