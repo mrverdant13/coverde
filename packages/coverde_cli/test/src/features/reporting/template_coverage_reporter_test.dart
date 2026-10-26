@@ -643,6 +643,43 @@ end_of_record
       expect(buffer.toString(), '7\n16\n-\n1.26\n');
     });
 
+    test('rounds without a precision and rejects a missing operand', () async {
+      _write(root, 'templates/summary.liquid', '{{ "1.6" | round }}');
+      final buffer = StringBuffer();
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(buffer),
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+      expect(buffer.toString(), '2.0');
+
+      for (final filter in ['minus', 'times']) {
+        _write(root, 'templates/summary.liquid', '{{ 1 | $filter }}');
+        await expectLater(
+          _render(
+            root: root,
+            definition: const ConsoleReportDefinition(
+              template: 'templates/summary.liquid',
+            ),
+            destination: ConsoleReportDestination(StringBuffer()),
+            trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+          ),
+          throwsA(isA<CoverageTemplateRenderFailure>()),
+        );
+      }
+    });
+
     test(
       'uses the directory template for the root when root is omitted',
       () async {
