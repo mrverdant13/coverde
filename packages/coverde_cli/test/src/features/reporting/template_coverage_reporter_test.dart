@@ -770,6 +770,49 @@ end_of_record
       expect(buffer.toString(), '90');
     });
 
+    test('renders an asset as a template and copies the rest', () async {
+      _write(root, 'templates/page.liquid', 'page');
+      _write(
+        root,
+        'assets/banner.liquid',
+        '{{ document.linesHit }}-{{ thresholds["pkg-min"] }}',
+      );
+      _write(root, 'assets/plain.css', 'body { } {{ document.linesHit }}');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: const FilesReportDefinition(
+          destination: 'ignored',
+          root: ReportSlot(
+            template: 'templates/page.liquid',
+            path: 'index.html',
+          ),
+          assets: [
+            ReportAsset(
+              from: 'assets/banner.liquid',
+              to: 'banner.txt',
+              render: true,
+            ),
+            ReportAsset(from: 'assets/plain.css', to: 'plain.css'),
+          ],
+        ),
+        destination: DirectoryReportDestination(destination),
+        thresholds: const {'pkg-min': 80},
+        trace: '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(File('${destination.path}/banner.txt').readAsStringSync(), '1-80');
+      expect(
+        File('${destination.path}/plain.css').readAsStringSync(),
+        'body { } {{ document.linesHit }}',
+      );
+    });
+
     test('colors text only when color is enabled', () async {
       _write(root, 'templates/summary.liquid', '''
 {{ "hi" | colorize: "light_red" }}

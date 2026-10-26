@@ -43,6 +43,14 @@ final class TemplateCoverageReporter implements CoverageReporter {
   bool _color = false;
   Map<String, num> _thresholds = const {};
 
+  static const _assetNames = {
+    'document',
+    'variables',
+    'thresholds',
+    'columns',
+    'color',
+  };
+
   static const _knownNames = {
     'document',
     'variables',
@@ -203,7 +211,23 @@ final class TemplateCoverageReporter implements CoverageReporter {
           readableMessage: 'Report path `$relative` is written more than once.',
         );
       }
-      _copyFile(source, target);
+      if (asset.render) {
+        final rendered = await _renderSource(
+          source: _readTemplate(asset.from),
+          label: asset.from,
+          data: {
+            'document': context.documentMap,
+            'variables': StrictTemplateMap(Map<String, Object?>.of(variables)),
+            'thresholds': _thresholds,
+            'columns': _columns,
+            'color': _color,
+          },
+          known: _assetNames,
+        );
+        _writeFile(target, rendered);
+      } else {
+        _copyFile(source, target);
+      }
     }
   }
 
@@ -426,11 +450,12 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String source,
     required String label,
     required Map<String, Object?> data,
+    Set<String> known = _knownNames,
   }) async {
     try {
       assertKnownTemplateVariables(
         source: source,
-        known: _knownNames,
+        known: known,
         readTemplate: _readTemplate,
       );
       final template = Template.parse(

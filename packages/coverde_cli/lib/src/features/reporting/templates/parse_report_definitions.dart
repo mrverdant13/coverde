@@ -298,11 +298,19 @@ ReportAsset _parseAsset({
   _rejectUnknownKeys(
     name: '$name.assets[${index + 1}]',
     value: value,
-    allowed: {'from', 'to'},
+    allowed: {'from', 'to', 'render'},
   );
+  final render = value['render'];
+  if (render != null && render is! bool) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage:
+          'Report `$name` asset ${index + 1} `render` must be a boolean.',
+    );
+  }
   return ReportAsset(
     from: _requiredString('$name.assets[${index + 1}]', value, 'from'),
     to: _requiredString('$name.assets[${index + 1}]', value, 'to'),
+    render: render == true,
   );
 }
 

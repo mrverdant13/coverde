@@ -28,13 +28,23 @@ final class ReportSlot {
 @immutable
 final class ReportAsset {
   /// {@macro coverde.report_asset}
-  const ReportAsset({required this.from, required this.to});
+  const ReportAsset({
+    required this.from,
+    required this.to,
+    this.render = false,
+  });
 
   /// Source path relative to the configuration directory.
   final String from;
 
   /// Destination path relative to the report directory.
   final String to;
+
+  /// Whether [from] is a Liquid template rather than a byte copy.
+  ///
+  /// A rendered asset receives `document`, `variables`, `thresholds`,
+  /// `columns`, and `color`.
+  final bool render;
 }
 
 /// {@template coverde.report_definition}

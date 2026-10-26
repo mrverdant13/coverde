@@ -87,6 +87,25 @@ reports:
       expect(reports['pages']!.collapse, isFalse);
     });
 
+    test('renders an asset when render is true', () {
+      final reports = parseReportDefinitions('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    root:
+      template: templates/root.liquid
+      path: index.html
+    assets:
+      - from: assets/banner.liquid
+        to: banner.txt
+        render: true
+''', baseDirectory: '/config');
+
+      final assets = (reports['pages']! as FilesReportDefinition).assets;
+      expect(assets.single.render, isTrue);
+    });
+
     test('requires a destination and a slot for a files report', () {
       expect(
         () => parseReportDefinitions('''
@@ -282,6 +301,19 @@ reports:
     template: templates/summary.liquid
     collapse: 1
 ''', '`collapse` must be a boolean');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    root:
+      template: templates/root.liquid
+      path: index.html
+    assets:
+      - from: a.css
+        to: a.css
+        render: 1
+''', '`render` must be a boolean');
       rejects('''
 reports:
   pages:
