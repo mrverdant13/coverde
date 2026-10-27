@@ -216,4 +216,6 @@ bool _looksText(String relativePath) {
       lower.endsWith('.liquid');
 }
 
-String _normalizeNewlines(String value) => value.replaceAll('\r\n', '\n');
+/// Drop CR so Windows CRLF checkouts of Liquid templates still match goldens.
+String _normalizeNewlines(String value) =>
+    value.replaceAll('\r\n', '\n').replaceAll('\r', '');
