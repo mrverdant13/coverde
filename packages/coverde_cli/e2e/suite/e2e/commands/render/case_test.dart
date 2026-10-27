@@ -102,7 +102,10 @@ void main() {
     final golden = File(
       p.join(goldensDirPath, 'coverde_value_plain.txt'),
     ).readAsStringSync();
-    expect(_normalizeNewlines(result.stdout), _normalizeNewlines(golden));
+    expect(
+      _normalizeNewlines(result.stdout as String),
+      _normalizeNewlines(golden),
+    );
   });
 
   test('coverde_value_colored matches golden console output', () async {
@@ -116,7 +119,10 @@ void main() {
     final golden = File(
       p.join(goldensDirPath, 'coverde_value_colored.txt'),
     ).readAsStringSync();
-    expect(_normalizeNewlines(result.stdout), _normalizeNewlines(golden));
+    expect(
+      _normalizeNewlines(result.stdout as String),
+      _normalizeNewlines(golden),
+    );
   });
 
   test('markdown matches golden markdown report', () async {
