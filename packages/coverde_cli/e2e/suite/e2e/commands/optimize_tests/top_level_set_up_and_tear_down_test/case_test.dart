@@ -12,26 +12,29 @@ void main() {
   late final String coverdeExecutablePath;
 
   setUpAll(() async {
-    temporaryDirectory = Directory.systemTemp.createTempSync();
-    final coverdeCliPath = p.joinAll([
-      Directory.current.path,
-      '..',
-      '..',
-    ]);
-    coverdeExecutablePath = p.join(temporaryDirectory.path, 'coverde');
-    final [command, ...arguments] = 'dart compile exe '
-            '$coverdeCliPath/bin/coverde.dart '
-            '-o $coverdeExecutablePath'
-        .split(' ');
-    final result = await Process.run(
-      command,
-      arguments,
+    temporaryDirectory = Directory.systemTemp.createTempSync(
+      'coverde-optimize-tests-e2e-',
+    );
+    final coverdeCliPath = p.normalize(
+      p.join(Directory.current.path, '..', '..'),
+    );
+    final coverdeFileName = Platform.isWindows ? 'coverde.exe' : 'coverde';
+    coverdeExecutablePath = p.join(temporaryDirectory.path, coverdeFileName);
+    final compile = await Process.run(
+      'dart',
+      [
+        'compile',
+        'exe',
+        p.join(coverdeCliPath, 'bin', 'coverde.dart'),
+        '-o',
+        coverdeExecutablePath,
+      ],
       workingDirectory: Directory.current.path,
       runInShell: true,
     );
-    if (result.exitCode != 0) {
+    if (compile.exitCode != 0) {
       throw Exception(
-        'Failed to compile coverde executable:\n${result.stderr}',
+        'Failed to compile coverde executable:\n${compile.stderr}',
       );
     }
   });
@@ -67,80 +70,25 @@ void main() {
       ]);
       {
         // Clean generated files
-        final process = await () {
-          final [
-            command,
-            ...arguments,
-          ] = 'git clean -dfX .'.split(' ');
-          return Process.start(
-            command,
-            arguments,
-            workingDirectory: projectDirPath,
-            runInShell: true,
-          );
-        }();
-        final stderrMessages = <String>[];
-        final (exitCode, _) = await (
-          process.exitCode,
-          process.stderr.forEach((data) {
-            final message = utf8.decode(data);
-            stderrMessages.add(message);
-          }),
-        ).wait;
-        expect(
-          (exitCode, stderrMessages),
-          isA<(int, List<String>)>()
-              .having(
-                (it) => it.$1,
-                'exitCode',
-                isZero,
-              )
-              .having(
-                (it) => it.$2,
-                'stderrMessages',
-                isEmpty,
-              ),
-          reason: '$caseName project',
+        final clean = await Process.run(
+          'git',
+          ['clean', '-dfX', '.'],
+          workingDirectory: projectDirPath,
+          runInShell: true,
         );
+        expect(clean.exitCode, isZero, reason: '$caseName project');
       }
 
       {
-        // Install dependencies
-        final process = await () {
-          final [
-            command,
-            ...arguments,
-          ] = '$caseName pub get'.split(' ');
-          return Process.start(
-            command,
-            arguments,
-            workingDirectory: projectDirPath,
-            runInShell: true,
-          );
-        }();
-        final stderrMessages = <String>[];
-        final (exitCode, _) = await (
-          process.exitCode,
-          process.stderr.forEach((data) {
-            final message = utf8.decode(data);
-            stderrMessages.add(message);
-          }),
-        ).wait;
-        expect(
-          (exitCode, stderrMessages),
-          isA<(int, List<String>)>()
-              .having(
-                (it) => it.$1,
-                'exitCode',
-                isZero,
-              )
-              .having(
-                (it) => it.$2,
-                'stderrMessages',
-                isEmpty,
-              ),
-          reason: '$caseName project',
+        // Install dependencies.
+        // Flutter/Dart may write bootstrap progress to stderr on Windows CI.
+        final pubGet = await Process.run(
+          caseName,
+          ['pub', 'get'],
+          workingDirectory: projectDirPath,
+          runInShell: true,
         );
+        expect(pubGet.exitCode, isZero, reason: '$caseName project');
       }
 
       {
@@ -175,18 +123,12 @@ void main() {
 
       {
         // Optimize tests
-        final process = await () {
-          final [
-            command,
-            ...arguments,
-          ] = '$coverdeExecutablePath optimize-tests'.split(' ');
-          return Process.start(
-            command,
-            arguments,
-            workingDirectory: projectDirPath,
-            runInShell: true,
-          );
-        }();
+        final process = await Process.start(
+          coverdeExecutablePath,
+          ['optimize-tests'],
+          workingDirectory: projectDirPath,
+          runInShell: true,
+        );
         final stdoutMessages = <String>[];
         final stderrMessages = <String>[];
         final (exitCode, _, _) = await (
@@ -228,35 +170,26 @@ void main() {
       }
 
       {
-        // Run optimized test
-        final process = await () {
-          final [
-            command,
-            ...arguments,
-          ] = '$testCommand test/optimized_test.dart'.split(' ');
-          return Process.start(
-            command,
-            arguments,
-            workingDirectory: projectDirPath,
-            runInShell: true,
-          );
-        }();
+        // Run optimized test. SDK tools may write progress to stderr.
+        final [command, ...arguments] =
+            '$testCommand test/optimized_test.dart'.split(' ');
+        final process = await Process.start(
+          command,
+          arguments,
+          workingDirectory: projectDirPath,
+          runInShell: true,
+        );
         final stdoutMessages = <String>[];
-        final stderrMessages = <String>[];
         final (exitCode, _, _) = await (
           process.exitCode,
           process.stdout.forEach((data) {
-            final message = utf8.decode(data);
-            stdoutMessages.add(message);
+            stdoutMessages.add(utf8.decode(data));
           }),
-          process.stderr.forEach((data) {
-            final message = utf8.decode(data);
-            stderrMessages.add(message);
-          }),
+          process.stderr.drain<void>(),
         ).wait;
         expect(
-          (exitCode, stdoutMessages, stderrMessages),
-          isA<(int, List<String>, List<String>)>()
+          (exitCode, stdoutMessages),
+          isA<(int, List<String>)>()
               .having(
                 (it) => it.$1,
                 'exitCode',
@@ -266,11 +199,6 @@ void main() {
                 (it) => it.$2,
                 'stdoutMessages',
                 anyElement(contains('+4: All tests passed!')),
-              )
-              .having(
-                (it) => it.$3,
-                'stderrMessages',
-                isEmpty,
               ),
           reason: '$caseName project',
         );
