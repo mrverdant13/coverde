@@ -32,7 +32,6 @@ void main() {
         containsAll([
           isA<OptimizeTestsCommand>(),
           isA<CheckCommand>(),
-          isA<FilterCommand>(),
           isA<TransformCommand>(),
           isA<ReportCommand>(),
           isA<RenderCommand>(),

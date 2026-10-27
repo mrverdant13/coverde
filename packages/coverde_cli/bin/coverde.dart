@@ -47,7 +47,6 @@ void _logError(Logger logger, Object error, [Object? stackTrace]) {
 extension on CoverdeFailure {
   ExitCode get exitCode => switch (this) {
     final CoverdeCheckFailure failure => failure.exitCode,
-    final CoverdeFilterFailure failure => failure.exitCode,
     final CoverdeOptimizeTestsFailure failure => failure.exitCode,
     final CoverdeReportFailure failure => failure.exitCode,
     final CoverdeRenderFailure failure => failure.exitCode,
@@ -84,35 +83,6 @@ extension on CoverdeCheckInvalidTraceFileFailure {
     CoverdeCheckTraceFileNotFoundFailure() => ExitCode.noInput,
     CoverdeCheckEmptyTraceFileFailure() => ExitCode.data,
     CoverdeCheckTraceFileReadFailure() => ExitCode.ioError,
-  };
-}
-
-extension on CoverdeFilterFailure {
-  ExitCode get exitCode => switch (this) {
-    final CoverdeFilterInvalidInputFailure failure => failure.exitCode,
-    CoverdeFilterTraceFileNotFoundFailure() => ExitCode.noInput,
-    CoverdeFilterTraceFileReadFailure() => ExitCode.ioError,
-    CoverdeFilterUnresolvedCoveragePathFailure() => ExitCode.data,
-    final CoverdeFilterFileOperationFailure failure => failure.exitCode,
-    final CoverdeFilterDirectoryOperationFailure failure => failure.exitCode,
-  };
-}
-
-extension on CoverdeFilterFileOperationFailure {
-  ExitCode get exitCode => switch (this) {
-    CoverdeFilterFileWriteFailure() => ExitCode.ioError,
-  };
-}
-
-extension on CoverdeFilterDirectoryOperationFailure {
-  ExitCode get exitCode => switch (this) {
-    CoverdeFilterDirectoryCreateFailure() => ExitCode.ioError,
-  };
-}
-
-extension on CoverdeFilterInvalidInputFailure {
-  ExitCode get exitCode => switch (this) {
-    CoverdeFilterInvalidRegexPatternFailure() => ExitCode.usage,
   };
 }
 

@@ -62,7 +62,6 @@ This installs a `coverde` executable in the pub cache `bin` directory:
 <!-- CLI FEATURES -->
 - [**Optimize tests by gathering them.**](#coverde-optimize-tests)
 - [**Check the coverage value (%) computed from a trace file.**](#coverde-check)
-- [**Filter a coverage trace file.**](#coverde-filter)
 - [**Transform a coverage trace file.**](#coverde-transform)
 - [**Generate the coverage report from a trace file.**](#coverde-report)
 - [**Render a named coverage report from a trace file.**](#coverde-render)
@@ -487,76 +486,6 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
 ![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
 
 </details>
-
-
-## `coverde filter`
-
-> [!CAUTION]
-> The `filter` command will be removed in the next major update. Use [`coverde transform`](#coverde-transform) instead.
-
-Filter a coverage trace file.
-
-Filter the coverage info by ignoring data related to files with paths that matches the given FILTERS.\
-The coverage data is taken from the INPUT_LCOV_FILE file and the result is appended to the OUTPUT_LCOV_FILE file.
-
-All the relative paths in the resulting coverage trace file will be resolved relative to the <base-directory>, if provided.
-
-### Arguments
-
-#### Single-options
-
-- `--input`
-
-  Origin coverage info file to pick coverage data from.\
-  **Default value:** `coverage/lcov.info`
-
-- `--output`
-
-  Destination coverage info file to dump the resulting coverage data into.\
-  **Default value:** `coverage/filtered.lcov.info`
-
-- `--base-directory`
-
-  Base directory relative to which trace file source paths are resolved.
-
-- `--mode`
-
-  The mode in which the OUTPUT_LCOV_FILE can be generated.\
-  **Default value:** `a`\
-  **Allowed values:**
-    - `a`: Append filtered content to the OUTPUT_LCOV_FILE content, if any.
-    - `w`: Override the OUTPUT_LCOV_FILE content, if any, with the filtered content.
-
-#### Multi-options
-
-- `--filters`
-
-  Set of comma-separated path patterns of the files to be ignored.
-
-  Each pattern must be a valid regex expression. Invalid patterns will cause the command to fail.\
-  **Default value:** _None_
-
-### Migration to `transform`
-
-Use `coverde transform` with equivalent options:
-
-| Filter option                   | Transform equivalent                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| `--filters pattern1,pattern2`   | `--transformations skip-by-regex=pattern1 --transformations skip-by-regex=pattern2` |
-| `--base-directory B`            | `--transformations relative=B`                                                      |
-| `--input`, `--output`, `--mode` | Same options                                                                        |
-
-Example:
-
-```sh
-# Before (filter)
-coverde filter --input coverage/lcov.info --output coverage/filtered.lcov.info \
-  --filters '\.g\.dart$' --base-directory /project --mode w
-
-# After (transform)
-coverde transform --input coverage/lcov.info --output coverage/filtered.lcov.info \
-  --transformations skip-by-regex='\.g\.dart$' --transformations relative=/project --mode w
-```
 
 
 ## `coverde transform`
