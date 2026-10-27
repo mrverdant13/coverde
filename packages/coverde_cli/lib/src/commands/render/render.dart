@@ -207,8 +207,15 @@ The report is selected from the reports defined in $_configFileName.''';
         logger.write(buffer.toString());
       } else {
         final file = File(output);
-        file.parent.createSync(recursive: true);
-        file.writeAsStringSync(buffer.toString());
+        try {
+          file.parent.createSync(recursive: true);
+          file.writeAsStringSync(buffer.toString());
+        } on FileSystemException catch (exception) {
+          throw CoverageReportDestinationFailure.fromFileSystemException(
+            path: output,
+            exception: exception,
+          );
+        }
       }
     }
   }

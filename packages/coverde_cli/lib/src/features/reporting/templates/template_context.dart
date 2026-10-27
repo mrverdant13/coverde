@@ -223,6 +223,7 @@ StrictTemplateMap _directoryMap(
     'filesBranchesHit': filesBranchesHit,
     'filesBranchesFound': filesBranchesFound,
     'outputPath': null,
+    'pagePaths': <String>[],
     'files': [for (final file in directory.files) fileMaps[file.path]],
     'directories': directories,
     'fileDirectories': fileDirectories,
@@ -270,6 +271,7 @@ StrictTemplateMap _recordFileMap(CoverageFile file) {
     'branchesFound': file.branches?.found,
     'branches': _branchMaps(file.branches),
     'outputPath': null,
+    'pagePaths': <String>[],
     'lines': [
       for (final line in file.lines)
         _lineMap(line, branches: _branchesOf(file)),

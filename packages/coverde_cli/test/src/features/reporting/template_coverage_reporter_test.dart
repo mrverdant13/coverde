@@ -162,6 +162,30 @@ end_of_record
       );
     });
 
+    test('uses the jailed page path for pathToRoot on extra pages', () async {
+      _write(root, 'templates/root.liquid', '{{ pathToRoot }}style.css\n');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+            pages: [ReportPage(path: './nested/./page.html')],
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        trace: _lineTrace,
+      );
+
+      expect(
+        File('${destination.path}/nested/page.html').readAsStringSync(),
+        '../style.css\n',
+      );
+    });
+
     test('prints the trace modification time when one was provided', () async {
       _write(
         root,
@@ -1183,8 +1207,8 @@ end_of_record
 {% endfor %}
 {{ $name }}
 ''');
-        expect(
-          () => _render(
+        await expectLater(
+          _render(
             root: root,
             definition: const ConsoleReportDefinition(
               template: 'templates/summary.liquid',

@@ -272,17 +272,20 @@ final class TemplateCoverageReporter implements CoverageReporter {
           destination: destination,
           written: written,
         );
+        final filePagePaths = fileMap['pagePaths']! as List<String>..clear();
         for (final page in fileSlot.pages) {
-          await _outputPath(
-            pathTemplate: page.path,
-            data: _data(
-              context: context,
-              variables: _pageVariables(fileSlot, page, variables),
-              pathToRoot: '',
-              file: fileMap,
+          filePagePaths.add(
+            await _outputPath(
+              pathTemplate: page.path,
+              data: _data(
+                context: context,
+                variables: _pageVariables(fileSlot, page, variables),
+                pathToRoot: '',
+                file: fileMap,
+              ),
+              destination: destination,
+              written: written,
             ),
-            destination: destination,
-            written: written,
           );
         }
       }
@@ -306,18 +309,21 @@ final class TemplateCoverageReporter implements CoverageReporter {
       destination: destination,
       written: written,
     );
+    final pagePaths = map['pagePaths']! as List<String>..clear();
     for (final page in slot.pages) {
-      await _outputPath(
-        pathTemplate: page.path,
-        data: _data(
-          context: context,
-          variables: _pageVariables(slot, page, variables),
-          pathToRoot: '',
-          root: binding == 'root' ? map : null,
-          directory: binding == 'directory' ? map : null,
+      pagePaths.add(
+        await _outputPath(
+          pathTemplate: page.path,
+          data: _data(
+            context: context,
+            variables: _pageVariables(slot, page, variables),
+            pathToRoot: '',
+            root: binding == 'root' ? map : null,
+            directory: binding == 'directory' ? map : null,
+          ),
+          destination: destination,
+          written: written,
         ),
-        destination: destination,
-        written: written,
       );
     }
   }
@@ -355,18 +361,11 @@ final class TemplateCoverageReporter implements CoverageReporter {
           directory: binding == 'directory' ? bound : null,
         ),
       );
-      for (final page in slot.pages) {
+      final pagePaths = map['pagePaths']! as List<String>;
+      for (var index = 0; index < slot.pages.length; index++) {
+        final page = slot.pages[index];
+        final pageRelative = pagePaths[index];
         final pageVariables = _pageVariables(slot, page, variables);
-        final pageRelative = await _renderPath(
-          pathTemplate: page.path,
-          data: _data(
-            context: context,
-            variables: pageVariables,
-            pathToRoot: '',
-            root: binding == 'root' ? map : null,
-            directory: binding == 'directory' ? map : null,
-          ),
-        );
         await _writeRendered(
           slot: slot,
           relativePath: pageRelative,
@@ -431,17 +430,11 @@ final class TemplateCoverageReporter implements CoverageReporter {
         file: renderedFile,
       ),
     );
-    for (final page in slot.pages) {
+    final pagePaths = context.fileMap(file)['pagePaths']! as List<String>;
+    for (var index = 0; index < slot.pages.length; index++) {
+      final page = slot.pages[index];
+      final pageRelative = pagePaths[index];
       final pageVariables = _pageVariables(slot, page, variables);
-      final pageRelative = await _renderPath(
-        pathTemplate: page.path,
-        data: _data(
-          context: context,
-          variables: pageVariables,
-          pathToRoot: '',
-          file: context.fileMap(file),
-        ),
-      );
       await _writeRendered(
         slot: slot,
         relativePath: pageRelative,

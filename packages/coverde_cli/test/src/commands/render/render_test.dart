@@ -111,6 +111,36 @@ end_of_record
       );
     });
 
+    test(
+      'maps a console destination write error to a report failure',
+      () async {
+        final root = _project();
+        addTearDown(() => root.deleteSync(recursive: true));
+        Directory('${root.path}/out').createSync();
+        _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    destination: out
+''');
+        _write(root, 'templates/summary.liquid', 'ok');
+        _write(root, 'coverage/lcov.info', '''
+SF:lib/a.dart
+DA:1,1
+end_of_record
+''');
+
+        await expectLater(
+          IOOverrides.runZoned(
+            () => cmdRunner.run(['render']),
+            getCurrentDirectory: () => root,
+          ),
+          throwsA(isA<CoverageReportDestinationFailure>()),
+        );
+      },
+    );
+
     test('passes the terminal width into the template', () async {
       final root = _project();
       addTearDown(() => root.deleteSync(recursive: true));
