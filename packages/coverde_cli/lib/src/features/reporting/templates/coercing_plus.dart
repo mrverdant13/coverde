@@ -43,7 +43,8 @@ dynamic coercingRound(
 ) {
   if (value == null) return null;
   final number = _asNum(value);
-  final places = arguments.isEmpty ? 0 : _asNum(arguments.first).toInt();
+  if (arguments.isEmpty) return number.round();
+  final places = _asNum(arguments.first).toInt();
   final scale = math.pow(10, places).toDouble();
   return (number * scale).round() / scale;
 }

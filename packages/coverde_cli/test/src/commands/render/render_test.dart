@@ -32,6 +32,22 @@ final class _FakeCoverdeCommandRunner extends CoverdeCommandRunner {
 }
 
 void main() {
+  group('appendTraceContent', () {
+    test('closes an open final record and leaves a closed one alone', () {
+      final open = StringBuffer();
+      appendTraceContent(open, 'SF:a.dart\nDA:1,1');
+      expect(open.toString(), 'SF:a.dart\nDA:1,1\nend_of_record\n');
+
+      final closed = StringBuffer();
+      appendTraceContent(closed, 'SF:a.dart\nDA:1,1\nend_of_record\n');
+      expect(closed.toString(), 'SF:a.dart\nDA:1,1\nend_of_record\n');
+
+      final empty = StringBuffer('keep');
+      appendTraceContent(empty, '');
+      expect(empty.toString(), 'keep');
+    });
+  });
+
   group('coverde render', () {
     late Logger logger;
     late PackageVersionManager packageVersionManager;
@@ -324,6 +340,44 @@ end_of_record
           ),
         ),
       ).called(1);
+    });
+
+    test('closes an open record before the next input trace', () async {
+      final root = _project();
+      addTearDown(() => root.deleteSync(recursive: true));
+      _write(root, 'coverde.yaml', '''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+''');
+      _write(
+        root,
+        'templates/summary.liquid',
+        '{{ document.linesHit }}/{{ document.linesFound }}',
+      );
+      _write(root, 'coverage/one.info', '''
+SF:lib/a.dart
+DA:1,1
+''');
+      _write(root, 'coverage/two.info', '''
+SF:lib/b.dart
+DA:1,0
+end_of_record
+''');
+
+      await IOOverrides.runZoned(
+        () => cmdRunner.run([
+          'render',
+          '--${RenderCommand.inputOption}',
+          'coverage/one.info',
+          '--${RenderCommand.inputOption}',
+          'coverage/two.info',
+        ]),
+        getCurrentDirectory: () => root,
+      );
+
+      verify(() => logger.write(any(that: contains('1/2')))).called(1);
     });
 
     test('fails when one of several trace files is missing', () async {

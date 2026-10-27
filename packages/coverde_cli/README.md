@@ -924,10 +924,10 @@ reports:
       path: index.html
     directory:
       template: templates/directory.liquid
-      path: "{{ directory.path }}/index.html"
+      path: "{{ directory.path | report_path }}/index.html"
     file:
       template: templates/file.liquid
-      path: "{{ file.path }}.html"
+      path: "{{ file.path | report_path }}.html"
       includeSource: true
     assets:
       - from: assets/style.css

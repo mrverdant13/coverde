@@ -789,7 +789,7 @@ DA:1,1
 end_of_record
 ''',
       );
-      expect(buffer.toString(), '2.0');
+      expect(buffer.toString(), '2');
 
       for (final filter in ['minus', 'times']) {
         _write(root, 'templates/summary.liquid', '{{ 1 | $filter }}');

@@ -63,8 +63,6 @@ final class TemplateCoverageReporter implements CoverageReporter {
     'thresholds',
   };
 
-  static var _filtersRegistered = false;
-
   String _colorize(
     dynamic value,
     List<dynamic> arguments,
@@ -92,6 +90,8 @@ final class TemplateCoverageReporter implements CoverageReporter {
     return _reportPaths.relative('$value');
   }
 
+  /// liquify's `{% render %}` builds a fresh [Environment] that does not copy
+  /// local filters, so overrides used in partials must stay on [FilterRegistry].
   static void _registerFilters() {
     if (_filtersRegistered) return;
     FilterRegistry.register('compact_ranges', compactRanges);
@@ -105,6 +105,8 @@ final class TemplateCoverageReporter implements CoverageReporter {
     FilterRegistry.register('sort_by_rate', sortByRate);
     _filtersRegistered = true;
   }
+
+  static var _filtersRegistered = false;
 
   @override
   Future<void> render(CoverageReportRequest request) async {
