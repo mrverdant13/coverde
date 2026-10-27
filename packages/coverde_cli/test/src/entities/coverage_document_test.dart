@@ -874,6 +874,14 @@ end_of_record
         const CoverageUnrecognizedEntry('TN:suite').hashCode,
       );
       expect(unrecognized, isNot(const CoverageUnrecognizedEntry('TN:other')));
+
+      final withUnrecognized = CoverageDocument.parse('''
+SF:lib/a.dart
+ZZ:kept
+DA:1,1
+end_of_record
+''');
+      expect(withUnrecognized.files.single.renderTrace(), contains('ZZ:kept'));
     });
 
     test('places files that share no parent under an empty root', () {

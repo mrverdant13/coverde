@@ -186,6 +186,72 @@ end_of_record
       );
     });
 
+    test('writes extra pages for a file slot', () async {
+      _write(root, 'templates/file.liquid', '{{ pathToRoot }}{{ file.name }}\n');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          file: const ReportSlot(
+            template: 'templates/file.liquid',
+            path: '{{ file.path }}.html',
+            pages: [
+              ReportPage(path: './{{ file.path }}.extra.html'),
+            ],
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        trace: _lineTrace,
+      );
+
+      expect(
+        File('${destination.path}/lib/a.dart.extra.html').readAsStringSync(),
+        '../a.dart\n',
+      );
+    });
+
+    test('includes source through nested directories', () async {
+      _write(root, 'templates/root.liquid', '''
+{%- for child in root.directories -%}
+{%- for nested in child.directories -%}
+{%- for file in nested.files -%}
+{{ file.lines[0].source }}
+{%- endfor -%}
+{%- endfor -%}
+{%- endfor -%}
+''');
+      final destination = Directory('${root.path}/out');
+
+      await _render(
+        root: root,
+        definition: FilesReportDefinition(
+          destination: destination.path,
+          collapse: false,
+          root: const ReportSlot(
+            template: 'templates/root.liquid',
+            path: 'index.html',
+            includeSource: true,
+          ),
+        ),
+        destination: DirectoryReportDestination(destination),
+        sources: _MapSourceReader(const {
+          'lib/src/a.dart': ['body'],
+        }),
+        trace: '''
+SF:lib/src/a.dart
+DA:1,1
+end_of_record
+''',
+      );
+
+      expect(
+        File('${destination.path}/index.html').readAsStringSync(),
+        contains('body'),
+      );
+    });
+
     test('prints the trace modification time when one was provided', () async {
       _write(
         root,

@@ -392,6 +392,56 @@ reports:
       path: index.html
       pages: true
 ''', '`pages` must be a list');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    includeSource: yes
+''', '`includeSource` must be a boolean');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      pages:
+        - true
+''', 'must be a map');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables: []
+''', '`variables` must be a map');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables:
+        "": name
+''', '`variables` keys must be non-empty strings');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: coverage/
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables:
+        sort: 1
+''', '`variables.sort` must be a string');
     });
 
     test('keeps includeSource on a file slot', () {
