@@ -1,0 +1,91 @@
+coverage:
+  lcov-lo: 75
+  lcov-hi: 90
+  istanbul-lo: 50
+  istanbul-hi: 80
+
+reports:
+  lcov_like:
+    type: files
+    destination: build/lcov_like
+    root:
+      template: templates/lcov_like/folder.liquid
+      path: index.html
+      variables:
+        sort: name
+      pages:
+        - path: index-sort-l.html
+          variables:
+            sort: line
+        - path: index-sort-b.html
+          variables:
+            sort: branch
+        - path: index-sort-f.html
+          variables:
+            sort: function
+    directory:
+      template: templates/lcov_like/folder.liquid
+      path: "{{ directory.path | report_path }}/index.html"
+      variables:
+        sort: name
+      pages:
+        - path: "{{ directory.path | report_path }}/index-sort-l.html"
+          variables:
+            sort: line
+        - path: "{{ directory.path | report_path }}/index-sort-b.html"
+          variables:
+            sort: branch
+        - path: "{{ directory.path | report_path }}/index-sort-f.html"
+          variables:
+            sort: function
+    file:
+      template: templates/lcov_like/file.liquid
+      path: "{{ file.path | report_path }}.gcov.html"
+      includeSource: true
+    assets:
+      - from: templates/lcov_like/gcov.css
+        to: gcov.css
+      - from: templates/lcov_like/emerald.png
+        to: emerald.png
+      - from: templates/lcov_like/snow.png
+        to: snow.png
+      - from: templates/lcov_like/ruby.png
+        to: ruby.png
+      - from: templates/lcov_like/amber.png
+        to: amber.png
+      - from: templates/lcov_like/glass.png
+        to: glass.png
+      - from: templates/lcov_like/updown.png
+        to: updown.png
+
+  istanbul_like:
+    type: files
+    destination: build/istanbul_like
+    root:
+      template: templates/istanbul_like/folder.liquid
+      path: index.html
+    directory:
+      template: templates/istanbul_like/folder.liquid
+      path: "{{ directory.path | report_path }}/index.html"
+    file:
+      template: templates/istanbul_like/file.liquid
+      path: "{{ file.path | report_path }}.html"
+      includeSource: true
+    assets:
+      - from: templates/istanbul_like/base.css
+        to: base.css
+
+  coverde_value_plain:
+    type: console
+    template: templates/coverde_value_plain/value.liquid
+    includeSource: true
+
+  coverde_value_colored:
+    type: console
+    template: templates/coverde_value_colored/value.liquid
+    includeSource: true
+
+  markdown:
+    type: console
+    template: templates/markdown/report.liquid
+    destination: build/markdown.md

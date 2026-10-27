@@ -1,0 +1,16 @@
+<tr>
+  <td class="file {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}"><a href="{{ pathToRoot }}{{ href }}">{{ label | escape }}</a></td>
+  <td class="pic {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}">
+    {%- if lineRate != null -%}
+    <div class="chart"><div class="cover-fill{% if lineRate >= 100 %} cover-full{% endif %}" style="width: {{ lineRate | round: 0 }}%"></div><div class="cover-empty" style="width: {{ 100 | minus: lineRate | round: 0 }}%"></div></div>
+    {%- endif -%}
+  </td>
+  <td class="pct {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}">{%- if lineRate == null -%}n/a{%- else -%}{{ lineRate | fixed: 2 }}%{%- endif -%}</td>
+  <td class="abs {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}">{%- if lineRate == null -%}n/a{%- else -%}{{ linesHit }}/{{ linesFound }}{%- endif -%}</td>
+  <td class="pct {% render 'templates/istanbul_like/level.liquid', rate: branchRate, lo: lo, hi: hi %}">{%- if branchRate == null -%}n/a{%- else -%}{{ branchRate | fixed: 2 }}%{%- endif -%}</td>
+  <td class="abs {% if branchesFound == null %}empty{% else %}{% render 'templates/istanbul_like/level.liquid', rate: branchRate, lo: lo, hi: hi %}{% endif %}">{%- if branchesFound == null -%}n/a{%- else -%}{{ branchesHit }}/{{ branchesFound }}{%- endif -%}</td>
+  <td class="pct {% render 'templates/istanbul_like/level.liquid', rate: functionRate, lo: lo, hi: hi %}">{%- if functionRate == null -%}n/a{%- else -%}{{ functionRate | fixed: 2 }}%{%- endif -%}</td>
+  <td class="abs {% if functionsFound == null %}empty{% else %}{% render 'templates/istanbul_like/level.liquid', rate: functionRate, lo: lo, hi: hi %}{% endif %}">{%- if functionsFound == null -%}n/a{%- else -%}{{ functionsHit }}/{{ functionsFound }}{%- endif -%}</td>
+  <td class="pct {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}">{%- if lineRate == null -%}n/a{%- else -%}{{ lineRate | fixed: 2 }}%{%- endif -%}</td>
+  <td class="abs {% render 'templates/istanbul_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}">{%- if lineRate == null -%}n/a{%- else -%}{{ linesHit }}/{{ linesFound }}{%- endif -%}</td>
+</tr>

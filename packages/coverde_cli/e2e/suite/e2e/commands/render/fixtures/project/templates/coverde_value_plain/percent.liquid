@@ -1,0 +1,5 @@
+{%- if rate == null -%}
+n/a
+{%- else -%}
+{{- rate | fixed: 2 -}}%
+{%- endif -%}

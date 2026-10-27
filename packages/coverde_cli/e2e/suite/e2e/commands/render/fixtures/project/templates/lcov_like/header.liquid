@@ -1,0 +1,48 @@
+<table width="100%" border=0 cellspacing=0 cellpadding=0>
+  <tr><td class="title">LCOV - code coverage report</td></tr>
+  <tr><td class="ruler"><img src="{{ pathToRoot }}glass.png" width=3 height=3 alt=""></td></tr>
+  <tr>
+    <td width="100%">
+      <table cellpadding=1 border=0 width="100%">
+        <tr>
+          <td width="10%" class="headerItem">Current view:</td>
+          <td width="10%" class="headerValue">{%- if kind == "root" -%}top level{%- elsif kind == "file" -%}<a href="{{ pathToRoot }}index.html">top level</a> - <a href="index.html">{{ rel | escape }}</a> - {{ name | escape }}<span style="font-size: 80%;"> (source / <a href="#functions">functions</a>)</span>{%- else -%}<a href="{{ pathToRoot }}index.html">top level</a> - {{ rel | escape }}{%- endif -%}</td>
+          <td width="5%"></td>
+          <td width="5%"></td>
+          <td width="5%" class="headerCovTableHead">Coverage</td>
+          <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+          <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+        </tr>
+        <tr>
+          <td class="headerItem">Test:</td>
+          <td class="headerValue">{{ testLabel | escape }}</td>
+          <td></td>
+          <td class="headerItem">Lines:</td>
+          <td class="headerCovTableEntry{% if lineRate != null %}{% render 'templates/lcov_like/level.liquid', rate: lineRate, lo: lo, hi: hi %}{% endif %}">{%- if lineRate == null -%}-{%- else -%}{{ lineRate | fixed: 1 }}&nbsp;%{%- endif -%}</td>
+          <td class="headerCovTableEntry">{{ linesFound }}</td>
+          <td class="headerCovTableEntry">{{ linesHit }}</td>
+        </tr>
+        <tr>
+          <td class="headerItem">Test Date:</td>
+          <td class="headerValue">{{ date }}</td>
+          <td></td>
+          <td class="headerItem">Functions:</td>
+          <td class="headerCovTableEntry{% if functionRate != null %}{% render 'templates/lcov_like/level.liquid', rate: functionRate, lo: lo, hi: hi %}{% endif %}">{%- if functionRate == null -%}-{%- else -%}{{ functionRate | fixed: 1 }}&nbsp;%{%- endif -%}</td>
+          <td class="headerCovTableEntry">{%- if functionsFound == null -%}0{%- else -%}{{ functionsFound }}{%- endif -%}</td>
+          <td class="headerCovTableEntry">{%- if functionsHit == null -%}0{%- else -%}{{ functionsHit }}{%- endif -%}</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="headerItem">Branches:</td>
+          <td class="headerCovTableEntry{% if branchRate != null %}{% render 'templates/lcov_like/level.liquid', rate: branchRate, lo: lo, hi: hi %}{% endif %}">{%- if branchRate == null -%}-{%- else -%}{{ branchRate | fixed: 1 }}&nbsp;%{%- endif -%}</td>
+          <td class="headerCovTableEntry">{%- if branchesFound == null -%}0{%- else -%}{{ branchesFound }}{%- endif -%}</td>
+          <td class="headerCovTableEntry">{%- if branchesHit == null -%}0{%- else -%}{{ branchesHit }}{%- endif -%}</td>
+        </tr>
+        <tr><td><img src="{{ pathToRoot }}glass.png" width=3 height=3 alt=""></td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr><td class="ruler"><img src="{{ pathToRoot }}glass.png" width=3 height=3 alt=""></td></tr>
+</table>

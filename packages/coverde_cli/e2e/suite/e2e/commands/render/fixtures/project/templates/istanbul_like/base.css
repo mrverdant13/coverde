@@ -1,0 +1,140 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #333;
+}
+
+h1 {
+  font-size: 20px;
+  margin: 0;
+}
+
+pre {
+  font: 12px/1.4 Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  margin: 0;
+  padding: 0;
+  tab-size: 2;
+}
+
+a {
+  color: #0074d9;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.strong { font-weight: bold; }
+.pad1 { padding: 10px; }
+.pad1y { padding: 10px 0; }
+.pad2 { padding: 20px; }
+.space-top1 { padding-top: 10px; }
+.space-right2 { padding-right: 20px; }
+.center { text-align: center; }
+.small { font-size: 12px; }
+.fl { float: left; }
+
+.clearfix::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.quiet {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.fraction {
+  font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 10px;
+  color: #555;
+  background: #e8e8e8;
+  padding: 4px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.path { margin-top: 4px; }
+.path a:link, .path a:visited { color: #333; }
+
+.wrapper {
+  min-height: 100%;
+  margin: 0 auto -48px;
+}
+
+.footer, .push { height: 48px; }
+
+.status-line { height: 10px; }
+.status-line.low { background: #c21f39; }
+.status-line.medium { background: #f9cd0b; }
+.status-line.high { background: rgb(77, 146, 33); }
+
+.coverage-summary {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.coverage-summary tr { border-bottom: 1px solid #bbb; }
+.coverage-summary tbody { border: 1px solid #bbb; }
+.coverage-summary td, .coverage-summary th { padding: 10px; }
+.coverage-summary td { border-right: 1px solid #bbb; }
+.coverage-summary td:last-child { border-right: none; }
+.coverage-summary th {
+  text-align: left;
+  font-weight: normal;
+  white-space: nowrap;
+}
+.coverage-summary th.file { border-right: none; }
+.coverage-summary th.pic,
+.coverage-summary th.abs,
+.coverage-summary td.pct,
+.coverage-summary td.abs { text-align: right; }
+.coverage-summary td.file { white-space: nowrap; }
+.coverage-summary td.pic { min-width: 120px; }
+.coverage-summary td.empty { opacity: 0.5; color: #888; }
+
+.chart { line-height: 0; }
+.cover-fill, .cover-empty {
+  display: inline-block;
+  height: 12px;
+}
+.cover-empty { background: white; }
+.cover-full { border-right: none; }
+
+.low { background: #fce1e5; }
+.medium { background: #fff4c2; }
+.high { background: rgb(230, 245, 208); }
+.low .cover-fill { background: #c21f39; }
+.medium .cover-fill { background: #f9cd0b; }
+.high .cover-fill { background: rgb(77, 146, 33); }
+.low .chart { border: 1px solid #c21f39; }
+.medium .chart { border: 1px solid #f9cd0b; }
+.high .chart { border: 1px solid rgb(77, 146, 33); }
+
+.coverage { border-collapse: collapse; margin-top: 10px; }
+.coverage td { margin: 0; padding: 0; vertical-align: top; }
+.coverage td.line-count,
+.coverage td.line-coverage {
+  font: 12px/1.4 Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  white-space: pre;
+  text-align: right;
+}
+.coverage td.line-count { padding: 0 5px 0 20px; }
+.coverage td.line-coverage { padding-right: 10px; min-width: 20px; }
+.coverage td span.cline-any {
+  display: inline-block;
+  padding: 0 5px;
+  width: 100%;
+}
+.cline-yes { background: rgb(230, 245, 208); }
+.cline-no { background: #fce1e5; }
+.cline-neutral { background: #eaeaea; }
+.cbranch-no { background: rgb(255, 238, 170); }
+.prettyprint { border: none; }

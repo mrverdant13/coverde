@@ -1,0 +1,70 @@
+{% capture nl %}
+{% endcapture %}
+{%- assign lo = thresholds["lcov-lo"] -%}
+{%- assign hi = thresholds["lcov-hi"] -%}
+{%- for file in document.files -%}
+{%- capture summary -%}({%- render 'templates/coverde_value_plain/percent.liquid', rate: file.lineRate %} - {{ file.linesHit }}/{{ file.linesFound }}){%- endcapture -%}
+{%- if file.lineRate == null -%}
+{%- assign summaryStyle = "" -%}
+{%- elsif file.lineRate < lo -%}
+{%- assign summaryStyle = "red_bold" -%}
+{%- elsif file.lineRate < hi -%}
+{%- assign summaryStyle = "light_red" -%}
+{%- else -%}
+{%- assign summaryStyle = "light_green" -%}
+{%- endif -%}
+{{- file.path }} {{ summary | colorize: summaryStyle }}{{ nl -}}
+{%- if file.sourceAvailable == false -%}
+source file was not found{{ nl -}}
+{%- endif -%}
+{%- assign uncovered = file.lines | where: "hits", 0 -%}
+{%- assign uncoveredCount = uncovered | size -%}
+{%- if uncoveredCount > 0 -%}
+{%- assign lastLine = file.lines | last -%}
+{%- assign width = lastLine.number | append: "" | size -%}
+{%- assign bullets = "••••••••" | slice: 0, width -%}
+{%- assign lastPrinted = 0 -%}
+{%- for line in file.lines -%}
+{%- assign show = false -%}
+{%- for other in uncovered -%}
+{%- assign delta = line.number | minus: other.number -%}
+{%- if delta < 0 -%}{%- assign delta = 0 | minus: delta -%}{%- endif -%}
+{%- if delta <= 2 -%}{%- assign show = true -%}{%- endif -%}
+{%- endfor -%}
+{%- if show -%}
+{%- assign step = line.number | minus: lastPrinted -%}
+{%- if lastPrinted > 0 and step > 1 -%}
+{{- "├   " -}}{{ bullets }} | •••{{ nl -}}
+{%- endif -%}
+{%- if line.hits == null -%}
+{%- assign marker = " " -%}
+{%- assign style = "" -%}
+{%- elsif line.hits > 0 -%}
+{%- assign marker = "C" -%}
+{%- assign style = "green_bold" -%}
+{%- else -%}
+{%- assign marker = "U" -%}
+{%- assign style = "red_bold" -%}
+{%- endif -%}
+{%- assign number = line.number | append: "" | pad: width, "right" -%}
+{{- "├ " -}}{{ marker | colorize: style }} {{ number | colorize: style }} | {{ line.source | colorize: style }}{{ nl -}}
+{%- assign lastPrinted = line.number -%}
+{%- endif -%}
+{%- endfor -%}
+{{- nl -}}
+{%- endif -%}
+{%- endfor -%}
+{{- nl -}}
+{%- assign heading = "GLOBAL:" | colorize: "blue_bold" -%}
+{{- heading }}{{ nl -}}
+{%- capture summary -%}{% render 'templates/coverde_value_plain/percent.liquid', rate: document.lineRate %} - {{ document.linesHit }}/{{ document.linesFound }}{%- endcapture -%}
+{%- if document.lineRate == null -%}
+{%- assign globalStyle = "blue_bold" -%}
+{%- elsif document.lineRate < lo -%}
+{%- assign globalStyle = "red_bold" -%}
+{%- elsif document.lineRate < hi -%}
+{%- assign globalStyle = "light_red" -%}
+{%- else -%}
+{%- assign globalStyle = "light_green" -%}
+{%- endif -%}
+{{- summary | colorize: globalStyle }}{{ nl -}}

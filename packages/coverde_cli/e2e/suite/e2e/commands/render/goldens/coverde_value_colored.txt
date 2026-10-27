@@ -1,0 +1,15 @@
+lib/a.dart (42.86% - 3/7)
+├ C  3 |     return a + b;
+├    4 |   }
+├ U  5 |   return b - a;
+├    6 | }
+├    7 | 
+├ U  8 | void unused() {
+├ U  9 |   final value = 1;
+├ U 10 |   print(value);
+├   11 | }
+
+lib/src/b.dart (100.00% - 2/2)
+
+GLOBAL:
+55.56% - 5/9

@@ -1,0 +1,7 @@
+{%- if lo == null -%}{%- assign lo = 50 -%}{%- endif -%}
+{%- if hi == null -%}{%- assign hi = 80 -%}{%- endif -%}
+{%- if rate == null -%}empty
+{%- elsif rate < lo -%}low
+{%- elsif rate < hi -%}medium
+{%- else -%}high
+{%- endif -%}

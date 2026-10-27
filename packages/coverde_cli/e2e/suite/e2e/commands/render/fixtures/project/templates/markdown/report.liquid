@@ -1,0 +1,55 @@
+{%- comment -%}
+  Compact markdown summary from coverde#90: a shields badge plus a collapsible
+  file table for pull-request comments. Bands use lcov-lo / lcov-hi.
+{%- endcomment -%}
+{% capture nl %}
+{% endcapture %}
+{%- assign medium = thresholds["lcov-lo"] -%}
+{%- assign high = thresholds["lcov-hi"] -%}
+{%- assign rate = document.lineRate -%}
+{%- if rate == null -%}
+{%- assign badgeColor = "grey" -%}
+{%- assign coverageString = "0.00" -%}
+{%- elsif rate >= high -%}
+{%- assign badgeColor = "success" -%}
+{%- assign coverageString = rate | fixed: 2 -%}
+{%- elsif rate >= medium -%}
+{%- assign badgeColor = "yellow" -%}
+{%- assign coverageString = rate | fixed: 2 -%}
+{%- else -%}
+{%- assign badgeColor = "red" -%}
+{%- assign coverageString = rate | fixed: 2 -%}
+{%- endif -%}
+<img alt="Code coverage" src="https://img.shields.io/badge/Code%20Coverage-{{ coverageString }}%25-{{ badgeColor }}?style=flat-square">{{ nl -}}
+{{ nl -}}
+```{{ nl -}}
+Minimum coverage : {{ medium }}{{ nl -}}
+Code coverage threshold : [{{ medium }} - {{ high }}]{{ nl -}}
+```{{ nl -}}
+{{ nl -}}
+<details>{{ nl -}}
+{{ nl -}}
+<summary> View Report </summary>{{ nl -}}
+{{ nl -}}
+File | Lines Covered | Coverage | Health{{ nl -}}
+-------- | --------- | -------- | --------{{ nl -}}
+{%- assign files = document.files | sort_by_rate: "lineRate" -%}
+{%- for file in files -%}
+{%- if file.lineRate == null -%}
+{%- assign fileCoverage = "0.00" -%}
+{%- assign health = "❌" -%}
+{%- elsif file.lineRate >= high -%}
+{%- assign fileCoverage = file.lineRate | fixed: 2 -%}
+{%- assign health = "✅" -%}
+{%- elsif file.lineRate >= medium -%}
+{%- assign fileCoverage = file.lineRate | fixed: 2 -%}
+{%- assign health = "👍" -%}
+{%- else -%}
+{%- assign fileCoverage = file.lineRate | fixed: 2 -%}
+{%- assign health = "❌" -%}
+{%- endif -%}
+{{ file.path }} | {{ file.linesHit }}/{{ file.linesFound }} | {{ fileCoverage }} | {{ health }}{{ nl -}}
+{%- endfor -%}
+Summary | {{ coverageString }} ({{ document.linesHit }}/{{ document.linesFound }}){{ nl -}}
+{{ nl -}}
+</details>{{ nl -}}
