@@ -1,0 +1,131 @@
+{%- assign lo = thresholds["lcov-lo"] -%}
+{%- assign hi = thresholds["lcov-hi"] -%}
+{%- assign sort = variables.sort -%}
+{%- assign testCount = document.testNames | size -%}
+{%- if testCount > 0 -%}
+{%- assign testLabel = document.testNames | join: ", " -%}
+{%- else -%}
+{%- assign testLabel = "coverde" -%}
+{%- endif -%}
+{%- assign date = "2024-06-15 12:30:00" -%}
+{%- if root -%}
+{%- assign kind = "root" -%}
+{%- assign rel = "" -%}
+{%- assign pageTitle = "LCOV - coverde" -%}
+{%- assign lineRate = root.lineRate -%}
+{%- assign linesHit = root.linesHit -%}
+{%- assign linesFound = root.linesFound -%}
+{%- assign functionRate = root.functionRate -%}
+{%- assign functionsHit = root.functionsHit -%}
+{%- assign functionsFound = root.functionsFound -%}
+{%- assign branchRate = root.branchRate -%}
+{%- assign branchesHit = root.branchesHit -%}
+{%- assign branchesFound = root.branchesFound -%}
+{%- if sort == "line" -%}
+{%- assign dirs = root.fileDirectories | sort_by_rate: "filesLineRate" -%}
+{%- assign files = root.files | sort_by_rate: "lineRate" -%}
+{%- elsif sort == "branch" -%}
+{%- assign dirs = root.fileDirectories | sort_by_rate: "filesBranchRate" -%}
+{%- assign files = root.files | sort_by_rate: "branchRate" -%}
+{%- elsif sort == "function" -%}
+{%- assign dirs = root.fileDirectories | sort_by_rate: "filesFunctionRate" -%}
+{%- assign files = root.files | sort_by_rate: "functionRate" -%}
+{%- else -%}
+{%- assign dirs = root.fileDirectories -%}
+{%- assign files = root.files -%}
+{%- endif -%}
+{%- else -%}
+{%- assign kind = "directory" -%}
+{%- assign rel = directory.path | report_path -%}
+{%- assign pageTitle = "LCOV - coverde - " | append: rel -%}
+{%- assign lineRate = directory.filesLineRate -%}
+{%- assign linesHit = directory.filesLinesHit -%}
+{%- assign linesFound = directory.filesLinesFound -%}
+{%- assign functionRate = directory.filesFunctionRate -%}
+{%- assign functionsHit = directory.filesFunctionsHit -%}
+{%- assign functionsFound = directory.filesFunctionsFound -%}
+{%- assign branchRate = directory.filesBranchRate -%}
+{%- assign branchesHit = directory.filesBranchesHit -%}
+{%- assign branchesFound = directory.filesBranchesFound -%}
+{%- if sort == "line" -%}
+{%- assign files = directory.files | sort_by_rate: "lineRate" -%}
+{%- elsif sort == "branch" -%}
+{%- assign files = directory.files | sort_by_rate: "branchRate" -%}
+{%- elsif sort == "function" -%}
+{%- assign files = directory.files | sort_by_rate: "functionRate" -%}
+{%- else -%}
+{%- assign files = directory.files -%}
+{%- endif -%}
+{%- endif -%}
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>{{ pageTitle | escape }}</title>
+  <link rel="stylesheet" type="text/css" href="{{ pathToRoot }}gcov.css">
+</head>
+
+<body>
+{% render 'templates/lcov_like/header.liquid', pathToRoot: pathToRoot, kind: kind, rel: rel, testLabel: testLabel, date: date, lo: lo, hi: hi, lineRate: lineRate, linesHit: linesHit, linesFound: linesFound, functionRate: functionRate, functionsHit: functionsHit, functionsFound: functionsFound, branchRate: branchRate, branchesHit: branchesHit, branchesFound: branchesFound %}
+
+          <center>
+          <table width="80%" cellpadding=1 cellspacing=1 border=0>
+            <tr>
+              <td width="40%"><br></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+              <td width="6%"></td>
+            </tr>
+            <tr>
+              <td class="tableHead" rowspan=2>{%- if root -%}Directory{%- else -%}Filename{%- endif -%} {% render 'templates/lcov_like/sort_head.liquid', pathToRoot: pathToRoot, active: sort == "name", href: "index.html", alt: "Sort by file name", title: "Click to sort table by file name" %}</td>
+              <td class="tableHead" colspan=4>Line Coverage {% render 'templates/lcov_like/sort_head.liquid', pathToRoot: pathToRoot, active: sort == "line", href: "index-sort-l.html", alt: "Sort by line coverage", title: "Click to sort table by line coverage" %}</td>
+              <td class="tableHead" colspan=3>Branch Coverage {% render 'templates/lcov_like/sort_head.liquid', pathToRoot: pathToRoot, active: sort == "branch", href: "index-sort-b.html", alt: "Sort by branch coverage", title: "Click to sort table by branch coverage" %}</td>
+              <td class="tableHead" colspan=3>Function Coverage {% render 'templates/lcov_like/sort_head.liquid', pathToRoot: pathToRoot, active: sort == "function", href: "index-sort-f.html", alt: "Sort by function coverage", title: "Click to sort table by function coverage" %}</td>
+            </tr>
+            <tr>
+              <td class="tableHead" colspan=2> Rate</td>
+              <td class="tableHead"> Total</td>
+              <td class="tableHead"> Hit</td>
+              <td class="tableHead"> Rate</td>
+              <td class="tableHead"> Total</td>
+              <td class="tableHead"> Hit</td>
+              <td class="tableHead"> Rate</td>
+              <td class="tableHead"> Total</td>
+              <td class="tableHead"> Hit</td>
+            </tr>
+            {%- if root -%}
+            {%- for child in dirs -%}
+            {%- assign rel = child.path | report_path -%}
+            {% render 'templates/lcov_like/row.liquid', label: rel, href: child.outputPath, pathToRoot: pathToRoot, lo: lo, hi: hi, lineRate: child.filesLineRate, linesHit: child.filesLinesHit, linesFound: child.filesLinesFound, branchRate: child.filesBranchRate, branchesHit: child.filesBranchesHit, branchesFound: child.filesBranchesFound, functionRate: child.filesFunctionRate, functionsHit: child.filesFunctionsHit, functionsFound: child.filesFunctionsFound %}
+            {%- endfor -%}
+            {%- for file in files -%}
+            {%- assign rel = file.path | report_path -%}
+            {% render 'templates/lcov_like/row.liquid', label: rel, href: file.outputPath, pathToRoot: pathToRoot, lo: lo, hi: hi, lineRate: file.lineRate, linesHit: file.linesHit, linesFound: file.linesFound, branchRate: file.branchRate, branchesHit: file.branchesHit, branchesFound: file.branchesFound, functionRate: file.functionRate, functionsHit: file.functionsHit, functionsFound: file.functionsFound %}
+            {%- endfor -%}
+            {%- else -%}
+            {%- for file in files -%}
+            {%- assign href = file.name | append: ".gcov.html" -%}
+            {% render 'templates/lcov_like/row.liquid', label: file.name, href: href, pathToRoot: pathToRoot, lo: lo, hi: hi, lineRate: file.lineRate, linesHit: file.linesHit, linesFound: file.linesFound, branchRate: file.branchRate, branchesHit: file.branchesHit, branchesFound: file.branchesFound, functionRate: file.functionRate, functionsHit: file.functionsHit, functionsFound: file.functionsFound %}
+            {%- endfor -%}
+            {%- endif -%}
+          </table>
+          </center>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="{{ pathToRoot }}glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com/mrverdant13/coverde">coverde</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

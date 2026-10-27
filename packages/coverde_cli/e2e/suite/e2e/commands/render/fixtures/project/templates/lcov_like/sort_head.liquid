@@ -1,0 +1,5 @@
+{%- if active -%}
+<span class="tableHeadSort"><img src="{{ pathToRoot }}glass.png" width=10 height=14 alt="{{ alt }}" title="{{ title }}" border=0></span>
+{%- else -%}
+<span class="tableHeadSort"><a href="{{ href }}"><img src="{{ pathToRoot }}updown.png" width=10 height=14 alt="{{ alt }}" title="{{ title }}" border=0></a></span>
+{%- endif -%}

@@ -3,7 +3,8 @@ $schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell
 ignorePaths:
   - "**/.cspell/*.txt"
   - "**/pubspec.lock"
-  - "**/test/**/fixtures/**/*lcov.info"
+  - "**/*lcov.info"
+  - "**/coverage/**/*.info"
 dictionaryDefinitions:
   - name: global-allow
     path: ./global.allow.txt
@@ -31,6 +32,9 @@ overrides:
     dictionaries:
       - docs-allow
   - filename: "**/test/**/fixtures/**/{*.html,*.css}"
+    dictionaries:
+      - fixtures-allow
+  - filename: "**/e2e/**/{fixtures,goldens}/**/*.{html,css,liquid,yaml,md,txt}"
     dictionaries:
       - fixtures-allow
   - filename: "**/.github/**/*"

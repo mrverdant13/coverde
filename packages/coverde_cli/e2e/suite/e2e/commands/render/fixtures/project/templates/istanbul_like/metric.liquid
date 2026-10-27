@@ -1,0 +1,7 @@
+<div class="fl pad1y space-right2">
+  <span class="strong">{%- if rate == null -%}n/a{%- else -%}{{ rate | fixed: 2 }}%{%- endif -%} </span>
+  <span class="quiet">{{ label }}</span>
+  {%- if found != null -%}
+  <span class="fraction">{{ hit }}/{{ found }}</span>
+  {%- endif -%}
+</div>

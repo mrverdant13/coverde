@@ -1,2 +1,13 @@
 # Allowed words for fixture files
 endtemplate
+endfor
+endcapture
+endcomment
+gcov
+cellspacing
+stylesheet
+rowspan
+Dflt
+backround
+nbsp
+cbranch

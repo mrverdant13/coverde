@@ -1,0 +1,6 @@
+<tr>
+  <td class="coverFile"><a href="{{ href }}">{{ label | escape }}</a></td>
+  {% render 'templates/lcov_like/line_cells.liquid', rate: lineRate, hit: linesHit, found: linesFound, pathToRoot: pathToRoot, lo: lo, hi: hi %}
+  {% render 'templates/lcov_like/count_cells.liquid', rate: branchRate, hit: branchesHit, found: branchesFound, lo: lo, hi: hi %}
+  {% render 'templates/lcov_like/count_cells.liquid', rate: functionRate, hit: functionsHit, found: functionsFound, lo: lo, hi: hi %}
+</tr>

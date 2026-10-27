@@ -1,0 +1,25 @@
+{%- if rate == null -%}
+<td class="coverBar"></td>
+<td class="coverPerHi">-</td>
+<td class="coverNumDflt"></td>
+<td class="coverNumDflt"></td>
+{%- else -%}
+{%- assign shown = rate | fixed: 1 -%}
+{%- assign width = rate | round: 0 | split: "." | first | plus: 0 -%}
+{%- if rate < 100 and width >= 100 -%}{%- assign width = 99 -%}{%- endif -%}
+{%- if width < 0 -%}{%- assign width = 0 -%}{%- endif -%}
+{%- assign gap = 100 | minus: width -%}
+{%- if rate >= hi -%}
+{%- assign bar = "emerald.png" -%}
+{%- elsif rate >= lo -%}
+{%- assign bar = "amber.png" -%}
+{%- else -%}
+{%- assign bar = "ruby.png" -%}
+{%- endif -%}
+<td class="coverBar" align="center">
+  <table border=0 cellspacing=0 cellpadding=1><tr><td class="coverBarOutline">{%- if width >= 100 -%}<img src="{{ pathToRoot }}{{ bar }}" width=100 height=10 alt="{{ shown }}%">{%- elsif width <= 0 -%}<img src="{{ pathToRoot }}snow.png" width=100 height=10 alt="{{ shown }}%">{%- else -%}<img src="{{ pathToRoot }}{{ bar }}" width={{ width }} height=10 alt="{{ shown }}%"><img src="{{ pathToRoot }}snow.png" width={{ gap }} height=10 alt="{{ shown }}%">{%- endif -%}</td></tr></table>
+</td>
+<td class="coverPer{% render 'templates/lcov_like/level.liquid', rate: rate, lo: lo, hi: hi %}">{{ shown }}&nbsp;%</td>
+<td class="coverNumDflt">{{ found }}</td>
+<td class="coverNumDflt">{{ hit }}</td>
+{%- endif -%}

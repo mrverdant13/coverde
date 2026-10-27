@@ -1,0 +1,9 @@
+{%- if rate == null -%}
+<td class="coverPerHi">-</td>
+<td class="coverNumDflt"></td>
+<td class="coverNumDflt"></td>
+{%- else -%}
+<td class="coverPer{% render 'templates/lcov_like/level.liquid', rate: rate, lo: lo, hi: hi %}">{{ rate | fixed: 1 }}&nbsp;%</td>
+<td class="coverNumDflt">{{ found }}</td>
+<td class="coverNumDflt">{{ hit }}</td>
+{%- endif -%}
