@@ -190,11 +190,11 @@ StrictTemplateMap _directoryMap(
   final directories = [
     for (final child in directory.directories) _directoryMap(child, fileMaps),
   ];
-  final fileDirectories = [
-    for (final child in directories) ..._fileDirectoriesOf(child),
-  ]..sort((left, right) {
-      return (left['path']! as String).compareTo(right['path']! as String);
-    });
+  final fileDirectories =
+      [for (final child in directories) ..._fileDirectoriesOf(child)]
+        ..sort((left, right) {
+          return (left['path']! as String).compareTo(right['path']! as String);
+        });
   return StrictTemplateMap({
     'path': directory.path,
     'name': directory.name,
@@ -207,10 +207,7 @@ StrictTemplateMap _directoryMap(
     'branchRate': directory.branchRate,
     'branchesHit': directory.branchesHit,
     'branchesFound': directory.branchesFound,
-    'filesLineRate': coverageRate(
-      hit: filesLinesHit,
-      found: filesLinesFound,
-    ),
+    'filesLineRate': coverageRate(hit: filesLinesHit, found: filesLinesFound),
     'filesLinesHit': filesLinesHit,
     'filesLinesFound': filesLinesFound,
     'filesFunctionRate': optionalCoverageRate(

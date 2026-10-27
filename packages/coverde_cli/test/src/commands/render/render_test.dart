@@ -290,9 +290,7 @@ end_of_record
       verify(
         () => logger.write(
           any(
-            that: contains(
-              '1/2 ${newer.lastModifiedSync().toIso8601String()}',
-            ),
+            that: contains('1/2 ${newer.lastModifiedSync().toIso8601String()}'),
           ),
         ),
       ).called(1);

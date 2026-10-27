@@ -332,8 +332,7 @@ Map<String, String> _parsePageVariables({
     }
     if (raw is! String) {
       throw CoverageReportDefinitionFailure(
-        readableMessage:
-            '`$owner` `variables.$key` must be a string.',
+        readableMessage: '`$owner` `variables.$key` must be a string.',
       );
     }
     variables[key] = raw;

@@ -6,10 +6,7 @@ import 'package:meta/meta.dart';
 @immutable
 final class ReportPage {
   /// {@macro coverde.report_page}
-  const ReportPage({
-    required this.path,
-    this.variables = const {},
-  });
+  const ReportPage({required this.path, this.variables = const {}});
 
   /// Liquid path pattern for this page.
   final String path;

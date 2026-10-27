@@ -340,9 +340,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       final bound = slot.includeSource
           ? context.directoryWithSource(directory, map)
           : map;
-      final document = slot.includeSource
-          ? context.documentWithSource()
-          : null;
+      final document = slot.includeSource ? context.documentWithSource() : null;
       final slotVariables = _slotVariables(slot, variables);
       await _writeRendered(
         slot: slot,
@@ -479,10 +477,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
     required String destination,
     required Set<String> written,
   }) async {
-    final relative = await _renderPath(
-      pathTemplate: pathTemplate,
-      data: data,
-    );
+    final relative = await _renderPath(pathTemplate: pathTemplate, data: data);
     final resolved = resolveInsideRoot(
       rootDirectory: destination,
       relativePath: relative,
