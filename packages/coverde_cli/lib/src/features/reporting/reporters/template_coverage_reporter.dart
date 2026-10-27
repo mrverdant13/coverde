@@ -90,8 +90,9 @@ final class TemplateCoverageReporter implements CoverageReporter {
     return _reportPaths.relative('$value');
   }
 
-  /// liquify's `{% render %}` builds a fresh [Environment] that does not copy
-  /// local filters, so overrides used in partials must stay on [FilterRegistry].
+  /// liquify's `{% render %}` builds a fresh [Environment] that does not
+  /// copy local filters, so overrides used in partials must stay on
+  /// [FilterRegistry].
   static void _registerFilters() {
     if (_filtersRegistered) return;
     FilterRegistry.register('compact_ranges', compactRanges);
