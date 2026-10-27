@@ -50,6 +50,8 @@ extension on CoverdeFailure {
     final CoverdeFilterFailure failure => failure.exitCode,
     final CoverdeOptimizeTestsFailure failure => failure.exitCode,
     final CoverdeReportFailure failure => failure.exitCode,
+    final CoverdeRenderFailure failure => failure.exitCode,
+    final CoverageReportFailure failure => failure.exitCode,
     final CoverdeRmFailure failure => failure.exitCode,
     final CoverdeValueFailure failure => failure.exitCode,
     CoverdeTransformUnresolvedCoveragePathFailure() => ExitCode.data,
@@ -206,6 +208,33 @@ extension on CoverdeRmDirectoryOperationFailure {
 extension on CoverdeRmInvalidInputFailure {
   ExitCode get exitCode => switch (this) {
     CoverdeRmMissingPathsFailure() => ExitCode.usage,
+  };
+}
+
+extension on CoverageReportFailure {
+  ExitCode get exitCode => switch (this) {
+    UnknownCoverageReportFailure() => ExitCode.usage,
+    CoverageReportDefinitionFailure() ||
+    CoverageReportPathFailure() ||
+    CoverageTemplateRenderFailure() => ExitCode.data,
+    CoverageReportSourceReadFailure() ||
+    CoverageReportDestinationFailure() => ExitCode.ioError,
+  };
+}
+
+extension on CoverdeRenderFailure {
+  ExitCode get exitCode => switch (this) {
+    CoverdeRenderInvalidVariableFailure() => ExitCode.usage,
+    final CoverdeRenderInvalidTraceFileFailure failure => failure.exitCode,
+    CoverdeRenderConfigFileReadFailure() => ExitCode.ioError,
+  };
+}
+
+extension on CoverdeRenderInvalidTraceFileFailure {
+  ExitCode get exitCode => switch (this) {
+    CoverdeRenderTraceFileNotFoundFailure() => ExitCode.noInput,
+    CoverdeRenderEmptyTraceFileFailure() => ExitCode.data,
+    CoverdeRenderTraceFileReadFailure() => ExitCode.ioError,
   };
 }
 

@@ -12,22 +12,26 @@ final _driveRoot = RegExp('^[A-Za-z]:/');
 /// The root path is empty when [files] do not share a parent directory.
 /// `\` and `/` are both separators. A drive or UNC root stays one root.
 /// A chain of directories that contains a single child and no files collapses
-/// into one node.
-CoverageDirectory buildCoverageTree(Iterable<CoverageFile> files) {
+/// into one node when [collapse] is true, which is the default.
+CoverageDirectory buildCoverageTree(
+  Iterable<CoverageFile> files, {
+  bool collapse = true,
+}) {
   final list = files.toList();
   return _subtree(const <String>[], list, [
     for (final file in list) _parentSegments(file.path),
-  ]);
+  ], collapse);
 }
 
 CoverageDirectory _subtree(
   List<String> base,
   List<CoverageFile> files,
   List<List<String>> parents,
+  bool collapse,
 ) {
   final prefix = [...base];
   var index = base.length;
-  if (parents.isNotEmpty) {
+  if (collapse && parents.isNotEmpty) {
     final fewest = parents
         .map((parent) => parent.length)
         .reduce((left, right) => left < right ? left : right);
@@ -65,6 +69,7 @@ CoverageDirectory _subtree(
           [...prefix, segment],
           childFiles[segment]!,
           childParents[segment]!,
+          collapse,
         ),
     ],
     files: filesHere,

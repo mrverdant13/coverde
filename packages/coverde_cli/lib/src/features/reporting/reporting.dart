@@ -1,0 +1,9 @@
+export '../../entities/coverage_document.dart';
+export 'failures/coverage_report_failure.dart';
+export 'reporters/coverage_report_request.dart';
+export 'reporters/coverage_reporter.dart';
+export 'reporters/coverage_source_reader.dart';
+export 'reporters/report_destination.dart';
+export 'reporters/template_coverage_reporter.dart';
+export 'templates/parse_report_definitions.dart';
+export 'templates/report_definition.dart';

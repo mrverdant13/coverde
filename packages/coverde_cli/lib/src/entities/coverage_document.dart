@@ -58,6 +58,17 @@ final class CoverageDocument {
   /// Source files, in the order their records first appear in the trace.
   final List<CoverageFile> files;
 
+  /// Distinct `TN:` names, in the order they first appear.
+  List<String> get testNames {
+    final names = <String>[];
+    for (final file in files) {
+      final name = file.testName;
+      if (name == null || names.contains(name)) continue;
+      names.add(name);
+    }
+    return List.unmodifiable(names);
+  }
+
   /// Whether the trace contains no coverage records.
   bool get isEmpty => files.isEmpty;
 
@@ -77,21 +88,40 @@ final class CoverageDocument {
   /// Line coverage from 0 to 100, or null when [linesFound] is 0.
   double? get lineRate => coverageRate(hit: linesHit, found: linesFound);
 
+  /// Functions executed at least once.
+  ///
+  /// Null when no file reported functions.
+  int? get functionsHit =>
+      _sumOptional(files.map((file) => file.functions?.hit));
+
+  /// Functions found.
+  ///
+  /// Null when no file reported functions.
+  int? get functionsFound =>
+      _sumOptional(files.map((file) => file.functions?.found));
+
   /// Function coverage from 0 to 100.
   ///
   /// Null when the trace has no function records or no functions were found.
-  double? get functionRate => optionalCoverageRate(
-    hit: _sumOptional(files.map((file) => file.functions?.hit)),
-    found: _sumOptional(files.map((file) => file.functions?.found)),
-  );
+  double? get functionRate =>
+      optionalCoverageRate(hit: functionsHit, found: functionsFound);
+
+  /// Branches taken at least once.
+  ///
+  /// Null when no file reported branches.
+  int? get branchesHit => _sumOptional(files.map((file) => file.branches?.hit));
+
+  /// Branches found.
+  ///
+  /// Null when no file reported branches.
+  int? get branchesFound =>
+      _sumOptional(files.map((file) => file.branches?.found));
 
   /// Branch coverage from 0 to 100.
   ///
   /// Null when the trace has no branch records or no branches were found.
-  double? get branchRate => optionalCoverageRate(
-    hit: _sumOptional(files.map((file) => file.branches?.hit)),
-    found: _sumOptional(files.map((file) => file.branches?.found)),
-  );
+  double? get branchRate =>
+      optionalCoverageRate(hit: branchesHit, found: branchesFound);
 
   static const _filesEquality = ListEquality<CoverageFile>();
 

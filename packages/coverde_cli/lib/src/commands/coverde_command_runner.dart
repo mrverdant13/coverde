@@ -27,6 +27,7 @@ class CoverdeCommandRunner extends CommandRunner<void> {
     addCommand(FilterCommand());
     addCommand(TransformCommand());
     addCommand(ReportCommand());
+    addCommand(RenderCommand());
     addCommand(RmCommand());
     addCommand(ValueCommand());
     argParser.addOption(

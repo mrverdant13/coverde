@@ -143,6 +143,7 @@ CoverageFile _mergeCoverageFiles(CoverageFile current, CoverageFile incoming) {
       current: current.lines,
       incoming: incoming.lines,
     ),
+    testName: current.testName ?? incoming.testName,
     functions: _mergeFunctions(
       sourcePath: current.path,
       current: current.functions,
@@ -191,6 +192,7 @@ CoverageFile? _parseRecord(List<String> lines) {
   int? branchesHit;
   int? linesFound;
   int? linesHit;
+  String? testName;
   var sawFunctions = false;
   var sawBranches = false;
 
@@ -280,6 +282,9 @@ CoverageFile? _parseRecord(List<String> lines) {
         raw: line.substring('LF:'.length),
         label: 'LF',
       );
+    } else if (line.startsWith('TN:')) {
+      final name = line.substring('TN:'.length).trim();
+      if (name.isNotEmpty) testName ??= name;
     } else if (line.startsWith('LH:')) {
       linesHit = _parseSummaryOnce(
         current: linesHit,
@@ -348,6 +353,7 @@ CoverageFile? _parseRecord(List<String> lines) {
     lines: lineRecords,
     functions: functions,
     branches: branches,
+    testName: testName,
   );
 }
 
@@ -650,7 +656,8 @@ CoverageTraceEntry _traceEntry(String line) {
   if (line.startsWith('SF:')) {
     return CoverageSourceEntry(line.substring('SF:'.length));
   }
-  if (line.startsWith('DA:') ||
+  if (line.startsWith('TN:') ||
+      line.startsWith('DA:') ||
       line.startsWith('FNDA:') ||
       line.startsWith('FN:') ||
       line.startsWith('FNF:') ||

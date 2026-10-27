@@ -65,6 +65,7 @@ This installs a `coverde` executable in the pub cache `bin` directory:
 - [**Filter a coverage trace file.**](#coverde-filter)
 - [**Transform a coverage trace file.**](#coverde-transform)
 - [**Generate the coverage report from a trace file.**](#coverde-report)
+- [**Render a named coverage report from a trace file.**](#coverde-render)
 - [**Remove a set of files and folders.**](#coverde-remove)
 - [**Compute the coverage value (%) of an info file.**](#coverde-value)
 
@@ -748,6 +749,49 @@ Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
 ![coverde-report-file.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/browser/coverde-report-file.png)
 
 
+## `coverde render`
+
+Render a named coverage report from a trace file.
+
+The report is selected from the reports defined in coverde.yaml. A report is either `type: console` with a `template`, or `type: files` with a `destination` and at least one of `root`, `directory`, and `file`. See [Reports](#reports). `--config` selects the yaml file. It defaults to `coverde.yaml` in the working directory. Relative report paths resolve from the directory that contains that file.
+
+### Arguments
+
+#### Single-options
+
+- `--input`
+
+  Coverage trace file to render.
+
+  Repeat to merge traces. Records with the same path are merged.
+  The trace time is the latest modification time.
+  One missing file fails the command, and a result with no records fails too.\
+  **Default value:** `coverage/lcov.info`
+
+- `--config`
+
+  Path to the coverde.yaml file.
+
+  Relative report paths resolve from that file's directory.\
+  **Default value:** `coverde.yaml`
+
+- `--report`
+
+  Name of the report defined in coverde.yaml.
+
+  Required when coverde.yaml defines more than one report.
+  When it defines one report, that report is used.
+
+#### Multi-options
+
+- `--variable`
+
+  A name=value pair exposed to the template as variables["name"].
+
+  Repeat to set more than one variable. A later copy of the same name wins.\
+  **Default value:** _None_
+
+
 ## `coverde remove`
 
 Remove a set of files and folders.
@@ -831,15 +875,15 @@ Compute the coverage value of the LCOV_FILE info file.
 
 # `coverde.yaml` configuration file
 
-The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check) and reusable transformation presets for [`coverde transform`](#coverde-transform).
+The `coverde.yaml` file defines named coverage thresholds for [`coverde check`](#coverde-check), reusable transformation presets for [`coverde transform`](#coverde-transform), and named reports for [`coverde render`](#coverde-render).
 
-The file is optional. Both commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
+The file is optional. These commands read it from the **current working directory**. [`coverde transform`](#coverde-transform) can also load a preset from another file. See [`preset`](#preset).
 
 ## File Format
 
-The configuration file uses YAML. Two keys are recognized at the root: `coverage` and `transformations`. Either key can be omitted.
+The configuration file uses YAML. Three keys are recognized at the root: `coverage`, `transformations`, and `reports`. Each key can be omitted.
 
-`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps.
+`coverage` is a map of threshold names. `transformations` is a map of presets. Each preset is a named list of transformation steps. `reports` is a map of named reports.
 
 ```yaml
 # coverde.yaml
@@ -855,6 +899,56 @@ transformations:
     - type: <transformation-type>
       <parameter-1-name>: <value-1>
 ```
+
+## Reports
+
+`reports` names the reports that [`coverde render`](#coverde-render) can select. A missing `reports` key means there are no reports.
+
+A `console` report prints one template. It sets `template`. It may set `includeSource` and `destination`. A relative destination resolves from the directory that contains `coverde.yaml`, and an absolute destination is used as given. Omitting `destination` prints the report. The template receives `root`, the coverage tree. `outputPath` on that tree is empty, because a console report does not write a page per node. `directory.files` are the files directly in that directory. Nested files are reached through `directories`. `filesLinesHit`, `filesLinesFound`, and `filesLineRate` (and the same for functions and branches) cover only those direct files. `fileDirectories` lists descendant directories that contain files, sorted by path. A console report, and a `root` or `directory` slot, may set `includeSource`. When it is true, that template's files include source text at every depth. Other templates in the same report keep the instrumented lines only.
+
+A report collapses a single-child directory chain into one node. Set `collapse: false` on a `console` or `files` report to keep a page for each directory, such as `lib`, then `src`, then `entities`. `coverde report` keeps the collapsed tree. A `files` report writes into `destination`. A relative destination is resolved from the directory that contains `coverde.yaml`. The report sets at least one of `root`, `directory`, and `file`. Each slot sets `template` and `path`. `path` is a template for that node. A directory path can read a child `outputPath`, because child paths are assigned first. Page templates also see those paths. A slot may set `variables` and `pages`. Slot `variables` merge into the template `variables` map. Each `pages` entry sets another `path` and optional `variables` that reuse the same template. A `file` slot may set `includeSource`. When it is true, that file page includes source text. `root` and `directory` slots may set it too. `assets` copies static files into the destination after the templates render. Each asset sets `from`, relative to the configuration directory, and `to`, relative to the destination. An asset may set `render: true`. Its source is then a Liquid template with `document`, `variables`, `thresholds`, `columns`, and `color`. The default is a byte copy.
+
+A file template can read function and branch detail, not only the rates. `functionsHit`, `functionsFound`, `branchesHit`, and `branchesFound` are null when the trace never recorded that measurement. A null rate is not 0%. `minus`, `times`, and `round` accept a numeric string, the same way `plus` does, so a `--variable` or a `{% render %}` argument can be used in arithmetic. `round` of an empty value stays empty. `fixed: 2` prints `100.00` and also leaves an empty value empty. `pad` aligns text to a width, and a second argument of `right` aligns it to the right. `truncate` keeps the tail and prefixes `...` when the text is longer. `0` is still empty in `{% if %}` and `default`. Compare `hits == null` and `hits > 0`. `columns` is the terminal width, or 80 when stdout is not a terminal. `color` is true only when the report is printed to a terminal. A destination file stays plain. `colorize` wraps text with `light_red`, `light_green`, `red_bold`, `green_bold`, or `blue_bold`, and returns the text unchanged when `color` is false. `thresholds` is the `coverage` map. `{{ thresholds["pkg-min"] }}` reads one number. `sort_by_rate` sorts files or directories by a rate. A null rate stays after every number. The direction is `asc`, the default, or `desc`. Without the filter, files stay in trace order. `{% capture class %}covValue headerCovTableEntryLo{% endcapture %}` keeps the space between those class names. `{%- -%}` would remove it. `{% render %}` still sees only the arguments it was given. Each file also has `functions` (`name`, `line`, `hits`) and `branches` (`line`, `block`, `branch`, `taken`). `taken` is null when LCOV recorded `-`. Each line has the `branches` that fall on that line, so a line that ran can still show a branch that did not. There is no statement count; a statement column uses the line hit and found counts. The document and each directory expose the same hit and found totals. `document.traceModifiedAt` is the trace file's modification time in ISO-8601, or empty when the caller did not provide one. The trace text itself has no timestamp. `document.testNames` lists distinct `TN:` names in trace order. Each file has `testName`, the first non-empty `TN:` in its record. A later `TN:` on the same path does not replace it. `{{ file.path | report_path }}` is that path relative to the report destination. A relative path stays as it is. A POSIX absolute path uses `absolute`, or `absolute-2` when a file already occupies that name. A drive root uses `drive-c`, a drive-relative path uses `drive-c-relative`, and a UNC path uses `unc-server-share`. These are the same folder names `coverde report` writes. The path jail still rejects an output path that is absolute, empty, trailing-slash, or contains `..`. `file.unrecognized` lists trace lines the parser did not understand. Instrumented `DA:`, `FN:`, and `BRDA:` lines are not in that list. `file.sourceAvailable` is empty when the template did not ask for source, `true` when the source file was read, and `false` when it was requested and the file is missing. A missing file still renders, with instrumented lines and empty source text. A source file that exists but cannot be read still fails the report.
+
+```yaml
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+
+  pages:
+    type: files
+    destination: build/coverage
+    root:
+      template: templates/root.liquid
+      path: index.html
+    directory:
+      template: templates/directory.liquid
+      path: "{{ directory.path | report_path }}/index.html"
+    file:
+      template: templates/file.liquid
+      path: "{{ file.path | report_path }}.html"
+      includeSource: true
+    assets:
+      - from: assets/style.css
+        to: style.css
+```
+
+### Limits
+
+A template does not get a separate statement count. A statement column uses the line hit and found counts.
+
+`directory.files` are the files directly in that directory. Nested files stay under `directories`.
+
+A files report cannot write the same output path twice.
+
+An output path cannot be absolute, empty, or a trailing slash, and it cannot contain `..`.
+
+`{%- -%}` and `{{- -}}` strip the whitespace around a tag, including a space between class names. `{% render %}` sees only the arguments it was given, not the names of the template that called it.
+
+`0` is empty in `{% if %}` and `default`. Compare `hits == null` and `hits > 0`.
+
+`--report` is required when `coverde.yaml` defines more than one report. One report is used when the flag is omitted.
 
 ## Coverage thresholds
 
