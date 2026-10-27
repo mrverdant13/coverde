@@ -187,7 +187,11 @@ end_of_record
     });
 
     test('writes extra pages for a file slot', () async {
-      _write(root, 'templates/file.liquid', '{{ pathToRoot }}{{ file.name }}\n');
+      _write(
+        root,
+        'templates/file.liquid',
+        '{{ pathToRoot }}{{ file.name }}\n',
+      );
       final destination = Directory('${root.path}/out');
 
       await _render(
@@ -197,9 +201,7 @@ end_of_record
           file: const ReportSlot(
             template: 'templates/file.liquid',
             path: '{{ file.path }}.html',
-            pages: [
-              ReportPage(path: './{{ file.path }}.extra.html'),
-            ],
+            pages: [ReportPage(path: './{{ file.path }}.extra.html')],
           ),
         ),
         destination: DirectoryReportDestination(destination),
