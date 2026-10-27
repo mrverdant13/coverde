@@ -50,6 +50,6 @@ File | Lines Covered | Coverage | Health{{ nl -}}
 {%- endif -%}
 {{ file.path }} | {{ file.linesHit }}/{{ file.linesFound }} | {{ fileCoverage }} | {{ health }}{{ nl -}}
 {%- endfor -%}
-Summary | {{ coverageString }} ({{ document.linesHit }}/{{ document.linesFound }}){{ nl -}}
+Summary | {{ document.linesHit }}/{{ document.linesFound }} | {{ coverageString }} |{{ nl -}}
 {{ nl -}}
 </details>{{ nl -}}

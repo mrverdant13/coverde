@@ -8,6 +8,7 @@ reports:
   lcov_like:
     type: files
     destination: build/lcov_like
+    collapse: false
     root:
       template: templates/lcov_like/folder.liquid
       path: index.html
@@ -61,6 +62,7 @@ reports:
   istanbul_like:
     type: files
     destination: build/istanbul_like
+    collapse: false
     root:
       template: templates/istanbul_like/folder.liquid
       path: index.html

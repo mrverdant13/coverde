@@ -13,6 +13,6 @@ File | Lines Covered | Coverage | Health
 -------- | --------- | -------- | --------
 lib/a.dart | 3/7 | 42.86 | ❌
 lib/src/b.dart | 2/2 | 100.00 | ✅
-Summary | 55.56 (5/9)
+Summary | 5/9 | 55.56 |
 
 </details>

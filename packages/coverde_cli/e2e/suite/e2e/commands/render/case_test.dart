@@ -20,7 +20,8 @@ void main() {
     final coverdeCliPath = p.normalize(
       p.join(Directory.current.path, '..', '..'),
     );
-    coverdeExecutablePath = p.join(temporaryDirectory.path, 'coverde');
+    final coverdeFileName = Platform.isWindows ? 'coverde.exe' : 'coverde';
+    coverdeExecutablePath = p.join(temporaryDirectory.path, coverdeFileName);
     final compile = await Process.run(
       'dart',
       [
