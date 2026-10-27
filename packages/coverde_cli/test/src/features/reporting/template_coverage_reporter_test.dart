@@ -1,6 +1,6 @@
 import 'package:coverde/src/features/reporting/reporting.dart';
-import 'package:io/ansi.dart';
 import 'package:coverde/src/features/reporting/templates/strict_template_map.dart';
+import 'package:io/ansi.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
@@ -242,7 +242,7 @@ root {{ file.lines[0].source }}
 
         await _render(
           root: root,
-          definition: ConsoleReportDefinition(
+          definition: const ConsoleReportDefinition(
             template: 'templates/summary.liquid',
             includeSource: true,
           ),
@@ -626,31 +626,35 @@ end_of_record
       );
     });
 
-    test('keeps a single-child directory chain when collapse is false', () async {
-      _write(
-        root,
-        'templates/summary.liquid',
-        '[{{ root.path }}]'
-            '[{{ root.directories.first.directories.first.directories.first.path }}]',
-      );
-      final buffer = StringBuffer();
+    test(
+      'keeps a single-child directory chain when collapse is false',
+      () async {
+        const nested =
+            'root.directories.first.directories.first.directories.first.path';
+        _write(
+          root,
+          'templates/summary.liquid',
+          '[{{ root.path }}][{{ $nested }}]',
+        );
+        final buffer = StringBuffer();
 
-      await _render(
-        root: root,
-        definition: const ConsoleReportDefinition(
-          template: 'templates/summary.liquid',
-          collapse: false,
-        ),
-        destination: ConsoleReportDestination(buffer),
-        trace: '''
+        await _render(
+          root: root,
+          definition: const ConsoleReportDefinition(
+            template: 'templates/summary.liquid',
+            collapse: false,
+          ),
+          destination: ConsoleReportDestination(buffer),
+          trace: '''
 SF:lib/src/deep/a.dart
 DA:1,1
 end_of_record
 ''',
-      );
+        );
 
-      expect(buffer.toString(), '[][lib/src/deep]');
-    });
+        expect(buffer.toString(), '[][lib/src/deep]');
+      },
+    );
 
     test('coerces numeric strings and keeps a null round null', () async {
       _write(root, 'templates/summary.liquid', '''

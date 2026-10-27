@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:coverde/src/commands/commands.dart';
-import 'package:io/ansi.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/reporting/reporting.dart';
 import 'package:coverde/src/utils/utils.dart';
+import 'package:io/ansi.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
