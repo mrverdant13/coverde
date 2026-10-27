@@ -149,7 +149,7 @@ Future<void> main(List<String> args) async {
         final commandInvocation = '${runner.executableName} ${command.name}';
         final detailsBuffer = StringBuffer();
         final overview = [
-          '- [**${command.sanitizedSummary}**]',
+          '- [**${command.summary}**]',
           '(#${commandInvocation.paramCase})',
         ].join();
 
@@ -236,13 +236,7 @@ $featuresToken
 
 extension on CoverdeCommand {
   String get markdownMultiline {
-    final buf = StringBuffer();
-    if (descriptionHeader != null) {
-      buf
-        ..writeln()
-        ..writeln(descriptionHeader);
-    }
-    buf.writeln(sanitizedDescription.asMarkdownMultiline);
+    final buf = StringBuffer()..writeln(description.asMarkdownMultiline);
     if (descriptionFooter != null) {
       buf
         ..writeln()
@@ -266,11 +260,6 @@ extension on CoverdeCommand {
       buf
         ..writeln()
         ..writeln(paramsAsMarkdownMultiline);
-    }
-    if (argumentsFooter != null) {
-      buf
-        ..writeln()
-        ..writeln(argumentsFooter);
     }
     return buf.toString().trim();
   }
@@ -409,41 +398,6 @@ extension on String {
 }
 
 extension on CoverdeCommand {
-  String get sanitizedSummary {
-    return switch (this) {
-      FilterCommand() => () {
-          final withoutDeprecationTag =
-              summary.replaceAll(RegExp(r'\[DEPRECATED\] '), '');
-          final firstSentence = withoutDeprecationTag.split('.').first;
-          return '$firstSentence.';
-        }(),
-      _ => summary,
-    };
-  }
-
-  String get sanitizedDescription {
-    return switch (this) {
-      FilterCommand() => () {
-          final description = this.description;
-          return [
-            sanitizedSummary,
-            ...LineSplitter.split(description).skip(1),
-          ].join('\n').trim();
-        }(),
-      _ => description,
-    };
-  }
-
-  String? get descriptionHeader {
-    return switch (this) {
-      FilterCommand() => '''
-> [!CAUTION]
-> The `filter` command will be removed in the next major update. Use [`coverde transform`](#coverde-transform) instead.
-''',
-      _ => null,
-    };
-  }
-
   String? get descriptionFooter {
     return switch (this) {
       OptimizeTestsCommand() => '''
@@ -453,36 +407,6 @@ extension on CoverdeCommand {
 > The `optimize-tests` command gathers all your Dart test files into a single "optimized" test entry point. This can lead to much faster test execution, especially in CI/CD pipelines or large test suites. By reducing the Dart VM spawn overhead and centralizing test discovery, it enables more efficient use of resources.
 >
 > For more information, see the [flutter/flutter#90225](https://github.com/flutter/flutter/issues/90225).
-'''
-          .trim(),
-      _ => null,
-    };
-  }
-
-  String? get argumentsFooter {
-    return switch (this) {
-      FilterCommand() => r'''
-### Migration to `transform`
-
-Use `coverde transform` with equivalent options:
-
-| Filter option                   | Transform equivalent                                                                |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| `--filters pattern1,pattern2`   | `--transformations skip-by-regex=pattern1 --transformations skip-by-regex=pattern2` |
-| `--base-directory B`            | `--transformations relative=B`                                                      |
-| `--input`, `--output`, `--mode` | Same options                                                                        |
-
-Example:
-
-```sh
-# Before (filter)
-coverde filter --input coverage/lcov.info --output coverage/filtered.lcov.info \
-  --filters '\.g\.dart$' --base-directory /project --mode w
-
-# After (transform)
-coverde transform --input coverage/lcov.info --output coverage/filtered.lcov.info \
-  --transformations skip-by-regex='\.g\.dart$' --transformations relative=/project --mode w
-```
 '''
           .trim(),
       _ => null,

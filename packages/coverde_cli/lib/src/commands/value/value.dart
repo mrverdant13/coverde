@@ -14,7 +14,7 @@ export 'failures.dart';
 /// A command to compute the coverage of a given info file.
 /// {@endtemplate}
 class ValueCommand extends CoverdeCommand {
-  /// {@macro filter_cmd}
+  /// {@macro value_cmd}
   ValueCommand() {
     argParser
       ..addOption(
