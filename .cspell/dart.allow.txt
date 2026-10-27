@@ -5,6 +5,8 @@ brf
 brh
 canonicalize
 csslib
+efghijk
+endcapture
 endfor
 endtemplate
 fnda
@@ -15,6 +17,7 @@ linkifies
 mocktail
 pana
 posix
+toolong
 toplevel
 unparseable
 writeln

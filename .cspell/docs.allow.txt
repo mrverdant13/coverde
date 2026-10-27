@@ -1,5 +1,7 @@
 # Allowed words for documentation files
+brda
 codecov
+endcapture
 fvm
 Karlo
 LOCALAPPDATA
