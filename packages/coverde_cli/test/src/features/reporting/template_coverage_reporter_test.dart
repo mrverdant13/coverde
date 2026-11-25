@@ -17,6 +17,31 @@ void main() {
       if (root.existsSync()) root.deleteSync(recursive: true);
     });
 
+    test('renders a CRLF template and partial with line feeds', () async {
+      _write(
+        root,
+        'templates/summary.liquid',
+        "before\r\n{% render 'templates/level.liquid' %}\r\nafter\r",
+      );
+      _write(
+        root,
+        'templates/level.liquid',
+        '{%- if true -%}Lo\r\n{%- endif -%}\r\n',
+      );
+      final sink = StringBuffer();
+
+      await _render(
+        root: root,
+        definition: const ConsoleReportDefinition(
+          template: 'templates/summary.liquid',
+        ),
+        destination: ConsoleReportDestination(sink),
+        trace: _lineTrace,
+      );
+
+      expect(sink.toString(), 'before\nLo\nafter\n');
+    });
+
     test('prints a console summary with compact uncovered ranges', () async {
       _write(root, 'templates/summary.liquid', '''
 {%- assign minimum = variables["min-line-rate"] | plus: 0 -%}

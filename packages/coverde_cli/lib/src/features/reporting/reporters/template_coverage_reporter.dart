@@ -603,7 +603,7 @@ final class TemplateCoverageReporter implements CoverageReporter {
       );
     }
     try {
-      return file.readAsStringSync();
+      return _normalizeTemplateNewlines(file.readAsStringSync());
     } on FileSystemException catch (exception) {
       throw CoverageTemplateRenderFailure(
         readableMessage:
@@ -655,9 +655,19 @@ final class _PackRoot implements Root {
     if (!file.existsSync()) {
       throw TemplateNotFoundException(relPath);
     }
-    return Source(file.uri, file.readAsStringSync(), this);
+    return Source(
+      file.uri,
+      _normalizeTemplateNewlines(file.readAsStringSync()),
+      this,
+    );
   }
 
   @override
   Future<Source> resolveAsync(String relPath) async => resolve(relPath);
+}
+
+/// Liquid leaves a carriage return in the output. Windows checkouts store
+/// these templates with CRLF, so normalize them before rendering.
+String _normalizeTemplateNewlines(String contents) {
+  return contents.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 }
