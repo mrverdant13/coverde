@@ -531,4 +531,189 @@ reports:
       );
     });
   });
+
+  group('report options', () {
+    test('reads a default and an allowed list', () {
+      final reports = parseReportDefinitions('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        default: us
+        allowed: [us, eu]
+      title:
+        default: Coverage
+''', baseDirectory: '/config');
+
+      final options = reports['summary']!.options;
+      expect(options['region']!.defaultValue, 'us');
+      expect(options['region']!.allowed, ['us', 'eu']);
+      expect(options['title']!.defaultValue, 'Coverage');
+      expect(options['title']!.allowed, isEmpty);
+
+      final pages = parseReportDefinitions('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    options:
+      region:
+        default: us
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables:
+        title: Coverage
+''', baseDirectory: '/config');
+      expect(pages['pages']!.options['region']!.name, 'region');
+    });
+
+    test('rejects a reserved name, a bad shape, and a variable clash', () {
+      void rejects(String source, String message) {
+        expect(
+          () => parseReportDefinitions(source, baseDirectory: '/config'),
+          throwsA(
+            isA<CoverageReportDefinitionFailure>().having(
+              (failure) => failure.readableMessage,
+              'readableMessage',
+              contains(message),
+            ),
+          ),
+        );
+      }
+
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options: [region]
+''', '`options` must be a map');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      "":
+        default: us
+''', 'keys must be non-empty strings');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      1:
+        default: us
+''', 'keys must be non-empty strings');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      input:
+        default: coverage/lcov.info
+''', 'option `input` is reserved');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      config:
+        default: coverde.yaml
+''', 'option `config` is reserved');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region: us
+''', 'option `region` must be a map');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        default: us
+        help: Region
+''', 'unknown key `help`');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        allowed: [us]
+''', 'requires `default`');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        default: us
+        allowed: us
+''', '`allowed` must be a list');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        default: us
+        allowed: [1]
+''', 'must be non-empty strings');
+      rejects('''
+reports:
+  summary:
+    type: console
+    template: templates/summary.liquid
+    options:
+      region:
+        default: mx
+        allowed: [us, eu]
+''', 'is not an allowed value');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    options:
+      region:
+        default: us
+    root:
+      template: templates/root.liquid
+      path: index.html
+      variables:
+        region: us
+''', 'is also a template variable');
+      rejects('''
+reports:
+  pages:
+    type: files
+    destination: out/
+    options:
+      sort:
+        default: line
+    root:
+      template: templates/root.liquid
+      path: index.html
+      pages:
+        - path: index-sort-l.html
+          variables:
+            sort: line
+''', 'is also a template variable');
+    });
+  });
 }

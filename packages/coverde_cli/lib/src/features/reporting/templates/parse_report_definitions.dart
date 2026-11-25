@@ -171,6 +171,7 @@ ConsoleReportDefinition _parseConsoleReport({
     'includeSource',
     'destination',
     'collapse',
+    'options',
   };
   _rejectUnknownKeys(name: name, value: value, allowed: allowed);
   final includeSource = value['includeSource'];
@@ -195,6 +196,7 @@ ConsoleReportDefinition _parseConsoleReport({
         ? path.normalize(path.join(baseDirectory, destination))
         : null,
     collapse: _collapse(name, value),
+    options: _parseOptions(name: name, report: value),
   );
 }
 
@@ -214,6 +216,7 @@ FilesReportDefinition _parseFilesReport({
       'file',
       'assets',
       'collapse',
+      'options',
     },
   );
   final destination = value['destination'];
@@ -222,6 +225,7 @@ FilesReportDefinition _parseFilesReport({
       readableMessage: 'Files report `$name` requires `destination`.',
     );
   }
+  final options = _parseOptions(name: name, report: value);
   final root = _parseSlot(name: name, slot: 'root', value: value['root']);
   final directory = _parseSlot(
     name: name,
@@ -229,6 +233,11 @@ FilesReportDefinition _parseFilesReport({
     value: value['directory'],
   );
   final file = _parseSlot(name: name, slot: 'file', value: value['file']);
+  _rejectOptionVariableClash(
+    name: name,
+    options: options,
+    slots: [root, directory, file],
+  );
   if (root == null && directory == null && file == null) {
     throw CoverageReportDefinitionFailure(
       readableMessage:
@@ -242,6 +251,7 @@ FilesReportDefinition _parseFilesReport({
     file: file,
     assets: _parseAssets(name: name, value: value['assets']),
     collapse: _collapse(name, value),
+    options: options,
   );
 }
 
@@ -380,6 +390,117 @@ ReportAsset _parseAsset({
     to: _requiredString('$name.assets[${index + 1}]', value, 'to'),
     render: render == true,
   );
+}
+
+Map<String, ReportOption> _parseOptions({
+  required String name,
+  required yaml.YamlMap report,
+}) {
+  final raw = report['options'];
+  if (raw == null) return const {};
+  if (raw is! yaml.YamlMap) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage: 'Report `$name` `options` must be a map.',
+    );
+  }
+  final options = <String, ReportOption>{};
+  for (final entry in raw.entries) {
+    final key = entry.key;
+    if (key is! String || key.trim().isEmpty) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            'Report `$name` `options` keys must be non-empty strings.',
+      );
+    }
+    if (key == 'input' || key == 'config') {
+      throw CoverageReportDefinitionFailure(
+        readableMessage: 'Report `$name` option `$key` is reserved.',
+      );
+    }
+    final value = entry.value;
+    if (value is! yaml.YamlMap) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage: 'Report `$name` option `$key` must be a map.',
+      );
+    }
+    _rejectUnknownKeys(
+      name: '$name.options.$key',
+      value: value,
+      allowed: {'default', 'allowed'},
+    );
+    final defaultValue = _requiredString(
+      '$name.options.$key',
+      value,
+      'default',
+    );
+    final allowed = _parseAllowed(
+      name: name,
+      option: key,
+      value: value['allowed'],
+    );
+    if (allowed.isNotEmpty && !allowed.contains(defaultValue)) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            'Report `$name` option `$key` default `$defaultValue` '
+            'is not an allowed value.',
+      );
+    }
+    options[key] = ReportOption(
+      name: key,
+      defaultValue: defaultValue,
+      allowed: allowed,
+    );
+  }
+  return options;
+}
+
+List<String> _parseAllowed({
+  required String name,
+  required String option,
+  required dynamic value,
+}) {
+  if (value == null) return const [];
+  if (value is! yaml.YamlList) {
+    throw CoverageReportDefinitionFailure(
+      readableMessage:
+          'Report `$name` option `$option` `allowed` must be a list.',
+    );
+  }
+  final allowed = <String>[];
+  for (final item in value) {
+    if (item is! String || item.trim().isEmpty) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            'Report `$name` option `$option` `allowed` values '
+            'must be non-empty strings.',
+      );
+    }
+    allowed.add(item);
+  }
+  return allowed;
+}
+
+void _rejectOptionVariableClash({
+  required String name,
+  required Map<String, ReportOption> options,
+  required List<ReportSlot?> slots,
+}) {
+  if (options.isEmpty) return;
+  final variables = <String>{
+    for (final slot in slots)
+      if (slot != null) ...[
+        ...slot.variables.keys,
+        for (final page in slot.pages) ...page.variables.keys,
+      ],
+  };
+  for (final option in options.keys) {
+    if (variables.contains(option)) {
+      throw CoverageReportDefinitionFailure(
+        readableMessage:
+            'Report `$name` option `$option` is also a template variable.',
+      );
+    }
+  }
 }
 
 String _requiredString(String owner, yaml.YamlMap value, String key) {
