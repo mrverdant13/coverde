@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:args/command_runner.dart';
-import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/utils/utils.dart';
@@ -10,6 +9,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
+
+import '../../oracle/log_coverage.dart';
 
 final class _MockLogger extends Mock implements Logger {}
 

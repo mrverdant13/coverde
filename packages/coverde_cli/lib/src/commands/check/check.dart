@@ -1,6 +1,6 @@
-import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/check/render_check.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -14,25 +14,13 @@ export 'failures.dart';
 class CheckCommand extends CoverdeCommand {
   /// {@macro check_cmd}
   CheckCommand() {
-    argParser
-      ..addOption(
-        inputOptionName,
-        abbr: inputOptionAbbreviation,
-        help: '''
+    argParser.addOption(
+      inputOptionName,
+      abbr: inputOptionAbbreviation,
+      help: '''
 Trace file used for the coverage check.''',
-        defaultsTo: 'coverage/lcov.info',
-      )
-      ..addOption(
-        fileCoverageLogLevelOptionName,
-        help: '''
-The log level for the coverage value for each source file listed in the `$inputOptionName` info file.''',
-        allowed: FileCoverageLogLevel.values.map((level) => level.identifier),
-        allowedHelp: {
-          for (final logLevel in FileCoverageLogLevel.values)
-            logLevel.identifier: logLevel.help,
-        },
-        defaultsTo: FileCoverageLogLevel.lineContent.identifier,
-      );
+      defaultsTo: 'coverage/lcov.info',
+    );
   }
 
   /// Option name for the trace file whose coverage value should be checked.
@@ -43,10 +31,6 @@ The log level for the coverage value for each source file listed in the `$inputO
   /// checked.
   @visibleForTesting
   static const inputOptionAbbreviation = 'i';
-
-  /// Option name for the log level for the coverage value for each source file.
-  @visibleForTesting
-  static const fileCoverageLogLevelOptionName = 'file-coverage-log-level';
 
   /// The name of the configuration file consulted for named thresholds.
   static const _configFileName = 'coverde.yaml';
@@ -73,16 +57,6 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
   Future<void> run() async {
     final argResults = this.argResults!;
     final filePath = p.absolute(argResults.option(inputOptionName)!);
-    final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel = argResults.option(
-        fileCoverageLogLevelOptionName,
-      )!;
-      return FileCoverageLogLevel.values.firstWhere(
-        // It is safe to look up the log level by identifier because the allowed
-        // values are validated by the args parser.
-        (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
-      );
-    }();
     final args = argResults.rest;
     if (args.length > 1) {
       throw CoverdeCheckMoreThanOneArgumentFailure(
@@ -116,11 +90,7 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       throw CoverdeCheckEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
-    logCoverage(
-      logger: logger,
-      document: document,
-      fileCoverageLogLevel: fileCoverageLogLevel,
-    );
+    logger.write(await renderCheckReport(document: document));
 
     final lineRate = document.lineRate;
     if (lineRate == null) {
