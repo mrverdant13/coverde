@@ -1,4 +1,4 @@
-import 'package:coverde/src/commands/value/value.dart';
+import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/features/console/render_console.dart';
@@ -104,10 +104,6 @@ String _logged(CoverageDocument document, FileCoverageLogLevel level) {
   when(() => logger.info(any())).thenAnswer((invocation) {
     lines.add(invocation.positionalArguments.single as String);
   });
-  ValueCommand.logCoverage(
-    logger: logger,
-    document: document,
-    fileCoverageLogLevel: level,
-  );
+  logCoverage(logger: logger, document: document, fileCoverageLogLevel: level);
   return '${lines.join('\n')}\n';
 }

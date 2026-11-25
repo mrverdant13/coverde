@@ -52,7 +52,6 @@ extension on CoverdeFailure {
     final CoverdeRenderFailure failure => failure.exitCode,
     final CoverageReportFailure failure => failure.exitCode,
     final CoverdeRmFailure failure => failure.exitCode,
-    final CoverdeValueFailure failure => failure.exitCode,
     CoverdeTransformUnresolvedCoveragePathFailure() => ExitCode.data,
     _ => ExitCode.software,
   };
@@ -202,21 +201,5 @@ extension on CoverdeRenderInvalidTraceFileFailure {
     CoverdeRenderTraceFileNotFoundFailure() => ExitCode.noInput,
     CoverdeRenderEmptyTraceFileFailure() => ExitCode.data,
     CoverdeRenderTraceFileReadFailure() => ExitCode.ioError,
-  };
-}
-
-extension on CoverdeValueFailure {
-  ExitCode get exitCode => switch (this) {
-    final CoverdeValueInvalidTraceFileFailure failure => failure.exitCode,
-    CoverdeValueFileReadFailure() => ExitCode.ioError,
-    CoverdeValueUnresolvedCoveragePathFailure() => ExitCode.data,
-  };
-}
-
-extension on CoverdeValueInvalidTraceFileFailure {
-  ExitCode get exitCode => switch (this) {
-    CoverdeValueTraceFileNotFoundFailure() => ExitCode.noInput,
-    CoverdeValueEmptyTraceFileFailure() => ExitCode.data,
-    CoverdeValueTraceFileReadFailure() => ExitCode.ioError,
   };
 }

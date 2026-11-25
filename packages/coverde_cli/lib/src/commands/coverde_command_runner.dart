@@ -28,7 +28,6 @@ class CoverdeCommandRunner extends CommandRunner<void> {
     addCommand(ReportCommand());
     addCommand(RenderCommand());
     addCommand(RmCommand());
-    addCommand(ValueCommand());
     argParser.addOption(
       updateCheckOptionName,
       help: 'The update check mode to use.',
