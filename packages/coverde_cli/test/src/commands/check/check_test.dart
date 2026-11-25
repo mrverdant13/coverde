@@ -509,20 +509,150 @@ coverage:
         expect(
           action,
           throwsA(
-            isA<CoverdeCheckUnknownCoverageThresholdFailure>()
-                .having(
-                  (failure) => failure.configPath,
-                  'configPath',
-                  configPath,
-                )
-                .having(
-                  (failure) => failure.availableThresholds,
-                  'availableThresholds',
-                  isEmpty,
-                ),
+            isA<CoverdeCheckConfigFileNotFoundFailure>().having(
+              (failure) => failure.configPath,
+              'configPath',
+              configPath,
+            ),
           ),
         );
       }, getCurrentDirectory: () => directory);
+    });
+
+    test('<number> | does not open a missing default config file', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+
+      late final String expected;
+      await IOOverrides.runZoned(() async {
+        expected = await renderCheckReport(
+          document: CoverageDocument.parse(
+            File(traceFilePath).readAsStringSync(),
+          ),
+        );
+        await cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          '80',
+        ]);
+      }, getCurrentDirectory: () => directory);
+
+      expect(
+        File(p.join(directory.path, 'coverde.yaml')).existsSync(),
+        isFalse,
+      );
+      verify(() => logger.write(expected)).called(1);
+    });
+
+    test('--config=<missing> | fails for a number and a name', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'other.yaml');
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+
+      await IOOverrides.runZoned(() async {
+        for (final threshold in ['80', 'pkg-min']) {
+          Future<void> action() => cmdRunner.run([
+            'check',
+            '--${CheckCommand.inputOptionName}',
+            traceFilePath,
+            '--${CheckCommand.configOptionName}',
+            configPath,
+            threshold,
+          ]);
+          expect(
+            action,
+            throwsA(
+              isA<CoverdeCheckConfigFileNotFoundFailure>().having(
+                (failure) => failure.configPath,
+                'configPath',
+                configPath,
+              ),
+            ),
+            reason: threshold,
+          );
+        }
+      }, getCurrentDirectory: () => directory);
+    });
+
+    test('--config=<invalid> | fails for a number threshold', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final configPath = p.join(directory.path, 'other.yaml');
+      File(configPath).writeAsStringSync('coverage: [');
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+
+      await IOOverrides.runZoned(() async {
+        Future<void> action() => cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          '--${CheckCommand.configOptionName}',
+          configPath,
+          '80',
+        ]);
+
+        expect(
+          action,
+          throwsA(
+            isA<CoverdeCheckInvalidConfigFileFailure>().having(
+              (failure) => failure.configPath,
+              'configPath',
+              configPath,
+            ),
+          ),
+        );
+      }, getCurrentDirectory: () => directory);
+    });
+
+    test('<name> | ignores a reports entry', () async {
+      final directory = Directory.systemTemp.createTempSync('coverde-check-');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      final traceFilePath = p.join(directory.path, 'trace.lcov.info');
+      File(
+        traceFilePath,
+      ).writeAsStringSync('SF:lib/foo.dart\nDA:1,1\nend_of_record\n');
+      final configPath = p.join(directory.path, 'coverde.yaml');
+      File(configPath).writeAsStringSync('''
+reports:
+  summary:
+    template: summary.liquid
+coverage:
+  pkg-min: 90
+''');
+
+      late final String expected;
+      await IOOverrides.runZoned(() async {
+        expected = await renderCheckReport(
+          document: CoverageDocument.parse(
+            File(traceFilePath).readAsStringSync(),
+          ),
+        );
+        await cmdRunner.run([
+          'check',
+          '--${CheckCommand.inputOptionName}',
+          traceFilePath,
+          'pkg-min',
+        ]);
+      }, getCurrentDirectory: () => directory);
+
+      verify(
+        () => logger.info(
+          'Using coverage threshold `pkg-min` (90.00%) from `$configPath`.',
+        ),
+      ).called(1);
+      verify(() => logger.write(expected)).called(1);
     });
 
     test('<name> | fails when coverde.yaml is invalid', () async {

@@ -113,6 +113,20 @@ Available thresholds: $available.
   }
 }
 
+/// {@template coverde_cli.check_config_file_not_found_failure}
+/// A [CheckCommand] failure that indicates that the config file does not exist.
+/// {@endtemplate}
+final class CoverdeCheckConfigFileNotFoundFailure extends CoverdeCheckFailure {
+  /// {@macro coverde_cli.check_config_file_not_found_failure}
+  const CoverdeCheckConfigFileNotFoundFailure({required this.configPath});
+
+  /// The path to the config file.
+  final String configPath;
+
+  @override
+  String get readableMessage => 'Config file at `$configPath` was not found.';
+}
+
 /// {@template coverde_cli.check_config_file_read_failure}
 /// A [CheckCommand] failure that indicates that the config file could not be
 /// read.
