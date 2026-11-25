@@ -102,7 +102,7 @@ void main() {
           'coverde.yaml',
           'summary',
         ]);
-        verify(() => logger.write('trueeu48')).called(1);
+        verify(() => logger.write('true${'eu'}48')).called(1);
 
         await _FakeCoverdeCommandRunner(
           logger: logger,
@@ -116,7 +116,7 @@ void main() {
           'eu',
           '--region=us',
         ]);
-        verify(() => logger.write('trueus48')).called(1);
+        verify(() => logger.write('true${'us'}48')).called(1);
       }, getCurrentDirectory: () => directory);
     });
 
@@ -288,8 +288,8 @@ reports:
 
         final unreadable = _project(yaml: _consoleYaml, template: 'x');
         final config = File(p.join(unreadable.path, 'coverde.yaml'));
-        Process.runSync('chmod', ['000', config.path]);
-        addTearDown(() => Process.runSync('chmod', ['644', config.path]));
+        _denyRead(config);
+        addTearDown(() => _allowRead(config));
         await IOOverrides.runZoned(() async {
           expect(
             () => cmdRunner.run(['report', 'custom', 'summary']),
@@ -321,13 +321,14 @@ reports:
               'report',
               'custom',
               'summary',
-              '-iempty.lcov.info',
+              '-i${'empty.lcov.info'}',
             ]),
             throwsA(isA<CoverdeReportEmptyTraceFileFailure>()),
           );
           final blocked = File(p.join(traces.path, 'blocked.lcov.info'))
             ..writeAsStringSync('SF:lib/a.dart\nDA:1,1\nend_of_record\n');
-          Process.runSync('chmod', ['000', blocked.path]);
+          _denyRead(blocked);
+          addTearDown(() => _allowRead(blocked));
           expect(
             () => cmdRunner.run([
               'report',
@@ -409,4 +410,22 @@ Directory _project({required String yaml, required String template}) {
 
 void _writeConfig(Directory directory, String yaml) {
   File(p.join(directory.path, 'coverde.yaml')).writeAsStringSync(yaml);
+}
+
+void _denyRead(File file) {
+  final result = Platform.isWindows
+      ? Process.runSync('icacls', [file.path, '/deny', 'Everyone:(R)'])
+      : Process.runSync('chmod', ['a-r', file.path]);
+  if (result.exitCode != 0) {
+    fail('Could not remove read access.\n${result.stdout}\n${result.stderr}');
+  }
+}
+
+void _allowRead(File file) {
+  if (!file.existsSync()) return;
+  if (Platform.isWindows) {
+    Process.runSync('icacls', [file.path, '/remove:d', 'Everyone']);
+    return;
+  }
+  Process.runSync('chmod', ['u+r', file.path]);
 }
