@@ -106,6 +106,13 @@ void main() {
         );
       }
     }
+
+    // A missing break would draw every source line on one row. The genhtml
+    // comparison ignores whitespace, so this checks the break itself.
+    expect(
+      File(p.join(output.path, 'lib', 'a.dart.gcov.html')).readAsStringSync(),
+      contains('</span>\n<span id="L'),
+    );
   });
 }
 

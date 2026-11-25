@@ -105,7 +105,7 @@
 {%- assign branchLead = "" | pad: branchLeadWidth -%}
 {%- endif -%}
 <span id="L{{ line.number }}"><span class="lineNum">{{ line.number | append: "" | pad: 8, "right" }}</span>{%- if branchCount > 0 -%}{{ branchLead }}[{%- for branch in line.branches -%}{%- if branch.taken == null or branch.taken == 0 -%}<span class="tlaUNC" title="Branch {{ branch.branch }} was not taken"> - </span>{%- elsif branch.taken == 1 -%}<span class="tlaGBC" title="Branch {{ branch.branch }} was taken 1 time"> + </span>{%- else -%}<span class="tlaGBC" title="Branch {{ branch.branch }} was taken {{ branch.taken }} times"> + </span>{%- endif -%}{%- endfor -%}]{%- else -%}{{ noBranches }}{%- endif -%}:{% if hitClass == "" %}{{ hitText }}: {{ line.source | escape }}{% else %}<span class="{{ hitClass }}">{{ hitText }} : {{ line.source | escape }}</span>{% endif %}</span>
-{%- endfor -%}
+{% endfor -%}
 </pre>
               </td>
             </tr>
