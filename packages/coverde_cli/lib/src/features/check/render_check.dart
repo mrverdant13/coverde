@@ -19,9 +19,7 @@ import 'package:universal_io/io.dart';
 /// shown around those lines. A missing or unresolvable source becomes the
 /// uncovered line numbers, and does not fail the render.
 /// {@endtemplate}
-Future<String> renderCheckReport({
-  required CoverageDocument document,
-}) async {
+Future<String> renderCheckReport({required CoverageDocument document}) async {
   final templates = await _templateDirectory();
   final buffer = StringBuffer();
   await TemplateCoverageReporter(
