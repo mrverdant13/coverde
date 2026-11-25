@@ -264,7 +264,7 @@ Usage message
 
         expect(
           result,
-          'Coverage path `C:\\lib\\a.dart` cannot be resolved '
+          r'Coverage path `C:\lib\a.dart` cannot be resolved '
           'on this operating system.',
         );
       });
