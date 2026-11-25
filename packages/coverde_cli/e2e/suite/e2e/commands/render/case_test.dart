@@ -150,8 +150,8 @@ Future<ProcessResult> _runRender({
   final result = await Process.run(
     executable,
     [
-      'render',
-      '--report',
+      'report',
+      'custom',
       report,
       '--input',
       'coverage/lcov.info',
@@ -164,7 +164,7 @@ Future<ProcessResult> _runRender({
   expect(
     result.exitCode,
     0,
-    reason: 'render $report failed:\n${result.stderr}\n${result.stdout}',
+    reason: 'report custom $report failed:\n${result.stderr}\n${result.stdout}',
   );
   return result;
 }
