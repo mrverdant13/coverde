@@ -125,16 +125,13 @@ extension on CoverdeReportFailure {
     final CoverdeReportInvalidInputFailure failure => failure.exitCode,
     final CoverdeReportInvalidTraceFileFailure failure => failure.exitCode,
     final CoverdeReportFileOperationFailure failure => failure.exitCode,
-    CoverdeReportOutsideDirectoryFailure() => ExitCode.data,
     CoverdeReportUnresolvedCoveragePathFailure() => ExitCode.data,
   };
 }
 
 extension on CoverdeReportFileOperationFailure {
   ExitCode get exitCode => switch (this) {
-    CoverdeReportFileReadFailure() ||
-    CoverdeReportFileWriteFailure() ||
-    CoverdeReportFileCreateFailure() => ExitCode.ioError,
+    CoverdeReportFileReadFailure() => ExitCode.ioError,
   };
 }
 

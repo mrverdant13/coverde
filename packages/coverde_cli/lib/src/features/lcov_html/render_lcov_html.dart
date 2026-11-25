@@ -55,9 +55,11 @@ Future<String> _templateDirectory() async {
     Uri.parse('package:coverde/src/features/lcov_html/templates/folder.liquid'),
   );
   if (uri == null) {
+    // coverage:ignore-start
     throw const CoverageTemplateRenderFailure(
       readableMessage: 'Built-in LCOV HTML templates were not found.',
     );
+    // coverage:ignore-end
   }
   return p.dirname(uri.toFilePath());
 }

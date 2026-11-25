@@ -26,6 +26,27 @@ void main() {
     if (output.existsSync()) output.deleteSync(recursive: true);
   });
 
+  test('rejects limits that are out of range or out of order', () {
+    final document = CoverageDocument.parse(
+      'SF:lib/a.dart\nDA:1,1\nLF:1\nLH:1\nend_of_record\n',
+    );
+    Future<void> render({num medium = 75, num high = 90}) {
+      return renderLcovHtmlReport(
+        document: document,
+        sources: const FileCoverageSourceReader(),
+        output: Directory('unused'),
+        medium: medium,
+        high: high,
+      );
+    }
+
+    expect(() => render(medium: -1), throwsArgumentError);
+    expect(() => render(medium: 101), throwsArgumentError);
+    expect(() => render(high: -1), throwsArgumentError);
+    expect(() => render(high: 101), throwsArgumentError);
+    expect(() => render(medium: 90), throwsArgumentError);
+  });
+
   test('built-in lcov-html matches the genhtml reference', () async {
     final packageRoot = Directory.current.path;
     final fixture = p.join(
