@@ -43,10 +43,35 @@ String truncate(
   return '...${text.substring(text.length - keep)}';
 }
 
+/// Sorts maps by one field.
+///
+/// Strings sort alphabetically and numbers sort by value. Nulls stay last.
+/// Equal values keep their previous order.
+dynamic sortBy(
+  dynamic value,
+  List<dynamic> arguments,
+  Map<String, dynamic> namedArguments,
+) {
+  if (value is! List || arguments.isEmpty) return value;
+  final field = '${arguments.first}';
+  final indexed =
+      [for (var index = 0; index < value.length; index++) (value[index], index)]
+        ..sort((left, right) {
+          final order = _compareValues(
+            _field(left.$1, field),
+            _field(right.$1, field),
+          );
+          if (order != 0) return order;
+          return left.$2.compareTo(right.$2);
+        });
+  return [for (final entry in indexed) entry.$1];
+}
+
 /// Sorts file or directory maps by a rate field.
 ///
 /// Null rates stay after numbers. The direction is `asc`, the default, or
-/// `desc`. Equal rates keep their previous order.
+/// `desc`. A third argument of `first` puts null rates before numbers.
+/// Equal rates keep their previous order.
 dynamic sortByRate(
   dynamic value,
   List<dynamic> arguments,
@@ -55,6 +80,7 @@ dynamic sortByRate(
   if (value is! List) return value;
   final field = arguments.isEmpty ? 'lineRate' : '${arguments.first}';
   final descending = arguments.length > 1 && arguments[1] == 'desc';
+  final nullsFirst = arguments.length > 2 && arguments[2] == 'first';
   final indexed =
       [for (var index = 0; index < value.length; index++) (value[index], index)]
         ..sort((left, right) {
@@ -62,6 +88,7 @@ dynamic sortByRate(
             _rate(left.$1, field),
             _rate(right.$1, field),
             descending: descending,
+            nullsFirst: nullsFirst,
           );
           if (order != 0) return order;
           return left.$2.compareTo(right.$2);
@@ -69,12 +96,30 @@ dynamic sortByRate(
   return [for (final entry in indexed) entry.$1];
 }
 
-int _compareRates(double? left, double? right, {required bool descending}) {
+int _compareRates(
+  double? left,
+  double? right, {
+  required bool descending,
+  bool nullsFirst = false,
+}) {
+  if (left == null && right == null) return 0;
+  if (left == null) return nullsFirst ? -1 : 1;
+  if (right == null) return nullsFirst ? 1 : -1;
+  final order = left.compareTo(right);
+  return descending ? -order : order;
+}
+
+int _compareValues(Object? left, Object? right) {
   if (left == null && right == null) return 0;
   if (left == null) return 1;
   if (right == null) return -1;
-  final order = left.compareTo(right);
-  return descending ? -order : order;
+  if (left is num && right is num) return left.compareTo(right);
+  return '$left'.compareTo('$right');
+}
+
+Object? _field(dynamic item, String field) {
+  if (item is! Map) return null;
+  return item[field] as Object?;
 }
 
 double? _rate(dynamic item, String field) {

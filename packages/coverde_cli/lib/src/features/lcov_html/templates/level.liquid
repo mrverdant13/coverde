@@ -1,0 +1,7 @@
+{%- if lo == null -%}{%- assign lo = 75 -%}{%- endif -%}
+{%- if hi == null -%}{%- assign hi = 90 -%}{%- endif -%}
+{%- if rate == null -%}
+{%- elsif rate < lo -%}Lo
+{%- elsif rate < hi -%}Med
+{%- else -%}Hi
+{%- endif -%}
