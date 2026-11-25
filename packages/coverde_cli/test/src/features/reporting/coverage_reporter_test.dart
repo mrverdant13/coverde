@@ -31,6 +31,21 @@ void main() {
       expect(lines, isNull);
     });
 
+    test('fails when the source file is not valid UTF-8', () {
+      final source = File('${root.path}/bad.dart')..writeAsBytesSync([0x80]);
+
+      expect(
+        () => const FileCoverageSourceReader().readLines(source.path),
+        throwsA(
+          isA<CoverageReportSourceReadFailure>().having(
+            (failure) => failure.path,
+            'path',
+            source.path,
+          ),
+        ),
+      );
+    });
+
     test('fails when the source file cannot be read', () {
       final file = _MockFile();
       when(file.existsSync).thenReturn(true);

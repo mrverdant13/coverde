@@ -68,10 +68,19 @@ end_of_record
       final unreadable = File(p.join(directory.path, 'lib', 'blocked.dart'))
         ..createSync(recursive: true)
         ..writeAsStringSync('void blocked() {}\n');
-      Process.runSync('chmod', ['000', unreadable.path]);
+      _denyRead(unreadable);
+      addTearDown(() => _allowRead(unreadable));
       final blocked = CoverageDocument.parse('''
 SF:${unreadable.path}
 DA:3,0
+end_of_record
+''');
+      final undecodable = File(p.join(directory.path, 'lib', 'bad.dart'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync([0x80]);
+      final undecodableTrace = CoverageDocument.parse('''
+SF:${undecodable.path}
+DA:1,0
 end_of_record
 ''');
       final unresolved = CoverageDocument.parse('''
@@ -88,6 +97,10 @@ end_of_record
         expect(
           await renderCheckReport(document: blocked),
           _logged(blocked, FileCoverageLogLevel.lineNumbers),
+        );
+        expect(
+          await renderCheckReport(document: undecodableTrace),
+          _logged(undecodableTrace, FileCoverageLogLevel.lineNumbers),
         );
         expect(
           await renderCheckReport(document: unresolved),
@@ -123,6 +136,24 @@ end_of_record
       expect(rendered, contains('GLOBAL:'));
     }, getCurrentDirectory: () => directory);
   });
+}
+
+void _denyRead(File file) {
+  final result = Platform.isWindows
+      ? Process.runSync('icacls', [file.path, '/deny', 'Everyone:(R)'])
+      : Process.runSync('chmod', ['a-r', file.path]);
+  if (result.exitCode != 0) {
+    fail('Could not remove read access.\n${result.stdout}\n${result.stderr}');
+  }
+}
+
+void _allowRead(File file) {
+  if (!file.existsSync()) return;
+  if (Platform.isWindows) {
+    Process.runSync('icacls', [file.path, '/remove:d', 'Everyone']);
+    return;
+  }
+  Process.runSync('chmod', ['u+r', file.path]);
 }
 
 String _logged(CoverageDocument document, FileCoverageLogLevel level) {
