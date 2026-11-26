@@ -1,5 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/features/reporting/reporting.dart';
+import 'package:coverde/src/utils/trace_merge.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 import 'package:universal_io/io.dart';
@@ -252,22 +253,5 @@ The report is selected from the reports defined in $_configFileName.''';
         ? path
         : p.join(Directory.current.path, path);
     return p.normalize(resolved);
-  }
-}
-
-/// Appends [content] to [trace], closing an open final record when needed.
-///
-/// Each input may omit a trailing `end_of_record`. Joining those files without
-/// closing the open record glues the next file's `SF:` into the same record.
-@visibleForTesting
-void appendTraceContent(StringBuffer trace, String content) {
-  if (content.isEmpty) return;
-  trace.write(content);
-  if (!content.endsWith('\n')) {
-    trace.write('\n');
-  }
-  final trimmed = content.trimRight();
-  if (trimmed.isNotEmpty && !trimmed.endsWith('end_of_record')) {
-    trace.writeln('end_of_record');
   }
 }

@@ -1,10 +1,20 @@
-# Globally allowed words
+# Globally allowed words.
+# `backround` is the genhtml CSS typo, kept so the built-in report matches it.
+# `endcapture` and `endfor` are Liquid tags. The Dart dictionary already
+# allows them, and these templates are not Dart.
+backround
+cellspacing
 coverde
+Dflt
+endcapture
+endfor
+gcov
 github
 goldens
 lcov
 melos
 mrverdant13
+nbsp
 ripple
 RIPPLE_PACKAGE_NAME
 RIPPLE_PACKAGE_PATH
@@ -12,4 +22,6 @@ RIPPLE_PACKAGES
 RIPPLE_ROOT_PATH
 pubspec
 recase
+rowspan
+stylesheet
 termshot

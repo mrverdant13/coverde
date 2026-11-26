@@ -163,14 +163,8 @@ final class CoverdeReportTraceFileReadFailure
 
 /// An operation on a file.
 enum CoverdeReportFileOperation {
-  /// The operation to create a file.
-  create('create'),
-
   /// The operation to read a file.
-  read('read'),
-
-  /// The operation to write to a file.
-  write('write');
+  read('read');
 
   const CoverdeReportFileOperation(this.name);
 
@@ -193,7 +187,7 @@ sealed class CoverdeReportFileOperationFailure extends CoverdeReportFailure {
   /// The file path where the operation failed.
   final String filePath;
 
-  /// The operation that failed (e.g., 'write', 'create').
+  /// The operation that failed.
   final CoverdeReportFileOperation operation;
 
   /// The underlying error message.
@@ -203,55 +197,6 @@ sealed class CoverdeReportFileOperationFailure extends CoverdeReportFailure {
   String get readableMessage =>
       'Failed to ${operation.name} file at `$filePath`.\n'
       '$errorMessage';
-}
-
-/// {@template coverde_cli.report_file_write_failure}
-/// A [ReportCommand] failure that indicates that a file write operation failed.
-/// {@endtemplate}
-final class CoverdeReportFileWriteFailure
-    extends CoverdeReportFileOperationFailure {
-  /// {@macro coverde_cli.report_file_write_failure}
-  const CoverdeReportFileWriteFailure({
-    required super.filePath,
-    required super.errorMessage,
-  }) : super(operation: CoverdeReportFileOperation.write);
-
-  /// Create a [CoverdeReportFileWriteFailure] from a [FileSystemException].
-  CoverdeReportFileWriteFailure.fromFileSystemException({
-    required super.filePath,
-    required FileSystemException exception,
-  }) : super(
-         operation: CoverdeReportFileOperation.write,
-         errorMessage: [
-           exception.message,
-           if (exception.osError case final osError?) osError.message,
-         ].join('\n'),
-       );
-}
-
-/// {@template coverde_cli.report_file_create_failure}
-/// A [ReportCommand] failure that indicates that a file creation operation
-/// failed.
-/// {@endtemplate}
-final class CoverdeReportFileCreateFailure
-    extends CoverdeReportFileOperationFailure {
-  /// {@macro coverde_cli.report_file_create_failure}
-  const CoverdeReportFileCreateFailure({
-    required super.filePath,
-    required super.errorMessage,
-  }) : super(operation: CoverdeReportFileOperation.create);
-
-  /// Create a [CoverdeReportFileCreateFailure] from a [FileSystemException].
-  CoverdeReportFileCreateFailure.fromFileSystemException({
-    required super.filePath,
-    required FileSystemException exception,
-  }) : super(
-         operation: CoverdeReportFileOperation.create,
-         errorMessage: [
-           exception.message,
-           if (exception.osError case final osError?) osError.message,
-         ].join('\n'),
-       );
 }
 
 /// {@template coverde_cli.report_file_read_failure}
@@ -276,23 +221,6 @@ final class CoverdeReportFileReadFailure
            if (exception.osError case final osError?) osError.message,
          ].join('\n'),
        );
-}
-
-/// {@template coverde_cli.report_outside_directory_failure}
-/// A [ReportCommand] failure that indicates a report file would be written
-/// outside the report directory.
-/// {@endtemplate}
-final class CoverdeReportOutsideDirectoryFailure extends CoverdeReportFailure {
-  /// {@macro coverde_cli.report_outside_directory_failure}
-  const CoverdeReportOutsideDirectoryFailure({required this.sourcePath});
-
-  /// The coverage path that left the report directory.
-  final String sourcePath;
-
-  @override
-  String get readableMessage =>
-      'Coverage path `$sourcePath` would be written '
-      'outside the report directory.';
 }
 
 /// {@template coverde_cli.report_unresolved_coverage_path_failure}

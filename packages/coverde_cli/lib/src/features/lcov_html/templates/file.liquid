@@ -1,0 +1,119 @@
+{%- assign lo = thresholds["lcov-lo"] -%}
+{%- assign hi = thresholds["lcov-hi"] -%}
+{%- assign view = variables.view -%}
+{%- assign date = variables.date -%}
+{%- if file.testName -%}
+{%- assign testLabel = file.testName -%}
+{%- else -%}
+{%- assign testCount = document.testNames | size -%}
+{%- if testCount > 0 -%}
+{%- assign testLabel = document.testNames | join: ", " -%}
+{%- else -%}
+{%- assign testLabel = "" -%}
+{%- endif -%}
+{%- endif -%}
+{%- assign rel = file.path | report_path | split: "/" -%}
+{%- assign relCount = rel | size -%}
+{%- if relCount > 1 -%}
+{%- assign dir = file.path | report_path | remove_last: file.name | remove_last: "/" -%}
+{%- else -%}
+{%- assign dir = "" -%}
+{%- endif -%}
+{%- assign sourceTitle = "LCOV - " | append: testLabel | append: " - " | append: file.path | report_path -%}
+{%- if view == "func" or view == "func-c" -%}
+{%- assign pageTitle = sourceTitle | append: " - functions" -%}
+{%- else -%}
+{%- assign pageTitle = sourceTitle -%}
+{%- endif -%}
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>{{ pageTitle | escape }}</title>
+  <link rel="stylesheet" type="text/css" href="{{ pathToRoot }}gcov.css">
+</head>
+
+<body>
+{% render 'header.liquid', pathToRoot: pathToRoot, kind: "file", rel: dir, name: file.name, view: view, testLabel: testLabel, date: date, lo: lo, hi: hi, lineRate: file.lineRate, linesHit: file.linesHit, linesFound: file.linesFound, functionRate: file.functionRate, functionsHit: file.functionsHit, functionsFound: file.functionsFound, branchRate: file.branchRate, branchesHit: file.branchesHit, branchesFound: file.branchesFound %}
+{%- if view == "func" or view == "func-c" -%}
+{%- assign functions = file.functions -%}
+{%- if functions -%}
+{%- if view == "func-c" -%}
+{%- assign functions = functions | sort_by: "hits" -%}
+{%- else -%}
+{%- assign functions = functions | sort_by: "name" -%}
+{%- endif -%}
+{%- endif -%}
+{%- assign nameHref = file.name | append: ".func.html" -%}
+{%- assign countHref = file.name | append: ".func-c.html" -%}
+          <center>
+          <table cellpadding=1 cellspacing=1 border=0>
+            <tr><td><br></td></tr>
+            <tr>
+              <td class="tableHead">Function Name {% render 'sort_head.liquid', pathToRoot: pathToRoot, active: view == "func", href: nameHref, alt: "Sort by function name", title: "Click to sort table by function name" %}</td>
+              <td class="tableHead">Hit count {% render 'sort_head.liquid', pathToRoot: pathToRoot, active: view == "func-c", href: countHref, alt: "Sort by function hit count", title: "Click to sort table by function hit count" %}</td>
+            </tr>
+            {%- for function in functions -%}
+            {%- assign startLine = function.line | minus: 2 -%}
+            {%- if startLine < 1 -%}{%- assign startLine = 1 -%}{%- endif -%}
+            <tr>
+              <td class="coverFn"><a href="{{ file.name }}.gcov.html#L{{ startLine }}">{{ function.name | escape }}</a></td>
+              <td class="{%- if function.hits > 0 -%}coverFnHi{%- else -%}coverFnLo{%- endif -%}">{{ function.hits }}</td>
+            </tr>
+            {%- endfor -%}
+          </table>
+          <br>
+          </center>
+{%- else -%}
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">             Branch data     Line data    Source code</pre>
+<pre class="source">
+{%- assign seenGnc = nil -%}
+{%- assign seenUnc = nil -%}
+{%- assign plainHits = "" | pad: 13 -%}
+{%- assign noBranches = "" | pad: 17 -%}
+{%- for line in file.lines -%}
+{%- assign branchCount = line.branches | size -%}
+{%- if line.hits == null -%}
+{%- assign hitClass = "" -%}
+{%- assign hitText = plainHits -%}
+{%- elsif line.hits == 0 -%}
+{%- assign hitClass = "tlaUNC" -%}
+{%- assign hitText = line.hits | append: "" | pad: 12, "right" -%}
+{%- else -%}
+{%- assign hitClass = "tlaGNC" -%}
+{%- assign hitText = line.hits | append: "" | pad: 12, "right" -%}
+{%- endif -%}
+{%- if hitClass == "tlaGNC" and seenGnc == null -%}
+{%- assign hitClass = "tlaGNC tlaBgGNC" -%}
+{%- assign seenGnc = true -%}
+{%- elsif hitClass == "tlaUNC" and seenUnc == null -%}
+{%- assign hitClass = "tlaUNC tlaBgUNC" -%}
+{%- assign seenUnc = true -%}
+{%- endif -%}
+{%- assign branchLead = "" -%}
+{%- if branchCount > 0 -%}
+{%- assign branchChars = branchCount | times: 3 -%}
+{%- assign branchLeadWidth = 15 | minus: branchChars -%}
+{%- assign branchLead = "" | pad: branchLeadWidth -%}
+{%- endif -%}
+<span id="L{{ line.number }}"><span class="lineNum">{{ line.number | append: "" | pad: 8, "right" }}</span>{%- if branchCount > 0 -%}{{ branchLead }}[{%- for branch in line.branches -%}{%- if branch.taken == null or branch.taken == 0 -%}<span class="tlaUNC" title="Branch {{ branch.branch }} was not taken"> - </span>{%- elsif branch.taken == 1 -%}<span class="tlaGBC" title="Branch {{ branch.branch }} was taken 1 time"> + </span>{%- else -%}<span class="tlaGBC" title="Branch {{ branch.branch }} was taken {{ branch.taken }} times"> + </span>{%- endif -%}{%- endfor -%}]{%- else -%}{{ noBranches }}{%- endif -%}:{% if hitClass == "" %}{{ hitText }}: {{ line.source | escape }}{% else %}<span class="{{ hitClass }}">{{ hitText }} : {{ line.source | escape }}</span>{% endif %}</span>
+{% endfor -%}
+</pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+{%- endif -%}
+          {% render 'footer.liquid', pathToRoot: pathToRoot, parent: true %}
+          <br>
+
+</body>
+</html>

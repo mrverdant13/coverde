@@ -1,10 +1,10 @@
 /// Coverde CLI package.
 library;
 
-export 'src/assets/assets.dart';
 export 'src/commands/commands.dart';
 export 'src/coverde.dart';
 export 'src/entities/entities.dart';
+export 'src/features/lcov_html/render_lcov_html.dart';
 export 'src/features/reporting/failures/coverage_report_failure.dart';
 export 'src/features/reporting/reporters/coverage_report_request.dart';
 export 'src/features/reporting/reporters/coverage_reporter.dart';

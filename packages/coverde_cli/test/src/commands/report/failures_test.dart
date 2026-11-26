@@ -223,6 +223,22 @@ Usage message
         expect(result, '/path/to/file');
       });
 
+      test('readableMessage '
+          '| formats a failure built with an error message', () {
+        final failure = CoverdeReportFileReadFailure(
+          filePath: '/path/to/file',
+          errorMessage: 'denied',
+        );
+
+        final result = failure.readableMessage;
+
+        expect(
+          result,
+          'Failed to read file at `/path/to/file`.\n'
+          'denied',
+        );
+      });
+
       test('operation '
           '| returns the read operation', () {
         final exception = FileSystemException('Error');
@@ -237,73 +253,20 @@ Usage message
       });
     });
 
-    group('$CoverdeReportFileWriteFailure', () {
+    group('$CoverdeReportUnresolvedCoveragePathFailure', () {
       test('readableMessage '
-          '| returns formatted message with file path and error message', () {
-        final exception = FileSystemException(
-          'Permission denied',
-          '/path/to/report.html',
-        );
-        final failure = CoverdeReportFileWriteFailure.fromFileSystemException(
-          filePath: '/path/to/report.html',
-          exception: exception,
+          '| names the path that cannot be resolved', () {
+        const failure = CoverdeReportUnresolvedCoveragePathFailure(
+          sourcePath: r'C:\lib\a.dart',
         );
 
         final result = failure.readableMessage;
 
         expect(
           result,
-          'Failed to write file at `/path/to/report.html`.\n'
-          'Permission denied',
+          r'Coverage path `C:\lib\a.dart` cannot be resolved '
+          'on this operating system.',
         );
-      });
-
-      test('operation '
-          '| returns the write operation', () {
-        final exception = FileSystemException('Error');
-        final failure = CoverdeReportFileWriteFailure.fromFileSystemException(
-          filePath: '/path/to/file',
-          exception: exception,
-        );
-
-        final result = failure.operation;
-
-        expect(result, CoverdeReportFileOperation.write);
-      });
-    });
-
-    group('$CoverdeReportFileCreateFailure', () {
-      test('readableMessage '
-          '| returns formatted message with file path and error message', () {
-        final exception = FileSystemException(
-          'Permission denied',
-          '/path/to/file.css',
-        );
-        final failure = CoverdeReportFileCreateFailure.fromFileSystemException(
-          filePath: '/path/to/file.css',
-          exception: exception,
-        );
-
-        final result = failure.readableMessage;
-
-        expect(
-          result,
-          'Failed to create file at `/path/to/file.css`.\n'
-          'Permission denied',
-        );
-      });
-
-      test('operation '
-          '| returns the create operation', () {
-        final exception = FileSystemException('Error');
-        final failure = CoverdeReportFileCreateFailure.fromFileSystemException(
-          filePath: '/path/to/file',
-          exception: exception,
-        );
-
-        final result = failure.operation;
-
-        expect(result, CoverdeReportFileOperation.create);
       });
     });
 
