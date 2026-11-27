@@ -16,7 +16,7 @@ screenshots:
     path: doc/examples/browser/coverde-report-file.png
   - description: Coverage check example
     path: doc/examples/terminal/coverde-check-50.png
-  - description: Coverage value example
+  - description: Coverage console example
     path: doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png
 environment:
   sdk: ">=3.10.0 <4.0.0"

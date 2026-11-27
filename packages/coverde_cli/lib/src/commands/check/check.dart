@@ -1,3 +1,4 @@
+import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
@@ -115,7 +116,7 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       throw CoverdeCheckEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
-    ValueCommand.logCoverage(
+    logCoverage(
       logger: logger,
       document: document,
       fileCoverageLogLevel: fileCoverageLogLevel,

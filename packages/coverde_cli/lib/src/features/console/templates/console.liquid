@@ -1,0 +1,69 @@
+{% capture nl %}
+{% endcapture %}
+{%- assign level = variables.level -%}
+{%- if level != "none" -%}
+{%- for file in document.files -%}
+{%- if file.lineRate == null -%}
+{%- assign rateText = "n/a" -%}
+{%- else -%}
+{%- assign rateText = file.lineRate | fixed: 2 | append: "%" -%}
+{%- endif -%}
+{%- capture summary -%}({{ rateText }} - {{ file.linesHit }}/{{ file.linesFound }}){%- endcapture -%}
+{%- if file.lineRate == null -%}
+{{- file.path }} {{ summary }}{{ nl -}}
+{%- elsif file.lineRate < 100 -%}
+{{- file.path }} {{ summary | colorize: "light_red" }}{{ nl -}}
+{%- else -%}
+{{- file.path }} {{ summary | colorize: "light_green" }}{{ nl -}}
+{%- endif -%}
+{%- assign uncovered = file.lines | where: "hits", 0 -%}
+{%- assign uncoveredCount = uncovered | size -%}
+{%- if level == "line-numbers" and uncoveredCount > 0 -%}
+{%- capture message -%}UNCOVERED: {{ uncovered | map: "number" | join: ", " }}{%- endcapture -%}
+{{- "└ " -}}{{ message | colorize: "red_bold" }}{{ nl -}}
+{%- elsif level == "line-content" and uncoveredCount > 0 -%}
+{%- assign lineCount = file.lines | size -%}
+{%- assign width = lineCount | append: "" | size -%}
+{%- assign bullets = "••••••••••••••••••••" | slice: 0, width -%}
+{%- assign lastPrinted = 0 -%}
+{%- for line in file.lines -%}
+{%- assign show = false -%}
+{%- for other in uncovered -%}
+{%- assign delta = line.number | minus: other.number -%}
+{%- if delta < 0 -%}{%- assign delta = 0 | minus: delta -%}{%- endif -%}
+{%- if delta <= 2 -%}{%- assign show = true -%}{%- endif -%}
+{%- endfor -%}
+{%- if show -%}
+{%- assign step = line.number | minus: lastPrinted -%}
+{%- if lastPrinted > 0 and step > 1 -%}
+{{- "├   " -}}{{ bullets }} | •••{{ nl -}}
+{%- endif -%}
+{%- if line.hits == null -%}
+{%- assign marker = " " -%}
+{%- assign style = "" -%}
+{%- elsif line.hits > 0 -%}
+{%- assign marker = "C" -%}
+{%- assign style = "green_bold" -%}
+{%- else -%}
+{%- assign marker = "U" -%}
+{%- assign style = "red_bold" -%}
+{%- endif -%}
+{%- assign number = line.number | append: "" | pad: width, "right" -%}
+{{- "├ " -}}{{ marker | colorize: style }} {{ number | colorize: style }} | {{ line.source | colorize: style }}{{ nl -}}
+{%- assign lastPrinted = line.number -%}
+{%- endif -%}
+{%- endfor -%}
+{{- nl -}}
+{%- endif -%}
+{%- endfor -%}
+{{- nl -}}
+{%- endif -%}
+{%- assign heading = "GLOBAL:" | colorize: "blue_bold" -%}
+{{- heading }}{{ nl -}}
+{%- if document.lineRate == null -%}
+{%- assign globalRate = "n/a" -%}
+{%- else -%}
+{%- assign globalRate = document.lineRate | fixed: 2 | append: "%" -%}
+{%- endif -%}
+{%- capture globalSummary -%}{{ globalRate }} - {{ document.linesHit }}/{{ document.linesFound }}{%- endcapture -%}
+{{- globalSummary | colorize: "blue_bold" }}{{ nl -}}

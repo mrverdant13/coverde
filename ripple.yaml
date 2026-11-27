@@ -151,7 +151,7 @@ scripts:
     exec:
       - "{{dart}} pub get"
       - "{{coverde}} --help"
-      - "{{coverde}} value --input fixtures/lcov.info"
+      - "{{coverde}} report console --input fixtures/lcov.info"
       - "{{dart}} --version"
     filters:
       - group: min-sdk-consumer

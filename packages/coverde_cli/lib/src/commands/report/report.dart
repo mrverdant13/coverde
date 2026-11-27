@@ -1,5 +1,6 @@
 import 'package:coverde/src/commands/commands.dart';
 
+export 'console.dart';
 export 'failures.dart';
 export 'lcov_html.dart';
 
@@ -11,6 +12,7 @@ export 'lcov_html.dart';
 class ReportCommand extends CoverdeCommand {
   /// {@macro report_cmd}
   ReportCommand() {
+    addSubcommand(ConsoleCommand());
     addSubcommand(LcovHtmlCommand());
   }
 

@@ -36,7 +36,6 @@ void main() {
           isA<ReportCommand>(),
           isA<RenderCommand>(),
           isA<RmCommand>(),
-          isA<ValueCommand>(),
         ]),
       );
     });
