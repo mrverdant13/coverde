@@ -34,7 +34,6 @@ void main() {
           isA<CheckCommand>(),
           isA<TransformCommand>(),
           isA<ReportCommand>(),
-          isA<RenderCommand>(),
           isA<RmCommand>(),
         ]),
       );

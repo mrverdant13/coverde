@@ -223,6 +223,71 @@ final class CoverdeReportFileReadFailure
        );
 }
 
+/// {@template coverde_cli.report_missing_report_name_failure}
+/// A [ReportCommand] failure that indicates that `report custom` has no name.
+/// {@endtemplate}
+final class CoverdeReportMissingReportNameFailure
+    extends CoverdeReportInvalidInputFailure {
+  /// {@macro coverde_cli.report_missing_report_name_failure}
+  const CoverdeReportMissingReportNameFailure({required super.usageMessage})
+    : super(invalidInputDescription: 'Missing report name.');
+}
+
+/// {@template coverde_cli.report_unexpected_argument_failure}
+/// A [ReportCommand] failure that indicates an extra positional argument.
+/// {@endtemplate}
+final class CoverdeReportUnexpectedArgumentFailure
+    extends CoverdeReportInvalidInputFailure {
+  /// {@macro coverde_cli.report_unexpected_argument_failure}
+  const CoverdeReportUnexpectedArgumentFailure({
+    required this.argument,
+    required super.usageMessage,
+  }) : super(invalidInputDescription: 'Unexpected argument `$argument`.');
+
+  /// The argument that was not accepted.
+  final String argument;
+}
+
+/// {@template coverde_cli.report_config_file_not_found_failure}
+/// A [ReportCommand] failure that indicates that the config path is not a file.
+/// {@endtemplate}
+final class CoverdeReportConfigFileNotFoundFailure
+    extends CoverdeReportFailure {
+  /// {@macro coverde_cli.report_config_file_not_found_failure}
+  const CoverdeReportConfigFileNotFoundFailure({required this.configPath});
+
+  /// The path that was not a file.
+  final String configPath;
+
+  @override
+  String get readableMessage => 'Config file at `$configPath` is not a file.';
+}
+
+/// {@template coverde_cli.report_config_file_read_failure}
+/// A [ReportCommand] failure that indicates that the config file could not be
+/// read.
+/// {@endtemplate}
+final class CoverdeReportConfigFileReadFailure extends CoverdeReportFailure {
+  /// Create a [CoverdeReportConfigFileReadFailure] from a file error.
+  CoverdeReportConfigFileReadFailure.fromFileSystemException({
+    required this.configPath,
+    required FileSystemException exception,
+  }) : errorMessage = [
+         exception.message,
+         if (exception.osError case final osError?) osError.message,
+       ].join('\n');
+
+  /// The path to the config file.
+  final String configPath;
+
+  /// The underlying error message.
+  final String errorMessage;
+
+  @override
+  String get readableMessage =>
+      'Failed to read config file at `$configPath`.\n$errorMessage';
+}
+
 /// {@template coverde_cli.report_unresolved_coverage_path_failure}
 /// A [ReportCommand] failure that indicates a coverage path cannot be read on
 /// this operating system.

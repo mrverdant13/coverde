@@ -70,15 +70,39 @@ final class ReportAsset {
   final bool render;
 }
 
+/// {@template coverde.report_option}
+/// A flag declared by a report and exposed to its template.
+/// {@endtemplate}
+final class ReportOption {
+  /// {@macro coverde.report_option}
+  const ReportOption({
+    required this.name,
+    required this.defaultValue,
+    this.allowed = const [],
+  });
+
+  /// The flag's long name.
+  final String name;
+
+  /// The value used when the flag is omitted.
+  final String defaultValue;
+
+  /// The values the flag accepts, or empty when any string is accepted.
+  final List<String> allowed;
+}
+
 /// {@template coverde.report_definition}
 /// A named report from `coverde.yaml`.
 /// {@endtemplate}
 sealed class ReportDefinition {
   /// {@macro coverde.report_definition}
-  const ReportDefinition({this.collapse = true});
+  const ReportDefinition({this.collapse = true, this.options = const {}});
 
   /// Whether a single-child directory chain becomes one node.
   final bool collapse;
+
+  /// Flags this report declares, keyed by [ReportOption.name].
+  final Map<String, ReportOption> options;
 }
 
 /// {@template coverde.console_report_definition}
@@ -91,6 +115,7 @@ final class ConsoleReportDefinition extends ReportDefinition {
     this.includeSource = false,
     this.destination,
     super.collapse,
+    super.options,
   });
 
   /// Template path relative to the configuration directory.
@@ -117,6 +142,7 @@ final class FilesReportDefinition extends ReportDefinition {
     this.file,
     this.assets = const [],
     super.collapse,
+    super.options,
   });
 
   /// Absolute directory that receives the rendered files.

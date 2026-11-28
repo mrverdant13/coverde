@@ -26,7 +26,6 @@ class CoverdeCommandRunner extends CommandRunner<void> {
     addCommand(CheckCommand());
     addCommand(TransformCommand());
     addCommand(ReportCommand());
-    addCommand(RenderCommand());
     addCommand(RmCommand());
     argParser.addOption(
       updateCheckOptionName,
@@ -60,6 +59,13 @@ class CoverdeCommandRunner extends CommandRunner<void> {
   @override
   void printUsage() {
     logger.write('$usage\n');
+  }
+
+  @override
+  ArgResults parse(Iterable<String> args) {
+    final list = args.toList();
+    installReportCustomOptions(this, list);
+    return super.parse(list);
   }
 
   @override

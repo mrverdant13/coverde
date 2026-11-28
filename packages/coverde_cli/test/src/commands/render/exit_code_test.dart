@@ -1,5 +1,4 @@
 import 'package:coverde/src/commands/coverde_command_runner.dart';
-import 'package:coverde/src/commands/render/render.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -34,7 +33,7 @@ reports:
     expect(result.exitCode, ExitCode.usage.code, reason: _output(result));
   });
 
-  test('an ambiguous report exits with data', () async {
+  test('a missing report name exits with usage', () async {
     _write(project, 'coverde.yaml', '''
 reports:
   one:
@@ -47,14 +46,14 @@ reports:
 
     final result = await _render(project, executable);
 
-    expect(result.exitCode, ExitCode.data.code, reason: _output(result));
+    expect(result.exitCode, ExitCode.usage.code, reason: _output(result));
   });
 
   test('a path outside the destination exits with data', () async {
     _page(project);
     _trace(project);
 
-    final result = await _render(project, executable);
+    final result = await _render(project, executable, report: 'pages');
 
     expect(result.exitCode, ExitCode.data.code, reason: _output(result));
   });
@@ -69,7 +68,7 @@ reports:
     _write(project, 'templates/page.liquid', '{{ nope }}');
     _trace(project);
 
-    final result = await _render(project, executable);
+    final result = await _render(project, executable, report: 'summary');
 
     expect(result.exitCode, ExitCode.data.code, reason: _output(result));
   });
@@ -91,7 +90,7 @@ reports:
     _write(project, 'templates/file.liquid', 'x');
     _trace(project, sourcePath: source.path);
 
-    final result = await _render(project, executable);
+    final result = await _render(project, executable, report: 'pages');
 
     expect(result.exitCode, ExitCode.ioError.code, reason: _output(result));
   });
@@ -110,7 +109,7 @@ reports:
     _write(project, 'not-a-directory', 'file');
     _trace(project);
 
-    final result = await _render(project, executable);
+    final result = await _render(project, executable, report: 'pages');
 
     expect(result.exitCode, ExitCode.ioError.code, reason: _output(result));
   });
@@ -145,8 +144,9 @@ Future<ProcessResult> _render(
   return Process.run(Platform.resolvedExecutable, [
     executable,
     '--${CoverdeCommandRunner.updateCheckOptionName}=disabled',
-    'render',
-    if (report != null) ...['--${RenderCommand.reportOption}', report],
+    'report',
+    'custom',
+    ?report,
   ], workingDirectory: project.path);
 }
 
