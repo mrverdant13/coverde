@@ -62,6 +62,7 @@ extension on CoverdeCheckFailure {
     final CoverdeCheckInvalidInputFailure failure => failure.exitCode,
     final CoverdeCheckInvalidTraceFileFailure failure => failure.exitCode,
     CoverdeCheckUnknownCoverageThresholdFailure() => ExitCode.usage,
+    CoverdeCheckConfigFileNotFoundFailure() => ExitCode.noInput,
     CoverdeCheckConfigFileReadFailure() => ExitCode.ioError,
     CoverdeCheckInvalidConfigFileFailure() => ExitCode.data,
     CoverdeCheckNoLineCoverageFailure() => ExitCode.data,

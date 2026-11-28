@@ -134,6 +134,19 @@ Available thresholds: none.
       });
     });
 
+    group('$CoverdeCheckConfigFileNotFoundFailure', () {
+      test('readableMessage | names the missing file', () {
+        const failure = CoverdeCheckConfigFileNotFoundFailure(
+          configPath: '/repo/coverde.yaml',
+        );
+
+        expect(
+          failure.readableMessage,
+          'Config file at `/repo/coverde.yaml` was not found.',
+        );
+      });
+    });
+
     group('$CoverdeCheckConfigFileReadFailure', () {
       test('readableMessage '
           '| returns the formatted message without an OS error', () {

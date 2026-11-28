@@ -1,6 +1,6 @@
-import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/commands/commands.dart';
 import 'package:coverde/src/entities/entities.dart';
+import 'package:coverde/src/features/check/render_check.dart';
 import 'package:coverde/src/features/coverde_config/coverde_config.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
@@ -23,15 +23,13 @@ Trace file used for the coverage check.''',
         defaultsTo: 'coverage/lcov.info',
       )
       ..addOption(
-        fileCoverageLogLevelOptionName,
+        configOptionName,
         help: '''
-The log level for the coverage value for each source file listed in the `$inputOptionName` info file.''',
-        allowed: FileCoverageLogLevel.values.map((level) => level.identifier),
-        allowedHelp: {
-          for (final logLevel in FileCoverageLogLevel.values)
-            logLevel.identifier: logLevel.help,
-        },
-        defaultsTo: FileCoverageLogLevel.lineContent.identifier,
+Path to the coverde.yaml file.
+
+A number threshold does not read the default file.
+A name threshold, and any explicit path, reads that file.''',
+        defaultsTo: _configFileName,
       );
   }
 
@@ -44,9 +42,9 @@ The log level for the coverage value for each source file listed in the `$inputO
   @visibleForTesting
   static const inputOptionAbbreviation = 'i';
 
-  /// Option name for the log level for the coverage value for each source file.
+  /// Option name for the configuration file.
   @visibleForTesting
-  static const fileCoverageLogLevelOptionName = 'file-coverage-log-level';
+  static const configOptionName = 'config';
 
   /// The name of the configuration file consulted for named thresholds.
   static const _configFileName = 'coverde.yaml';
@@ -73,16 +71,6 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
   Future<void> run() async {
     final argResults = this.argResults!;
     final filePath = p.absolute(argResults.option(inputOptionName)!);
-    final fileCoverageLogLevel = () {
-      final rawFileCoverageLogLevel = argResults.option(
-        fileCoverageLogLevelOptionName,
-      )!;
-      return FileCoverageLogLevel.values.firstWhere(
-        // It is safe to look up the log level by identifier because the allowed
-        // values are validated by the args parser.
-        (logLevel) => logLevel.identifier == rawFileCoverageLogLevel,
-      );
-    }();
     final args = argResults.rest;
     if (args.length > 1) {
       throw CoverdeCheckMoreThanOneArgumentFailure(
@@ -116,11 +104,7 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
       throw CoverdeCheckEmptyTraceFileFailure(traceFilePath: filePath);
     }
 
-    logCoverage(
-      logger: logger,
-      document: document,
-      fileCoverageLogLevel: fileCoverageLogLevel,
-    );
+    logger.write(await renderCheckReport(document: document));
 
     final lineRate = document.lineRate;
     if (lineRate == null) {
@@ -136,8 +120,12 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
 
   /// Resolves [rawThreshold] as a numeric one-off or a `coverde.yaml` name.
   ///
-  /// A token that parses as a number never reads the config file.
+  /// A number does not read the default file. A name does. An explicit
+  /// `--config` is read either way.
   double _resolveCoverageThreshold(String rawThreshold) {
+    final argResults = this.argResults!;
+    final configPath = p.absolute(argResults.option(configOptionName)!);
+    final configIsExplicit = argResults.wasParsed(configOptionName);
     final parsedThreshold = double.tryParse(rawThreshold);
     if (parsedThreshold != null) {
       if (!_isAcceptableCoverageThreshold(parsedThreshold)) {
@@ -145,10 +133,12 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
           usageMessage: usageWithoutDescription,
         );
       }
+      if (configIsExplicit) {
+        _readCoverdeConfig(configPath);
+      }
       return parsedThreshold;
     }
 
-    final configPath = p.join(Directory.current.path, _configFileName);
     final config = _readCoverdeConfig(configPath);
     final threshold = config.coverageThresholds[rawThreshold];
     if (threshold == null) {
@@ -167,7 +157,7 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
 
   CoverdeConfig _readCoverdeConfig(String configPath) {
     if (!FileSystemEntity.isFileSync(configPath)) {
-      return const CoverdeConfig(presets: []);
+      throw CoverdeCheckConfigFileNotFoundFailure(configPath: configPath);
     }
     final String rawConfig;
     try {

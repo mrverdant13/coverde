@@ -1,4 +1,3 @@
-import 'package:coverde/src/commands/check/log_coverage.dart';
 import 'package:coverde/src/entities/coverage_document.dart';
 import 'package:coverde/src/entities/file_coverage_log_level.dart';
 import 'package:coverde/src/features/console/render_console.dart';
@@ -8,6 +7,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:universal_io/io.dart';
+
+import '../../oracle/log_coverage.dart';
 
 final class _MockLogger extends Mock implements Logger {}
 
