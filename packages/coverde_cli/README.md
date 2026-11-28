@@ -63,10 +63,9 @@ This installs a `coverde` executable in the pub cache `bin` directory:
 - [**Optimize tests by gathering them.**](#coverde-optimize-tests)
 - [**Check the coverage value (%) computed from a trace file.**](#coverde-check)
 - [**Transform a coverage trace file.**](#coverde-transform)
-- [**Generate the coverage report from a trace file.**](#coverde-report)
+- [**Generate a coverage report from one or more trace files.**](#coverde-report)
 - [**Render a named coverage report from a trace file.**](#coverde-render)
 - [**Remove a set of files and folders.**](#coverde-remove)
-- [**Compute the coverage value (%) of an info file.**](#coverde-value)
 
 ## `coverde optimize-tests`
 
@@ -448,15 +447,13 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
   Trace file used for the coverage check.\
   **Default value:** `coverage/lcov.info`
 
-- `--file-coverage-log-level`
+- `--config`
 
-  The log level for the coverage value for each source file listed in the `input` info file.\
-  **Default value:** `line-content`\
-  **Allowed values:**
-    - `none`: Log nothing.
-    - `overview`: Log the overview of the coverage value for the file.
-    - `line-numbers`: Log only the uncovered line numbers.
-    - `line-content`: Log the uncovered line numbers and their content.
+  Path to the coverde.yaml file.
+
+  A number threshold does not read the default file.
+  A name threshold, and any explicit path, reads that file.\
+  **Default value:** `coverde.yaml`
 
 #### Parameters
 
@@ -474,14 +471,14 @@ It is either a number between 0 and 100, or the name of a `coverage` entry in co
 </details>
 
 <details>
-<summary>Show uncovered line numbers only</summary>
+<summary>Show uncovered line numbers when the source is missing</summary>
 
 ![coverde-check-file-coverage-log-level-line-numbers-100.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-file-coverage-log-level-line-numbers-100.png)
 
 </details>
 
 <details>
-<summary>Show resulting coverage only</summary>
+<summary>Show the global rate when every line is covered</summary>
 
 ![coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-check-i-coverage-custom-lcov-info-file-coverage-log-level-none-75.png)
 
@@ -631,46 +628,9 @@ $ coverde transform --transformations preset=package
 
 ## `coverde report`
 
-Generate the coverage report from a trace file.
+Generate a coverage report from one or more trace files.
 
-Generate the coverage report inside REPORT_DIR from the TRACE_FILE trace file.
-
-### Arguments
-
-#### Single-options
-
-- `--input`
-
-  Coverage trace file to be used for the coverage report generation.\
-  **Default value:** `coverage/lcov.info`
-
-- `--output`
-
-  Destination directory where the generated coverage report will be stored.\
-  **Default value:** `coverage/html/`
-
-- `--medium`
-
-  Medium threshold.
-
-  Must be a number between 0 and 100, and must be less than the high threshold.\
-  **Default value:** `75`
-
-- `--high`
-
-  High threshold.
-
-  Must be a number between 0 and 100, and must be greater than the medium threshold.\
-  **Default value:** `90`
-
-#### Flags
-
-- `--launch`
-
-  Launch the generated report in the default browser.
-  This option is only supported on desktop platforms.
-  (defaults to off)\
-  **Default value:** _Disabled_
+Choose a report. `coverde report` with no report prints usage.
 
 ### Examples
 
@@ -748,55 +708,6 @@ Remove a set of files and folders.
 - `paths`
 
   Set of file and/or directory paths to be removed.
-
-
-## `coverde value`
-
-Compute the coverage value (%) of an info file.
-
-Compute the coverage value of the LCOV_FILE info file.
-
-### Arguments
-
-#### Single-options
-
-- `--input`
-
-  Coverage info file to be used for the coverage value computation.\
-  **Default value:** `coverage/lcov.info`
-
-- `--file-coverage-log-level`
-
-  The log level for the coverage value for each source file listed in the LCOV_FILE info file.\
-  **Default value:** `line-content`\
-  **Allowed values:**
-    - `none`: Log nothing.
-    - `overview`: Log the overview of the coverage value for the file.
-    - `line-numbers`: Log only the uncovered line numbers.
-    - `line-content`: Log the uncovered line numbers and their content.
-
-### Examples
-
-<details>
-<summary>Show uncovered source</summary>
-
-![coverde-value.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value.png)
-
-</details>
-
-<details>
-<summary>Show uncovered line numbers only</summary>
-
-![coverde-value-file-coverage-log-level-line-numbers.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-file-coverage-log-level-line-numbers.png)
-
-</details>
-
-<details>
-<summary>Show resulting coverage only</summary>
-
-![coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png](https://raw.githubusercontent.com/mrverdant13/coverde/main/packages/coverde_cli/doc/examples/terminal/coverde-value-i-coverage-custom-lcov-info-file-coverage-log-level-none.png)
-
-</details>
 <!-- CLI FEATURES -->
 
 ---
